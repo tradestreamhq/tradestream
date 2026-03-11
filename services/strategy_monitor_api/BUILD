@@ -8,6 +8,7 @@ py_library(
     name = "strategy_monitor_api_lib",
     srcs = ["main.py"],
     deps = [
+        "//services/shared:auth",
         "//third_party/python:absl_py",
         "//third_party/python:flask",
         "//third_party/python:flask_cors",

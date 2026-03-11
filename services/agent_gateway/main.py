@@ -27,7 +27,10 @@ logger = logging.getLogger(__name__)
 
 REDIS_CHANNEL = "agent_events"
 
+from services.shared.auth import fastapi_auth_middleware
+
 app = FastAPI(title="Agent Gateway", version="1.0.0")
+fastapi_auth_middleware(app)
 
 # Connection pools (initialized on startup)
 _db_pool: Optional[asyncpg.Pool] = None

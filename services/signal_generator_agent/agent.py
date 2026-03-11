@@ -226,32 +226,11 @@ TOOL_TO_SERVER = {
 
 def _call_mcp_tool(tool_name, arguments, mcp_urls):
     """Call an MCP tool by dispatching to the correct MCP server via HTTP."""
-    import requests
+    from services.shared.mcp_client import resolve_and_call
 
-    server_key = TOOL_TO_SERVER.get(tool_name)
-    if not server_key:
-        return json.dumps({"error": f"Unknown tool: {tool_name}"})
-
-    base_url = mcp_urls.get(server_key)
-    if not base_url:
-        return json.dumps({"error": f"No URL configured for MCP server: {server_key}"})
-
-    url = f"{base_url}/call-tool"
-    payload = {"name": tool_name, "arguments": arguments or {}}
-
-    try:
-        resp = requests.post(url, json=payload, timeout=30)
-        resp.raise_for_status()
-        result = resp.json()
-        if "content" in result and isinstance(result["content"], list):
-            texts = [
-                c.get("text", "") for c in result["content"] if c.get("type") == "text"
-            ]
-            return "\n".join(texts) if texts else json.dumps(result)
-        return json.dumps(result)
-    except requests.RequestException as e:
-        logging.error("MCP call %s failed: %s", tool_name, e)
-        return json.dumps({"error": str(e)})
+    return resolve_and_call(
+        tool_name, arguments, TOOL_TO_SERVER, mcp_urls, return_type="string"
+    )
 
 
 def run_agent_for_symbol(symbol, api_key, mcp_urls):

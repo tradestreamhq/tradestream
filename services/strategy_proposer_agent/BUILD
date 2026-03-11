@@ -11,6 +11,7 @@ py_library(
     name = "agent_lib",
     srcs = ["agent.py"],
     deps = [
+        "//services/shared:mcp_client",
         "//third_party/python:absl_py",
         "//third_party/python:openai",
         "//third_party/python:requests",

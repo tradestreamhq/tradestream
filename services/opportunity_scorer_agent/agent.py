@@ -155,30 +155,11 @@ TOOL_TO_MCP_SERVER = {
 
 def _call_mcp_tool(tool_name, arguments, mcp_urls):
     """Call an MCP server tool via its HTTP endpoint."""
-    import requests
+    from services.shared.mcp_client import resolve_and_call
 
-    server_key = TOOL_TO_MCP_SERVER[tool_name]
-    base_url = mcp_urls[server_key].rstrip("/")
-    url = f"{base_url}/call-tool"
-
-    payload = {
-        "name": tool_name,
-        "arguments": arguments,
-    }
-
-    response = requests.post(url, json=payload, timeout=30)
-    response.raise_for_status()
-    result = response.json()
-
-    # MCP responses have a content array with text items
-    if "content" in result:
-        for item in result["content"]:
-            if item.get("type") == "text":
-                try:
-                    return json.loads(item["text"])
-                except (json.JSONDecodeError, KeyError):
-                    return item["text"]
-    return result
+    return resolve_and_call(
+        tool_name, arguments, TOOL_TO_MCP_SERVER, mcp_urls, return_type="parsed"
+    )
 
 
 def compute_score(
