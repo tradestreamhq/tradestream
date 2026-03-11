@@ -15,6 +15,7 @@ import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public final class ElderRayMAStrategyFactory implements StrategyFactory<ElderRayMAParameters> {
   @Override
   public ElderRayMAParameters getDefaultParameters() {
