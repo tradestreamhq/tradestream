@@ -21,6 +21,7 @@ try:
     from main import (
         app,
         FLAGS,
+        clamp_pagination,
         decode_base64_parameters,
         decode_hex_parameters,
         decode_sma_ema_crossover,
@@ -44,6 +45,9 @@ try:
         is_stablecoin,
         get_db_connection,
         fetch_all_strategies,
+        fetch_strategy_by_id,
+        fetch_distinct_symbols,
+        fetch_distinct_strategy_types,
         fetch_strategy_metrics,
         health_check,
         get_strategies,
@@ -328,9 +332,10 @@ class TestStrategyDataFetching(unittest.TestCase):
     def test_fetch_all_strategies_success(
         self, mock_is_stablecoin, mock_get_connection
     ):
-        """Test successful strategy fetching."""
+        """Test successful strategy fetching with pagination."""
         # Arrange
         mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = {"count": 1}
         mock_cursor.fetchall.return_value = [
             {
                 "strategy_id": 1,
@@ -357,10 +362,11 @@ class TestStrategyDataFetching(unittest.TestCase):
         mock_is_stablecoin.return_value = False
 
         # Act
-        result = fetch_all_strategies()
+        result, total_count = fetch_all_strategies()
 
         # Assert
         self.assertEqual(len(result), 1)
+        self.assertEqual(total_count, 1)
         self.assertEqual(result[0]["symbol"], "BTC/USD")
         self.assertEqual(result[0]["strategy_type"], "SMA_EMA_CROSSOVER")
         self.assertEqual(result[0]["current_score"], 0.85)
@@ -467,15 +473,18 @@ class TestAPIEndpoints(unittest.TestCase):
     def test_strategies_endpoint_success(self, mock_fetch):
         """Test strategies endpoint with successful data fetch."""
         # Arrange
-        mock_fetch.return_value = [
-            {
-                "strategy_id": "1",
-                "symbol": "BTC/USD",
-                "strategy_type": "SMA_EMA_CROSSOVER",
-                "current_score": 0.85,
-                "parameters": {"SMA Period": 20, "EMA Period": 50},
-            }
-        ]
+        mock_fetch.return_value = (
+            [
+                {
+                    "strategy_id": "1",
+                    "symbol": "BTC/USD",
+                    "strategy_type": "SMA_EMA_CROSSOVER",
+                    "current_score": 0.85,
+                    "parameters": {"SMA Period": 20, "EMA Period": 50},
+                }
+            ],
+            1,
+        )
 
         # Act
         response = self.client.get("/api/strategies")
@@ -487,21 +496,28 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(len(data["strategies"]), 1)
         self.assertIn("count", data)
         self.assertEqual(data["count"], 1)
+        self.assertIn("total_count", data)
+        self.assertEqual(data["total_count"], 1)
+        self.assertIn("limit", data)
+        self.assertIn("offset", data)
         self.assertIn("timestamp", data)
 
     @patch("main.fetch_all_strategies")
     def test_strategies_endpoint_with_filters(self, mock_fetch):
         """Test strategies endpoint with query parameters."""
         # Arrange
-        mock_fetch.return_value = [
-            {
-                "strategy_id": "1",
-                "symbol": "BTC/USD",
-                "strategy_type": "SMA_EMA_CROSSOVER",
-                "current_score": 0.85,
-                "parameters": {"SMA Period": 20, "EMA Period": 50},
-            }
-        ]
+        mock_fetch.return_value = (
+            [
+                {
+                    "strategy_id": "1",
+                    "symbol": "BTC/USD",
+                    "strategy_type": "SMA_EMA_CROSSOVER",
+                    "current_score": 0.85,
+                    "parameters": {"SMA Period": 20, "EMA Period": 50},
+                }
+            ],
+            1,
+        )
 
         # Act
         response = self.client.get(
@@ -527,19 +543,17 @@ class TestAPIEndpoints(unittest.TestCase):
         data = json.loads(response.data)
         self.assertIn("error", data)
 
-    @patch("main.fetch_all_strategies")
+    @patch("main.fetch_strategy_by_id")
     def test_strategy_by_id_success(self, mock_fetch):
         """Test strategy by ID endpoint with successful fetch."""
         # Arrange
-        mock_fetch.return_value = [
-            {
-                "strategy_id": "1",
-                "symbol": "BTC/USD",
-                "strategy_type": "SMA_EMA_CROSSOVER",
-                "current_score": 0.85,
-                "parameters": {"SMA Period": 20, "EMA Period": 50},
-            }
-        ]
+        mock_fetch.return_value = {
+            "strategy_id": "1",
+            "symbol": "BTC/USD",
+            "strategy_type": "SMA_EMA_CROSSOVER",
+            "current_score": 0.85,
+            "parameters": {"SMA Period": 20, "EMA Period": 50},
+        }
 
         # Act
         response = self.client.get("/api/strategies/1")
@@ -550,11 +564,11 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("strategy_id", data)
         self.assertEqual(data["strategy_id"], "1")
 
-    @patch("main.fetch_all_strategies")
+    @patch("main.fetch_strategy_by_id")
     def test_strategy_by_id_not_found(self, mock_fetch):
         """Test strategy by ID endpoint with non-existent strategy."""
         # Arrange
-        mock_fetch.return_value = []
+        mock_fetch.return_value = None
 
         # Act
         response = self.client.get("/api/strategies/nonexistent")
@@ -604,15 +618,11 @@ class TestAPIEndpoints(unittest.TestCase):
         data = json.loads(response.data)
         self.assertIn("error", data)
 
-    @patch("main.fetch_all_strategies")
+    @patch("main.fetch_distinct_symbols")
     def test_symbols_endpoint_success(self, mock_fetch):
         """Test symbols endpoint with successful fetch."""
         # Arrange
-        mock_fetch.return_value = [
-            {"symbol": "BTC/USD"},
-            {"symbol": "ETH/USD"},
-            {"symbol": "BTC/USD"},  # Duplicate to test deduplication
-        ]
+        mock_fetch.return_value = ["BTC/USD", "ETH/USD"]
 
         # Act
         response = self.client.get("/api/symbols")
@@ -621,19 +631,18 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertIn("symbols", data)
-        self.assertEqual(len(data["symbols"]), 2)  # Should be deduplicated
+        self.assertEqual(len(data["symbols"]), 2)
         self.assertIn("count", data)
         self.assertEqual(data["count"], 2)
+        self.assertIn("total_count", data)
+        self.assertIn("limit", data)
+        self.assertIn("offset", data)
 
-    @patch("main.fetch_all_strategies")
+    @patch("main.fetch_distinct_strategy_types")
     def test_strategy_types_endpoint_success(self, mock_fetch):
         """Test strategy types endpoint with successful fetch."""
         # Arrange
-        mock_fetch.return_value = [
-            {"strategy_type": "SMA_EMA_CROSSOVER"},
-            {"strategy_type": "RSI_EMA_CROSSOVER"},
-            {"strategy_type": "SMA_EMA_CROSSOVER"},  # Duplicate to test deduplication
-        ]
+        mock_fetch.return_value = ["RSI_EMA_CROSSOVER", "SMA_EMA_CROSSOVER"]
 
         # Act
         response = self.client.get("/api/strategy-types")
@@ -642,9 +651,132 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertIn("strategy_types", data)
-        self.assertEqual(len(data["strategy_types"]), 2)  # Should be deduplicated
+        self.assertEqual(len(data["strategy_types"]), 2)
         self.assertIn("count", data)
         self.assertEqual(data["count"], 2)
+        self.assertIn("total_count", data)
+        self.assertIn("limit", data)
+        self.assertIn("offset", data)
+
+
+class TestPagination(unittest.TestCase):
+    """Test pagination helpers and endpoint behavior."""
+
+    def test_clamp_pagination_defaults(self):
+        """Test default pagination values."""
+        limit, offset = clamp_pagination(None, None)
+        self.assertEqual(limit, 50)
+        self.assertEqual(offset, 0)
+
+    def test_clamp_pagination_max_limit(self):
+        """Test that limit is capped at 200."""
+        limit, offset = clamp_pagination(500, 0)
+        self.assertEqual(limit, 200)
+
+    def test_clamp_pagination_negative_offset(self):
+        """Test that negative offset is clamped to 0."""
+        limit, offset = clamp_pagination(10, -5)
+        self.assertEqual(offset, 0)
+
+    def test_clamp_pagination_zero_limit(self):
+        """Test that zero limit falls back to default."""
+        limit, offset = clamp_pagination(0, 0)
+        self.assertEqual(limit, 50)
+
+    def test_clamp_pagination_valid_values(self):
+        """Test that valid values pass through."""
+        limit, offset = clamp_pagination(25, 100)
+        self.assertEqual(limit, 25)
+        self.assertEqual(offset, 100)
+
+
+class TestPaginatedEndpoints(unittest.TestCase):
+    """Test pagination behavior of API endpoints."""
+
+    def setUp(self):
+        if not IMPORT_SUCCESS:
+            self.skipTest("Skipping due to import failure")
+        import main
+
+        main.DB_CONFIG = {
+            "host": "localhost",
+            "port": 5432,
+            "database": "test",
+            "username": "test",
+            "password": "test",
+        }
+        app.config["TESTING"] = True
+        self.client = app.test_client()
+
+    def tearDown(self):
+        import main
+
+        main.DB_CONFIG = {}
+
+    @patch("main.fetch_all_strategies")
+    def test_strategies_pagination_params(self, mock_fetch):
+        """Test that strategies endpoint accepts and returns pagination params."""
+        mock_fetch.return_value = ([], 100)
+
+        response = self.client.get("/api/strategies?limit=10&offset=20")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data["limit"], 10)
+        self.assertEqual(data["offset"], 20)
+        self.assertEqual(data["total_count"], 100)
+
+    @patch("main.fetch_all_strategies")
+    def test_strategies_default_pagination(self, mock_fetch):
+        """Test that strategies endpoint uses default pagination."""
+        mock_fetch.return_value = ([], 0)
+
+        response = self.client.get("/api/strategies")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data["limit"], 50)
+        self.assertEqual(data["offset"], 0)
+
+    @patch("main.fetch_all_strategies")
+    def test_strategies_max_limit_enforced(self, mock_fetch):
+        """Test that strategies endpoint caps limit at 200."""
+        mock_fetch.return_value = ([], 0)
+
+        response = self.client.get("/api/strategies?limit=999")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data["limit"], 200)
+
+    @patch("main.fetch_distinct_symbols")
+    def test_symbols_pagination(self, mock_fetch):
+        """Test symbols endpoint pagination."""
+        mock_fetch.return_value = [f"SYM{i}" for i in range(100)]
+
+        response = self.client.get("/api/symbols?limit=10&offset=5")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data["total_count"], 100)
+        self.assertEqual(data["limit"], 10)
+        self.assertEqual(data["offset"], 5)
+        self.assertEqual(len(data["symbols"]), 10)
+        self.assertEqual(data["symbols"][0], "SYM5")
+
+    @patch("main.fetch_distinct_strategy_types")
+    def test_strategy_types_pagination(self, mock_fetch):
+        """Test strategy types endpoint pagination."""
+        mock_fetch.return_value = [f"TYPE_{i}" for i in range(60)]
+
+        response = self.client.get("/api/strategy-types?limit=20&offset=10")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data["total_count"], 60)
+        self.assertEqual(data["limit"], 20)
+        self.assertEqual(data["offset"], 10)
+        self.assertEqual(len(data["strategy_types"]), 20)
 
 
 class TestConfigurationAndInitialization(unittest.TestCase):
