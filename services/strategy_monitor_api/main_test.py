@@ -811,6 +811,8 @@ class TestConfigurationAndInitialization(unittest.TestCase):
             "/api/metrics",
             "/api/symbols",
             "/api/strategy-types",
+            "/docs",
+            "/openapi.yaml",
         ]
 
         # Act
@@ -825,6 +827,29 @@ class TestConfigurationAndInitialization(unittest.TestCase):
                         for registered_route in registered_routes
                     )
                 )
+
+
+class TestOpenAPIDocs(unittest.TestCase):
+    """Test OpenAPI documentation endpoints."""
+
+    def setUp(self):
+        if not IMPORT_SUCCESS:
+            self.skipTest("Skipping due to import failure")
+        app.config["TESTING"] = True
+        self.client = app.test_client()
+
+    def test_swagger_ui_endpoint(self):
+        """Test that /docs returns Swagger UI HTML."""
+        response = self.client.get("/docs")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"swagger-ui", response.data)
+
+    def test_openapi_spec_endpoint(self):
+        """Test that /openapi.yaml returns the OpenAPI spec."""
+        response = self.client.get("/openapi.yaml")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"openapi", response.data)
+        self.assertIn(b"/api/strategies", response.data)
 
 
 class TestDependencies(unittest.TestCase):

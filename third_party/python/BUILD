@@ -194,6 +194,14 @@ py_library(
 )
 
 py_library(
+    name = "pydantic",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("pydantic"),
+    ],
+)
+
+py_library(
     name = "uvicorn",
     visibility = ["//visibility:public"],
     deps = [

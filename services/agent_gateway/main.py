@@ -20,6 +20,7 @@ import redis.asyncio as aioredis
 import uvicorn
 from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 logging.basicConfig(level=logging.INFO)
@@ -29,8 +30,48 @@ REDIS_CHANNEL = "agent_events"
 
 from services.shared.auth import fastapi_auth_middleware
 
-app = FastAPI(title="Agent Gateway", version="1.0.0")
+app = FastAPI(
+    title="Agent Gateway",
+    version="1.0.0",
+    description=(
+        "Streams agent events (signals, reasoning, tool calls, decisions) "
+        "via Server-Sent Events and provides a REST API for recent event queries."
+    ),
+)
 fastapi_auth_middleware(app)
+
+
+# --- Response models for OpenAPI documentation ---
+
+
+class HealthResponse(BaseModel):
+    status: str = Field(..., description="Service status: healthy or degraded", examples=["healthy"])
+    service: str = Field(..., description="Service name", examples=["agent-gateway"])
+    database: str = Field(..., description="Database connectivity status", examples=["connected"])
+    redis: str = Field(..., description="Redis connectivity status", examples=["connected"])
+
+
+class AgentEvent(BaseModel):
+    event_type: str = Field(..., description="Event type", examples=["signal"])
+    id: Optional[str] = Field(None, description="Event ID")
+    signal_id: Optional[str] = Field(None, description="Associated signal ID")
+    agent_name: Optional[str] = Field(None, description="Name of the agent", examples=["signal-generator"])
+    decision_type: Optional[str] = Field(None, description="Decision type")
+    score: Optional[float] = Field(None, description="Score (0-1)", examples=[0.85])
+    tier: Optional[str] = Field(None, description="Signal tier", examples=["high"])
+    reasoning: Optional[str] = Field(None, description="Agent reasoning text")
+    tool_calls: Optional[str] = Field(None, description="Tool calls made by the agent")
+    model_used: Optional[str] = Field(None, description="LLM model used", examples=["gpt-4"])
+    latency_ms: Optional[int] = Field(None, description="Processing latency in ms", examples=[150])
+    tokens_used: Optional[int] = Field(None, description="Token count used", examples=[500])
+    success: Optional[bool] = Field(None, description="Whether the event succeeded")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+    created_at: Optional[str] = Field(None, description="ISO 8601 timestamp", examples=["2026-01-15T10:30:00+00:00"])
+
+
+class RecentEventsResponse(BaseModel):
+    events: list[AgentEvent] = Field(..., description="List of agent events")
+    count: int = Field(..., description="Number of events returned", examples=[10])
 
 # Connection pools (initialized on startup)
 _db_pool: Optional[asyncpg.Pool] = None
@@ -140,9 +181,13 @@ async def _event_generator(
         await pubsub.aclose()
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse, responses={503: {"model": HealthResponse}}, tags=["Health"])
 async def health():
-    """Health check endpoint."""
+    """Health check endpoint.
+
+    Returns connectivity status for the database and Redis.
+    Returns 503 if any dependency is unreachable.
+    """
     checks = {"status": "healthy", "service": "agent-gateway"}
 
     # Check database connectivity
@@ -166,7 +211,7 @@ async def health():
     return JSONResponse(content=checks, status_code=status_code)
 
 
-@app.get("/events/stream")
+@app.get("/events/stream", tags=["Events"], response_class=EventSourceResponse)
 async def stream_events(
     agent_name: Optional[str] = Query(None, description="Filter by agent name"),
     event_type: Optional[str] = Query(
@@ -174,7 +219,12 @@ async def stream_events(
         description="Filter by event type (signal, reasoning, tool_call, decision)",
     ),
 ):
-    """Stream agent events via Server-Sent Events."""
+    """Stream agent events via Server-Sent Events.
+
+    Opens a persistent SSE connection that pushes real-time agent events
+    from the Redis pub/sub channel. Supports optional filtering by agent
+    name and event type.
+    """
 
     async def generate():
         async for event in _event_generator(
@@ -188,13 +238,19 @@ async def stream_events(
     return EventSourceResponse(generate())
 
 
-@app.get("/events/recent")
+@app.get("/events/recent", response_model=RecentEventsResponse, tags=["Events"])
 async def get_recent_events(
     limit: int = Query(50, ge=1, le=500, description="Number of events to return"),
     agent_name: Optional[str] = Query(None, description="Filter by agent name"),
-    event_type: Optional[str] = Query(None, description="Filter by event type"),
+    event_type: Optional[str] = Query(
+        None, description="Filter by event type (signal, reasoning, tool_call, decision)"
+    ),
 ):
-    """Get recent agent events from the database."""
+    """Get recent agent events from the database.
+
+    Returns the most recent agent decision events, ordered by creation time
+    descending. Supports filtering by agent name and event type.
+    """
     query = "SELECT * FROM agent_decisions WHERE 1=1"
     params = []
     param_idx = 0
