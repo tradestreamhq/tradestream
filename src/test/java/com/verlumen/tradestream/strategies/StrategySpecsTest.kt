@@ -66,7 +66,7 @@ class StrategySpecsTest {
         val names = StrategySpecs.getSupportedStrategyNames()
 
         // Assert
-        assertThat(names).hasSize(60)
+        assertThat(names).hasSize(57)
         assertThat(names).contains("MACD_CROSSOVER")
         assertThat(names).contains("RSI_EMA_CROSSOVER")
         // Verify sorted
@@ -76,7 +76,7 @@ class StrategySpecsTest {
     @Test
     fun `StrategySpecs size returns correct count`() {
         // Act & Assert
-        assertThat(StrategySpecs.size()).isEqualTo(60)
+        assertThat(StrategySpecs.size()).isEqualTo(57)
     }
 
     @Test
