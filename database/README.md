@@ -14,7 +14,12 @@ database/
 │   ├── V1__*.sql        # Baseline schema
 │   ├── V2__*.sql        # Strategy specs tables
 │   ├── V3__*.sql        # Performance tracking
-│   └── V4__*.sql        # Signal history
+│   ├── V4__*.sql        # Signal history
+│   ├── V5__*.sql        # Walk-forward validation
+│   ├── V6__*.sql        # Agent decisions
+│   ├── V7__*.sql        # Agent decisions enhancements
+│   ├── V8__*.sql        # Paper trades
+│   └── V9__*.sql        # Paper portfolio
 └── README.md            # This file
 ```
 
@@ -32,12 +37,17 @@ Examples:
 
 ## Current Migrations
 
-| Version | Description | Tables Created |
+| Version | Description | Tables/Changes |
 |---------|-------------|----------------|
 | V1 | Baseline | `Strategies` |
 | V2 | Strategy Specs | `strategy_specs`, `strategy_implementations` |
 | V3 | Performance | `strategy_performance` |
 | V4 | Signals | `signals` |
+| V5 | Walk-Forward Validation | `walk_forward_results`, adds validation columns to `Strategies` |
+| V6 | Agent Decisions | `agent_decisions` |
+| V7 | Agent Decisions Enhancements | Adds audit trail columns to `agent_decisions` |
+| V8 | Paper Trades | `paper_trades` |
+| V9 | Paper Portfolio | `paper_portfolio` |
 
 ## Running Migrations
 
@@ -78,7 +88,7 @@ flyway -url=jdbc:postgresql://localhost:5432/tradestream \
 
 1. Create a new file in `database/migrations/`:
    ```
-   V5__your_description.sql
+   V10__your_description.sql
    ```
 
 2. Add the migration SQL to the Helm ConfigMap:
@@ -103,7 +113,7 @@ databaseMigration:
 Flyway Community Edition does not support automatic rollback. For production rollbacks:
 
 1. Create a new migration that reverses the changes
-2. Example: `V5__rollback_v4_signals.sql`
+2. Example: `V10__rollback_v9_paper_portfolio.sql`
 
 ## Troubleshooting
 

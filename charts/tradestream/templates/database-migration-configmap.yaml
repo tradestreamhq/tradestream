@@ -184,4 +184,137 @@ data:
     CREATE INDEX IF NOT EXISTS idx_signals_outcome ON signals(outcome);
     CREATE INDEX IF NOT EXISTS idx_signals_created_at ON signals(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_signals_instrument_type_time ON signals(instrument, signal_type, created_at DESC);
+
+  V5__add_walkforward_validation.sql: |
+    -- V5__add_walkforward_validation.sql
+    -- Add walk-forward validation metrics for detecting overfitting
+
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS oos_sharpe DOUBLE PRECISION;
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS oos_return DOUBLE PRECISION;
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS sharpe_degradation DOUBLE PRECISION;
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS oos_sharpe_std_dev DOUBLE PRECISION;
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS validation_status VARCHAR(20);
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS wf_windows_count INTEGER;
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS validation_rejection_reason TEXT;
+    ALTER TABLE Strategies ADD COLUMN IF NOT EXISTS validated_at TIMESTAMP;
+
+    COMMENT ON COLUMN Strategies.oos_sharpe IS 'Mean out-of-sample Sharpe ratio from walk-forward validation';
+    COMMENT ON COLUMN Strategies.oos_return IS 'Mean out-of-sample return from walk-forward validation';
+    COMMENT ON COLUMN Strategies.sharpe_degradation IS 'Sharpe degradation: 1 - (OOS Sharpe / IS Sharpe). Lower is better.';
+    COMMENT ON COLUMN Strategies.oos_sharpe_std_dev IS 'Standard deviation of OOS Sharpe across windows (consistency metric)';
+    COMMENT ON COLUMN Strategies.validation_status IS 'Walk-forward validation status: APPROVED, REJECTED, INSUFFICIENT_DATA, PENDING';
+    COMMENT ON COLUMN Strategies.wf_windows_count IS 'Number of walk-forward windows used for validation';
+    COMMENT ON COLUMN Strategies.validation_rejection_reason IS 'Reason for rejection if validation_status is REJECTED';
+    COMMENT ON COLUMN Strategies.validated_at IS 'Timestamp when walk-forward validation was last run';
+
+    CREATE INDEX IF NOT EXISTS idx_strategies_validation_status
+    ON Strategies(validation_status);
+
+    CREATE INDEX IF NOT EXISTS idx_strategies_validated_approved
+    ON Strategies(validation_status, oos_sharpe DESC)
+    WHERE validation_status = 'APPROVED';
+
+    CREATE TABLE IF NOT EXISTS walk_forward_results (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        strategy_id UUID NOT NULL REFERENCES Strategies(strategy_id) ON DELETE CASCADE,
+        in_sample_sharpe DOUBLE PRECISION NOT NULL,
+        out_of_sample_sharpe DOUBLE PRECISION NOT NULL,
+        sharpe_degradation DOUBLE PRECISION NOT NULL,
+        oos_sharpe_std_dev DOUBLE PRECISION,
+        in_sample_return DOUBLE PRECISION,
+        out_of_sample_return DOUBLE PRECISION,
+        return_degradation DOUBLE PRECISION,
+        train_window_bars INTEGER NOT NULL,
+        test_window_bars INTEGER NOT NULL,
+        step_bars INTEGER NOT NULL,
+        windows_count INTEGER NOT NULL,
+        validation_status VARCHAR(20) NOT NULL,
+        rejection_reason TEXT,
+        window_results JSONB,
+        validated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_wf_strategy_id ON walk_forward_results(strategy_id);
+    CREATE INDEX IF NOT EXISTS idx_wf_validated_at ON walk_forward_results(validated_at);
+    CREATE INDEX IF NOT EXISTS idx_wf_status ON walk_forward_results(validation_status);
+
+  V6__add_agent_decisions.sql: |
+    -- V6__add_agent_decisions.sql
+    -- Add agent_decisions table for tracking AI agent decision history
+
+    CREATE TABLE IF NOT EXISTS agent_decisions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        signal_id UUID NOT NULL REFERENCES signals(id) ON DELETE CASCADE,
+        score DECIMAL(10,4),
+        tier VARCHAR(50),
+        reasoning TEXT,
+        tool_calls JSONB,
+        model_used VARCHAR(100),
+        latency_ms INTEGER,
+        tokens_used INTEGER,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_signal_id ON agent_decisions(signal_id);
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_created_at ON agent_decisions(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_tier ON agent_decisions(tier);
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_model ON agent_decisions(model_used);
+
+  V7__enhance_agent_decisions.sql: |
+    -- V7__enhance_agent_decisions.sql
+    -- Enhance agent_decisions table with full audit trail columns
+
+    ALTER TABLE agent_decisions ALTER COLUMN signal_id DROP NOT NULL;
+
+    ALTER TABLE agent_decisions ADD COLUMN agent_name VARCHAR(100);
+    ALTER TABLE agent_decisions ADD COLUMN decision_type VARCHAR(100);
+    ALTER TABLE agent_decisions ADD COLUMN input_context JSONB;
+    ALTER TABLE agent_decisions ADD COLUMN output JSONB;
+    ALTER TABLE agent_decisions ADD COLUMN success BOOLEAN DEFAULT true;
+    ALTER TABLE agent_decisions ADD COLUMN error_message TEXT;
+    ALTER TABLE agent_decisions ADD COLUMN parent_decision_id UUID REFERENCES agent_decisions(id);
+
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_agent_name ON agent_decisions(agent_name);
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_decision_type ON agent_decisions(decision_type);
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_success ON agent_decisions(success);
+    CREATE INDEX IF NOT EXISTS idx_agent_decisions_parent_id ON agent_decisions(parent_decision_id);
+
+  V8__add_paper_trades.sql: |
+    -- V8__add_paper_trades.sql
+    -- Paper trades table for tracking simulated positions from agent signals
+
+    CREATE TABLE paper_trades (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        signal_id UUID REFERENCES signals(id),
+        symbol VARCHAR(50) NOT NULL,
+        side VARCHAR(10) NOT NULL CHECK (side IN ('BUY', 'SELL')),
+        entry_price DECIMAL(20, 8) NOT NULL,
+        exit_price DECIMAL(20, 8),
+        quantity DECIMAL(20, 8) NOT NULL,
+        pnl DECIMAL(20, 8),
+        opened_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        closed_at TIMESTAMP,
+        status VARCHAR(10) NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED'))
+    );
+
+    CREATE INDEX idx_paper_trades_signal_id ON paper_trades(signal_id);
+    CREATE INDEX idx_paper_trades_symbol ON paper_trades(symbol);
+    CREATE INDEX idx_paper_trades_status ON paper_trades(status);
+    CREATE INDEX idx_paper_trades_opened_at ON paper_trades(opened_at DESC);
+
+  V9__add_paper_portfolio.sql: |
+    -- V9__add_paper_portfolio.sql
+    -- Paper portfolio table for tracking aggregate simulated positions
+
+    CREATE TABLE paper_portfolio (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        symbol VARCHAR(50) NOT NULL UNIQUE,
+        quantity DECIMAL(20, 8) NOT NULL DEFAULT 0,
+        avg_entry_price DECIMAL(20, 8) NOT NULL DEFAULT 0,
+        unrealized_pnl DECIMAL(20, 8) NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX idx_paper_portfolio_symbol ON paper_portfolio(symbol);
 {{- end }}
