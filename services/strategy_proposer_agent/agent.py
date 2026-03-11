@@ -1,9 +1,12 @@
 """Strategy Proposer Agent - proposes novel trading strategies via LLM + MCP tools."""
 
 import json
+import os
 
 from absl import logging
 from openai import OpenAI
+
+DEFAULT_MODEL = "anthropic/claude-sonnet-4-6"
 
 
 SYSTEM_PROMPT = """You are a trading strategy proposer agent. You analyze the existing strategy universe, identify gaps, and propose novel strategy specifications.
@@ -258,8 +261,9 @@ def run_proposer_agent(api_key, mcp_urls):
     for iteration in range(max_iterations):
         logging.info("Strategy proposer: LLM iteration %d", iteration + 1)
 
+        model = os.environ.get("STRATEGY_PROPOSER_MODEL", DEFAULT_MODEL)
         response = client.chat.completions.create(
-            model="anthropic/claude-3-5-sonnet",
+            model=model,
             messages=messages,
             tools=MCP_TOOLS,
             tool_choice="auto",
