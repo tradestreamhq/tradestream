@@ -17,6 +17,7 @@ import java.util.logging.Logger;
  * create a more volume-sensitive MACD indicator. It enters when the MACD line crosses above the
  * signal line, and exits when the MACD line crosses below the signal line.
  */
+@Deprecated
 public class VolumeWeightedMacdParamConfig implements ParamConfig {
 
   private static final int DEFAULT_SHORT_PERIOD = 12;
