@@ -1,0 +1,34 @@
+name: FRAMA
+description: Fractal Adaptive Moving Average — adaptive EMA using fractal dimension
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.FramaParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+    input: close
+    params: {}
+  - id: frama
+    type: EMA
+    input: close
+    params:
+      period: "${fc}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: frama
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: frama
+
+parameters:
+  - name: fc
+    type: INTEGER
+    min: 5
+    max: 50
+    defaultValue: 20

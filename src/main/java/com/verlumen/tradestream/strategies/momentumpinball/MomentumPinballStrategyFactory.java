@@ -18,6 +18,7 @@ import org.ta4j.core.rules.UnderIndicatorRule;
  * momentum is positive and short momentum crosses above zero, and exits when long momentum is
  * negative and short momentum crosses below zero.
  */
+@Deprecated
 public class MomentumPinballStrategyFactory implements StrategyFactory<MomentumPinballParameters> {
 
   private final MomentumPinballParamConfig paramConfig;
