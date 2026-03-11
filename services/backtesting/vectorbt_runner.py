@@ -73,6 +73,11 @@ class VectorBTRunner:
         # Extract metrics
         returns = portfolio.returns()
 
+        # Compute benchmark returns from the underlying asset (buy-and-hold)
+        benchmark_returns = ohlcv["close"].pct_change().fillna(0.0)
+        benchmark_returns = benchmark_returns.reindex(returns.index, fill_value=0.0)
+        alpha, beta = self._calc_alpha_beta(returns, benchmark_returns)
+
         return BacktestMetrics(
             cumulative_return=self._calc_cumulative_return(portfolio),
             annualized_return=self._calc_annualized_return(portfolio, len(ohlcv)),
@@ -84,8 +89,8 @@ class VectorBTRunner:
             profit_factor=self._calc_profit_factor(portfolio),
             number_of_trades=self._calc_num_trades(portfolio),
             average_trade_duration=self._calc_avg_trade_duration(portfolio),
-            alpha=0.0,  # Placeholder - requires benchmark
-            beta=1.0,  # Placeholder - requires benchmark
+            alpha=alpha,
+            beta=beta,
             strategy_score=0.0,  # Calculated after other metrics
         )
 
@@ -458,6 +463,43 @@ class VectorBTRunner:
             return float(durations.mean())
         except Exception:
             return 0.0
+
+    def _calc_alpha_beta(
+        self,
+        strategy_returns: pd.Series,
+        benchmark_returns: pd.Series,
+    ) -> Tuple[float, float]:
+        """Compute alpha and beta via OLS regression of strategy vs benchmark returns.
+
+        Beta = Cov(strategy, benchmark) / Var(benchmark)
+        Alpha = mean(strategy) - beta * mean(benchmark), annualized
+        """
+        try:
+            # Need at least 2 data points for meaningful regression
+            if len(strategy_returns) < 2 or len(benchmark_returns) < 2:
+                return 0.0, 0.0
+
+            bench_var = benchmark_returns.var()
+            if bench_var == 0:
+                # Benchmark has no variance — beta is undefined
+                return 0.0, 0.0
+
+            covariance = strategy_returns.cov(benchmark_returns)
+            beta = float(covariance / bench_var)
+
+            # Annualized alpha: (mean excess return per bar) * bars_per_year
+            rf_per_bar = self._risk_free_rate / self._bars_per_year
+            alpha = (
+                float(
+                    (strategy_returns.mean() - rf_per_bar)
+                    - beta * (benchmark_returns.mean() - rf_per_bar)
+                )
+                * self._bars_per_year
+            )
+
+            return alpha, beta
+        except Exception:
+            return 0.0, 0.0
 
     def _with_strategy_score(self, metrics: BacktestMetrics) -> BacktestMetrics:
         """Calculate and add strategy score."""
