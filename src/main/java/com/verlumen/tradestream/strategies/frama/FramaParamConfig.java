@@ -10,6 +10,7 @@ import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
+@Deprecated
 public final class FramaParamConfig implements ParamConfig {
   private static final Logger logger = Logger.getLogger(FramaParamConfig.class.getName());
 

@@ -1,0 +1,44 @@
+name: FRAMA
+description: Fractal Adaptive Moving Average — approximated via KAMA (Kaufman Adaptive MA) crossover with close price
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.FramaParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: frama
+    type: KAMA
+    input: close
+    params:
+      period: "${period}"
+      fastPeriod: "${fastPeriod}"
+      slowPeriod: "${slowPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: frama
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: frama
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 5
+    max: 50
+    defaultValue: 20
+  - name: fastPeriod
+    type: INTEGER
+    min: 1
+    max: 5
+    defaultValue: 2
+  - name: slowPeriod
+    type: INTEGER
+    min: 10
+    max: 60
+    defaultValue: 30

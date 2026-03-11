@@ -1,0 +1,39 @@
+name: HEIKEN_ASHI
+description: Heiken Ashi — approximated by comparing typical price EMA to open price EMA for smoothed candle crossovers
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.HeikenAshiParameters
+
+indicators:
+  - id: typicalPrice
+    type: TYPICAL_PRICE
+  - id: open
+    type: OPEN
+  - id: haClose
+    type: EMA
+    input: typicalPrice
+    params:
+      period: "${period}"
+  - id: haOpen
+    type: EMA
+    input: open
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: haClose
+    params:
+      crosses: haOpen
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: haClose
+    params:
+      crosses: haOpen
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 2
+    max: 30
+    defaultValue: 14
