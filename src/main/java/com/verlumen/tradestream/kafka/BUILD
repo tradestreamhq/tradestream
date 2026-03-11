@@ -11,6 +11,7 @@ java_library(
     name = "kafka_module",
     srcs = ["KafkaModule.java"],
     deps = [
+        ":kafka_defaults",
         ":kafka_producer_supplier",
         ":kafka_properties",
         "//third_party/java:auto_value",
