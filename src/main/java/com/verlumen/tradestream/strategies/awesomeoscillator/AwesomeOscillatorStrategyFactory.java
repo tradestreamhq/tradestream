@@ -13,6 +13,7 @@ import org.ta4j.core.indicators.helpers.MedianPriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public class AwesomeOscillatorStrategyFactory
     implements StrategyFactory<AwesomeOscillatorParameters> {
   @Override
