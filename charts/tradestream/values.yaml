@@ -390,6 +390,12 @@ strategyConsumer:
     kafkaTopic: "discovered-strategies"
     kafkaGroupId: "strategy_consumer_group"
     kafkaAutoOffsetReset: "latest"
+    # Kafka Security Configuration
+    # Set kafkaSecurityProtocol to "SASL_SSL" for production
+    kafkaSecurityProtocol: "PLAINTEXT"
+    kafkaSaslMechanism: ""
+    # kafkaSaslJaasConfig should be set via a Secret in production
+    kafkaSaslJaasConfig: ""
     # Processing Configuration
     batchSize: 100
     pollTimeoutMs: 1000

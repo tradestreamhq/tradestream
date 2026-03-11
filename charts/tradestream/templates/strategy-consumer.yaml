@@ -42,6 +42,17 @@ spec:
                   value: "{{ .Values.strategyConsumer.config.kafkaGroupId }}"
                 - name: KAFKA_AUTO_OFFSET_RESET
                   value: "{{ .Values.strategyConsumer.config.kafkaAutoOffsetReset }}"
+                # Kafka Security Configuration
+                - name: KAFKA_SECURITY_PROTOCOL
+                  value: "{{ .Values.strategyConsumer.config.kafkaSecurityProtocol }}"
+                {{- if .Values.strategyConsumer.config.kafkaSaslMechanism }}
+                - name: KAFKA_SASL_MECHANISM
+                  value: "{{ .Values.strategyConsumer.config.kafkaSaslMechanism }}"
+                {{- end }}
+                {{- if .Values.strategyConsumer.config.kafkaSaslJaasConfig }}
+                - name: KAFKA_SASL_JAAS_CONFIG
+                  value: "{{ .Values.strategyConsumer.config.kafkaSaslJaasConfig }}"
+                {{- end }}
                 # PostgreSQL Configuration
                 - name: POSTGRES_HOST
                   value: {{ tpl .Values.strategyConsumer.database.host . | quote }}
@@ -75,6 +86,13 @@ spec:
                 - "--kafka_topic=$(KAFKA_TOPIC)"
                 - "--kafka_group_id=$(KAFKA_GROUP_ID)"
                 - "--kafka_auto_offset_reset=$(KAFKA_AUTO_OFFSET_RESET)"
+                - "--kafka_security_protocol=$(KAFKA_SECURITY_PROTOCOL)"
+                {{- if .Values.strategyConsumer.config.kafkaSaslMechanism }}
+                - "--kafka_sasl_mechanism=$(KAFKA_SASL_MECHANISM)"
+                {{- end }}
+                {{- if .Values.strategyConsumer.config.kafkaSaslJaasConfig }}
+                - "--kafka_sasl_jaas_config=$(KAFKA_SASL_JAAS_CONFIG)"
+                {{- end }}
                 - "--postgres_host=$(POSTGRES_HOST)"
                 - "--postgres_port=$(POSTGRES_PORT)"
                 - "--postgres_database=$(POSTGRES_DATABASE)"

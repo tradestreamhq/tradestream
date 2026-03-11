@@ -57,6 +57,18 @@ class WriteDiscoveredStrategiesToKafkaFn
 
                     // Ordering guarantee
                     put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1)
+
+                    // Security settings from environment variables
+                    val securityProtocol = System.getenv("KAFKA_SECURITY_PROTOCOL") ?: "PLAINTEXT"
+                    put("security.protocol", securityProtocol)
+                    val saslMechanism = System.getenv("KAFKA_SASL_MECHANISM")
+                    if (!saslMechanism.isNullOrEmpty()) {
+                        put("sasl.mechanism", saslMechanism)
+                    }
+                    val saslJaasConfig = System.getenv("KAFKA_SASL_JAAS_CONFIG")
+                    if (!saslJaasConfig.isNullOrEmpty()) {
+                        put("sasl.jaas.config", saslJaasConfig)
+                    }
                 }
 
             kafkaProducer = KafkaProducer(props)

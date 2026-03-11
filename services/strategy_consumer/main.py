@@ -40,6 +40,24 @@ flags.DEFINE_string(
     "latest",
     "Kafka auto offset reset policy (earliest/latest).",
 )
+flags.DEFINE_string(
+    "kafka_security_protocol",
+    None,
+    "Kafka security protocol (PLAINTEXT, SASL_SSL, etc.). "
+    "Falls back to KAFKA_SECURITY_PROTOCOL env var, then PLAINTEXT.",
+)
+flags.DEFINE_string(
+    "kafka_sasl_mechanism",
+    None,
+    "Kafka SASL mechanism (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512). "
+    "Falls back to KAFKA_SASL_MECHANISM env var.",
+)
+flags.DEFINE_string(
+    "kafka_sasl_jaas_config",
+    None,
+    "Kafka SASL JAAS configuration string. "
+    "Falls back to KAFKA_SASL_JAAS_CONFIG env var.",
+)
 
 # PostgreSQL Configuration Flags
 flags.DEFINE_string(
@@ -141,6 +159,9 @@ class StrategyConsumerService:
             topic=FLAGS.kafka_topic,
             group_id=FLAGS.kafka_group_id,
             auto_offset_reset=FLAGS.kafka_auto_offset_reset,
+            security_protocol=FLAGS.kafka_security_protocol,
+            sasl_mechanism=FLAGS.kafka_sasl_mechanism,
+            sasl_jaas_config=FLAGS.kafka_sasl_jaas_config,
         )
 
         # Connect to Kafka

@@ -61,6 +61,17 @@ spec:
                 secretKeyRef:
                   name: {{ tpl .Values.strategyDiscoveryPipeline.database.passwordSecret.name . }}
                   key: {{ .Values.strategyDiscoveryPipeline.database.passwordSecret.key }}
+            # Kafka security settings (read by Java/Kotlin via System.getenv)
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: {{ .Values.strategyConsumer.config.kafkaSecurityProtocol | default "PLAINTEXT" | quote }}
+            {{- if .Values.strategyConsumer.config.kafkaSaslMechanism }}
+            - name: KAFKA_SASL_MECHANISM
+              value: {{ .Values.strategyConsumer.config.kafkaSaslMechanism | quote }}
+            {{- end }}
+            {{- if .Values.strategyConsumer.config.kafkaSaslJaasConfig }}
+            - name: KAFKA_SASL_JAAS_CONFIG
+              value: {{ .Values.strategyConsumer.config.kafkaSaslJaasConfig | quote }}
+            {{- end }}
             # Secret for InfluxDB token
             - name: INFLUXDB_TOKEN
               valueFrom:

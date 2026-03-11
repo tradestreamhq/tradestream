@@ -13,7 +13,7 @@ from google.protobuf import any_pb2
 from google.protobuf import timestamp_pb2
 import datetime
 
-from services.strategy_consumer.kafka_consumer import StrategyKafkaConsumer
+from services.strategy_consumer.kafka_consumer import StrategyKafkaConsumer, _parse_jaas_config
 
 
 class TestStrategyKafkaConsumer:
@@ -253,3 +253,58 @@ class TestStrategyKafkaConsumer:
         assert result["topic"] == "test-topic"
         assert "error" in result
         assert result["error"] == "Test error"
+
+    def test_init_with_security_protocol(self):
+        """Test consumer initialization with SASL_SSL security."""
+        consumer = StrategyKafkaConsumer(
+            bootstrap_servers="kafka.example.com:9093",
+            topic="test-topic",
+            security_protocol="SASL_SSL",
+            sasl_mechanism="SCRAM-SHA-256",
+            sasl_jaas_config='org.apache.kafka.common.security.scram.ScramLoginModule required username="user" password="pass";',
+        )
+        assert consumer.security_protocol == "SASL_SSL"
+        assert consumer.sasl_mechanism == "SCRAM-SHA-256"
+        assert "user" in consumer.sasl_jaas_config
+
+    @patch.dict("os.environ", {"KAFKA_SECURITY_PROTOCOL": "SASL_SSL", "KAFKA_SASL_MECHANISM": "PLAIN"})
+    def test_init_security_from_env(self):
+        """Test consumer picks up security settings from environment."""
+        consumer = StrategyKafkaConsumer(
+            bootstrap_servers="localhost:9092",
+            topic="test-topic",
+        )
+        assert consumer.security_protocol == "SASL_SSL"
+        assert consumer.sasl_mechanism == "PLAIN"
+
+    def test_init_defaults_to_plaintext(self):
+        """Test consumer defaults to PLAINTEXT when no env vars set."""
+        consumer = StrategyKafkaConsumer(
+            bootstrap_servers="localhost:9092",
+            topic="test-topic",
+        )
+        assert consumer.security_protocol == "PLAINTEXT"
+
+
+class TestParseJaasConfig:
+    """Test cases for _parse_jaas_config helper."""
+
+    def test_parse_plain_login_module(self):
+        """Test parsing standard JAAS config."""
+        jaas = 'org.apache.kafka.common.security.plain.PlainLoginModule required username="myuser" password="mypass";'
+        username, password = _parse_jaas_config(jaas)
+        assert username == "myuser"
+        assert password == "mypass"
+
+    def test_parse_scram_login_module(self):
+        """Test parsing SCRAM JAAS config."""
+        jaas = 'org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="secret123";'
+        username, password = _parse_jaas_config(jaas)
+        assert username == "admin"
+        assert password == "secret123"
+
+    def test_parse_empty_string(self):
+        """Test parsing empty JAAS config."""
+        username, password = _parse_jaas_config("")
+        assert username is None
+        assert password is None
