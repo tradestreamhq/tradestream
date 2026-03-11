@@ -63,12 +63,12 @@ class TestMigrationChain:
         """Verify all migration modules can be imported without errors."""
         for rev in script_dir.walk_revisions():
             module = rev.module
-            assert hasattr(module, "upgrade"), (
-                f"Migration {rev.revision} is missing an upgrade() function"
-            )
-            assert hasattr(module, "downgrade"), (
-                f"Migration {rev.revision} is missing a downgrade() function"
-            )
+            assert hasattr(
+                module, "upgrade"
+            ), f"Migration {rev.revision} is missing an upgrade() function"
+            assert hasattr(
+                module, "downgrade"
+            ), f"Migration {rev.revision} is missing a downgrade() function"
 
 
 class TestBaselineMigration:
@@ -121,6 +121,7 @@ class TestBaselineMigration:
 
         # Call downgrade indirectly by checking the source
         import inspect
+
         source = inspect.getsource(module.downgrade)
 
         expected_drops = [
@@ -136,9 +137,7 @@ class TestBaselineMigration:
         ]
 
         for table in expected_drops:
-            assert table in source, (
-                f"Downgrade is missing DROP for table '{table}'"
-            )
+            assert table in source, f"Downgrade is missing DROP for table '{table}'"
 
 
 class TestRunMigrations:
