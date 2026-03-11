@@ -1,0 +1,43 @@
+name: HEIKEN_ASHI
+description: Heiken Ashi smoothed candle trend strategy
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.HeikenAshiParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+    input: close
+    params: {}
+  - id: smoothedClose
+    type: EMA
+    input: close
+    params:
+      period: "${period}"
+  - id: open
+    type: OPEN
+    input: close
+    params: {}
+  - id: smoothedOpen
+    type: EMA
+    input: open
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: smoothedClose
+    params:
+      crosses: smoothedOpen
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: smoothedClose
+    params:
+      crosses: smoothedOpen
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 2
+    max: 30
+    defaultValue: 14
