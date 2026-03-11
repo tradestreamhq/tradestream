@@ -30,7 +30,11 @@ from services.strategy_discovery_request_factory.strategy_discovery_processor im
     StrategyDiscoveryProcessor,
 )
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
-from services.shared.credentials import InfluxDBConfig, RedisConfig, kafka_bootstrap_servers
+from services.shared.credentials import (
+    InfluxDBConfig,
+    RedisConfig,
+    kafka_bootstrap_servers,
+)
 from shared.persistence.influxdb_last_processed_tracker import (
     InfluxDBLastProcessedTracker,
 )
@@ -338,7 +342,9 @@ def main(argv):
 
     # Log configuration
     logging.info("Configuration:")
-    logging.info(f"  InfluxDB URL: {os.environ.get('INFLUXDB_URL', 'http://localhost:8086')}")
+    logging.info(
+        f"  InfluxDB URL: {os.environ.get('INFLUXDB_URL', 'http://localhost:8086')}"
+    )
     logging.info(f"  Kafka servers: {kafka_bootstrap_servers()}")
     logging.info(f"  Kafka topic: {FLAGS.kafka_topic}")
     logging.info(f"  Tracker service name: {FLAGS.tracker_service_name}")

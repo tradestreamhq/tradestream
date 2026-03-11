@@ -67,7 +67,9 @@ def main(argv):
 
     try:
         redis_manager_global = RedisManager(
-            host=redis_config.host, port=redis_config.port, password=redis_config.password
+            host=redis_config.host,
+            port=redis_config.port,
+            password=redis_config.password,
         )
         if not redis_manager_global.get_client():
             logging.error("Failed to connect to Redis (client check). Exiting.")
