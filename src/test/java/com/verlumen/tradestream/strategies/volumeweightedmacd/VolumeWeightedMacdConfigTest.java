@@ -77,9 +77,7 @@ public class VolumeWeightedMacdConfigTest {
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
         ImmutableList.of(
-            IntegerChromosome.of(8, 16),
-            IntegerChromosome.of(20, 32),
-            IntegerChromosome.of(5, 13));
+            IntegerChromosome.of(8, 16), IntegerChromosome.of(20, 32), IntegerChromosome.of(5, 13));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
