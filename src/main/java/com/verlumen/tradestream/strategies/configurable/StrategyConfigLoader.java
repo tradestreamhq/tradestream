@@ -48,11 +48,14 @@ public final class StrategyConfigLoader {
     MASS_INDEX("strategies/mass_index.yaml"),
     MOMENTUM_SMA_CROSSOVER("strategies/momentum_sma_crossover.yaml"),
     OBV_EMA("strategies/obv_ema.yaml"),
+    PARABOLIC_SAR("strategies/parabolic_sar.yaml"),
+    PIVOT("strategies/pivot.yaml"),
     PRICE_GAP("strategies/price_gap.yaml"),
     PVT("strategies/pvt.yaml"),
     RANGE_BARS("strategies/range_bars.yaml"),
     REGRESSION_CHANNEL("strategies/regression_channel.yaml"),
     RENKO_CHART("strategies/renko_chart.yaml"),
+    RAINBOW_OSCILLATOR("strategies/rainbow_oscillator.yaml"),
     ROC_MA_CROSSOVER("strategies/roc_ma_crossover.yaml"),
     RSI_EMA_CROSSOVER("strategies/rsi_ema_crossover.yaml"),
     RVI("strategies/rvi.yaml"),
@@ -63,7 +66,9 @@ public final class StrategyConfigLoader {
     STOCHASTIC_RSI("strategies/stochastic_rsi.yaml"),
     TICK_VOLUME_ANALYSIS("strategies/tick_volume_analysis.yaml"),
     TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml"),
-    TRIX_SIGNAL_LINE("strategies/trix_signal_line.yaml");
+    TRIX_SIGNAL_LINE("strategies/trix_signal_line.yaml"),
+    VWAP_CROSSOVER("strategies/vwap_crossover.yaml"),
+    VWAP_MEAN_REVERSION("strategies/vwap_mean_reversion.yaml");
 
     private final String resourcePath;
 
