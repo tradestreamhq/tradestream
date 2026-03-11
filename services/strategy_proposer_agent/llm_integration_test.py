@@ -70,9 +70,7 @@ def _make_mcp_http_response(data):
     """Create a mock successful MCP HTTP response."""
     resp = mock.Mock()
     resp.status_code = 200
-    resp.json.return_value = {
-        "content": [{"type": "text", "text": json.dumps(data)}]
-    }
+    resp.json.return_value = {"content": [{"type": "text", "text": json.dumps(data)}]}
     resp.raise_for_status.return_value = None
     return resp
 
@@ -147,9 +145,7 @@ class TestMultiTurnConversation:
 
         # Turn 1: LLM calls two tools at once
         tc1 = _make_llm_tool_call("tc_1", "list_strategy_types")
-        tc2 = _make_llm_tool_call(
-            "tc_2", "get_top_strategies", {"symbol": "BTC-USD"}
-        )
+        tc2 = _make_llm_tool_call("tc_2", "get_top_strategies", {"symbol": "BTC-USD"})
         msg1 = _make_tool_call_message([tc1, tc2])
         resp1 = _make_llm_response(msg1)
 

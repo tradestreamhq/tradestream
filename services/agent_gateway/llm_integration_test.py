@@ -135,9 +135,7 @@ class TestLlmMetadataSerialization:
     """Tests that LLM metadata (tokens, latency, model) serializes correctly."""
 
     def test_high_token_count_serializes(self):
-        row = _serialize_row(
-            _make_decision_row(tokens_used=50000, latency_ms=15000)
-        )
+        row = _serialize_row(_make_decision_row(tokens_used=50000, latency_ms=15000))
         event = _row_to_event(row)
         assert event["tokens_used"] == 50000
         assert event["latency_ms"] == 15000
@@ -268,9 +266,7 @@ class TestPublishEvent:
         with patch(f"{_MODULE}._redis", mock_redis):
             await publish_event(event)
 
-        mock_redis.publish.assert_called_once_with(
-            "agent_events", json.dumps(event)
-        )
+        mock_redis.publish.assert_called_once_with("agent_events", json.dumps(event))
 
     @pytest.mark.asyncio
     async def test_publish_tool_call_event(self):
