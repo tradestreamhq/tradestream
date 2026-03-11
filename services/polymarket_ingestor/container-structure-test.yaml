@@ -1,0 +1,10 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Polymarket Ingestor Help Test"
+    command: "/services/polymarket_ingestor/app"
+    args: ["--help"]
+    exitCode: 1 # Help usually exits with non-zero
+    expectedOutput:
+      - "polymarket_api_url"
+      - "run_mode"
+      - "kafka_bootstrap_servers"
