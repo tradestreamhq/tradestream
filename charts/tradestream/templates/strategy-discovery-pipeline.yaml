@@ -48,11 +48,36 @@ spec:
       volumes:
         - name: flink-writable-volume
           emptyDir: {}
+        - name: kafka-ssl-certs
+          secret:
+            secretName: {{ .Values.kafkaSsl.secretName }}
       containers:
         - name: flink-main-container
           env:
             - name: TMPDIR
               value: /opt/flink/writable-tmp
+            # Kafka SSL Configuration
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: KAFKA_SSL_TRUSTSTORE_LOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.truststoreFile }}"
+            - name: KAFKA_SSL_TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.kafkaSsl.passwordSecretName }}
+                  key: {{ .Values.kafkaSsl.passwordSecretKeys.truststorePassword }}
+            - name: KAFKA_SSL_KEYSTORE_LOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.keystoreFile }}"
+            - name: KAFKA_SSL_KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.kafkaSsl.passwordSecretName }}
+                  key: {{ .Values.kafkaSsl.passwordSecretKeys.keystorePassword }}
+            - name: KAFKA_SSL_KEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.kafkaSsl.passwordSecretName }}
+                  key: {{ .Values.kafkaSsl.passwordSecretKeys.keyPassword }}
             # Secret for Postgres credentials
             - name: DATABASE_USERNAME
               value: {{ .Values.strategyDiscoveryPipeline.database.username | quote }}
@@ -71,4 +96,7 @@ spec:
             - name: flink-writable-volume
               mountPath: /opt/flink/writable-tmp
               readOnly: false
+            - name: kafka-ssl-certs
+              mountPath: {{ .Values.kafkaSsl.mountPath }}
+              readOnly: true
 {{- end }}

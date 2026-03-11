@@ -48,6 +48,11 @@ class StrategyKafkaConsumer:
         heartbeat_interval_ms: int = 3000,
         max_poll_records: int = 500,
         max_poll_interval_ms: int = 300000,
+        security_protocol: str = "SSL",
+        ssl_cafile: Optional[str] = None,
+        ssl_certfile: Optional[str] = None,
+        ssl_keyfile: Optional[str] = None,
+        ssl_password: Optional[str] = None,
     ):
         self.bootstrap_servers = bootstrap_servers
         self.topic = topic
@@ -59,6 +64,17 @@ class StrategyKafkaConsumer:
         self.heartbeat_interval_ms = heartbeat_interval_ms
         self.max_poll_records = max_poll_records
         self.max_poll_interval_ms = max_poll_interval_ms
+        self.security_protocol = security_protocol
+        self.ssl_cafile = ssl_cafile
+        self.ssl_certfile = ssl_certfile
+        self.ssl_keyfile = ssl_keyfile
+        self.ssl_password = ssl_password
+
+        if self.security_protocol in ("SSL", "SASL_SSL") and not self.ssl_cafile:
+            raise ValueError(
+                f"ssl_cafile is required when using {self.security_protocol} "
+                "security protocol. Set KAFKA_SSL_CA_LOCATION environment variable."
+            )
 
         self.consumer: Optional[KafkaConsumer] = None
         self.is_running = False
@@ -71,6 +87,18 @@ class StrategyKafkaConsumer:
         """Establish connection to Kafka."""
         try:
             logging.info(f"Connecting to Kafka at {self.bootstrap_servers}")
+
+            ssl_kwargs = {}
+            if self.security_protocol in ("SSL", "SASL_SSL"):
+                ssl_kwargs["security_protocol"] = self.security_protocol
+                if self.ssl_cafile:
+                    ssl_kwargs["ssl_cafile"] = self.ssl_cafile
+                if self.ssl_certfile:
+                    ssl_kwargs["ssl_certfile"] = self.ssl_certfile
+                if self.ssl_keyfile:
+                    ssl_kwargs["ssl_keyfile"] = self.ssl_keyfile
+                if self.ssl_password:
+                    ssl_kwargs["ssl_password"] = self.ssl_password
 
             self.consumer = KafkaConsumer(
                 self.topic,
@@ -85,6 +113,7 @@ class StrategyKafkaConsumer:
                 max_poll_interval_ms=self.max_poll_interval_ms,
                 # Remove UTF-8 deserializers - we'll handle binary data directly
                 consumer_timeout_ms=1000,  # 1 second timeout for polling
+                **ssl_kwargs,
             )
 
             logging.info(f"Successfully connected to Kafka topic: {self.topic}")

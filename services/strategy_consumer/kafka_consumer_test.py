@@ -26,6 +26,8 @@ class TestStrategyKafkaConsumer:
             bootstrap_servers="localhost:9092",
             topic="test-topic",
             group_id="test-group",
+            security_protocol="SSL",
+            ssl_cafile="/etc/kafka/ssl/ca.crt",
         )
 
     def test_init(self, kafka_consumer):
@@ -33,8 +35,28 @@ class TestStrategyKafkaConsumer:
         assert kafka_consumer.bootstrap_servers == "localhost:9092"
         assert kafka_consumer.topic == "test-topic"
         assert kafka_consumer.group_id == "test-group"
+        assert kafka_consumer.security_protocol == "SSL"
+        assert kafka_consumer.ssl_cafile == "/etc/kafka/ssl/ca.crt"
         assert kafka_consumer.consumer is None
         assert kafka_consumer.is_running is False
+
+    def test_init_ssl_missing_cafile_raises(self):
+        """Test that SSL protocol without cafile raises ValueError."""
+        with pytest.raises(ValueError, match="ssl_cafile is required"):
+            StrategyKafkaConsumer(
+                bootstrap_servers="localhost:9092",
+                topic="test-topic",
+                security_protocol="SSL",
+            )
+
+    def test_init_plaintext_no_cafile_required(self):
+        """Test that PLAINTEXT protocol does not require cafile."""
+        consumer = StrategyKafkaConsumer(
+            bootstrap_servers="localhost:9092",
+            topic="test-topic",
+            security_protocol="PLAINTEXT",
+        )
+        assert consumer.security_protocol == "PLAINTEXT"
 
     @patch("kafka.KafkaConsumer")
     def test_connect_success(self, mock_kafka_consumer, kafka_consumer):

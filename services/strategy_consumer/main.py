@@ -40,6 +40,26 @@ flags.DEFINE_string(
     "latest",
     "Kafka auto offset reset policy (earliest/latest).",
 )
+flags.DEFINE_string(
+    "kafka_security_protocol",
+    "SSL",
+    "Kafka security protocol (PLAINTEXT, SSL, SASL_SSL).",
+)
+flags.DEFINE_string(
+    "kafka_ssl_cafile",
+    None,
+    "Path to CA certificate file for Kafka SSL.",
+)
+flags.DEFINE_string(
+    "kafka_ssl_certfile",
+    None,
+    "Path to client certificate file for Kafka SSL.",
+)
+flags.DEFINE_string(
+    "kafka_ssl_keyfile",
+    None,
+    "Path to client private key file for Kafka SSL.",
+)
 
 # PostgreSQL Configuration Flags
 flags.DEFINE_string(
@@ -135,12 +155,29 @@ class StrategyConsumerService:
         await self.postgres_client.connect()
         await self.postgres_client.verify_schema()
 
-        # Initialize Kafka consumer
+        # Initialize Kafka consumer with SSL configuration
+        import os
+
+        ssl_cafile = FLAGS.kafka_ssl_cafile or os.environ.get("KAFKA_SSL_CA_LOCATION")
+        ssl_certfile = FLAGS.kafka_ssl_certfile or os.environ.get(
+            "KAFKA_SSL_CERT_LOCATION"
+        )
+        ssl_keyfile = FLAGS.kafka_ssl_keyfile or os.environ.get(
+            "KAFKA_SSL_KEY_LOCATION"
+        )
+        security_protocol = FLAGS.kafka_security_protocol or os.environ.get(
+            "KAFKA_SECURITY_PROTOCOL", "SSL"
+        )
+
         self.kafka_consumer = StrategyKafkaConsumer(
             bootstrap_servers=FLAGS.kafka_bootstrap_servers,
             topic=FLAGS.kafka_topic,
             group_id=FLAGS.kafka_group_id,
             auto_offset_reset=FLAGS.kafka_auto_offset_reset,
+            security_protocol=security_protocol,
+            ssl_cafile=ssl_cafile,
+            ssl_certfile=ssl_certfile,
+            ssl_keyfile=ssl_keyfile,
         )
 
         # Connect to Kafka

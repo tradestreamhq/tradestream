@@ -33,8 +33,12 @@ class KafkaPublisherTest(unittest.TestCase):
         self.mock_future.get.return_value = self.mock_record_metadata
         self.mock_producer.send.return_value = self.mock_future
 
+        self.test_ssl_cafile = "/etc/kafka/ssl/ca.crt"
         self.publisher = KafkaPublisher(
-            bootstrap_servers=self.test_bootstrap_servers, topic_name=self.test_topic
+            bootstrap_servers=self.test_bootstrap_servers,
+            topic_name=self.test_topic,
+            security_protocol="SSL",
+            ssl_cafile=self.test_ssl_cafile,
         )
 
     def tearDown(self):
@@ -69,12 +73,15 @@ class KafkaPublisherTest(unittest.TestCase):
         """Test successful KafkaPublisher initialization."""
         self.assertEqual(self.publisher.bootstrap_servers, self.test_bootstrap_servers)
         self.assertEqual(self.publisher.topic_name, self.test_topic)
+        self.assertEqual(self.publisher.security_protocol, "SSL")
         self.assertIsNotNone(self.publisher.producer)
 
-        # Verify producer was created with correct parameters
+        # Verify producer was created with correct parameters including SSL
         self.mock_producer_class.assert_called_once_with(
             bootstrap_servers=self.test_bootstrap_servers,
             api_version_auto_timeout_ms=10000,
+            security_protocol="SSL",
+            ssl_cafile=self.test_ssl_cafile,
         )
 
     def test_initialization_no_brokers_available(self):
@@ -87,6 +94,8 @@ class KafkaPublisherTest(unittest.TestCase):
             KafkaPublisher(
                 bootstrap_servers=self.test_bootstrap_servers,
                 topic_name=self.test_topic,
+                security_protocol="SSL",
+                ssl_cafile=self.test_ssl_cafile,
             )
 
     def test_initialization_general_error(self):
@@ -97,7 +106,27 @@ class KafkaPublisherTest(unittest.TestCase):
             KafkaPublisher(
                 bootstrap_servers=self.test_bootstrap_servers,
                 topic_name=self.test_topic,
+                security_protocol="SSL",
+                ssl_cafile=self.test_ssl_cafile,
             )
+
+    def test_initialization_ssl_missing_cafile_raises(self):
+        """Test that SSL protocol without cafile raises ValueError."""
+        with self.assertRaises(ValueError):
+            KafkaPublisher(
+                bootstrap_servers=self.test_bootstrap_servers,
+                topic_name=self.test_topic,
+                security_protocol="SSL",
+            )
+
+    def test_initialization_plaintext_no_cafile_required(self):
+        """Test that PLAINTEXT protocol does not require cafile."""
+        publisher = KafkaPublisher(
+            bootstrap_servers=self.test_bootstrap_servers,
+            topic_name=self.test_topic,
+            security_protocol="PLAINTEXT",
+        )
+        self.assertEqual(publisher.security_protocol, "PLAINTEXT")
 
     def test_publish_request_success(self):
         """Test successful request publishing."""
@@ -227,7 +256,10 @@ class KafkaPublisherTest(unittest.TestCase):
 
         # Should eventually succeed after retries
         publisher = KafkaPublisher(
-            bootstrap_servers=self.test_bootstrap_servers, topic_name=self.test_topic
+            bootstrap_servers=self.test_bootstrap_servers,
+            topic_name=self.test_topic,
+            security_protocol="SSL",
+            ssl_cafile=self.test_ssl_cafile,
         )
 
         # Verify multiple attempts were made

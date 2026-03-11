@@ -19,17 +19,41 @@ spec:
         app: {{ include "tradestream.name" . }}
         component: kafka-ui
     spec:
+      volumes:
+        - name: kafka-ssl-certs
+          secret:
+            secretName: {{ .Values.kafkaSsl.secretName }}
       containers:
         - name: kafka-ui
           image: "{{ .Values.kafkaUi.image.repository }}:{{ .Values.kafkaUi.image.tag }}"
           imagePullPolicy: {{ .Values.kafkaUi.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.kafkaUi.service.port }}
+          volumeMounts:
+            - name: kafka-ssl-certs
+              mountPath: {{ .Values.kafkaSsl.mountPath }}
+              readOnly: true
           env:
             - name: KAFKA_CLUSTERS_0_NAME
               value: "local"
             - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
               value: "{{ include "tradestream.fullname" . }}-kafka:9092"
+            - name: KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.truststoreFile }}"
+            - name: KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.kafkaSsl.passwordSecretName }}
+                  key: {{ .Values.kafkaSsl.passwordSecretKeys.truststorePassword }}
+            - name: KAFKA_CLUSTERS_0_SSL_KEYSTORELOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.keystoreFile }}"
+            - name: KAFKA_CLUSTERS_0_SSL_KEYSTOREPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.kafkaSsl.passwordSecretName }}
+                  key: {{ .Values.kafkaSsl.passwordSecretKeys.keystorePassword }}
 
 ---
 apiVersion: v1

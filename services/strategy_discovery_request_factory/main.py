@@ -155,9 +155,18 @@ class StrategyDiscoveryService:
 
     def _connect_kafka(self) -> None:
         """Connect to Kafka for publishing requests."""
+        ssl_cafile = os.environ.get("KAFKA_SSL_CA_LOCATION")
+        ssl_certfile = os.environ.get("KAFKA_SSL_CERT_LOCATION")
+        ssl_keyfile = os.environ.get("KAFKA_SSL_KEY_LOCATION")
+        security_protocol = os.environ.get("KAFKA_SECURITY_PROTOCOL", "SSL")
+
         self.kafka_publisher = KafkaPublisher(
             bootstrap_servers=FLAGS.kafka_bootstrap_servers,
             topic_name=FLAGS.kafka_topic,
+            security_protocol=security_protocol,
+            ssl_cafile=ssl_cafile,
+            ssl_certfile=ssl_certfile,
+            ssl_keyfile=ssl_keyfile,
         )
         if not self.kafka_publisher.producer:
             raise ConnectionError("Failed to connect to Kafka")
