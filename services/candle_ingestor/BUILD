@@ -51,6 +51,7 @@ py_binary(
         ":ccxt_client_lib",
         ":influx_client_lib",
         ":ingestion_helpers_lib",
+        "//services/shared:service_runner",
         "//shared/cryptoclient:redis_crypto_client_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",

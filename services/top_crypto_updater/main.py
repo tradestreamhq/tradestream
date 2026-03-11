@@ -1,16 +1,20 @@
+"""Entry point for the Top Crypto Updater service.
+
+Runs as a long-lived service with health checks and graceful shutdown,
+periodically fetching top cryptocurrency symbols from CoinMarketCap
+and updating Redis.
+"""
+
 import os
 import sys
-import signal
 import json
-import redis  # Import redis for exception handling
 
-from absl import app
-from absl import flags
-from absl import logging
+import redis as redis_lib
+from absl import app, flags, logging
 
 from services.top_crypto_updater.redis_client import RedisManager
+from services.shared.service_runner import ServiceRunner
 from shared.cryptoclient.cmc_client import get_top_n_crypto_symbols
-
 
 FLAGS = flags.FLAGS
 
@@ -37,91 +41,63 @@ flags.DEFINE_string(
     "Redis key to store the list of top cryptocurrencies.",
 )
 
+# Service flags
+flags.DEFINE_integer(
+    "interval_seconds", 900, "Interval between updates in seconds (default 15 min)."
+)
+flags.DEFINE_integer("health_port", 8080, "Port for health check HTTP server.")
 
-# Global variable for shutdown handling
-redis_manager_global = None
+# Module-level RedisManager reused across iterations.
+_redis_manager = None
 
 
-def handle_shutdown_signal(signum, frame):
-    global redis_manager_global
-    logging.info(
-        f"Shutdown signal {signal.Signals(signum).name} received. Initiating graceful shutdown..."
+def _initialize_redis():
+    """Create the RedisManager once and reuse it."""
+    global _redis_manager
+    if _redis_manager is not None:
+        return
+    _redis_manager = RedisManager(
+        host=FLAGS.redis_host, port=FLAGS.redis_port, password=FLAGS.redis_password
     )
-    if redis_manager_global:
-        try:
-            logging.info("Attempting to close Redis connection from signal handler...")
-            redis_manager_global.close()
-            logging.info("Redis connection closed via signal handler.")
-        except Exception as e:
-            logging.error(f"Error closing Redis connection from signal handler: {e}")
-    sys.exit(0)
+    if not _redis_manager.get_client():
+        raise ConnectionError("Failed to connect to Redis")
+    logging.info("Redis connection established")
+
+
+def _update_top_cryptos():
+    """Fetch top crypto symbols from CMC and update Redis."""
+    _initialize_redis()
+
+    logging.info("Fetching top %d cryptocurrency symbols from CoinMarketCap...", FLAGS.top_n_cryptos)
+    top_symbols = get_top_n_crypto_symbols(FLAGS.cmc_api_key, FLAGS.top_n_cryptos)
+
+    if not top_symbols:
+        logging.warning("No symbols fetched from CoinMarketCap. Nothing to update.")
+        return
+
+    logging.info("Successfully fetched symbols: %s", top_symbols)
+    symbols_json = json.dumps(top_symbols)
+    if _redis_manager.set_value(FLAGS.redis_key, symbols_json):
+        logging.info("Successfully updated Redis key '%s'.", FLAGS.redis_key)
+    else:
+        logging.error("Failed to update Redis key '%s'.", FLAGS.redis_key)
 
 
 def main(argv):
-    del argv  # Unused.
-    global redis_manager_global
+    del argv
     logging.set_verbosity(logging.INFO)
-    logging.info("Starting Top Crypto Updater CronJob...")
-
-    signal.signal(signal.SIGINT, handle_shutdown_signal)
-    signal.signal(signal.SIGTERM, handle_shutdown_signal)
 
     if not FLAGS.cmc_api_key:
-        logging.error(
-            "CMC_API_KEY is required. Set environment variable or use --cmc_api_key."
-        )
+        logging.error("CMC_API_KEY is required. Set environment variable or use --cmc_api_key.")
         sys.exit(1)
 
-    logging.info("Configuration:")
-    logging.info(
-        f"  CoinMarketCap API Key: {'****' if FLAGS.cmc_api_key else 'Not Set'}"
+    runner = ServiceRunner(
+        service_name="top_crypto_updater",
+        interval_seconds=FLAGS.interval_seconds,
+        task_fn=_update_top_cryptos,
+        health_port=FLAGS.health_port,
     )
-    logging.info(f"  Top N Cryptos: {FLAGS.top_n_cryptos}")
-    logging.info(f"  Redis Host: {FLAGS.redis_host}")
-    logging.info(f"  Redis Port: {FLAGS.redis_port}")
-    logging.info(f"  Redis Key: {FLAGS.redis_key}")
-
-    try:
-        redis_manager_global = RedisManager(
-            host=FLAGS.redis_host, port=FLAGS.redis_port, password=FLAGS.redis_password
-        )
-        if not redis_manager_global.get_client():
-            logging.error("Failed to connect to Redis (client check). Exiting.")
-            sys.exit(1)
-    except redis.exceptions.RedisError as e:
-        logging.error(f"Failed to initialize RedisManager: {e}. Exiting.")
-        sys.exit(1)
-    # If Redis initialization failed and exited, the rest of the `try` block for symbol fetching won't run.
-
-    try:
-        logging.info(
-            f"Fetching top {FLAGS.top_n_cryptos} cryptocurrency symbols from CoinMarketCap..."
-        )
-        top_symbols_tiingo_format = get_top_n_crypto_symbols(
-            FLAGS.cmc_api_key, FLAGS.top_n_cryptos
-        )
-
-        if not top_symbols_tiingo_format:
-            logging.warning(
-                "No symbols fetched from CoinMarketCap. Nothing to update in Redis."
-            )
-        else:
-            logging.info(f"Successfully fetched symbols: {top_symbols_tiingo_format}")
-            symbols_json = json.dumps(top_symbols_tiingo_format)
-            if redis_manager_global.set_value(FLAGS.redis_key, symbols_json):
-                logging.info(f"Successfully updated Redis key '{FLAGS.redis_key}'.")
-            else:
-                logging.error(f"Failed to update Redis key '{FLAGS.redis_key}'.")
-
-    except SystemExit:  # Explicitly catch SystemExit from a previous sys.exit()
-        raise  # Re-raise to ensure the script terminates
-    except Exception as e:
-        logging.exception(f"An error occurred during the update process: {e}")
-        sys.exit(1)  # This is the second potential exit point if other errors occur
-    finally:
-        if redis_manager_global:
-            redis_manager_global.close()
-        logging.info("Top Crypto Updater CronJob finished.")
+    runner.run()
 
 
 if __name__ == "__main__":

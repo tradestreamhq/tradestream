@@ -47,6 +47,7 @@ py_binary(
     main = "main.py",
     deps = [
         ":config_lib",
+        "//services/shared:service_runner",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
         "//shared/cryptoclient:redis_crypto_client_lib",
@@ -62,6 +63,7 @@ py_test(
     srcs = ["config_test.py"],
     deps = [
         ":config_lib",
+        "//services/shared:service_runner",
     ],
 )
 
@@ -108,6 +110,7 @@ py_test(
     deps = [
         ":app",
         ":config_lib",
+        "//services/shared:service_runner",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",

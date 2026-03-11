@@ -25,6 +25,7 @@ py_binary(
     main = "main.py",
     deps = [
         ":agent_lib",
+        "//services/shared:service_runner",
         "//third_party/python:absl_py",
     ],
 )

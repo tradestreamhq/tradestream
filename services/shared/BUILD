@@ -128,3 +128,24 @@ py_test(
         "//third_party/python:pytest",
     ],
 )
+
+py_library(
+    name = "service_runner",
+    srcs = [
+        "__init__.py",
+        "service_runner.py",
+    ],
+    deps = [
+        ":structured_logger",
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_test(
+    name = "service_runner_test",
+    srcs = ["service_runner_test.py"],
+    deps = [
+        ":service_runner",
+        "//third_party/python:pytest",
+    ],
+)

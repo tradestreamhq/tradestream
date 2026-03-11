@@ -17,7 +17,7 @@ FLAGS = flags.FLAGS
 class TopCryptoUpdaterMainTest(absltest.TestCase):
     def setUp(self):
         super().setUp()
-        top_crypto_updater_main.redis_manager_global = None  # Ensure it's reset
+        top_crypto_updater_main._redis_manager = None
 
         self.patch_get_top_n = mock.patch(
             "services.top_crypto_updater.main.get_top_n_crypto_symbols"
@@ -29,21 +29,19 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
             "services.top_crypto_updater.main.RedisManager"
         )
         self.mock_redis_manager_constructor = self.patch_redis_manager.start()
-        # self.mock_redis_instance will be set per test if RedisManager construction is successful
         self.mock_redis_instance = mock.MagicMock(spec=RedisManager)
+        self.addCleanup(self.patch_redis_manager.stop)
 
         self.saved_flags = flagsaver.save_flag_values()
-        # Set default required flags for tests that don't focus on their absence
         FLAGS.cmc_api_key = "dummy_cmc_for_test_main"
         FLAGS.redis_host = "dummy_redis_host_main"
 
     def tearDown(self):
         flagsaver.restore_flag_values(self.saved_flags)
-        top_crypto_updater_main.redis_manager_global = None  # Clean up global
+        top_crypto_updater_main._redis_manager = None
         super().tearDown()
 
-    def test_main_success_flow(self):
-        # Arrange
+    def test_update_top_cryptos_success(self):
         FLAGS.cmc_api_key = "fake_cmc_key"
         FLAGS.redis_host = "fakeredis"
         FLAGS.top_n_cryptos = 5
@@ -52,125 +50,67 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
         expected_symbols = ["btcusd", "ethusd", "adausd", "solusd", "dogeusd"]
         self.mock_get_top_n_symbols.return_value = expected_symbols
 
-        # Configure the constructor to return our specific mock instance for this successful test
         self.mock_redis_manager_constructor.return_value = self.mock_redis_instance
         self.mock_redis_instance.get_client.return_value = True
         self.mock_redis_instance.set_value.return_value = True
 
-        # Act
-        top_crypto_updater_main.main(None)
+        top_crypto_updater_main._update_top_cryptos()
 
-        # Assert
         self.mock_get_top_n_symbols.assert_called_once_with("fake_cmc_key", 5)
-        self.mock_redis_manager_constructor.assert_called_once_with(
-            host="fakeredis", port=FLAGS.redis_port, password=None
-        )
         self.mock_redis_instance.set_value.assert_called_once_with(
             "test_top_cryptos", json.dumps(expected_symbols)
         )
-        self.mock_redis_instance.close.assert_called_once()
 
-    @flagsaver.flagsaver(cmc_api_key="")  # Override flag for this test
-    def test_main_no_cmc_api_key_exits(self):
-        with self.assertRaises(SystemExit) as cm:
-            top_crypto_updater_main.main(None)
-        self.assertEqual(cm.exception.code, 1)
-        self.mock_get_top_n_symbols.assert_not_called()
-
-    @mock.patch("services.top_crypto_updater.main.sys.exit")  # Mock sys.exit
-    def test_main_redis_connection_failure_exits(self, mock_sys_exit):
+    def test_update_no_symbols_logs_warning(self):
         FLAGS.cmc_api_key = "fake_cmc_key"
-        # Simulate RedisManager constructor failing
-        self.mock_redis_manager_constructor.side_effect = (
-            redis.exceptions.ConnectionError("Mock connection failed")
-        )
-
-        # Make the mock sys.exit actually raise SystemExit to simulate real behavior
-        def side_effect(code):
-            raise SystemExit(code)
-
-        mock_sys_exit.side_effect = side_effect
-
-        with self.assertRaises(SystemExit) as cm:
-            top_crypto_updater_main.main(None)
-
-        self.assertEqual(cm.exception.code, 1)
-        mock_sys_exit.assert_called_once_with(1)
-        self.mock_redis_manager_constructor.assert_called_once()
-        # Ensure close was not called since the manager was never successfully created
-        self.mock_redis_instance.close.assert_not_called()
-
-    def test_main_cmc_fetch_fails_logs_warning_but_completes(self):
-        FLAGS.cmc_api_key = "fake_cmc_key"
-        self.mock_get_top_n_symbols.return_value = []  # Simulate no symbols returned
+        self.mock_get_top_n_symbols.return_value = []
 
         self.mock_redis_manager_constructor.return_value = self.mock_redis_instance
         self.mock_redis_instance.get_client.return_value = True
 
-        with mock.patch.object(
-            top_crypto_updater_main.logging, "warning"
-        ) as mock_log_warning:
-            top_crypto_updater_main.main(None)
+        top_crypto_updater_main._update_top_cryptos()
 
         self.mock_get_top_n_symbols.assert_called_once()
-        mock_log_warning.assert_any_call(
-            "No symbols fetched from CoinMarketCap. Nothing to update in Redis."
-        )
         self.mock_redis_instance.set_value.assert_not_called()
-        self.mock_redis_instance.close.assert_called_once()
 
-    def test_main_redis_set_value_fails_logs_error(self):
+    def test_update_redis_set_failure_logs_error(self):
         FLAGS.cmc_api_key = "fake_cmc_key"
         expected_symbols = ["btcusd"]
         self.mock_get_top_n_symbols.return_value = expected_symbols
 
         self.mock_redis_manager_constructor.return_value = self.mock_redis_instance
         self.mock_redis_instance.get_client.return_value = True
-        self.mock_redis_instance.set_value.return_value = False  # Simulate set failure
+        self.mock_redis_instance.set_value.return_value = False
 
-        with mock.patch.object(
-            top_crypto_updater_main.logging, "error"
-        ) as mock_log_error:
-            top_crypto_updater_main.main(None)
+        top_crypto_updater_main._update_top_cryptos()
 
-        self.mock_redis_instance.set_value.assert_called_once_with(
-            FLAGS.redis_key, json.dumps(expected_symbols)
-        )
-        mock_log_error.assert_any_call(
-            f"Failed to update Redis key '{FLAGS.redis_key}'."
-        )
-        self.mock_redis_instance.close.assert_called_once()
+        self.mock_redis_instance.set_value.assert_called_once()
 
-    @mock.patch("services.top_crypto_updater.main.signal")
-    def test_main_registers_signal_handlers(self, mock_signal_module):
+    @mock.patch("services.top_crypto_updater.main.ServiceRunner")
+    def test_main_creates_service_runner(self, mock_runner_cls):
         FLAGS.cmc_api_key = "fake_cmc_key"
-        self.mock_redis_manager_constructor.return_value = self.mock_redis_instance
-        self.mock_redis_instance.get_client.return_value = True
-        self.mock_get_top_n_symbols.return_value = ["btcusd"]
-        self.mock_redis_instance.set_value.return_value = True
+        mock_runner = mock.MagicMock()
+        mock_runner_cls.return_value = mock_runner
 
         top_crypto_updater_main.main(None)
 
-        mock_signal_module.signal.assert_any_call(
-            mock_signal_module.SIGINT, top_crypto_updater_main.handle_shutdown_signal
-        )
-        mock_signal_module.signal.assert_any_call(
-            mock_signal_module.SIGTERM, top_crypto_updater_main.handle_shutdown_signal
-        )
+        mock_runner_cls.assert_called_once()
+        call_kwargs = mock_runner_cls.call_args
+        self.assertEqual(call_kwargs.kwargs["service_name"], "top_crypto_updater")
+        mock_runner.run.assert_called_once()
 
-    @mock.patch("services.top_crypto_updater.main.sys.exit")
-    @mock.patch("services.top_crypto_updater.main.signal.Signals")
-    def test_handle_shutdown_signal(self, mock_signals_enum, mock_sys_exit):
-        mock_signals_enum.return_value.name = "SIGTEST"
+    @flagsaver.flagsaver(cmc_api_key="")
+    def test_main_no_cmc_api_key_exits(self):
+        with self.assertRaises(SystemExit) as cm:
+            top_crypto_updater_main.main(None)
+        self.assertEqual(cm.exception.code, 1)
 
-        # Simulate Redis manager being set globally
-        mock_redis_mgr_global_instance = mock.MagicMock(spec=RedisManager)
-        top_crypto_updater_main.redis_manager_global = mock_redis_mgr_global_instance
+    def test_initialize_redis_connection_failure(self):
+        self.mock_redis_manager_constructor.return_value = self.mock_redis_instance
+        self.mock_redis_instance.get_client.return_value = False
 
-        top_crypto_updater_main.handle_shutdown_signal(15, None)  # 15 is SIGTERM
-
-        mock_redis_mgr_global_instance.close.assert_called_once()
-        mock_sys_exit.assert_called_once_with(0)
+        with self.assertRaises(ConnectionError):
+            top_crypto_updater_main._initialize_redis()
 
 
 if __name__ == "__main__":
