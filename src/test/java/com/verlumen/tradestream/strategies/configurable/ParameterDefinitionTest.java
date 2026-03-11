@@ -29,7 +29,8 @@ public class ParameterDefinitionTest {
 
   @Test
   public void constructor_createsCorrectDefinition() {
-    ParameterDefinition def = new ParameterDefinition("threshold", ParameterType.DOUBLE, 0.1, 1.0, 0.5);
+    ParameterDefinition def =
+        new ParameterDefinition("threshold", ParameterType.DOUBLE, 0.1, 1.0, 0.5);
 
     assertEquals("threshold", def.getName());
     assertEquals(ParameterType.DOUBLE, def.getType());
@@ -93,7 +94,8 @@ public class ParameterDefinitionTest {
 
   @Test
   public void toString_containsFieldValues() {
-    ParameterDefinition def = new ParameterDefinition("period", ParameterType.INTEGER, 1, 100, 14);
+    ParameterDefinition def =
+        new ParameterDefinition("period", ParameterType.INTEGER, 1, 100, 14);
     String str = def.toString();
     assertTrue(str.contains("period"));
     assertTrue(str.contains("INTEGER"));
