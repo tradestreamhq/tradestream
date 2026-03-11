@@ -3,11 +3,11 @@ package com.verlumen.tradestream.backtesting
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.grpc.Grpc
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusRuntimeException
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import io.grpc.TlsChannelCredentials
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -61,14 +61,13 @@ class RemoteBacktestRunner
                 val caCertFile = File(caCertPath)
                 require(caCertFile.exists()) { "TLS CA certificate not found: $caCertPath" }
                 logger.atInfo().log("Configuring TLS with CA cert=%s", caCertPath)
-                val sslContext =
-                    GrpcSslContexts
-                        .forClient()
+                val tlsCredentials =
+                    TlsChannelCredentials
+                        .newBuilder()
                         .trustManager(caCertFile)
                         .build()
-                NettyChannelBuilder
-                    .forAddress(host, port)
-                    .sslContext(sslContext)
+                Grpc
+                    .newChannelBuilderForAddress(host, port, tlsCredentials)
                     .build()
             } else {
                 logger.atWarning().log(

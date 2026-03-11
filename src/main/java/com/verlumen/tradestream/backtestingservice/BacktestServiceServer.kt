@@ -5,16 +5,16 @@ import com.google.inject.Guice
 import com.google.inject.Inject
 import com.verlumen.tradestream.backtestingservice.BacktestingGrpcService
 import com.verlumen.tradestream.backtestingservice.BacktestingServiceModule
+import io.grpc.Grpc
 import io.grpc.Server
 import io.grpc.ServerBuilder
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
-import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
+import io.grpc.TlsServerCredentials
 import io.grpc.protobuf.services.HealthStatusManager
 import io.grpc.protobuf.services.ProtoReflectionService
-import net.sourceforge.argparse4j.ArgumentParsers
-import net.sourceforge.argparse4j.inf.ArgumentParserException
 import java.io.File
 import java.util.concurrent.TimeUnit
+import net.sourceforge.argparse4j.ArgumentParsers
+import net.sourceforge.argparse4j.inf.ArgumentParserException
 
 /**
  * Standalone gRPC server for the Backtesting Service.
@@ -92,14 +92,13 @@ class BacktestServiceServer
 
                     logger.atInfo().log("Configuring TLS with cert=%s, key=%s", certPath, keyPath)
 
-                    val sslContext =
-                        GrpcSslContexts
-                            .forServer(certFile, keyFile)
+                    val tlsCredentials =
+                        TlsServerCredentials
+                            .newBuilder()
+                            .keyManager(certFile, keyFile)
                             .build()
 
-                    NettyServerBuilder
-                        .forPort(port)
-                        .sslContext(sslContext)
+                    Grpc.newServerBuilderForPort(port, tlsCredentials)
                 } else {
                     logger.atWarning().log(
                         "TLS not configured (TLS_CERT_PATH and TLS_KEY_PATH not set). Using plaintext.",
