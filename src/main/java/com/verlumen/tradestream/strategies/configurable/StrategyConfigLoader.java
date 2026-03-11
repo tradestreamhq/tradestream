@@ -46,7 +46,10 @@ public final class StrategyConfigLoader {
     RSI_EMA_CROSSOVER("strategies/rsi_ema_crossover.yaml"),
     SMA_EMA_CROSSOVER("strategies/sma_ema_crossover.yaml"),
     STOCHASTIC_RSI("strategies/stochastic_rsi.yaml"),
-    TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml");
+    TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml"),
+    HEIKEN_ASHI("strategies/heiken_ashi.yaml"),
+    LINEAR_REGRESSION_CHANNELS("strategies/linear_regression_channels.yaml"),
+    PRICE_OSCILLATOR_SIGNAL("strategies/price_oscillator_signal.yaml");
 
     private final String resourcePath;
 
