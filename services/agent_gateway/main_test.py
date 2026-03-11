@@ -433,3 +433,244 @@ class TestOpenAPIDocs:
         resp = RecentEventsResponse(events=[event], count=1)
         assert resp.count == 1
         assert len(resp.events) == 1
+
+
+def _make_mock_pool_with_conn(conn):
+    """Helper to create a mock pool that returns a mock connection."""
+    mock_pool = MagicMock()
+    mock_cm = AsyncMock()
+    mock_cm.__aenter__ = AsyncMock(return_value=conn)
+    mock_cm.__aexit__ = AsyncMock(return_value=None)
+    mock_pool.acquire.return_value = mock_cm
+    return mock_pool
+
+
+class TestDashboardSummary:
+    """Tests for the /dashboard/summary endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_summary_returns_all_sections(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_conn = AsyncMock()
+        # active_agents query
+        mock_conn.fetch = AsyncMock(return_value=[])
+        # stats_24h query
+        mock_conn.fetchrow = AsyncMock(
+            return_value=FakeRecord(
+                {
+                    "total_decisions": 42,
+                    "unique_agents": 3,
+                    "avg_latency_ms": Decimal("150.5"),
+                    "successes": 40,
+                    "failures": 2,
+                    "signals_generated": 15,
+                }
+            )
+        )
+        mock_pool = _make_mock_pool_with_conn(mock_conn)
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.get("/dashboard/summary")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "active_agents" in data
+        assert "stats_24h" in data
+        assert "tier_distribution" in data
+        assert "recent_signals" in data
+
+    @pytest.mark.asyncio
+    async def test_summary_with_active_agents(self):
+        from httpx import ASGITransport, AsyncClient
+
+        agent_row = FakeRecord(
+            {
+                "agent_name": "signal-generator",
+                "decision_count": 10,
+                "last_active": datetime(2026, 3, 11, 12, 0, 0, tzinfo=timezone.utc),
+                "avg_latency_ms": Decimal("120.0"),
+                "success_count": 9,
+                "failure_count": 1,
+            }
+        )
+        stats_row = FakeRecord(
+            {
+                "total_decisions": 100,
+                "unique_agents": 4,
+                "avg_latency_ms": Decimal("200.0"),
+                "successes": 95,
+                "failures": 5,
+                "signals_generated": 30,
+            }
+        )
+
+        mock_conn = AsyncMock()
+        # fetch is called 3 times: active_agents, tier_dist, recent_signals
+        mock_conn.fetch = AsyncMock(side_effect=[[agent_row], [], []])
+        mock_conn.fetchrow = AsyncMock(return_value=stats_row)
+        mock_pool = _make_mock_pool_with_conn(mock_conn)
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.get("/dashboard/summary")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["active_agents"]) == 1
+        assert data["active_agents"][0]["agent_name"] == "signal-generator"
+        assert data["stats_24h"]["total_decisions"] == 100
+
+
+class TestDashboardAgents:
+    """Tests for the /dashboard/agents endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_agents_returns_grouped_data(self):
+        from httpx import ASGITransport, AsyncClient
+
+        rows = [
+            FakeRecord(
+                {
+                    "agent_name": "signal-generator",
+                    "decision_type": "signal_analysis",
+                    "total_decisions": 50,
+                    "avg_latency_ms": Decimal("100.0"),
+                    "min_latency_ms": 20,
+                    "max_latency_ms": 500,
+                    "avg_tokens": Decimal("400.0"),
+                    "successes": 48,
+                    "failures": 2,
+                    "first_seen": datetime(2026, 3, 1, tzinfo=timezone.utc),
+                    "last_seen": datetime(2026, 3, 11, tzinfo=timezone.utc),
+                }
+            ),
+        ]
+
+        mock_conn = AsyncMock()
+        mock_conn.fetch = AsyncMock(return_value=rows)
+        mock_pool = _make_mock_pool_with_conn(mock_conn)
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.get("/dashboard/agents")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["agents"]) == 1
+        assert data["agents"][0]["agent_name"] == "signal-generator"
+        assert data["agents"][0]["total_decisions"] == 50
+
+    @pytest.mark.asyncio
+    async def test_agents_with_filter(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_conn = AsyncMock()
+        mock_conn.fetch = AsyncMock(return_value=[])
+        mock_pool = _make_mock_pool_with_conn(mock_conn)
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.get(
+                    "/dashboard/agents?agent_name=opportunity-scorer"
+                )
+
+        assert response.status_code == 200
+        call_args = mock_conn.fetch.call_args
+        assert "agent_name" in call_args[0][0]
+        assert call_args[0][1] == "opportunity-scorer"
+
+
+class TestDashboardSignals:
+    """Tests for the /dashboard/signals endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_signals_returns_data(self):
+        from httpx import ASGITransport, AsyncClient
+
+        signal_row = FakeRecord(
+            {
+                "id": uuid.uuid4(),
+                "signal_id": uuid.uuid4(),
+                "agent_name": "signal-generator",
+                "score": Decimal("0.92"),
+                "tier": "high",
+                "reasoning": "Strong momentum detected",
+                "tool_calls": None,
+                "model_used": "claude-3",
+                "latency_ms": 180,
+                "tokens_used": 600,
+                "decision_type": "signal_analysis",
+                "success": True,
+                "error_message": None,
+                "created_at": datetime(2026, 3, 11, 10, 0, 0, tzinfo=timezone.utc),
+            }
+        )
+
+        mock_conn = AsyncMock()
+        mock_conn.fetch = AsyncMock(return_value=[signal_row])
+        mock_pool = _make_mock_pool_with_conn(mock_conn)
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.get("/dashboard/signals?hours=12&limit=50")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+        assert data["hours"] == 12
+        assert data["signals"][0]["event_type"] == "signal"
+
+    @pytest.mark.asyncio
+    async def test_signals_empty(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_conn = AsyncMock()
+        mock_conn.fetch = AsyncMock(return_value=[])
+        mock_pool = _make_mock_pool_with_conn(mock_conn)
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.get("/dashboard/signals")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 0
+        assert data["signals"] == []
