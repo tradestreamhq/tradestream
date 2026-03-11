@@ -37,9 +37,17 @@ def _make_sizer():
     return sizer
 
 
-def _risk_metrics(sid="s1", symbol="BTC", stype="RSI", score=0.8,
-                  volatility=0.15, sharpe=1.2, max_dd=0.05,
-                  win_rate=0.65, profit_factor=1.8):
+def _risk_metrics(
+    sid="s1",
+    symbol="BTC",
+    stype="RSI",
+    score=0.8,
+    volatility=0.15,
+    sharpe=1.2,
+    max_dd=0.05,
+    win_rate=0.65,
+    profit_factor=1.8,
+):
     return RiskMetrics(
         strategy_id=sid,
         symbol=symbol,
