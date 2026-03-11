@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.ParabolicSarParameters;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class ParabolicSarParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
