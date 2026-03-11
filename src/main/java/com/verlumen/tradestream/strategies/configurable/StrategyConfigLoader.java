@@ -37,6 +37,7 @@ public final class StrategyConfigLoader {
     DOUBLE_TOP_BOTTOM("strategies/double_top_bottom.yaml"),
     DPO_CROSSOVER("strategies/dpo_crossover.yaml"),
     DOUBLE_EMA_CROSSOVER("strategies/double_ema_crossover.yaml"),
+    DOUBLE_TOP_BOTTOM("strategies/double_top_bottom.yaml"),
     ELDER_RAY_MA("strategies/elder_ray_ma.yaml"),
     EMA_MACD("strategies/ema_macd.yaml"),
     FIBONACCI_RETRACEMENTS("strategies/fibonacci_retracements.yaml"),
