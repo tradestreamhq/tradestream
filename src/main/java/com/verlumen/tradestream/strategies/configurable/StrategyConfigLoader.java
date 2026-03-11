@@ -26,6 +26,7 @@ public final class StrategyConfigLoader {
     ADX_STOCHASTIC("strategies/adx_stochastic.yaml"),
     AROON_MFI("strategies/aroon_mfi.yaml"),
     ATR_CCI("strategies/atr_cci.yaml"),
+    ATR_TRAILING_STOP("strategies/atr_trailing_stop.yaml"),
     AWESOME_OSCILLATOR("strategies/awesome_oscillator.yaml"),
     BBAND_WILLIAMS_R("strategies/bband_williams_r.yaml"),
     CHAIKIN_OSCILLATOR("strategies/chaikin_oscillator.yaml"),
@@ -33,11 +34,13 @@ public final class StrategyConfigLoader {
     CMO_MFI("strategies/cmo_mfi.yaml"),
     DEMA_TEMA_CROSSOVER("strategies/dema_tema_crossover.yaml"),
     DONCHIAN_BREAKOUT("strategies/donchian_breakout.yaml"),
+    DOUBLE_TOP_BOTTOM("strategies/double_top_bottom.yaml"),
     DPO_CROSSOVER("strategies/dpo_crossover.yaml"),
     DOUBLE_EMA_CROSSOVER("strategies/double_ema_crossover.yaml"),
     ELDER_RAY_MA("strategies/elder_ray_ma.yaml"),
     EMA_MACD("strategies/ema_macd.yaml"),
     FIBONACCI_RETRACEMENTS("strategies/fibonacci_retracements.yaml"),
+    FRAMA("strategies/frama.yaml"),
     GANN_SWING("strategies/gann_swing.yaml"),
     ICHIMOKU_CLOUD("strategies/ichimoku_cloud.yaml"),
     KLINGER_VOLUME("strategies/klinger_volume.yaml"),
@@ -47,6 +50,7 @@ public final class StrategyConfigLoader {
     MOMENTUM_SMA_CROSSOVER("strategies/momentum_sma_crossover.yaml"),
     OBV_EMA("strategies/obv_ema.yaml"),
     PRICE_GAP("strategies/price_gap.yaml"),
+    RAINBOW_OSCILLATOR("strategies/rainbow_oscillator.yaml"),
     ROC_MA_CROSSOVER("strategies/roc_ma_crossover.yaml"),
     RSI_EMA_CROSSOVER("strategies/rsi_ema_crossover.yaml"),
     SMA_EMA_CROSSOVER("strategies/sma_ema_crossover.yaml"),
@@ -56,7 +60,8 @@ public final class StrategyConfigLoader {
     STOCHASTIC_RSI("strategies/stochastic_rsi.yaml"),
     TICK_VOLUME_ANALYSIS("strategies/tick_volume_analysis.yaml"),
     TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml"),
-    TRIX_SIGNAL_LINE("strategies/trix_signal_line.yaml");
+    TRIX_SIGNAL_LINE("strategies/trix_signal_line.yaml"),
+    VARIABLE_PERIOD_EMA("strategies/variable_period_ema.yaml");
 
     private final String resourcePath;
 
