@@ -26,7 +26,7 @@ flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
 flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
 flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
 flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "tradestream123", "PostgreSQL password")
+flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 
 # Confidence Scoring Configuration
 flags.DEFINE_float("performance_weight", 0.6, "Weight for performance score (0.0-1.0)")
@@ -248,6 +248,10 @@ def main(argv):
         raise app.UsageError("Too many command-line arguments")
 
     logging.set_verbosity(logging.INFO)
+
+    if not FLAGS.postgres_password:
+        logging.error("--postgres_password is required")
+        sys.exit(1)
     logging.info("Starting Strategy Confidence Scorer")
 
     # Database configuration
