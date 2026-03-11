@@ -17,6 +17,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, AroonMfiParameters params) {

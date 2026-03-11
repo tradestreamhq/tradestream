@@ -18,6 +18,7 @@ import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, BbandWRParameters params) {
