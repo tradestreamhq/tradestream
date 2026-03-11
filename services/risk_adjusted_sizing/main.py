@@ -14,6 +14,7 @@ The goal is to optimize position sizes for maximum risk-adjusted returns.
 """
 
 import asyncio
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional, Tuple
@@ -30,7 +31,7 @@ flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
 flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
 flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
 flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "tradestream123", "PostgreSQL password")
+flags.DEFINE_string("postgres_password", os.environ.get("DB_PASSWORD", ""), "PostgreSQL password")
 
 # Risk Configuration
 flags.DEFINE_float("max_portfolio_risk", 0.02, "Maximum portfolio risk (2%)")
@@ -298,6 +299,10 @@ def main(argv):
 
     logging.set_verbosity(logging.INFO)
     logging.info("Starting Risk-Adjusted Sizer")
+
+    if not FLAGS.postgres_password:
+        logging.error("DB_PASSWORD environment variable is not set")
+        sys.exit(1)
 
     # Database configuration
     db_config = {

@@ -11,6 +11,7 @@ The confidence score helps prioritize strategies for live trading.
 """
 
 import asyncio
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional
@@ -26,7 +27,7 @@ flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
 flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
 flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
 flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "tradestream123", "PostgreSQL password")
+flags.DEFINE_string("postgres_password", os.environ.get("DB_PASSWORD", ""), "PostgreSQL password")
 
 # Confidence Scoring Configuration
 flags.DEFINE_float("performance_weight", 0.6, "Weight for performance score (0.0-1.0)")
@@ -249,6 +250,10 @@ def main(argv):
 
     logging.set_verbosity(logging.INFO)
     logging.info("Starting Strategy Confidence Scorer")
+
+    if not FLAGS.postgres_password:
+        logging.error("DB_PASSWORD environment variable is not set")
+        sys.exit(1)
 
     # Database configuration
     db_config = {

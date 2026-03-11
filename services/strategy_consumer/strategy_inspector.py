@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 from typing import List, Optional
 
@@ -242,8 +243,8 @@ async def main():
     )
     parser.add_argument(
         "--password",
-        default="tradestream123",
-        help="Database password (default: tradestream123)",
+        default=os.environ.get("DB_PASSWORD", ""),
+        help="Database password (from DB_PASSWORD env var)",
     )
     parser.add_argument(
         "--no-parameters", action="store_true", help="Hide parameter details"
