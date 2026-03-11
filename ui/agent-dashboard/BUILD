@@ -23,7 +23,6 @@ tar(
 tar(
     name = "static_tar",
     srcs = [":static_files"],
-    strip_prefix = "dist",
 )
 
 # Agent Dashboard UI using nginx
