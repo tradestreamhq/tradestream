@@ -113,6 +113,26 @@ java_test(
     ],
 )
 
+java_test(
+    name = "IndicatorConfigTest",
+    srcs = ["IndicatorConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.IndicatorConfigTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+    ],
+)
+
+java_test(
+    name = "StrategyConfigTest",
+    srcs = ["StrategyConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.StrategyConfigTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
@@ -120,10 +140,12 @@ test_suite(
         ":ConfigBasedVsHardcodedValidationTest",
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
+        ":IndicatorConfigTest",
         ":IndicatorRegistryTest",
         ":ParameterDefinitionTest",
         ":ResolvedParamsTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
+        ":StrategyConfigTest",
     ],
 )
