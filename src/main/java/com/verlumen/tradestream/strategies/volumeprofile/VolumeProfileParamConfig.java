@@ -7,6 +7,7 @@ import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.VolumeProfileParameters;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class VolumeProfileParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(ChromosomeSpec.ofInteger(10, 100));

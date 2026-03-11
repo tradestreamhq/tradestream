@@ -9,6 +9,7 @@ import io.jenetics.DoubleChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
+@Deprecated
 public final class VolumeBreakoutParamConfig implements ParamConfig {
   private static final Logger logger = Logger.getLogger(VolumeBreakoutParamConfig.class.getName());
 

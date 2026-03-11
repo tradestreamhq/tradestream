@@ -13,6 +13,7 @@ import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class VolumeBreakoutStrategyFactory
     implements StrategyFactory<VolumeBreakoutParameters> {
 
