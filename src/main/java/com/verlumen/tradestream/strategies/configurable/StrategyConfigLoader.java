@@ -67,6 +67,8 @@ public final class StrategyConfigLoader {
     TICK_VOLUME_ANALYSIS("strategies/tick_volume_analysis.yaml"),
     TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml"),
     TRIX_SIGNAL_LINE("strategies/trix_signal_line.yaml"),
+    VARIABLE_PERIOD_EMA("strategies/variable_period_ema.yaml"),
+    VPT("strategies/vpt.yaml"),
     VWAP_CROSSOVER("strategies/vwap_crossover.yaml"),
     VWAP_MEAN_REVERSION("strategies/vwap_mean_reversion.yaml");
 

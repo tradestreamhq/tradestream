@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.AwesomeOscillatorParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public class AwesomeOscillatorParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
