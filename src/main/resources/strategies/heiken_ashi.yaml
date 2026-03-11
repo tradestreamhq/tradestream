@@ -1,0 +1,32 @@
+name: HEIKEN_ASHI
+description: Heiken Ashi candle pattern strategy - smoothed candlestick trend following
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.HeikenAshiParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: ema
+    type: EMA
+    input: close
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: ema
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: ema
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 2
+    max: 30
+    defaultValue: 14
