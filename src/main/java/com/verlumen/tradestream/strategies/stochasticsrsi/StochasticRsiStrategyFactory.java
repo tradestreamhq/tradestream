@@ -14,6 +14,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class StochasticRsiStrategyFactory
     implements StrategyFactory<StochasticRsiParameters> {
   @Override
