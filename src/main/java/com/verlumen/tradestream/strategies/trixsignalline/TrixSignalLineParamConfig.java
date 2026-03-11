@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.TrixSignalLineParameters;
 import io.jenetics.NumericChromosome;
 
 /** Parameter configuration for TrixSignalLine genetic optimization. */
+@Deprecated
 public final class TrixSignalLineParamConfig implements ParamConfig {
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =

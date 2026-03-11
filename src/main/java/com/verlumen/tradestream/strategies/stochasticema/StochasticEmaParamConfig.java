@@ -15,6 +15,7 @@ import java.util.logging.Logger;
  * <p>The Stochastic EMA combines the Stochastic Oscillator with an Exponential Moving Average to
  * identify overbought/oversold conditions and trend direction.
  */
+@Deprecated
 public final class StochasticEmaParamConfig implements ParamConfig {
 
   private static final Logger logger = Logger.getLogger(StochasticEmaParamConfig.class.getName());

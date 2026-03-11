@@ -1,0 +1,42 @@
+name: TRIX_SIGNAL_LINE
+description: TRIX indicator crossover with signal line for momentum trading
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.TrixSignalLineParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: trix
+    type: TRIX
+    input: close
+    params:
+      period: "${trixPeriod}"
+  - id: signalLine
+    type: SMA
+    input: trix
+    params:
+      period: "${signalPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: trix
+    params:
+      crosses: signalLine
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: trix
+    params:
+      crosses: signalLine
+
+parameters:
+  - name: trixPeriod
+    type: INTEGER
+    min: 5
+    max: 50
+    defaultValue: 15
+  - name: signalPeriod
+    type: INTEGER
+    min: 3
+    max: 20
+    defaultValue: 9
