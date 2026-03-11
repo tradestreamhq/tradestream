@@ -225,9 +225,7 @@ class TestPostgresClient:
             mock_conn.fetch.return_value = [mock_row1, mock_row2]
 
             await postgres_client.connect()
-            result = await postgres_client.get_performance_batch(
-                [impl_id_1, impl_id_2]
-            )
+            result = await postgres_client.get_performance_batch([impl_id_1, impl_id_2])
 
             assert impl_id_1 in result
             assert impl_id_2 in result

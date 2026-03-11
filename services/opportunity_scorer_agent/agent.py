@@ -295,12 +295,8 @@ def score_signal(signal, api_key, mcp_urls):
                     for tool_call in message.tool_calls:
                         fn_name = tool_call.function.name
                         fn_args = json.loads(tool_call.function.arguments)
-                        logging.info(
-                            "Tool call: %s(%s)", fn_name, json.dumps(fn_args)
-                        )
-                        all_tool_calls.append(
-                            {"name": fn_name, "arguments": fn_args}
-                        )
+                        logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
+                        all_tool_calls.append({"name": fn_name, "arguments": fn_args})
                         future = executor.submit(
                             _call_mcp_tool, fn_name, fn_args, mcp_urls
                         )
@@ -321,12 +317,8 @@ def score_signal(signal, api_key, mcp_urls):
                 tool_call = message.tool_calls[0]
                 fn_name = tool_call.function.name
                 fn_args = json.loads(tool_call.function.arguments)
-                logging.info(
-                    "Tool call: %s(%s)", fn_name, json.dumps(fn_args)
-                )
-                all_tool_calls.append(
-                    {"name": fn_name, "arguments": fn_args}
-                )
+                logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
+                all_tool_calls.append({"name": fn_name, "arguments": fn_args})
                 try:
                     tool_results[tool_call.id] = _call_mcp_tool(
                         fn_name, fn_args, mcp_urls
