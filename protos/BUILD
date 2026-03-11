@@ -105,3 +105,23 @@ java_proto_library(
     visibility = ["//visibility:public"],
     deps = [":trade_signals_proto"],
 )
+
+proto_library(
+    name = "polymarket_proto",
+    srcs = ["polymarket.proto"],
+    deps = [
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+java_proto_library(
+    name = "polymarket_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":polymarket_proto"],
+)
+
+py_proto_library(
+    name = "polymarket_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":polymarket_proto"],
+)

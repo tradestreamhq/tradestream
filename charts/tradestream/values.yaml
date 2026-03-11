@@ -839,6 +839,36 @@ notificationService:
       cpu: "200m"
       memory: "256Mi"
 
+# Polymarket Data Ingestor CronJob configuration
+polymarketIngestor:
+  enabled: true
+  schedule: "*/15 * * * *" # Run every 15 minutes
+  startingDeadlineSeconds: 300
+  concurrencyPolicy: "Forbid"
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
+  runMode: "wet"
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600
+    restartPolicy: "OnFailure"
+  image:
+    repository: "ghcr.io/tradestreamhq/polymarket-ingestor"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.97-develop"
+  config:
+    maxPages: 10
+    orderbookTopN: 10
+  kafka:
+    bootstrapServers: '{{ include "tradestream.fullname" . }}-kafka:9092'
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
 # Strategy Rotation Service - continuous strategy rotation evaluation
 strategyRotation:
   enabled: false

@@ -1,0 +1,68 @@
+edition = "2023";
+
+package polymarket;
+
+option java_multiple_files = true;
+option java_package = "com.verlumen.tradestream.polymarket";
+
+import "google/protobuf/timestamp.proto";
+
+// Polymarket market metadata
+message PolymarketMarket {
+  string market_id = 1;
+  string condition_id = 2;
+  string question = 3;
+  string description = 4;
+  google.protobuf.Timestamp end_date = 5;
+  string resolution_source = 6;
+  double volume = 7;
+  double liquidity = 8;
+  bool active = 9;
+  bool closed = 10;
+  repeated PolymarketToken tokens = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
+
+// Token within a market (YES/NO outcomes)
+message PolymarketToken {
+  string token_id = 1;
+  string outcome = 2;
+  double price = 3;
+}
+
+// Individual trade on Polymarket
+message PolymarketTrade {
+  string trade_id = 1;
+  string market_id = 2;
+  string asset_id = 3;
+  string side = 4;         // BUY or SELL
+  double price = 5;        // Implied probability
+  double size = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  string outcome = 8;      // YES or NO
+  string maker_address = 9;
+  string taker_address = 10;
+}
+
+// Order book snapshot
+message PolymarketOrderBook {
+  string market_id = 1;
+  string asset_id = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  repeated PriceLevel bids = 4;
+  repeated PriceLevel asks = 5;
+}
+
+message PriceLevel {
+  double price = 1;
+  double size = 2;
+}
+
+// Wallet activity tracking
+message WalletActivity {
+  string wallet_address = 1;
+  google.protobuf.Timestamp first_seen = 2;
+  double avg_position_size = 3;
+  int32 market_count = 4;
+  double total_volume = 5;
+}

@@ -1,0 +1,69 @@
+{{- if .Values.polymarketIngestor.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-polymarket-ingestor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: polymarket-ingestor
+    release: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.polymarketIngestor.schedule }}"
+  {{- if .Values.polymarketIngestor.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.polymarketIngestor.startingDeadlineSeconds }}
+  {{- end }}
+  concurrencyPolicy: "{{ .Values.polymarketIngestor.concurrencyPolicy | default "Forbid" }}"
+  failedJobsHistoryLimit: {{ .Values.polymarketIngestor.failedJobsHistoryLimit | default 3 }}
+  successfulJobsHistoryLimit: {{ .Values.polymarketIngestor.successfulJobsHistoryLimit | default 1 }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.polymarketIngestor.job.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.polymarketIngestor.job.ttlSecondsAfterFinished | default 3600 }}
+      template:
+        metadata:
+          labels:
+            app: {{ include "tradestream.name" . }}
+            component: polymarket-ingestor
+            release: {{ .Release.Name }}
+        spec:
+          restartPolicy: {{ .Values.polymarketIngestor.job.restartPolicy | default "OnFailure" }}
+          {{- if .Values.kafkaSsl.enabled }}
+          volumes:
+            - name: kafka-ssl-certs
+              secret:
+                secretName: {{ tpl .Values.kafkaSsl.secretName . }}
+          {{- end }}
+          containers:
+            - name: polymarket-ingestor
+              image: "{{ .Values.polymarketIngestor.image.repository }}:{{ .Values.polymarketIngestor.image.tag }}"
+              imagePullPolicy: {{ .Values.polymarketIngestor.image.pullPolicy }}
+              env:
+                - name: KAFKA_BOOTSTRAP_SERVERS
+                  value: {{ tpl .Values.polymarketIngestor.kafka.bootstrapServers . | quote }}
+                {{- if .Values.kafkaSsl.enabled }}
+                - name: KAFKA_SSL_CA_LOCATION
+                  value: "{{ .Values.kafkaSsl.mountPath }}/ca.crt"
+                - name: KAFKA_SSL_CERT_LOCATION
+                  value: "{{ .Values.kafkaSsl.mountPath }}/user.crt"
+                - name: KAFKA_SSL_KEY_LOCATION
+                  value: "{{ .Values.kafkaSsl.mountPath }}/user.key"
+                {{- end }}
+              {{- if .Values.kafkaSsl.enabled }}
+              volumeMounts:
+                - name: kafka-ssl-certs
+                  mountPath: {{ .Values.kafkaSsl.mountPath }}
+                  readOnly: true
+              {{- end }}
+              args:
+                - "--run_mode={{ .Values.polymarketIngestor.runMode | default "wet" }}"
+                - "--max_pages={{ .Values.polymarketIngestor.config.maxPages | default 10 }}"
+                - "--orderbook_top_n={{ .Values.polymarketIngestor.config.orderbookTopN | default 10 }}"
+              resources:
+                requests:
+                  cpu: "{{ .Values.polymarketIngestor.resources.requests.cpu }}"
+                  memory: "{{ .Values.polymarketIngestor.resources.requests.memory }}"
+                limits:
+                  cpu: "{{ .Values.polymarketIngestor.resources.limits.cpu }}"
+                  memory: "{{ .Values.polymarketIngestor.resources.limits.memory }}"
+{{- end }}
