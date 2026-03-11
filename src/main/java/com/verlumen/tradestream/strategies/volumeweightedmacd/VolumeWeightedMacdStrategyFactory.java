@@ -17,6 +17,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
  * more volume-sensitive MACD indicator. The MACD line is calculated as the difference between short
  * and long EMAs, and the signal line is an EMA of the MACD line.
  */
+@Deprecated
 public class VolumeWeightedMacdStrategyFactory
     implements StrategyFactory<VolumeWeightedMacdParameters> {
 
