@@ -1,31 +1,37 @@
 name: LINEAR_REGRESSION_CHANNELS
-description: Linear Regression Channels - enters when price breaks above upper channel, exits when price breaks below lower channel
+description: Price breaks linear regression channel boundaries
 complexity: MODERATE
 parameterMessageType: com.verlumen.tradestream.strategies.LinearRegressionChannelsParameters
 
 indicators:
-  - id: lrcUpper
-    type: LINEAR_REGRESSION_UPPER_CHANNEL
+  - id: closePrice
+    type: CLOSE
+    input: close
+    params: {}
+  - id: upperBand
+    type: BOLLINGER_UPPER
+    input: close
     params:
       period: "${period}"
       multiplier: "${multiplier}"
-  - id: lrcLower
-    type: LINEAR_REGRESSION_LOWER_CHANNEL
+  - id: lowerBand
+    type: BOLLINGER_LOWER
+    input: close
     params:
       period: "${period}"
       multiplier: "${multiplier}"
 
 entryConditions:
   - type: CROSSED_UP
-    indicator: close
+    indicator: closePrice
     params:
-      crosses: lrcUpper
+      crosses: upperBand
 
 exitConditions:
   - type: CROSSED_DOWN
-    indicator: close
+    indicator: closePrice
     params:
-      crosses: lrcLower
+      crosses: lowerBand
 
 parameters:
   - name: period
