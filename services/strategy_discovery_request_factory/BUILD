@@ -47,9 +47,9 @@ py_binary(
     main = "main.py",
     deps = [
         ":config_lib",
-        "//services/shared:service_runner",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
+        "//services/shared:service_runner",
         "//shared/cryptoclient:redis_crypto_client_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
@@ -110,9 +110,9 @@ py_test(
     deps = [
         ":app",
         ":config_lib",
-        "//services/shared:service_runner",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
+        "//services/shared:service_runner",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
     ],

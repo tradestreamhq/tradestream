@@ -878,9 +878,12 @@ class CandleIngestorService:
             if not FLAGS.redis_host:
                 raise ValueError("REDIS_HOST is required.")
 
-        self.strategy, self.primary_exchange, self.exchanges_to_use, self.effective_min_required = (
-            validate_and_determine_ccxt_strategy()
-        )
+        (
+            self.strategy,
+            self.primary_exchange,
+            self.exchanges_to_use,
+            self.effective_min_required,
+        ) = validate_and_determine_ccxt_strategy()
 
         logging.info("CCXT Strategy: %s", self.strategy)
         logging.info("Primary Exchange: %s", self.primary_exchange)
@@ -924,7 +927,9 @@ class CandleIngestorService:
 
             class DryRunRedisClient:
                 def get_top_crypto_pairs_from_redis(self, key):
-                    logging.info("DRY RUN: Simulating fetch from Redis for key '%s'", key)
+                    logging.info(
+                        "DRY RUN: Simulating fetch from Redis for key '%s'", key
+                    )
                     return ["btcusd-dry", "ethusd-dry"]
 
                 def close(self):
@@ -955,7 +960,9 @@ class CandleIngestorService:
                 min_exchanges_required=self.effective_min_required,
             )
 
-        logging.info("Processing %d symbols: %s", len(self.tiingo_tickers), self.tiingo_tickers)
+        logging.info(
+            "Processing %d symbols: %s", len(self.tiingo_tickers), self.tiingo_tickers
+        )
 
     def _get_dry_run_limit(self):
         if FLAGS.dry_run_limit is not None:
@@ -1025,7 +1032,9 @@ def main(argv):
     del argv
     logging.set_verbosity(logging.INFO)
 
-    logging.info("Starting candle ingestor service in %s mode with CCXT...", FLAGS.run_mode)
+    logging.info(
+        "Starting candle ingestor service in %s mode with CCXT...", FLAGS.run_mode
+    )
 
     runner = ServiceRunner(
         service_name="candle_ingestor",

@@ -68,7 +68,10 @@ def _update_top_cryptos():
     """Fetch top crypto symbols from CMC and update Redis."""
     _initialize_redis()
 
-    logging.info("Fetching top %d cryptocurrency symbols from CoinMarketCap...", FLAGS.top_n_cryptos)
+    logging.info(
+        "Fetching top %d cryptocurrency symbols from CoinMarketCap...",
+        FLAGS.top_n_cryptos,
+    )
     top_symbols = get_top_n_crypto_symbols(FLAGS.cmc_api_key, FLAGS.top_n_cryptos)
 
     if not top_symbols:
@@ -88,7 +91,9 @@ def main(argv):
     logging.set_verbosity(logging.INFO)
 
     if not FLAGS.cmc_api_key:
-        logging.error("CMC_API_KEY is required. Set environment variable or use --cmc_api_key.")
+        logging.error(
+            "CMC_API_KEY is required. Set environment variable or use --cmc_api_key."
+        )
         sys.exit(1)
 
     runner = ServiceRunner(

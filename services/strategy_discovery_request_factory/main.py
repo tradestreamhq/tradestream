@@ -303,9 +303,7 @@ class StrategyDiscoveryService:
                             currency_pair,
                         )
                     else:
-                        logging.info(
-                            "No new requests generated for %s.", currency_pair
-                        )
+                        logging.info("No new requests generated for %s.", currency_pair)
 
                     successful_pairs += 1
                     total_requests += pair_requests
