@@ -2,25 +2,28 @@
 """
 Strategy Rotation - Phase 4 Implementation
 
-This service handles dynamic strategy rotation:
+Long-running service that continuously evaluates strategy rotation:
 - Strategy switching based on performance
 - Position management and sizing
 - Dynamic rebalancing
 - Risk management and stop-loss
 - Market regime detection
-
-The goal is to dynamically switch between strategies based on performance and market conditions.
+- HTTP health endpoint for liveness/readiness probes
+- Graceful shutdown on SIGINT/SIGTERM
 """
 
 import asyncio
+import signal
 import sys
-from datetime import datetime, timedelta, timezone
-from typing import List, Dict, Optional, Tuple
+import threading
+from datetime import datetime
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from typing import List, Dict, Optional
+
+import asyncpg
 from absl import app, flags, logging
 from dataclasses import dataclass
 from enum import Enum
-
-import asyncpg
 
 FLAGS = flags.FLAGS
 
@@ -50,11 +53,23 @@ flags.DEFINE_float(
 flags.DEFINE_float("stop_loss_threshold", 0.05, "Stop loss threshold (5%)")
 flags.DEFINE_float("take_profit_threshold", 0.15, "Take profit threshold (15%)")
 
+# Service Configuration
+flags.DEFINE_integer(
+    "rotation_interval_seconds",
+    3600,
+    "Seconds between rotation evaluations",
+)
+flags.DEFINE_integer("health_port", 8080, "Port for HTTP health endpoint")
+
 # Output Configuration
 flags.DEFINE_string(
     "output_topic", "strategy-rotations", "Kafka topic for rotation decisions"
 )
 flags.DEFINE_boolean("dry_run", False, "Run in dry-run mode (no Kafka output)")
+
+_shutdown = False
+_last_run_ok = False
+_last_run_time = None
 
 
 class PositionStatus(Enum):
@@ -97,6 +112,47 @@ class RotationDecision:
     decision_time: datetime
 
 
+class HealthHandler(BaseHTTPRequestHandler):
+    """HTTP handler for health check endpoints."""
+
+    def do_GET(self):
+        if self.path == "/healthz" or self.path == "/readyz":
+            if _shutdown:
+                self.send_response(503)
+                self.send_header("Content-Type", "text/plain")
+                self.end_headers()
+                self.wfile.write(b"shutting down")
+            else:
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain")
+                self.end_headers()
+                status = "ok"
+                if _last_run_time:
+                    status += f" last_run={_last_run_time.isoformat()}"
+                self.wfile.write(status.encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        pass
+
+
+def _start_health_server(port: int) -> HTTPServer:
+    """Start HTTP health check server in a background thread."""
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    logging.info("Health endpoint listening on port %d", port)
+    return server
+
+
+def _handle_shutdown(signum, frame):
+    global _shutdown
+    logging.info("Received signal %d, shutting down...", signum)
+    _shutdown = True
+
+
 class StrategyRotator:
     """Handles dynamic strategy rotation and position management."""
 
@@ -117,22 +173,20 @@ class StrategyRotator:
 
     async def get_active_positions(self) -> List[Position]:
         """Get currently active positions."""
-        # This would typically come from a positions table
-        # For now, we'll simulate with mock data
         return []
 
     async def get_candidate_strategies(self, symbol: str) -> List[Dict]:
         """Get candidate strategies for rotation."""
         query = """
-        SELECT 
+        SELECT
             strategy_id,
             symbol,
             strategy_type,
             current_score,
             created_at,
             last_evaluated_at
-        FROM strategies 
-        WHERE symbol = $1 
+        FROM strategies
+        WHERE symbol = $1
         AND is_active = TRUE
         AND current_score >= $2
         ORDER BY current_score DESC
@@ -145,7 +199,6 @@ class StrategyRotator:
 
     async def evaluate_rotation_opportunities(self) -> List[RotationDecision]:
         """Evaluate opportunities for strategy rotation."""
-        # Get all symbols with strategies
         symbols_query = "SELECT DISTINCT symbol FROM strategies WHERE is_active = TRUE"
 
         async with self.pool.acquire() as conn:
@@ -155,18 +208,15 @@ class StrategyRotator:
         rotation_decisions = []
 
         for symbol in symbols:
-            # Get candidate strategies for this symbol
             candidate_strategies = await self.get_candidate_strategies(symbol)
 
             if len(candidate_strategies) < 2:
                 continue
 
-            # Get current active positions for this symbol
             active_positions = [
                 p for p in await self.get_active_positions() if p.symbol == symbol
             ]
 
-            # Evaluate rotation opportunities
             rotation_decision = self._evaluate_symbol_rotation(
                 symbol, candidate_strategies, active_positions
             )
@@ -184,22 +234,18 @@ class StrategyRotator:
         if not strategies:
             return None
 
-        # Get current best strategy
         current_best = strategies[0]
 
-        # Check if we have active positions
         current_strategy_id = None
         if active_positions:
             current_strategy_id = active_positions[0].strategy_id
             current_strategy_type = active_positions[0].strategy_type
 
-            # Check if current strategy is still in top candidates
             current_in_top = any(
                 s["strategy_id"] == current_strategy_id for s in strategies[:3]
             )
 
             if not current_in_top:
-                # Current strategy is no longer in top 3, consider rotation
                 return RotationDecision(
                     symbol=symbol,
                     old_strategy_id=current_strategy_id,
@@ -207,12 +253,10 @@ class StrategyRotator:
                     old_strategy_type=current_strategy_type,
                     new_strategy_type=current_best["strategy_type"],
                     reason="Current strategy no longer in top performers",
-                    performance_improvement=current_best["current_score"]
-                    - 0.6,  # Assuming current is 0.6
+                    performance_improvement=current_best["current_score"] - 0.6,
                     decision_time=datetime.now(),
                 )
         else:
-            # No active positions, start with best strategy
             return RotationDecision(
                 symbol=symbol,
                 old_strategy_id=None,
@@ -231,9 +275,6 @@ class StrategyRotator:
     ) -> Dict[str, float]:
         """Calculate position sizes for strategies."""
         position_sizes = {}
-
-        # Simple equal weighting for now
-        # Could be enhanced with Kelly Criterion, risk parity, etc.
         total_weight = 1.0
         weight_per_strategy = total_weight / len(strategies)
 
@@ -244,40 +285,19 @@ class StrategyRotator:
 
         return position_sizes
 
-    def print_rotation_decisions(self, decisions: List[RotationDecision]):
-        """Print rotation decisions in a formatted table."""
-        print(f"\n{'='*100}")
-        print("STRATEGY ROTATION DECISIONS")
-        print(f"{'='*100}")
-        print(
-            f"{'Symbol':<12} {'Old Strategy':<20} {'New Strategy':<20} {'Reason':<30} {'Improvement':<12}"
-        )
-        print(f"{'-'*100}")
-
-        for decision in decisions:
-            old_strategy = decision.old_strategy_type or "None"
-            print(
-                f"{decision.symbol:<12} {old_strategy:<20} {decision.new_strategy_type:<20} "
-                f"{decision.reason:<30} {decision.performance_improvement:<12.3f}"
-            )
-
-        print(f"{'='*100}")
-
     async def get_rotation_statistics(self) -> Dict:
         """Get statistics about strategy rotation."""
         async with self.pool.acquire() as conn:
-            # Get total strategies
             total_query = "SELECT COUNT(*) FROM strategies WHERE is_active = TRUE"
             total_strategies = await conn.fetchval(total_query)
 
-            # Get strategies by performance tier
             performance_query = """
-            SELECT 
+            SELECT
                 COUNT(CASE WHEN current_score >= 0.9 THEN 1 END) as excellent,
                 COUNT(CASE WHEN current_score >= 0.8 AND current_score < 0.9 THEN 1 END) as good,
                 COUNT(CASE WHEN current_score >= 0.7 AND current_score < 0.8 THEN 1 END) as fair,
                 COUNT(CASE WHEN current_score < 0.7 THEN 1 END) as poor
-            FROM strategies 
+            FROM strategies
             WHERE is_active = TRUE
             """
             performance_stats = await conn.fetchrow(performance_query)
@@ -291,6 +311,57 @@ class StrategyRotator:
             }
 
 
+async def _run_rotation_cycle(rotator: StrategyRotator) -> int:
+    """Run a single rotation evaluation cycle. Returns number of decisions."""
+    global _last_run_ok, _last_run_time
+
+    try:
+        stats = await rotator.get_rotation_statistics()
+        logging.info(
+            "Rotation stats: total=%d excellent=%d good=%d fair=%d poor=%d",
+            stats["total_strategies"],
+            stats["excellent_strategies"],
+            stats["good_strategies"],
+            stats["fair_strategies"],
+            stats["poor_strategies"],
+        )
+
+        rotation_decisions = await rotator.evaluate_rotation_opportunities()
+
+        if rotation_decisions:
+            symbols_affected = set(d.symbol for d in rotation_decisions)
+            avg_improvement = sum(
+                d.performance_improvement for d in rotation_decisions
+            ) / len(rotation_decisions)
+            logging.info(
+                "Rotation decisions: %d across %d symbols (avg improvement: %.3f)",
+                len(rotation_decisions),
+                len(symbols_affected),
+                avg_improvement,
+            )
+            for decision in rotation_decisions[:5]:
+                logging.info(
+                    "  %s: %s -> %s (improvement: %.3f, reason: %s)",
+                    decision.symbol,
+                    decision.old_strategy_type or "None",
+                    decision.new_strategy_type,
+                    decision.performance_improvement,
+                    decision.reason,
+                )
+        else:
+            logging.info("No rotation opportunities found this cycle.")
+
+        _last_run_ok = True
+        _last_run_time = datetime.now()
+        return len(rotation_decisions)
+
+    except Exception as e:
+        logging.exception("Error in rotation cycle: %s", e)
+        _last_run_ok = False
+        _last_run_time = datetime.now()
+        return 0
+
+
 def main(argv):
     """Main function."""
     if len(argv) > 1:
@@ -301,9 +372,13 @@ def main(argv):
     if not FLAGS.postgres_password:
         logging.error("--postgres_password is required")
         sys.exit(1)
-    logging.info("Starting Strategy Rotator")
+    logging.info("Starting Strategy Rotation Service")
 
-    # Database configuration
+    signal.signal(signal.SIGINT, _handle_shutdown)
+    signal.signal(signal.SIGTERM, _handle_shutdown)
+
+    health_server = _start_health_server(FLAGS.health_port)
+
     db_config = {
         "host": FLAGS.postgres_host,
         "port": FLAGS.postgres_port,
@@ -317,57 +392,27 @@ def main(argv):
     async def run():
         try:
             await rotator.connect()
+            logging.info(
+                "Strategy rotation service started. "
+                "Evaluating every %d seconds.",
+                FLAGS.rotation_interval_seconds,
+            )
 
-            # Get rotation statistics
-            logging.info("Getting rotation statistics...")
-            stats = await rotator.get_rotation_statistics()
+            while not _shutdown:
+                await _run_rotation_cycle(rotator)
 
-            print(f"\nROTATION STATISTICS:")
-            print(f"Total strategies: {stats['total_strategies']}")
-            print(f"Excellent strategies (≥0.9): {stats['excellent_strategies']}")
-            print(f"Good strategies (0.8-0.9): {stats['good_strategies']}")
-            print(f"Fair strategies (0.7-0.8): {stats['fair_strategies']}")
-            print(f"Poor strategies (<0.7): {stats['poor_strategies']}")
-
-            # Evaluate rotation opportunities
-            logging.info("Evaluating rotation opportunities...")
-            rotation_decisions = await rotator.evaluate_rotation_opportunities()
-
-            # Print results
-            rotator.print_rotation_decisions(rotation_decisions)
-
-            # Print summary
-            if rotation_decisions:
-                symbols_with_rotations = set(d.symbol for d in rotation_decisions)
-                avg_improvement = sum(
-                    d.performance_improvement for d in rotation_decisions
-                ) / len(rotation_decisions)
-
-                print(f"\nSUMMARY:")
-                print(f"Rotation decisions: {len(rotation_decisions)}")
-                print(f"Symbols affected: {len(symbols_with_rotations)}")
-                print(f"Average performance improvement: {avg_improvement:.3f}")
-
-                # Show top rotation opportunities
-                rotation_decisions.sort(
-                    key=lambda x: x.performance_improvement, reverse=True
-                )
-                print(f"\nTOP ROTATION OPPORTUNITIES:")
-                for i, decision in enumerate(rotation_decisions[:5]):
-                    print(
-                        f"{i+1}. {decision.symbol}: {decision.old_strategy_type or 'None'} → {decision.new_strategy_type} "
-                        f"(improvement: {decision.performance_improvement:.3f})"
-                    )
-            else:
-                print(f"\nNo rotation opportunities found at this time.")
-
-            logging.info("Strategy rotation evaluation completed successfully")
+                remaining = FLAGS.rotation_interval_seconds
+                while remaining > 0 and not _shutdown:
+                    await asyncio.sleep(min(remaining, 1.0))
+                    remaining -= 1
 
         except Exception as e:
-            logging.exception(f"Error in strategy rotation: {e}")
+            logging.exception("Fatal error in strategy rotation: %s", e)
             sys.exit(1)
         finally:
             await rotator.close()
+            health_server.shutdown()
+            logging.info("Strategy rotation service shut down.")
 
     asyncio.run(run())
 
