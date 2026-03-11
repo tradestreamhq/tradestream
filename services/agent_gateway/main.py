@@ -45,33 +45,50 @@ fastapi_auth_middleware(app)
 
 
 class HealthResponse(BaseModel):
-    status: str = Field(..., description="Service status: healthy or degraded", examples=["healthy"])
+    status: str = Field(
+        ..., description="Service status: healthy or degraded", examples=["healthy"]
+    )
     service: str = Field(..., description="Service name", examples=["agent-gateway"])
-    database: str = Field(..., description="Database connectivity status", examples=["connected"])
-    redis: str = Field(..., description="Redis connectivity status", examples=["connected"])
+    database: str = Field(
+        ..., description="Database connectivity status", examples=["connected"]
+    )
+    redis: str = Field(
+        ..., description="Redis connectivity status", examples=["connected"]
+    )
 
 
 class AgentEvent(BaseModel):
     event_type: str = Field(..., description="Event type", examples=["signal"])
     id: Optional[str] = Field(None, description="Event ID")
     signal_id: Optional[str] = Field(None, description="Associated signal ID")
-    agent_name: Optional[str] = Field(None, description="Name of the agent", examples=["signal-generator"])
+    agent_name: Optional[str] = Field(
+        None, description="Name of the agent", examples=["signal-generator"]
+    )
     decision_type: Optional[str] = Field(None, description="Decision type")
     score: Optional[float] = Field(None, description="Score (0-1)", examples=[0.85])
     tier: Optional[str] = Field(None, description="Signal tier", examples=["high"])
     reasoning: Optional[str] = Field(None, description="Agent reasoning text")
     tool_calls: Optional[str] = Field(None, description="Tool calls made by the agent")
-    model_used: Optional[str] = Field(None, description="LLM model used", examples=["gpt-4"])
-    latency_ms: Optional[int] = Field(None, description="Processing latency in ms", examples=[150])
-    tokens_used: Optional[int] = Field(None, description="Token count used", examples=[500])
+    model_used: Optional[str] = Field(
+        None, description="LLM model used", examples=["gpt-4"]
+    )
+    latency_ms: Optional[int] = Field(
+        None, description="Processing latency in ms", examples=[150]
+    )
+    tokens_used: Optional[int] = Field(
+        None, description="Token count used", examples=[500]
+    )
     success: Optional[bool] = Field(None, description="Whether the event succeeded")
     error_message: Optional[str] = Field(None, description="Error message if failed")
-    created_at: Optional[str] = Field(None, description="ISO 8601 timestamp", examples=["2026-01-15T10:30:00+00:00"])
+    created_at: Optional[str] = Field(
+        None, description="ISO 8601 timestamp", examples=["2026-01-15T10:30:00+00:00"]
+    )
 
 
 class RecentEventsResponse(BaseModel):
     events: list[AgentEvent] = Field(..., description="List of agent events")
     count: int = Field(..., description="Number of events returned", examples=[10])
+
 
 # Connection pools (initialized on startup)
 _db_pool: Optional[asyncpg.Pool] = None
@@ -181,7 +198,12 @@ async def _event_generator(
         await pubsub.aclose()
 
 
-@app.get("/health", response_model=HealthResponse, responses={503: {"model": HealthResponse}}, tags=["Health"])
+@app.get(
+    "/health",
+    response_model=HealthResponse,
+    responses={503: {"model": HealthResponse}},
+    tags=["Health"],
+)
 async def health():
     """Health check endpoint.
 
@@ -243,7 +265,8 @@ async def get_recent_events(
     limit: int = Query(50, ge=1, le=500, description="Number of events to return"),
     agent_name: Optional[str] = Query(None, description="Filter by agent name"),
     event_type: Optional[str] = Query(
-        None, description="Filter by event type (signal, reasoning, tool_call, decision)"
+        None,
+        description="Filter by event type (signal, reasoning, tool_call, decision)",
     ),
 ):
     """Get recent agent events from the database.
