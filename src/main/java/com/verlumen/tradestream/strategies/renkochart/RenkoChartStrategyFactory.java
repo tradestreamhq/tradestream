@@ -9,6 +9,7 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.AbstractRule;
 
+@Deprecated
 public final class RenkoChartStrategyFactory implements StrategyFactory<RenkoChartParameters> {
   @Override
   public RenkoChartParameters getDefaultParameters() {
