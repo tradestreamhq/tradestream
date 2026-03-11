@@ -83,6 +83,20 @@ java_test(
     ],
 )
 
+java_test(
+    name = "YamlMigrationBatch30ValidationTest",
+    srcs = ["YamlMigrationBatch30ValidationTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.YamlMigrationBatch30ValidationTest",
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:configurable_strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:strategy_config_loader",
+        "//third_party/java:junit",
+        "//third_party/java:ta4j_core",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
@@ -92,5 +106,6 @@ test_suite(
         ":IndicatorRegistryTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
+        ":YamlMigrationBatch30ValidationTest",
     ],
 )
