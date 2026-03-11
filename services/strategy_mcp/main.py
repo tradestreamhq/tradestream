@@ -1,6 +1,6 @@
 """
 Main entry point for the strategy MCP server.
-Configurable via absl flags for PostgreSQL and MCP transport settings.
+Configurable via environment variables for PostgreSQL and absl flags for MCP transport.
 """
 
 import asyncio
@@ -10,37 +10,11 @@ from absl import app
 from absl import flags
 from absl import logging
 
+from services.shared.credentials import PostgresConfig
 from services.strategy_mcp.postgres_client import PostgresClient
 from services.strategy_mcp.server import server, _set_postgres_client
 
 FLAGS = flags.FLAGS
-
-# PostgreSQL Configuration Flags
-flags.DEFINE_string(
-    "postgres_host",
-    "localhost",
-    "PostgreSQL host.",
-)
-flags.DEFINE_integer(
-    "postgres_port",
-    5432,
-    "PostgreSQL port.",
-)
-flags.DEFINE_string(
-    "postgres_database",
-    "tradestream",
-    "PostgreSQL database name.",
-)
-flags.DEFINE_string(
-    "postgres_username",
-    "postgres",
-    "PostgreSQL username.",
-)
-flags.DEFINE_string(
-    "postgres_password",
-    "",
-    "PostgreSQL password.",
-)
 
 # MCP Configuration Flags
 flags.DEFINE_string(
@@ -57,16 +31,14 @@ flags.DEFINE_integer(
 
 async def main_async() -> None:
     """Main async function."""
-    if not FLAGS.postgres_password:
-        logging.error("PostgreSQL password is required")
-        sys.exit(1)
+    pg_config = PostgresConfig()
 
     pg_client = PostgresClient(
-        host=FLAGS.postgres_host,
-        port=FLAGS.postgres_port,
-        database=FLAGS.postgres_database,
-        username=FLAGS.postgres_username,
-        password=FLAGS.postgres_password,
+        host=pg_config.host,
+        port=pg_config.port,
+        database=pg_config.database,
+        username=pg_config.username,
+        password=pg_config.password,
     )
 
     try:

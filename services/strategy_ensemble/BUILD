@@ -7,6 +7,7 @@ py_library(
     name = "main_lib",
     srcs = ["main.py"],
     deps = [
+        "//services/shared:credentials",
         "//third_party/python:absl_py",
         "//third_party/python:asyncpg",
     ],

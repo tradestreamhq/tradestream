@@ -20,11 +20,12 @@ from absl import app as absl_app
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
+from services.shared.auth import flask_auth_middleware
+from services.shared.credentials import PostgresConfig
+
 # Flask configuration
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend access
-
-from services.shared.auth import flask_auth_middleware
 
 flask_auth_middleware(app)
 
@@ -854,17 +855,8 @@ def decode_variable_period_ema(protobuf_bytes: bytes, protobuf_type: str) -> Dic
     }
 
 
-# Database configuration flags
-flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
-flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
-flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
-flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 flags.DEFINE_integer("api_port", 8080, "API server port")
 flags.DEFINE_string("api_host", "0.0.0.0", "API server host")
-
-# Global database connection parameters
-DB_CONFIG = {}
 
 # List of USD-pegged stablecoins to filter out
 STABLECOINS = {
@@ -1586,30 +1578,14 @@ def main(argv):
     # Set up logging
     logging.basicConfig(level=logging.INFO)
 
-    # Get database configuration from environment variables or flags
-    postgres_host = os.environ.get("POSTGRES_HOST", FLAGS.postgres_host)
-    postgres_port = int(os.environ.get("POSTGRES_PORT", str(FLAGS.postgres_port)))
-    postgres_database = os.environ.get("POSTGRES_DATABASE", FLAGS.postgres_database)
-    postgres_username = os.environ.get("POSTGRES_USERNAME", FLAGS.postgres_username)
-    postgres_password = os.environ.get("POSTGRES_PASSWORD", FLAGS.postgres_password)
+    pg_config = PostgresConfig()
 
     # Get API configuration from environment variables or flags
     api_port = int(os.environ.get("API_PORT", str(FLAGS.api_port)))
     api_host = os.environ.get("API_HOST", FLAGS.api_host)
 
-    # Validate required configuration
-    if not postgres_password:
-        logging.error("PostgreSQL password is required")
-        return 1
-
     # Store database configuration
-    DB_CONFIG = {
-        "host": postgres_host,
-        "port": postgres_port,
-        "database": postgres_database,
-        "username": postgres_username,
-        "password": postgres_password,
-    }
+    DB_CONFIG = pg_config.as_dict()
 
     # Test database connection
     try:

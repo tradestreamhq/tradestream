@@ -20,11 +20,34 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         self.saved_flags = flagsaver.save_flag_values()
 
         # Set required flags for tests
-        FLAGS.influxdb_token = "test-token"
-        FLAGS.influxdb_org = "test-org"
         FLAGS.tracker_service_name = "test_strategy_discovery"
         FLAGS.global_status_tracker_service_name = "test_global_candle_status"
         FLAGS.min_processing_advance_minutes = 1
+
+        # Mock credential configs (env-var based)
+        self.mock_influx_config_cls = patch(
+            "services.strategy_discovery_request_factory.main.InfluxDBConfig"
+        ).start()
+        self.mock_influx_config = MagicMock()
+        self.mock_influx_config.url = "http://fake-influx:8086"
+        self.mock_influx_config.token = "test-token"
+        self.mock_influx_config.org = "test-org"
+        self.mock_influx_config.bucket = "tradestream-data"
+        self.mock_influx_config_cls.return_value = self.mock_influx_config
+
+        self.mock_redis_config_cls = patch(
+            "services.strategy_discovery_request_factory.main.RedisConfig"
+        ).start()
+        self.mock_redis_config = MagicMock()
+        self.mock_redis_config.host = "localhost"
+        self.mock_redis_config.port = 6379
+        self.mock_redis_config.password = None
+        self.mock_redis_config_cls.return_value = self.mock_redis_config
+
+        self.mock_kafka_bootstrap = patch(
+            "services.strategy_discovery_request_factory.main.kafka_bootstrap_servers"
+        ).start()
+        self.mock_kafka_bootstrap.return_value = "localhost:9092"
 
         # Mock all external dependencies
         self.mock_kafka_publisher_cls = patch(
@@ -73,24 +96,6 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         self.mock_kafka_publisher_cls.assert_called_once()
         self.mock_tracker_cls.assert_called_once()
         self.mock_strategy_processor_cls.assert_called_once()
-
-    def test_validation_missing_influxdb_token(self):
-        """Test validation fails without InfluxDB token."""
-        FLAGS.influxdb_token = None
-        service = main.StrategyDiscoveryService()
-
-        with self.assertRaises(ValueError) as cm:
-            service._validate_configuration()
-        self.assertIn("InfluxDB token is required", str(cm.exception))
-
-    def test_validation_missing_influxdb_org(self):
-        """Test validation fails without InfluxDB org."""
-        FLAGS.influxdb_org = None
-        service = main.StrategyDiscoveryService()
-
-        with self.assertRaises(ValueError) as cm:
-            service._validate_configuration()
-        self.assertIn("InfluxDB organization is required", str(cm.exception))
 
     def test_validation_negative_min_advance(self):
         """Test validation fails with negative min processing advance."""

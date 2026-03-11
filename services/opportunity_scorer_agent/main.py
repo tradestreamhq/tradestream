@@ -11,11 +11,11 @@ from services.opportunity_scorer_agent.agent import (
     TOOL_TO_MCP_SERVER,
     score_signal,
 )
+from services.shared.credentials import openrouter_api_key
 from services.shared.mcp_client import resolve_and_call
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("openrouter_api_key", "", "OpenRouter API key")
 flags.DEFINE_string(
     "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL"
 )
@@ -50,9 +50,7 @@ def main(argv):
     signal.signal(signal.SIGINT, _handle_shutdown)
     signal.signal(signal.SIGTERM, _handle_shutdown)
 
-    if not FLAGS.openrouter_api_key:
-        logging.error("--openrouter_api_key is required")
-        sys.exit(1)
+    _api_key = openrouter_api_key()
 
     mcp_urls = {
         "strategy": FLAGS.mcp_strategy_url,
@@ -84,7 +82,7 @@ def main(argv):
                         executor.submit(
                             _score_one,
                             sig,
-                            FLAGS.openrouter_api_key,
+                            _api_key,
                             mcp_urls,
                         ): sig
                         for sig in signals

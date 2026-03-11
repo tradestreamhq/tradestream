@@ -25,6 +25,7 @@ py_binary(
     main = "main.py",
     deps = [
         ":agent_lib",
+        "//services/shared:credentials",
         "//services/shared:structured_logger",
         "//third_party/python:absl_py",
     ],

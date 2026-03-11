@@ -18,9 +18,6 @@ from services.shared.structured_logger import StructuredLogger
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("redis_host", None, "Redis host (overrides REDIS_HOST env var).")
-flags.DEFINE_integer("redis_port", None, "Redis port (overrides REDIS_PORT env var).")
-
 _shutdown = False
 
 _log = StructuredLogger(service_name="notification_service")
@@ -55,8 +52,8 @@ def main(argv):
 
     config = get_config()
 
-    redis_host = FLAGS.redis_host or config["redis_host"]
-    redis_port = FLAGS.redis_port or config["redis_port"]
+    redis_host = config["redis_host"]
+    redis_port = config["redis_port"]
     min_score = config["min_score"]
     tiers = [t.strip() for t in config["tiers"].split(",") if t.strip()]
 

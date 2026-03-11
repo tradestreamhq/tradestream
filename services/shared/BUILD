@@ -39,6 +39,14 @@ py_library(
 )
 
 py_library(
+    name = "credentials",
+    srcs = [
+        "__init__.py",
+        "credentials.py",
+    ],
+)
+
+py_library(
     name = "model_config",
     srcs = [
         "__init__.py",
@@ -84,6 +92,15 @@ py_test(
         "//third_party/python:fastapi",
         "//third_party/python:flask",
         "//third_party/python:httpx",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "credentials_test",
+    srcs = ["credentials_test.py"],
+    deps = [
+        ":credentials",
         "//third_party/python:pytest",
     ],
 )

@@ -11,22 +11,12 @@ from absl import app
 from absl import flags
 from absl import logging
 
+from services.shared.credentials import PostgresConfig, RedisConfig
 from services.signal_mcp.postgres_client import PostgresClient
 from services.signal_mcp.redis_client import RedisClient
 from services.signal_mcp.server import create_server
 
 FLAGS = flags.FLAGS
-
-# PostgreSQL Configuration Flags
-flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host.")
-flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port.")
-flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database name.")
-flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username.")
-flags.DEFINE_string("postgres_password", "", "PostgreSQL password.")
-
-# Redis Configuration Flags
-flags.DEFINE_string("redis_host", "localhost", "Redis host.")
-flags.DEFINE_integer("redis_port", 6379, "Redis port.")
 
 # MCP Configuration Flags
 flags.DEFINE_string("mcp_transport", "stdio", "MCP transport type (stdio or sse).")
@@ -35,24 +25,23 @@ flags.DEFINE_integer("mcp_port", 8080, "MCP server port (for SSE transport).")
 
 async def main_async() -> None:
     """Main async function."""
-    if not FLAGS.postgres_password:
-        logging.error("PostgreSQL password is required")
-        sys.exit(1)
+    pg_config = PostgresConfig()
+    redis_config = RedisConfig()
 
     # Initialize PostgreSQL client
     postgres_client = PostgresClient(
-        host=FLAGS.postgres_host,
-        port=FLAGS.postgres_port,
-        database=FLAGS.postgres_database,
-        username=FLAGS.postgres_username,
-        password=FLAGS.postgres_password,
+        host=pg_config.host,
+        port=pg_config.port,
+        database=pg_config.database,
+        username=pg_config.username,
+        password=pg_config.password,
     )
     await postgres_client.connect()
 
     # Initialize Redis client
     redis_client = RedisClient(
-        host=FLAGS.redis_host,
-        port=FLAGS.redis_port,
+        host=redis_config.host,
+        port=redis_config.port,
     )
     redis_client.connect()
 

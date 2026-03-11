@@ -10,6 +10,9 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "config_lib",
     srcs = ["config.py"],
+    deps = [
+        "//services/shared:credentials",
+    ],
 )
 
 py_library(

@@ -30,17 +30,17 @@ from services.strategy_discovery_request_factory.strategy_discovery_processor im
     StrategyDiscoveryProcessor,
 )
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
+from services.shared.credentials import (
+    InfluxDBConfig,
+    RedisConfig,
+    kafka_bootstrap_servers,
+)
 from shared.persistence.influxdb_last_processed_tracker import (
     InfluxDBLastProcessedTracker,
 )
 from shared.cryptoclient.redis_crypto_client import RedisCryptoClient
 
-# InfluxDB flags
-flags.DEFINE_string(
-    "influxdb_url", os.getenv("INFLUXDB_URL", "http://localhost:8086"), "InfluxDB URL"
-)
-flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB token")
-flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB organization")
+# Tracker flags
 flags.DEFINE_string("influxdb_bucket_tracker", "tradestream-data", "Tracker bucket")
 flags.DEFINE_string(
     "tracker_service_name",
@@ -59,17 +59,9 @@ flags.DEFINE_integer(
 )
 
 # Kafka flags
-flags.DEFINE_string(
-    "kafka_bootstrap_servers",
-    os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
-    "Kafka servers",
-)
 flags.DEFINE_string("kafka_topic", "strategy-discovery-requests", "Kafka topic")
 
-# Redis flags
-flags.DEFINE_string("redis_host", os.getenv("REDIS_HOST", "localhost"), "Redis host")
-flags.DEFINE_integer("redis_port", int(os.getenv("REDIS_PORT", "6379")), "Redis port")
-flags.DEFINE_string("redis_password", os.getenv("REDIS_PASSWORD"), "Redis password")
+# Redis key flag
 flags.DEFINE_string(
     "redis_key_crypto_symbols",
     os.getenv("REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"),
@@ -101,13 +93,11 @@ class StrategyDiscoveryService:
         self.strategy_processor = None
         self.timestamp_tracker = None
         self.fibonacci_windows_config: List[int] = []
+        self._influx_config = InfluxDBConfig()
+        self._redis_config = RedisConfig()
 
     def _validate_configuration(self) -> None:
         """Validate all configuration parameters."""
-        if not FLAGS.influxdb_token:
-            raise ValueError("InfluxDB token is required (--influxdb_token)")
-        if not FLAGS.influxdb_org:
-            raise ValueError("InfluxDB organization is required (--influxdb_org)")
 
         # Validate processing parameters
         fibonacci_windows = [int(x) for x in FLAGS.fibonacci_windows_minutes]
@@ -128,9 +118,9 @@ class StrategyDiscoveryService:
         """Get currency pairs from Redis, same as candle ingestor."""
         try:
             redis_client = RedisCryptoClient(
-                host=FLAGS.redis_host,
-                port=FLAGS.redis_port,
-                password=FLAGS.redis_password,
+                host=self._redis_config.host,
+                port=self._redis_config.port,
+                password=self._redis_config.password,
             )
 
             symbols = redis_client.get_top_crypto_pairs_from_redis(
@@ -156,7 +146,7 @@ class StrategyDiscoveryService:
     def _connect_kafka(self) -> None:
         """Connect to Kafka for publishing requests."""
         self.kafka_publisher = KafkaPublisher(
-            bootstrap_servers=FLAGS.kafka_bootstrap_servers,
+            bootstrap_servers=kafka_bootstrap_servers(),
             topic_name=FLAGS.kafka_topic,
         )
         if not self.kafka_publisher.producer:
@@ -166,9 +156,9 @@ class StrategyDiscoveryService:
     def _initialize_tracker(self) -> None:
         """Initialize the InfluxDB timestamp tracker."""
         self.timestamp_tracker = InfluxDBLastProcessedTracker(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
+            url=self._influx_config.url,
+            token=self._influx_config.token,
+            org=self._influx_config.org,
             bucket=FLAGS.influxdb_bucket_tracker,
         )
         if not self.timestamp_tracker.client:
@@ -352,8 +342,10 @@ def main(argv):
 
     # Log configuration
     logging.info("Configuration:")
-    logging.info(f"  InfluxDB URL: {FLAGS.influxdb_url}")
-    logging.info(f"  Kafka servers: {FLAGS.kafka_bootstrap_servers}")
+    logging.info(
+        f"  InfluxDB URL: {os.environ.get('INFLUXDB_URL', 'http://localhost:8086')}"
+    )
+    logging.info(f"  Kafka servers: {kafka_bootstrap_servers()}")
     logging.info(f"  Kafka topic: {FLAGS.kafka_topic}")
     logging.info(f"  Tracker service name: {FLAGS.tracker_service_name}")
     logging.info(
