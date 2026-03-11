@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.volatilitystop;
+package com.verlumen.tradestream.strategies.volumeweightedmacd;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -10,7 +10,6 @@ import com.verlumen.tradestream.strategies.configurable.ConfigurableParamConfig;
 import com.verlumen.tradestream.strategies.configurable.ConfigurableStrategyFactory;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
-import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.time.Duration;
@@ -24,7 +23,7 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
-public class VolatilityStopConfigTest {
+public class VolumeWeightedMacdConfigTest {
   private StrategyConfig config;
   private ConfigurableStrategyFactory factory;
   private ConfigurableParamConfig paramConfig;
@@ -32,7 +31,7 @@ public class VolatilityStopConfigTest {
 
   @Before
   public void setUp() throws Exception {
-    config = StrategyConfigLoader.loadResource("strategies/volatility_stop.yaml");
+    config = StrategyConfigLoader.loadResource("strategies/volume_weighted_macd.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
 
@@ -56,7 +55,7 @@ public class VolatilityStopConfigTest {
   public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
-    assertThat(strategy.getName()).isEqualTo("VOLATILITY_STOP");
+    assertThat(strategy.getName()).isEqualTo("VOLUME_WEIGHTED_MACD");
   }
 
   @Test
@@ -71,13 +70,14 @@ public class VolatilityStopConfigTest {
   @Test
   public void chromosomeSpecs_matchParameterCount() {
     ImmutableList<ChromosomeSpec<?>> specs = paramConfig.getChromosomeSpecs();
-    assertThat(specs).hasSize(2);
+    assertThat(specs).hasSize(3);
   }
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(IntegerChromosome.of(10, 25), DoubleChromosome.of(1.5, 4.0));
+        ImmutableList.of(
+            IntegerChromosome.of(8, 16), IntegerChromosome.of(20, 32), IntegerChromosome.of(5, 13));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
