@@ -7,6 +7,7 @@ import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.RenkoChartParameters;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class RenkoChartParamConfig implements ParamConfig {
   private static final double MIN_BRICK_SIZE = 0.1;
   private static final double MAX_BRICK_SIZE = 100.0;
