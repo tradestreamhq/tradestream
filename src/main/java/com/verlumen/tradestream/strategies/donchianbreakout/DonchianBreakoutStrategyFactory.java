@@ -16,6 +16,7 @@ import org.ta4j.core.indicators.helpers.LowestValueIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class DonchianBreakoutStrategyFactory
     implements StrategyFactory<DonchianBreakoutParameters> {
   @Override

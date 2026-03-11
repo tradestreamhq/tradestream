@@ -15,6 +15,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public final class EmaMacdStrategyFactory implements StrategyFactory<EmaMacdParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, EmaMacdParameters params)
