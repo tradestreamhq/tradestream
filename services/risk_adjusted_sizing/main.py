@@ -97,23 +97,39 @@ class RiskAdjustedSizer:
             logging.info("Database connection closed")
 
     async def get_strategies_with_risk_metrics(self) -> List[RiskMetrics]:
-        """Get strategies with calculated risk metrics."""
+        """Get strategies with risk metrics from latest performance records."""
         query = """
-        SELECT 
-            strategy_id,
-            symbol,
-            strategy_type,
-            current_score,
-            -- Placeholder risk metrics (would come from actual calculations)
-            0.15 as volatility,
-            1.2 as sharpe_ratio,
-            0.05 as max_drawdown,
-            0.65 as win_rate,
-            1.8 as profit_factor
-        FROM strategies 
-        WHERE is_active = TRUE
-        AND current_score >= 0.6
-        ORDER BY current_score DESC
+        SELECT
+            s.strategy_id,
+            s.symbol,
+            s.strategy_type,
+            s.current_score,
+            COALESCE(perf.volatility, 0) as volatility,
+            COALESCE(perf.sharpe_ratio, 0) as sharpe_ratio,
+            COALESCE(perf.max_drawdown, 0) as max_drawdown,
+            COALESCE(perf.win_rate, 0) as win_rate,
+            COALESCE(perf.profit_factor, 0) as profit_factor
+        FROM strategies s
+        LEFT JOIN strategy_specs spec ON spec.name = s.strategy_type AND spec.is_active = TRUE
+        LEFT JOIN strategy_implementations impl ON impl.spec_id = spec.id
+            AND impl.status IN ('VALIDATED', 'DEPLOYED')
+        LEFT JOIN LATERAL (
+            SELECT
+                sp.volatility,
+                sp.sharpe_ratio,
+                sp.max_drawdown,
+                sp.win_rate,
+                sp.profit_factor
+            FROM strategy_performance sp
+            WHERE sp.implementation_id = impl.id
+            AND sp.environment IN ('BACKTEST', 'PAPER', 'LIVE')
+            ORDER BY sp.created_at DESC
+            LIMIT 1
+        ) perf ON TRUE
+        WHERE s.is_active = TRUE
+        AND s.current_score >= 0.6
+        AND perf.sharpe_ratio IS NOT NULL
+        ORDER BY s.current_score DESC
         """
 
         async with self.pool.acquire() as conn:
@@ -126,12 +142,12 @@ class RiskAdjustedSizer:
                         strategy_id=row["strategy_id"],
                         symbol=row["symbol"],
                         strategy_type=row["strategy_type"],
-                        current_score=row["current_score"],
-                        volatility=row["volatility"],
-                        sharpe_ratio=row["sharpe_ratio"],
-                        max_drawdown=row["max_drawdown"],
-                        win_rate=row["win_rate"],
-                        profit_factor=row["profit_factor"],
+                        current_score=float(row["current_score"]),
+                        volatility=float(row["volatility"]),
+                        sharpe_ratio=float(row["sharpe_ratio"]),
+                        max_drawdown=float(row["max_drawdown"]),
+                        win_rate=float(row["win_rate"]),
+                        profit_factor=float(row["profit_factor"]),
                     )
                 )
 
