@@ -50,7 +50,7 @@ class TestHealthEndpoint:
 
 class TestExecuteTradeEndpoint:
     @patch("services.paper_trading.service._get_current_price")
-    @patch("services.paper_trading.service._call_mcp_tool")
+    @patch("services.paper_trading.service.call_mcp_tool")
     def test_execute_buy_trade(self, mock_mcp, mock_price, client, pg_client):
         mock_mcp.return_value = [
             {
@@ -114,7 +114,7 @@ class TestExecuteTradeEndpoint:
         resp = client.post("/paper/execute")
         assert resp.status_code == 400
 
-    @patch("services.paper_trading.service._call_mcp_tool")
+    @patch("services.paper_trading.service.call_mcp_tool")
     def test_execute_trade_signal_not_found(self, mock_mcp, client):
         mock_mcp.return_value = []
 
@@ -125,7 +125,7 @@ class TestExecuteTradeEndpoint:
         )
         assert resp.status_code == 404
 
-    @patch("services.paper_trading.service._call_mcp_tool")
+    @patch("services.paper_trading.service.call_mcp_tool")
     def test_execute_trade_hold_signal_rejected(self, mock_mcp, client):
         mock_mcp.return_value = [
             {
@@ -145,7 +145,7 @@ class TestExecuteTradeEndpoint:
         assert "HOLD" in resp.get_json()["error"]
 
     @patch("services.paper_trading.service._get_current_price")
-    @patch("services.paper_trading.service._call_mcp_tool")
+    @patch("services.paper_trading.service.call_mcp_tool")
     def test_execute_trade_price_unavailable(self, mock_mcp, mock_price, client):
         mock_mcp.return_value = [
             {
@@ -273,48 +273,52 @@ class TestPnlSummaryEndpoint:
 
 
 class TestMcpToolCall:
-    @patch("services.paper_trading.service.requests.post")
+    @patch("requests.post")
     def test_call_mcp_tool_success(self, mock_post):
-        from services.paper_trading.service import _call_mcp_tool
+        from services.shared.mcp_client import call_mcp_tool
 
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {"content": [{"text": '{"price": 50000}'}]}
+        mock_resp.json.return_value = {
+            "content": [{"type": "text", "text": '{"price": 50000}'}]
+        }
         mock_resp.raise_for_status = MagicMock()
         mock_post.return_value = mock_resp
 
-        result = _call_mcp_tool(
+        result = call_mcp_tool(
             "get_latest_price",
             {"symbol": "BTC-USD"},
             "http://market:8080",
+            timeout=10,
         )
         assert result == {"price": 50000}
 
-    @patch("services.paper_trading.service.requests.post")
-    def test_call_mcp_tool_failure_returns_empty(self, mock_post):
-        from services.paper_trading.service import _call_mcp_tool
+    @patch("requests.post")
+    def test_call_mcp_tool_failure_returns_error(self, mock_post):
+        from services.shared.mcp_client import call_mcp_tool
+        import requests as req_lib
 
-        mock_post.side_effect = Exception("Connection refused")
-        result = _call_mcp_tool("get_latest_price", {}, "http://bad:8080")
-        assert result == {}
+        mock_post.side_effect = req_lib.RequestException("Connection refused")
+        result = call_mcp_tool("get_latest_price", {}, "http://bad:8080")
+        assert "error" in result
 
 
 class TestGetCurrentPrice:
-    @patch("services.paper_trading.service._call_mcp_tool")
+    @patch("services.paper_trading.service.call_mcp_tool")
     def test_get_price_from_price_field(self, mock_mcp):
         from services.paper_trading.service import _get_current_price
 
         mock_mcp.return_value = {"price": 50000}
         assert _get_current_price("BTC-USD", "http://market:8080") == 50000.0
 
-    @patch("services.paper_trading.service._call_mcp_tool")
+    @patch("services.paper_trading.service.call_mcp_tool")
     def test_get_price_from_close_field(self, mock_mcp):
         from services.paper_trading.service import _get_current_price
 
         mock_mcp.return_value = {"close": 49000}
         assert _get_current_price("BTC-USD", "http://market:8080") == 49000.0
 
-    @patch("services.paper_trading.service._call_mcp_tool")
+    @patch("services.paper_trading.service.call_mcp_tool")
     def test_get_price_returns_none_on_failure(self, mock_mcp):
         from services.paper_trading.service import _get_current_price
 

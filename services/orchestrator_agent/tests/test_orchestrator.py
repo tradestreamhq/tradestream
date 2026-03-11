@@ -8,13 +8,14 @@ import pytest
 from services.orchestrator_agent import config
 from services.orchestrator_agent.health_monitor import HealthMonitor
 from services.orchestrator_agent.orchestrator import (
-    _call_mcp_tool,
+    TOOL_TO_SERVER,
     fetch_active_symbols,
     run_signal_pipeline,
     run_strategy_proposer,
     run_orchestrator_loop,
 )
 from services.orchestrator_agent.scheduler import Scheduler
+from services.shared.mcp_client import resolve_and_call
 
 
 def _make_mcp_response(data):
@@ -23,11 +24,15 @@ def _make_mcp_response(data):
 
 class TestCallMcpTool:
     def test_unknown_tool(self):
-        result = _call_mcp_tool("unknown", {}, {})
+        result = resolve_and_call(
+            "unknown", {}, TOOL_TO_SERVER, {}, return_type="parsed"
+        )
         assert "error" in result
 
     def test_missing_server_url(self):
-        result = _call_mcp_tool("get_symbols", {}, {})
+        result = resolve_and_call(
+            "get_symbols", {}, TOOL_TO_SERVER, {}, return_type="parsed"
+        )
         assert "error" in result
 
     @mock.patch("requests.post")
@@ -37,7 +42,13 @@ class TestCallMcpTool:
         mock_resp.raise_for_status.return_value = None
         mock_post.return_value = mock_resp
 
-        result = _call_mcp_tool("get_symbols", {}, {"market": "http://market:8080"})
+        result = resolve_and_call(
+            "get_symbols",
+            {},
+            TOOL_TO_SERVER,
+            {"market": "http://market:8080"},
+            return_type="parsed",
+        )
         assert result == {"symbols": ["BTC-USD"]}
 
 

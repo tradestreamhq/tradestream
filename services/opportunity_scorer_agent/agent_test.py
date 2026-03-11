@@ -7,11 +7,11 @@ import pytest
 
 from services.opportunity_scorer_agent.agent import (
     TOOL_TO_MCP_SERVER,
-    _call_mcp_tool,
     assign_tier,
     compute_score,
     score_signal,
 )
+from services.shared.mcp_client import resolve_and_call
 
 
 @pytest.fixture
@@ -277,19 +277,25 @@ class TestCallMcpTool:
         assert TOOL_TO_MCP_SERVER["get_performance_batch"] == "strategy"
         assert TOOL_TO_MCP_SERVER["log_decision"] == "signal"
 
-    @mock.patch("services.opportunity_scorer_agent.agent.requests")
-    def test_call_mcp_tool_success(self, mock_requests, mcp_urls):
+    @mock.patch("requests.post")
+    def test_call_mcp_tool_success(self, mock_post, mcp_urls):
         mock_response = mock.MagicMock()
         mock_response.json.return_value = {
             "content": [{"type": "text", "text": '{"atr": 0.025, "stddev": 0.012}'}]
         }
         mock_response.raise_for_status = mock.MagicMock()
-        mock_requests.post.return_value = mock_response
+        mock_post.return_value = mock_response
 
-        result = _call_mcp_tool("get_volatility", {"symbol": "BTC/USD"}, mcp_urls)
+        result = resolve_and_call(
+            "get_volatility",
+            {"symbol": "BTC/USD"},
+            TOOL_TO_MCP_SERVER,
+            mcp_urls,
+            return_type="parsed",
+        )
 
         assert result == {"atr": 0.025, "stddev": 0.012}
-        mock_requests.post.assert_called_once_with(
+        mock_post.assert_called_once_with(
             "http://market-mcp:8080/call-tool",
             json={
                 "name": "get_volatility",
@@ -298,16 +304,16 @@ class TestCallMcpTool:
             timeout=30,
         )
 
-    @mock.patch("services.opportunity_scorer_agent.agent.requests")
-    def test_call_mcp_tool_log_decision(self, mock_requests, mcp_urls):
+    @mock.patch("requests.post")
+    def test_call_mcp_tool_log_decision(self, mock_post, mcp_urls):
         mock_response = mock.MagicMock()
         mock_response.json.return_value = {
             "content": [{"type": "text", "text": '{"status": "ok"}'}]
         }
         mock_response.raise_for_status = mock.MagicMock()
-        mock_requests.post.return_value = mock_response
+        mock_post.return_value = mock_response
 
-        result = _call_mcp_tool(
+        result = resolve_and_call(
             "log_decision",
             {
                 "signal_id": "sig-001",
@@ -319,11 +325,13 @@ class TestCallMcpTool:
                 "latency_ms": 1200,
                 "tokens": 500,
             },
+            TOOL_TO_MCP_SERVER,
             mcp_urls,
+            return_type="parsed",
         )
 
         assert result == {"status": "ok"}
-        mock_requests.post.assert_called_once_with(
+        mock_post.assert_called_once_with(
             "http://signal-mcp:8080/call-tool",
             json={
                 "name": "log_decision",
@@ -346,7 +354,7 @@ class TestScoreSignal:
     """Tests for the score_signal LLM agent loop."""
 
     @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
-    @mock.patch("services.opportunity_scorer_agent.agent._call_mcp_tool")
+    @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
     def test_score_signal_returns_result(
         self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal
     ):
@@ -380,7 +388,7 @@ class TestScoreSignal:
         )
 
     @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
-    @mock.patch("services.opportunity_scorer_agent.agent._call_mcp_tool")
+    @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
     def test_score_signal_handles_tool_calls(
         self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal
     ):
@@ -426,11 +434,15 @@ class TestScoreSignal:
         assert result is not None
         assert result["score"] == 65.0
         mock_mcp.assert_called_once_with(
-            "get_volatility", {"symbol": "BTC/USD"}, mcp_urls
+            "get_volatility",
+            {"symbol": "BTC/USD"},
+            TOOL_TO_MCP_SERVER,
+            mcp_urls,
+            return_type="parsed",
         )
 
     @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
-    @mock.patch("services.opportunity_scorer_agent.agent._call_mcp_tool")
+    @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
     def test_score_signal_concurrent_tool_calls(
         self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal
     ):
@@ -477,7 +489,7 @@ class TestScoreSignal:
             final_response,
         ]
 
-        def mcp_side_effect(name, args, urls):
+        def mcp_side_effect(name, args, tool_to_server, urls, **kwargs):
             if name == "get_volatility":
                 return {"atr": 0.025, "stddev": 0.012}
             elif name == "get_performance_batch":
@@ -498,7 +510,7 @@ class TestScoreSignal:
         assert mock_mcp.call_count == 2
 
     @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
-    @mock.patch("services.opportunity_scorer_agent.agent._call_mcp_tool")
+    @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
     def test_score_signal_handles_mcp_error(
         self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal
     ):

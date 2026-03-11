@@ -6,6 +6,7 @@ from unittest import mock
 
 import pytest
 
+from services.shared.mcp_client import resolve_and_call
 from services.signal_generator_agent import agent
 
 
@@ -96,13 +97,21 @@ class TestCallMcpTool:
     """Tests for MCP tool dispatching."""
 
     def test_unknown_tool_returns_error(self):
-        result = agent._call_mcp_tool("unknown_tool", {}, {})
+        result = resolve_and_call(
+            "unknown_tool", {}, agent.TOOL_TO_SERVER, {}, return_type="string"
+        )
         parsed = json.loads(result)
         assert "error" in parsed
         assert "Unknown tool" in parsed["error"]
 
     def test_missing_server_url_returns_error(self):
-        result = agent._call_mcp_tool("get_top_strategies", {"symbol": "BTC-USD"}, {})
+        result = resolve_and_call(
+            "get_top_strategies",
+            {"symbol": "BTC-USD"},
+            agent.TOOL_TO_SERVER,
+            {},
+            return_type="string",
+        )
         parsed = json.loads(result)
         assert "error" in parsed
         assert "No URL configured" in parsed["error"]
@@ -118,8 +127,12 @@ class TestCallMcpTool:
         mock_post.return_value = mock_resp
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = agent._call_mcp_tool(
-            "get_top_strategies", {"symbol": "BTC-USD", "limit": 10}, mcp_urls
+        result = resolve_and_call(
+            "get_top_strategies",
+            {"symbol": "BTC-USD", "limit": 10},
+            agent.TOOL_TO_SERVER,
+            mcp_urls,
+            return_type="string",
         )
 
         mock_post.assert_called_once_with(
@@ -140,8 +153,12 @@ class TestCallMcpTool:
         mock_post.side_effect = req_lib.RequestException("Connection refused")
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = agent._call_mcp_tool(
-            "get_top_strategies", {"symbol": "BTC-USD"}, mcp_urls
+        result = resolve_and_call(
+            "get_top_strategies",
+            {"symbol": "BTC-USD"},
+            agent.TOOL_TO_SERVER,
+            mcp_urls,
+            return_type="string",
         )
 
         parsed = json.loads(result)

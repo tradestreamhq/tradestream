@@ -19,16 +19,11 @@ TOOL_TO_SERVER = {
 }
 
 
-def _call_mcp_tool(tool_name, arguments, mcp_urls):
-    """Call an MCP tool by dispatching to the correct MCP server via HTTP."""
-    return resolve_and_call(
-        tool_name, arguments, TOOL_TO_SERVER, mcp_urls, return_type="parsed"
-    )
-
-
 def fetch_active_symbols(mcp_urls):
     """Fetch active trading symbols from market-mcp."""
-    result = _call_mcp_tool("get_symbols", {}, mcp_urls)
+    result = resolve_and_call(
+        "get_symbols", {}, TOOL_TO_SERVER, mcp_urls, return_type="parsed"
+    )
     if isinstance(result, dict) and "error" in result:
         raise ConnectionError(f"Failed to fetch symbols: {result['error']}")
     if isinstance(result, dict) and "symbols" in result:
@@ -52,7 +47,7 @@ def _invoke_agent_http(agent_url, payload, timeout=120):
 def _log_health_decision(mcp_urls, agent_name, status, details):
     """Log an orchestrator health decision to the agent_decisions table via signal-mcp."""
     try:
-        _call_mcp_tool(
+        resolve_and_call(
             "log_decision",
             {
                 "signal_id": f"orchestrator-{agent_name}-{int(time.time())}",
@@ -64,7 +59,9 @@ def _log_health_decision(mcp_urls, agent_name, status, details):
                 "latency_ms": 0,
                 "tokens": 0,
             },
+            TOOL_TO_SERVER,
             mcp_urls,
+            return_type="parsed",
         )
     except Exception as e:
         logging.warning("Failed to log health decision: %s", e)

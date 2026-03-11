@@ -35,6 +35,7 @@ py_test(
     args = [],
     deps = [
         ":agent_lib",
+        "//services/shared:mcp_client",
         "//services/shared:model_config",
         "//third_party/python:pytest",
         "//third_party/python:requests",

@@ -22,6 +22,7 @@ py_binary(
     main = "main.py",
     deps = [
         ":agent_lib",
+        "//services/shared:mcp_client",
         "//third_party/python:absl_py",
     ],
 )
@@ -32,6 +33,7 @@ py_test(
     srcs = ["agent_test.py"],
     deps = [
         ":agent_lib",
+        "//services/shared:mcp_client",
         "//services/shared:model_config",
         "//third_party/python:pytest",
     ],

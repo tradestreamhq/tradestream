@@ -5,6 +5,7 @@ import json
 from absl import logging
 from openai import OpenAI
 
+from services.shared.mcp_client import resolve_and_call
 from services.shared.model_config import MODEL_PRIMARY, OPENROUTER_BASE_URL
 
 
@@ -204,15 +205,6 @@ TOOL_TO_SERVER = {
 }
 
 
-def _call_mcp_tool(tool_name, arguments, mcp_urls):
-    """Call an MCP tool by dispatching to the correct MCP server via HTTP."""
-    from services.shared.mcp_client import resolve_and_call
-
-    return resolve_and_call(
-        tool_name, arguments, TOOL_TO_SERVER, mcp_urls, return_type="string"
-    )
-
-
 def run_proposer_agent(api_key, mcp_urls):
     """Run the strategy proposer agent to generate a novel strategy spec.
 
@@ -267,7 +259,9 @@ def run_proposer_agent(api_key, mcp_urls):
 
             logging.info("Strategy proposer: calling tool %s(%s)", fn_name, fn_args)
 
-            result = _call_mcp_tool(fn_name, fn_args, mcp_urls)
+            result = resolve_and_call(
+                fn_name, fn_args, TOOL_TO_SERVER, mcp_urls, return_type="string"
+            )
 
             messages.append(
                 {

@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from openai import OpenAI
 
+from services.shared.mcp_client import resolve_and_call
 from services.shared.model_config import MODEL_LIGHTWEIGHT, OPENROUTER_BASE_URL
 
 SYSTEM_PROMPT = """You are an opportunity scoring agent. You receive raw trading signals and score them 0-100, then assign a tier (HOT/GOOD/NEUTRAL/LOW).
@@ -160,15 +161,6 @@ TOOL_TO_MCP_SERVER = {
 }
 
 
-def _call_mcp_tool(tool_name, arguments, mcp_urls):
-    """Call an MCP server tool via its HTTP endpoint."""
-    from services.shared.mcp_client import resolve_and_call
-
-    return resolve_and_call(
-        tool_name, arguments, TOOL_TO_MCP_SERVER, mcp_urls, return_type="parsed"
-    )
-
-
 def compute_score(
     confidence,
     sharpe_ratio,
@@ -298,7 +290,12 @@ def score_signal(signal, api_key, mcp_urls):
                         logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
                         all_tool_calls.append({"name": fn_name, "arguments": fn_args})
                         future = executor.submit(
-                            _call_mcp_tool, fn_name, fn_args, mcp_urls
+                            resolve_and_call,
+                            fn_name,
+                            fn_args,
+                            TOOL_TO_MCP_SERVER,
+                            mcp_urls,
+                            return_type="parsed",
                         )
                         futures[future] = tool_call
 
@@ -320,8 +317,12 @@ def score_signal(signal, api_key, mcp_urls):
                 logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
                 all_tool_calls.append({"name": fn_name, "arguments": fn_args})
                 try:
-                    tool_results[tool_call.id] = _call_mcp_tool(
-                        fn_name, fn_args, mcp_urls
+                    tool_results[tool_call.id] = resolve_and_call(
+                        fn_name,
+                        fn_args,
+                        TOOL_TO_MCP_SERVER,
+                        mcp_urls,
+                        return_type="parsed",
                     )
                 except Exception as e:
                     tool_results[tool_call.id] = {"error": str(e)}
