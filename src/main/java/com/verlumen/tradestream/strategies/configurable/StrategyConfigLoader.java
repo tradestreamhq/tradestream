@@ -46,7 +46,16 @@ public final class StrategyConfigLoader {
     RSI_EMA_CROSSOVER("strategies/rsi_ema_crossover.yaml"),
     SMA_EMA_CROSSOVER("strategies/sma_ema_crossover.yaml"),
     STOCHASTIC_RSI("strategies/stochastic_rsi.yaml"),
-    TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml");
+    TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml"),
+    VOLATILITY_STOP("strategies/volatility_stop.yaml"),
+    VOLUME_BREAKOUT("strategies/volume_breakout.yaml"),
+    VOLUME_PROFILE("strategies/volume_profile.yaml"),
+    VOLUME_PROFILE_DEVIATIONS("strategies/volume_profile_deviations.yaml"),
+    VOLUME_SPREAD_ANALYSIS("strategies/volume_spread_analysis.yaml"),
+    VOLUME_WEIGHTED_MACD("strategies/volume_weighted_macd.yaml"),
+    VPT("strategies/vpt.yaml"),
+    VWAP_CROSSOVER("strategies/vwap_crossover.yaml"),
+    VWAP_MEAN_REVERSION("strategies/vwap_mean_reversion.yaml");
 
     private final String resourcePath;
 
