@@ -105,3 +105,26 @@ py_test(
         "//third_party/python:pytest",
     ],
 )
+
+py_library(
+    name = "strategy_parameter_registry",
+    srcs = [
+        "__init__.py",
+        "strategy_parameter_registry.py",
+    ],
+    deps = [
+        "//protos:strategies_py_proto",
+        "//third_party/python:protobuf",
+    ],
+)
+
+py_test(
+    name = "strategy_parameter_registry_test",
+    srcs = ["strategy_parameter_registry_test.py"],
+    deps = [
+        ":strategy_parameter_registry",
+        "//protos:strategies_py_proto",
+        "//third_party/python:protobuf",
+        "//third_party/python:pytest",
+    ],
+)

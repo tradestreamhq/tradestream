@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from protos import backtesting_pb2, marketdata_pb2, strategies_pb2
+from services.shared.strategy_parameter_registry import unpack_strategy_parameters
 from services.backtesting.vectorbt_runner import BacktestMetrics, VectorBTRunner
 
 logger = logging.getLogger(__name__)
@@ -138,36 +139,7 @@ class BacktestingServicer:
 
     def _extract_parameters(self, strategy: strategies_pb2.Strategy) -> Dict[str, Any]:
         """Extract parameters from Strategy proto."""
-        params = {}
-
-        if strategy.HasField("parameters"):
-            any_params = strategy.parameters
-
-            # Try to unpack common parameter types
-            param_types = [
-                strategies_pb2.SmaRsiParameters,
-                strategies_pb2.EmaMacdParameters,
-                strategies_pb2.MacdCrossoverParameters,
-                strategies_pb2.DoubleEmaCrossoverParameters,
-                strategies_pb2.TripleEmaCrossoverParameters,
-                strategies_pb2.AdxStochasticParameters,
-                strategies_pb2.SmaEmaCrossoverParameters,
-                strategies_pb2.RsiEmaCrossoverParameters,
-                strategies_pb2.ConfigurableStrategyParameters,
-            ]
-
-            for param_type in param_types:
-                if any_params.Is(param_type.DESCRIPTOR):
-                    param_msg = param_type()
-                    any_params.Unpack(param_msg)
-                    # Convert proto message to dict
-                    for field in param_msg.DESCRIPTOR.fields:
-                        value = getattr(param_msg, field.name)
-                        # Convert camelCase to snake_case for our internal API
-                        params[field.name] = value
-                    break
-
-        return params
+        return unpack_strategy_parameters(strategy)
 
     def _metrics_to_proto(
         self, metrics: BacktestMetrics

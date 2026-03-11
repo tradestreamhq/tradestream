@@ -14,10 +14,8 @@ import sys
 from typing import List, Optional
 
 import asyncpg
-from google.protobuf import any_pb2
 
-# Import the generated protobuf classes
-from protos import strategies_pb2
+from services.shared.strategy_parameter_registry import get_parameter_class
 
 
 class StrategyInspector:
@@ -41,85 +39,21 @@ class StrategyInspector:
     ) -> dict:
         """Decode protobuf parameters to a readable format."""
         try:
-            # Map protobuf types to their corresponding classes
-            type_mapping = {
-                "type.googleapis.com/strategies.SmaRsiParameters": strategies_pb2.SmaRsiParameters,
-                "type.googleapis.com/strategies.EmaMacdParameters": strategies_pb2.EmaMacdParameters,
-                "type.googleapis.com/strategies.AdxStochasticParameters": strategies_pb2.AdxStochasticParameters,
-                "type.googleapis.com/strategies.AroonMfiParameters": strategies_pb2.AroonMfiParameters,
-                "type.googleapis.com/strategies.IchimokuCloudParameters": strategies_pb2.IchimokuCloudParameters,
-                "type.googleapis.com/strategies.ParabolicSarParameters": strategies_pb2.ParabolicSarParameters,
-                "type.googleapis.com/strategies.SmaEmaCrossoverParameters": strategies_pb2.SmaEmaCrossoverParameters,
-                "type.googleapis.com/strategies.DoubleEmaCrossoverParameters": strategies_pb2.DoubleEmaCrossoverParameters,
-                "type.googleapis.com/strategies.TripleEmaCrossoverParameters": strategies_pb2.TripleEmaCrossoverParameters,
-                "type.googleapis.com/strategies.HeikenAshiParameters": strategies_pb2.HeikenAshiParameters,
-                "type.googleapis.com/strategies.LinearRegressionChannelsParameters": strategies_pb2.LinearRegressionChannelsParameters,
-                "type.googleapis.com/strategies.VwapMeanReversionParameters": strategies_pb2.VwapMeanReversionParameters,
-                "type.googleapis.com/strategies.BbandWRParameters": strategies_pb2.BbandWRParameters,
-                "type.googleapis.com/strategies.AtrCciParameters": strategies_pb2.AtrCciParameters,
-                "type.googleapis.com/strategies.DonchianBreakoutParameters": strategies_pb2.DonchianBreakoutParameters,
-                "type.googleapis.com/strategies.VolatilityStopParameters": strategies_pb2.VolatilityStopParameters,
-                "type.googleapis.com/strategies.AtrTrailingStopParameters": strategies_pb2.AtrTrailingStopParameters,
-                "type.googleapis.com/strategies.MomentumSmaCrossoverParameters": strategies_pb2.MomentumSmaCrossoverParameters,
-                "type.googleapis.com/strategies.KstOscillatorParameters": strategies_pb2.KstOscillatorParameters,
-                "type.googleapis.com/strategies.StochasticRsiParameters": strategies_pb2.StochasticRsiParameters,
-                "type.googleapis.com/strategies.RviParameters": strategies_pb2.RviParameters,
-                "type.googleapis.com/strategies.MassIndexParameters": strategies_pb2.MassIndexParameters,
-                "type.googleapis.com/strategies.MomentumPinballParameters": strategies_pb2.MomentumPinballParameters,
-                "type.googleapis.com/strategies.VolumeWeightedMacdParameters": strategies_pb2.VolumeWeightedMacdParameters,
-                "type.googleapis.com/strategies.ObvEmaParameters": strategies_pb2.ObvEmaParameters,
-                "type.googleapis.com/strategies.ChaikinOscillatorParameters": strategies_pb2.ChaikinOscillatorParameters,
-                "type.googleapis.com/strategies.KlingerVolumeParameters": strategies_pb2.KlingerVolumeParameters,
-                "type.googleapis.com/strategies.VolumeBreakoutParameters": strategies_pb2.VolumeBreakoutParameters,
-                "type.googleapis.com/strategies.PvtParameters": strategies_pb2.PvtParameters,
-                "type.googleapis.com/strategies.VptParameters": strategies_pb2.VptParameters,
-                "type.googleapis.com/strategies.VolumeSpreadAnalysisParameters": strategies_pb2.VolumeSpreadAnalysisParameters,
-                "type.googleapis.com/strategies.TickVolumeAnalysisParameters": strategies_pb2.TickVolumeAnalysisParameters,
-                "type.googleapis.com/strategies.VolumeProfileDeviationsParameters": strategies_pb2.VolumeProfileDeviationsParameters,
-                "type.googleapis.com/strategies.VolumeProfileParameters": strategies_pb2.VolumeProfileParameters,
-                "type.googleapis.com/strategies.StochasticEmaParameters": strategies_pb2.StochasticEmaParameters,
-                "type.googleapis.com/strategies.CmoMfiParameters": strategies_pb2.CmoMfiParameters,
-                "type.googleapis.com/strategies.RsiEmaCrossoverParameters": strategies_pb2.RsiEmaCrossoverParameters,
-                "type.googleapis.com/strategies.TrixSignalLineParameters": strategies_pb2.TrixSignalLineParameters,
-                "type.googleapis.com/strategies.CmfZeroLineParameters": strategies_pb2.CmfZeroLineParameters,
-                "type.googleapis.com/strategies.RainbowOscillatorParameters": strategies_pb2.RainbowOscillatorParameters,
-                "type.googleapis.com/strategies.PriceOscillatorSignalParameters": strategies_pb2.PriceOscillatorSignalParameters,
-                "type.googleapis.com/strategies.AwesomeOscillatorParameters": strategies_pb2.AwesomeOscillatorParameters,
-                "type.googleapis.com/strategies.DemaTemaCrossoverParameters": strategies_pb2.DemaTemaCrossoverParameters,
-                "type.googleapis.com/strategies.MacdCrossoverParameters": strategies_pb2.MacdCrossoverParameters,
-                "type.googleapis.com/strategies.VwapCrossoverParameters": strategies_pb2.VwapCrossoverParameters,
-                "type.googleapis.com/strategies.RocMaCrossoverParameters": strategies_pb2.RocMaCrossoverParameters,
-                "type.googleapis.com/strategies.RegressionChannelParameters": strategies_pb2.RegressionChannelParameters,
-                "type.googleapis.com/strategies.FramaParameters": strategies_pb2.FramaParameters,
-                "type.googleapis.com/strategies.PivotParameters": strategies_pb2.PivotParameters,
-                "type.googleapis.com/strategies.DoubleTopBottomParameters": strategies_pb2.DoubleTopBottomParameters,
-                "type.googleapis.com/strategies.FibonacciRetracementsParameters": strategies_pb2.FibonacciRetracementsParameters,
-                "type.googleapis.com/strategies.PriceGapParameters": strategies_pb2.PriceGapParameters,
-                "type.googleapis.com/strategies.RenkoChartParameters": strategies_pb2.RenkoChartParameters,
-                "type.googleapis.com/strategies.RangeBarsParameters": strategies_pb2.RangeBarsParameters,
-                "type.googleapis.com/strategies.GannSwingParameters": strategies_pb2.GannSwingParameters,
-                "type.googleapis.com/strategies.SarMfiParameters": strategies_pb2.SarMfiParameters,
-                "type.googleapis.com/strategies.AdxDmiParameters": strategies_pb2.AdxDmiParameters,
-                "type.googleapis.com/strategies.ElderRayMAParameters": strategies_pb2.ElderRayMAParameters,
-                "type.googleapis.com/strategies.DpoCrossoverParameters": strategies_pb2.DpoCrossoverParameters,
-                "type.googleapis.com/strategies.VariablePeriodEmaParameters": strategies_pb2.VariablePeriodEmaParameters,
-            }
-            if protobuf_type in type_mapping:
-                param_class = type_mapping[protobuf_type]()
-                param_class.ParseFromString(bytes.fromhex(protobuf_data))
-                # Convert to dict for easy display
-                result = {}
-                for field in param_class.DESCRIPTOR.fields:
-                    value = getattr(param_class, field.name)
-                    if field.type == field.TYPE_ENUM:
-                        result[field.name] = field.enum_type.values_by_number[
-                            value
-                        ].name
-                    else:
-                        result[field.name] = value
-                return result
-            else:
+            param_class_type = get_parameter_class(protobuf_type)
+            if param_class_type is None:
                 return {"error": f"Unknown protobuf type: {protobuf_type}"}
+
+            param_class = param_class_type()
+            param_class.ParseFromString(bytes.fromhex(protobuf_data))
+            # Convert to dict for easy display
+            result = {}
+            for field in param_class.DESCRIPTOR.fields:
+                value = getattr(param_class, field.name)
+                if field.type == field.TYPE_ENUM:
+                    result[field.name] = field.enum_type.values_by_number[value].name
+                else:
+                    result[field.name] = value
+            return result
         except Exception as e:
             return {"error": f"Failed to decode protobuf: {str(e)}"}
 
