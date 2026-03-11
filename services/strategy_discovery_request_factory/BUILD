@@ -101,11 +101,14 @@ py_test(
     name = "main_test",
     srcs = ["main_test.py"],
     args = [
-        "--influxdb_token=dummy_token_for_test",
-        "--influxdb_org=dummy_org_for_test",
         "--tracker_service_name=test_strategy_discovery",
         "--global_status_tracker_service_name=test_global_candle_status",
     ],
+    env = {
+        "INFLUXDB_TOKEN": "dummy_token_for_test",
+        "INFLUXDB_ORG": "dummy_org_for_test",
+        "KAFKA_BOOTSTRAP_SERVERS": "localhost:9092",
+    },
     deps = [
         ":app",
         ":config_lib",

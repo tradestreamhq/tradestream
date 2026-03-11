@@ -5,4 +5,4 @@ commandTests:
     args: ["--help"]
     exitCode: 1
     expectedOutput:
-      - "Redis host"
+      - "Entry point for the Notification Service"

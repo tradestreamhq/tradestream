@@ -98,12 +98,14 @@ py_test(
     name = "main_test",
     srcs = ["main_test.py"],
     args = [
-        "--influxdb_token=dummy_influx_token_for_test",
-        "--influxdb_org=dummy_influx_org_for_test",
-        "--redis_host=mock_redis_host_for_test",
         "--redis_key_crypto_symbols=test_crypto_symbols_key",
         "--exchanges=binance",
     ],
+    env = {
+        "INFLUXDB_TOKEN": "dummy_influx_token_for_test",
+        "INFLUXDB_ORG": "dummy_influx_org_for_test",
+        "REDIS_HOST": "mock_redis_host_for_test",
+    },
     deps = [
         ":app",
         ":ccxt_client_lib",

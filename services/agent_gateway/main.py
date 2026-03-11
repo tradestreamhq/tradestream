@@ -32,8 +32,23 @@ logger = logging.getLogger(__name__)
 
 REDIS_CHANNEL = "agent_events"
 
-_pg_config = PostgresConfig()
-_redis_config = RedisConfig()
+_pg_config = None
+_redis_config = None
+
+
+def _get_pg_config():
+    global _pg_config
+    if _pg_config is None:
+        _pg_config = PostgresConfig()
+    return _pg_config
+
+
+def _get_redis_config():
+    global _redis_config
+    if _redis_config is None:
+        _redis_config = RedisConfig()
+    return _redis_config
+
 
 app = FastAPI(
     title="Agent Gateway",
@@ -111,8 +126,10 @@ _redis: Optional[aioredis.Redis] = None
 @app.on_event("startup")
 async def startup():
     global _db_pool, _redis
-    _db_pool = await asyncpg.create_pool(dsn=_pg_config.dsn, min_size=2, max_size=10)
-    _redis = aioredis.from_url(_redis_config.url, decode_responses=True)
+    _db_pool = await asyncpg.create_pool(
+        dsn=_get_pg_config().dsn, min_size=2, max_size=10
+    )
+    _redis = aioredis.from_url(_get_redis_config().url, decode_responses=True)
     logger.info("Agent Gateway started")
 
 
