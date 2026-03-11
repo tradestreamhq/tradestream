@@ -998,15 +998,51 @@ def get_db_connection():
     )
 
 
-def fetch_all_strategies() -> List[Dict]:
-    """Fetch all active strategies from the database."""
+def clamp_pagination(limit: Optional[int], offset: Optional[int]) -> tuple:
+    """Clamp pagination parameters to safe defaults.
+
+    Returns (limit, offset) with limit in [1, 200] defaulting to 50,
+    and offset >= 0 defaulting to 0.
+    """
+    DEFAULT_LIMIT = 50
+    MAX_LIMIT = 200
+
+    if limit is None or limit < 1:
+        limit = DEFAULT_LIMIT
+    elif limit > MAX_LIMIT:
+        limit = MAX_LIMIT
+
+    if offset is None or offset < 0:
+        offset = 0
+
+    return limit, offset
+
+
+def fetch_all_strategies(
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> tuple:
+    """Fetch active strategies from the database with pagination.
+
+    Returns (strategies_list, total_count).
+    """
+    limit, offset = clamp_pagination(limit, offset)
     conn = get_db_connection()
 
     try:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+        # Get total count (excluding stablecoins is done post-query for
+        # consistency with the existing stablecoin filter logic, but we
+        # push limit/offset to SQL to bound the main data query).
+        count_query = """
+        SELECT COUNT(*) FROM Strategies WHERE is_active = TRUE
+        """
+        cursor.execute(count_query)
+        total_count = cursor.fetchone()["count"]
+
         query = """
-        SELECT 
+        SELECT
             strategy_id,
             symbol,
             strategy_type,
@@ -1020,12 +1056,13 @@ def fetch_all_strategies() -> List[Dict]:
             last_evaluated_at,
             created_at,
             updated_at
-        FROM Strategies 
+        FROM Strategies
         WHERE is_active = TRUE
         ORDER BY current_score DESC
+        LIMIT %s OFFSET %s
         """
 
-        cursor.execute(query)
+        cursor.execute(query, (limit, offset))
         rows = cursor.fetchall()
 
         strategies = []
@@ -1101,8 +1138,140 @@ def fetch_all_strategies() -> List[Dict]:
             }
             strategies.append(strategy)
 
-        return strategies
+        return strategies, total_count
 
+    finally:
+        conn.close()
+
+
+def fetch_strategy_by_id(strategy_id: str) -> Optional[Dict]:
+    """Fetch a single strategy by its ID."""
+    conn = get_db_connection()
+
+    try:
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        query = """
+        SELECT
+            strategy_id,
+            symbol,
+            strategy_type,
+            parameters,
+            current_score,
+            strategy_hash,
+            discovery_symbol,
+            discovery_start_time,
+            discovery_end_time,
+            first_discovered_at,
+            last_evaluated_at,
+            created_at,
+            updated_at
+        FROM Strategies
+        WHERE strategy_id = %s AND is_active = TRUE
+        LIMIT 1
+        """
+
+        cursor.execute(query, (strategy_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return None
+
+        if is_stablecoin(row["symbol"]):
+            return None
+
+        # Parse parameters if it's a string
+        params_field = row["parameters"]
+        if isinstance(params_field, str):
+            try:
+                params_field = json.loads(params_field)
+            except Exception:
+                params_field = {}
+
+        # Decode parameters
+        decoded_params = {}
+        if params_field and isinstance(params_field, dict):
+            if "base64_data" in params_field:
+                decoded_params = decode_base64_parameters(
+                    params_field["base64_data"]
+                )
+            elif "protobuf_data" in params_field:
+                decoded_params = decode_hex_parameters(
+                    params_field["protobuf_data"],
+                    params_field.get("protobuf_type", ""),
+                )
+
+        backtest_period_days = None
+        if row["discovery_start_time"] and row["discovery_end_time"]:
+            delta = row["discovery_end_time"] - row["discovery_start_time"]
+            backtest_period_days = delta.days
+
+        return {
+            "strategy_id": str(row["strategy_id"]),
+            "symbol": row["symbol"],
+            "strategy_type": row["strategy_type"],
+            "parameters": decoded_params,
+            "current_score": float(row["current_score"]),
+            "strategy_hash": row["strategy_hash"],
+            "discovery_symbol": row["discovery_symbol"],
+            "discovery_start_time": (
+                row["discovery_start_time"].isoformat()
+                if row["discovery_start_time"]
+                else None
+            ),
+            "discovery_end_time": (
+                row["discovery_end_time"].isoformat()
+                if row["discovery_end_time"]
+                else None
+            ),
+            "backtest_period_days": backtest_period_days,
+            "first_discovered_at": (
+                row["first_discovered_at"].isoformat()
+                if row["first_discovered_at"]
+                else None
+            ),
+            "last_evaluated_at": (
+                row["last_evaluated_at"].isoformat()
+                if row["last_evaluated_at"]
+                else None
+            ),
+            "created_at": (
+                row["created_at"].isoformat() if row["created_at"] else None
+            ),
+            "updated_at": (
+                row["updated_at"].isoformat() if row["updated_at"] else None
+            ),
+        }
+
+    finally:
+        conn.close()
+
+
+def fetch_distinct_symbols() -> List[str]:
+    """Fetch distinct non-stablecoin symbols from active strategies."""
+    conn = get_db_connection()
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT DISTINCT symbol FROM Strategies WHERE is_active = TRUE ORDER BY symbol"
+        )
+        all_symbols = [row[0] for row in cursor.fetchall()]
+        return [s for s in all_symbols if not is_stablecoin(s)]
+    finally:
+        conn.close()
+
+
+def fetch_distinct_strategy_types() -> List[str]:
+    """Fetch distinct strategy types from active strategies."""
+    conn = get_db_connection()
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT DISTINCT strategy_type FROM Strategies WHERE is_active = TRUE ORDER BY strategy_type"
+        )
+        return [row[0] for row in cursor.fetchall()]
     finally:
         conn.close()
 
@@ -1240,18 +1409,19 @@ def health_check():
 
 @app.route("/api/strategies", methods=["GET"])
 def get_strategies():
-    """Get all strategies with optional filtering."""
+    """Get strategies with optional filtering and pagination."""
     try:
         # Get query parameters
         symbol = request.args.get("symbol")
         strategy_type = request.args.get("strategy_type")
-        limit = request.args.get("limit", type=int)
         min_score = request.args.get("min_score", type=float)
+        limit = request.args.get("limit", type=int)
+        offset = request.args.get("offset", default=0, type=int)
 
-        # Fetch strategies
-        strategies = fetch_all_strategies()
+        # Fetch strategies with pagination
+        strategies, total_count = fetch_all_strategies(limit=limit, offset=offset)
 
-        # Apply filters
+        # Apply in-memory filters
         if symbol:
             strategies = [
                 s for s in strategies if s["symbol"].lower() == symbol.lower()
@@ -1267,13 +1437,15 @@ def get_strategies():
         if min_score is not None:
             strategies = [s for s in strategies if s["current_score"] >= min_score]
 
-        if limit:
-            strategies = strategies[:limit]
+        applied_limit, applied_offset = clamp_pagination(limit, offset)
 
         return jsonify(
             {
                 "strategies": strategies,
                 "count": len(strategies),
+                "total_count": total_count,
+                "limit": applied_limit,
+                "offset": applied_offset,
                 "timestamp": datetime.now().isoformat(),
             }
         )
@@ -1287,11 +1459,7 @@ def get_strategies():
 def get_strategy_by_id(strategy_id):
     """Get a specific strategy by ID."""
     try:
-        strategies = fetch_all_strategies()
-
-        strategy = next(
-            (s for s in strategies if s["strategy_id"] == strategy_id), None
-        )
+        strategy = fetch_strategy_by_id(strategy_id)
 
         if not strategy:
             return jsonify({"error": "Strategy not found"}), 404
@@ -1318,16 +1486,24 @@ def get_metrics():
 
 @app.route("/api/symbols", methods=["GET"])
 def get_symbols():
-    """Get all unique symbols."""
+    """Get unique symbols with pagination."""
     try:
-        strategies = fetch_all_strategies()
+        limit = request.args.get("limit", type=int)
+        offset = request.args.get("offset", default=0, type=int)
 
-        symbols = sorted(list(set(s["symbol"] for s in strategies)))
+        symbols = fetch_distinct_symbols()
+
+        total_count = len(symbols)
+        applied_limit, applied_offset = clamp_pagination(limit, offset)
+        symbols = symbols[applied_offset : applied_offset + applied_limit]
 
         return jsonify(
             {
                 "symbols": symbols,
                 "count": len(symbols),
+                "total_count": total_count,
+                "limit": applied_limit,
+                "offset": applied_offset,
                 "timestamp": datetime.now().isoformat(),
             }
         )
@@ -1339,16 +1515,26 @@ def get_symbols():
 
 @app.route("/api/strategy-types", methods=["GET"])
 def get_strategy_types():
-    """Get all unique strategy types."""
+    """Get unique strategy types with pagination."""
     try:
-        strategies = fetch_all_strategies()
+        limit = request.args.get("limit", type=int)
+        offset = request.args.get("offset", default=0, type=int)
 
-        strategy_types = sorted(list(set(s["strategy_type"] for s in strategies)))
+        strategy_types = fetch_distinct_strategy_types()
+
+        total_count = len(strategy_types)
+        applied_limit, applied_offset = clamp_pagination(limit, offset)
+        strategy_types = strategy_types[
+            applied_offset : applied_offset + applied_limit
+        ]
 
         return jsonify(
             {
                 "strategy_types": strategy_types,
                 "count": len(strategy_types),
+                "total_count": total_count,
+                "limit": applied_limit,
+                "offset": applied_offset,
                 "timestamp": datetime.now().isoformat(),
             }
         )
