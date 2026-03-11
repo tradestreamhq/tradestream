@@ -49,6 +49,7 @@ py_binary(
         ":config_lib",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
+        "//services/shared:credentials",
         "//shared/cryptoclient:redis_crypto_client_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",

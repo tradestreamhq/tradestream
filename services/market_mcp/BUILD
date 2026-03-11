@@ -42,6 +42,7 @@ py_binary(
         ":redis_client_lib",
         ":server_lib",
         "//services/shared:auth",
+        "//services/shared:credentials",
         "//third_party/python:absl_py",
         "//third_party/python:mcp",
     ],

@@ -10,6 +10,7 @@ py_library(
     data = ["openapi.yaml"],
     deps = [
         "//services/shared:auth",
+        "//services/shared:credentials",
         "//third_party/python:absl_py",
         "//third_party/python:flask",
         "//third_party/python:flask_cors",
