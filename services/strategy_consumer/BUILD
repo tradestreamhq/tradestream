@@ -99,6 +99,7 @@ py_test(
     srcs = ["postgres_client_integration_test.py"],
     deps = [
         ":postgres_client_lib",
+        "//database/alembic:alembic_migrations",
         "//third_party/python:asyncpg",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",

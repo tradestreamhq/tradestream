@@ -40,41 +40,26 @@ spec:
               echo "PostgreSQL is ready!"
       {{- end }}
       containers:
-        - name: flyway
+        - name: alembic
           image: "{{ .Values.databaseMigration.image.repository }}:{{ .Values.databaseMigration.image.tag }}"
           imagePullPolicy: {{ .Values.databaseMigration.image.pullPolicy | default "IfNotPresent" }}
-          args:
-            - migrate
+          {{- if .Values.databaseMigration.stampOnly }}
+          args: ["--stamp-only"]
+          {{- end }}
           env:
-            - name: FLYWAY_URL
-              value: "jdbc:postgresql://{{ tpl .Values.databaseMigration.database.host . }}:{{ .Values.databaseMigration.database.port }}/{{ .Values.databaseMigration.database.database }}"
-            - name: FLYWAY_USER
+            - name: POSTGRES_HOST
+              value: "{{ tpl .Values.databaseMigration.database.host . }}"
+            - name: POSTGRES_PORT
+              value: "{{ .Values.databaseMigration.database.port }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.databaseMigration.database.database }}"
+            - name: POSTGRES_USER
               value: "{{ .Values.databaseMigration.database.username }}"
-            - name: FLYWAY_PASSWORD
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ tpl .Values.databaseMigration.database.passwordSecret.name . }}
                   key: {{ .Values.databaseMigration.database.passwordSecret.key }}
-            - name: FLYWAY_BASELINE_ON_MIGRATE
-              value: "{{ .Values.databaseMigration.baselineOnMigrate | default "true" }}"
-            - name: FLYWAY_BASELINE_VERSION
-              value: "{{ .Values.databaseMigration.baselineVersion | default "0" }}"
-            - name: FLYWAY_LOCATIONS
-              value: "filesystem:/flyway/sql"
-            - name: FLYWAY_CONNECT_RETRIES
-              value: "{{ .Values.databaseMigration.connectRetries | default 60 }}"
-            {{- if .Values.databaseMigration.outOfOrder }}
-            - name: FLYWAY_OUT_OF_ORDER
-              value: "true"
-            {{- end }}
-          volumeMounts:
-            - name: migrations
-              mountPath: /flyway/sql
-              readOnly: true
           resources:
             {{- toYaml .Values.databaseMigration.resources | nindent 12 }}
-      volumes:
-        - name: migrations
-          configMap:
-            name: {{ include "tradestream.fullname" . }}-db-migrations
 {{- end }}
