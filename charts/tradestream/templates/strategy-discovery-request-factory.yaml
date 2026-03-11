@@ -18,10 +18,12 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          {{- if .Values.kafkaSsl.enabled }}
           volumes:
             - name: kafka-ssl-certs
               secret:
-                secretName: {{ .Values.kafkaSsl.secretName }}
+                secretName: {{ tpl .Values.kafkaSsl.secretName . }}
+          {{- end }}
           containers:
             - name: strategy-discovery-request-factory
               image: "{{ .Values.strategyDiscoveryRequestFactory.image.repository }}:{{ .Values.strategyDiscoveryRequestFactory.image.tag }}"
@@ -72,17 +74,21 @@ spec:
                   value: "{{ .Values.strategyDiscoveryRequestFactory.config.defaultPopulationSize }}"
                 # Kafka SSL Configuration
                 - name: KAFKA_SECURITY_PROTOCOL
-                  value: "SSL"
+                  value: {{ if .Values.kafkaSsl.enabled }}"SSL"{{ else }}"PLAINTEXT"{{ end }}
+                {{- if .Values.kafkaSsl.enabled }}
                 - name: KAFKA_SSL_CA_LOCATION
                   value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.caFile }}"
                 - name: KAFKA_SSL_CERT_LOCATION
                   value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.certFile }}"
                 - name: KAFKA_SSL_KEY_LOCATION
                   value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.keyFile }}"
+                {{- end }}
+              {{- if .Values.kafkaSsl.enabled }}
               volumeMounts:
                 - name: kafka-ssl-certs
                   mountPath: {{ .Values.kafkaSsl.mountPath }}
                   readOnly: true
+              {{- end }}
               resources:
                 requests:
                   cpu: "{{ .Values.strategyDiscoveryRequestFactory.resources.requests.cpu }}"
