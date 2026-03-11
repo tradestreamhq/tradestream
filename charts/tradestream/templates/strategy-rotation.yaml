@@ -42,6 +42,8 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           env:
+            - name: HOST
+              value: "0.0.0.0"
             - name: POSTGRES_HOST
               value: {{ tpl .Values.strategyRotation.config.postgresHost . | quote }}
             - name: POSTGRES_PORT

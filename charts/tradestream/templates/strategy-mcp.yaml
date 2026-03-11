@@ -27,6 +27,8 @@ spec:
               containerPort: {{ .Values.strategyMcp.service.port | default 8080 }}
               protocol: TCP
           env:
+            - name: HOST
+              value: "0.0.0.0"
             - name: POSTGRES_HOST
               value: {{ tpl .Values.strategyMcp.database.host . | quote }}
             - name: POSTGRES_PORT

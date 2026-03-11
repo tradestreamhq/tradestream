@@ -27,6 +27,8 @@ spec:
               containerPort: {{ .Values.marketMcp.service.port | default 8080 }}
               protocol: TCP
           env:
+            - name: HOST
+              value: "0.0.0.0"
             - name: INFLUXDB_URL
               value: {{ tpl .Values.marketMcp.influxdb.url . | quote }}
             - name: INFLUXDB_TOKEN

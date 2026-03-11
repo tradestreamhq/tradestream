@@ -4,6 +4,7 @@ Connects to InfluxDB and Redis, then serves MCP tools via stdio or SSE.
 """
 
 import asyncio
+import os
 import sys
 
 from absl import app
@@ -96,7 +97,7 @@ async def main_async() -> None:
 
             config = uvicorn.Config(
                 starlette_app,
-                host="0.0.0.0",
+                host=os.environ.get("HOST", "127.0.0.1"),
                 port=FLAGS.mcp_port,
             )
             server = uvicorn.Server(config)

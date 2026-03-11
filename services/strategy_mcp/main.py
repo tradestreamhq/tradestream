@@ -4,6 +4,7 @@ Configurable via absl flags for PostgreSQL and MCP transport settings.
 """
 
 import asyncio
+import os
 import sys
 
 from absl import app
@@ -115,7 +116,7 @@ async def main_async() -> None:
 
             config = uvicorn.Config(
                 starlette_app,
-                host="0.0.0.0",
+                host=os.environ.get("HOST", "127.0.0.1"),
                 port=FLAGS.mcp_port,
             )
             uvicorn_server = uvicorn.Server(config)
