@@ -290,7 +290,11 @@ def score_signal(signal, api_key, mcp_urls):
                         logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
                         all_tool_calls.append({"name": fn_name, "arguments": fn_args})
                         future = executor.submit(
-                            resolve_and_call, fn_name, fn_args, TOOL_TO_MCP_SERVER, mcp_urls,
+                            resolve_and_call,
+                            fn_name,
+                            fn_args,
+                            TOOL_TO_MCP_SERVER,
+                            mcp_urls,
                             return_type="parsed",
                         )
                         futures[future] = tool_call
@@ -314,7 +318,11 @@ def score_signal(signal, api_key, mcp_urls):
                 all_tool_calls.append({"name": fn_name, "arguments": fn_args})
                 try:
                     tool_results[tool_call.id] = resolve_and_call(
-                        fn_name, fn_args, TOOL_TO_MCP_SERVER, mcp_urls, return_type="parsed"
+                        fn_name,
+                        fn_args,
+                        TOOL_TO_MCP_SERVER,
+                        mcp_urls,
+                        return_type="parsed",
                     )
                 except Exception as e:
                     tool_results[tool_call.id] = {"error": str(e)}

@@ -279,7 +279,9 @@ class TestMcpToolCall:
 
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {"content": [{"type": "text", "text": '{"price": 50000}'}]}
+        mock_resp.json.return_value = {
+            "content": [{"type": "text", "text": '{"price": 50000}'}]
+        }
         mock_resp.raise_for_status = MagicMock()
         mock_post.return_value = mock_resp
 

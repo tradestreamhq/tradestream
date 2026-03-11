@@ -259,7 +259,9 @@ def run_proposer_agent(api_key, mcp_urls):
 
             logging.info("Strategy proposer: calling tool %s(%s)", fn_name, fn_args)
 
-            result = resolve_and_call(fn_name, fn_args, TOOL_TO_SERVER, mcp_urls, return_type="string")
+            result = resolve_and_call(
+                fn_name, fn_args, TOOL_TO_SERVER, mcp_urls, return_type="string"
+            )
 
             messages.append(
                 {

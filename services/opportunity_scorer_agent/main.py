@@ -56,7 +56,13 @@ def main(argv):
     while not _shutdown:
         try:
             # Fetch the most recent unscored signal
-            signals = resolve_and_call("get_recent_signals", {"limit": 1}, TOOL_TO_MCP_SERVER, mcp_urls, return_type="parsed")
+            signals = resolve_and_call(
+                "get_recent_signals",
+                {"limit": 1},
+                TOOL_TO_MCP_SERVER,
+                mcp_urls,
+                return_type="parsed",
+            )
 
             if signals and isinstance(signals, list) and len(signals) > 0:
                 signal_data = signals[0]

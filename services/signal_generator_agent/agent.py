@@ -276,7 +276,9 @@ def run_agent_for_symbol(symbol, api_key, mcp_urls):
 
             logging.info("Symbol %s: calling tool %s(%s)", symbol, fn_name, fn_args)
 
-            result = resolve_and_call(fn_name, fn_args, TOOL_TO_SERVER, mcp_urls, return_type="string")
+            result = resolve_and_call(
+                fn_name, fn_args, TOOL_TO_SERVER, mcp_urls, return_type="string"
+            )
 
             messages.append(
                 {

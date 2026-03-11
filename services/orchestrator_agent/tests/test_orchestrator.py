@@ -24,11 +24,15 @@ def _make_mcp_response(data):
 
 class TestCallMcpTool:
     def test_unknown_tool(self):
-        result = resolve_and_call("unknown", {}, TOOL_TO_SERVER, {}, return_type="parsed")
+        result = resolve_and_call(
+            "unknown", {}, TOOL_TO_SERVER, {}, return_type="parsed"
+        )
         assert "error" in result
 
     def test_missing_server_url(self):
-        result = resolve_and_call("get_symbols", {}, TOOL_TO_SERVER, {}, return_type="parsed")
+        result = resolve_and_call(
+            "get_symbols", {}, TOOL_TO_SERVER, {}, return_type="parsed"
+        )
         assert "error" in result
 
     @mock.patch("requests.post")
@@ -38,7 +42,13 @@ class TestCallMcpTool:
         mock_resp.raise_for_status.return_value = None
         mock_post.return_value = mock_resp
 
-        result = resolve_and_call("get_symbols", {}, TOOL_TO_SERVER, {"market": "http://market:8080"}, return_type="parsed")
+        result = resolve_and_call(
+            "get_symbols",
+            {},
+            TOOL_TO_SERVER,
+            {"market": "http://market:8080"},
+            return_type="parsed",
+        )
         assert result == {"symbols": ["BTC-USD"]}
 
 

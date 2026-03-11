@@ -55,13 +55,17 @@ class TestCallMcpTool:
     """Tests for MCP tool dispatching."""
 
     def test_unknown_tool_returns_error(self):
-        result = resolve_and_call("unknown_tool", {}, agent.TOOL_TO_SERVER, {}, return_type="string")
+        result = resolve_and_call(
+            "unknown_tool", {}, agent.TOOL_TO_SERVER, {}, return_type="string"
+        )
         parsed = json.loads(result)
         assert "error" in parsed
         assert "Unknown tool" in parsed["error"]
 
     def test_missing_server_url_returns_error(self):
-        result = resolve_and_call("list_strategy_types", {}, agent.TOOL_TO_SERVER, {}, return_type="string")
+        result = resolve_and_call(
+            "list_strategy_types", {}, agent.TOOL_TO_SERVER, {}, return_type="string"
+        )
         parsed = json.loads(result)
         assert "error" in parsed
         assert "No URL configured" in parsed["error"]
@@ -75,7 +79,13 @@ class TestCallMcpTool:
         mock_post.return_value = mock_resp
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = resolve_and_call("list_strategy_types", {}, agent.TOOL_TO_SERVER, mcp_urls, return_type="string")
+        result = resolve_and_call(
+            "list_strategy_types",
+            {},
+            agent.TOOL_TO_SERVER,
+            mcp_urls,
+            return_type="string",
+        )
 
         mock_post.assert_called_once_with(
             "http://strategy:8080/call-tool",
@@ -92,7 +102,13 @@ class TestCallMcpTool:
         mock_post.side_effect = req_lib.RequestException("Connection refused")
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = resolve_and_call("list_strategy_types", {}, agent.TOOL_TO_SERVER, mcp_urls, return_type="string")
+        result = resolve_and_call(
+            "list_strategy_types",
+            {},
+            agent.TOOL_TO_SERVER,
+            mcp_urls,
+            return_type="string",
+        )
 
         parsed = json.loads(result)
         assert "error" in parsed

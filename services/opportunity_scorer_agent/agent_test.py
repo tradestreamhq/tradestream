@@ -286,7 +286,13 @@ class TestCallMcpTool:
         mock_response.raise_for_status = mock.MagicMock()
         mock_post.return_value = mock_response
 
-        result = resolve_and_call("get_volatility", {"symbol": "BTC/USD"}, TOOL_TO_MCP_SERVER, mcp_urls, return_type="parsed")
+        result = resolve_and_call(
+            "get_volatility",
+            {"symbol": "BTC/USD"},
+            TOOL_TO_MCP_SERVER,
+            mcp_urls,
+            return_type="parsed",
+        )
 
         assert result == {"atr": 0.025, "stddev": 0.012}
         mock_post.assert_called_once_with(
@@ -428,7 +434,10 @@ class TestScoreSignal:
         assert result is not None
         assert result["score"] == 65.0
         mock_mcp.assert_called_once_with(
-            "get_volatility", {"symbol": "BTC/USD"}, TOOL_TO_MCP_SERVER, mcp_urls,
+            "get_volatility",
+            {"symbol": "BTC/USD"},
+            TOOL_TO_MCP_SERVER,
+            mcp_urls,
             return_type="parsed",
         )
 

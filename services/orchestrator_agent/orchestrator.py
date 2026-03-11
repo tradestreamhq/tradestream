@@ -21,7 +21,9 @@ TOOL_TO_SERVER = {
 
 def fetch_active_symbols(mcp_urls):
     """Fetch active trading symbols from market-mcp."""
-    result = resolve_and_call("get_symbols", {}, TOOL_TO_SERVER, mcp_urls, return_type="parsed")
+    result = resolve_and_call(
+        "get_symbols", {}, TOOL_TO_SERVER, mcp_urls, return_type="parsed"
+    )
     if isinstance(result, dict) and "error" in result:
         raise ConnectionError(f"Failed to fetch symbols: {result['error']}")
     if isinstance(result, dict) and "symbols" in result:

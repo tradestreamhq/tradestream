@@ -18,7 +18,9 @@ from services.shared.mcp_client import call_mcp_tool
 
 def _get_current_price(symbol: str, market_mcp_url: str) -> Optional[float]:
     """Fetch the latest price for a symbol from market-mcp."""
-    result = call_mcp_tool("get_latest_price", {"symbol": symbol}, market_mcp_url, timeout=10)
+    result = call_mcp_tool(
+        "get_latest_price", {"symbol": symbol}, market_mcp_url, timeout=10
+    )
     if not isinstance(result, dict):
         return None
     price = result.get("price") or result.get("close")
