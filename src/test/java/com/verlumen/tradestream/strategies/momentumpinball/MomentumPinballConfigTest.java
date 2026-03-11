@@ -76,9 +76,7 @@ public class MomentumPinballConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(
-            IntegerChromosome.of(2, 30, 10),
-            IntegerChromosome.of(5, 60, 20));
+        ImmutableList.of(IntegerChromosome.of(2, 30, 10), IntegerChromosome.of(5, 60, 20));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
