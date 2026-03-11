@@ -5,6 +5,7 @@ Provides the gRPC interface for the VectorBT backtesting engine.
 """
 
 import logging
+import os
 from concurrent import futures
 from typing import Any, Dict, List
 
@@ -217,9 +218,32 @@ class BacktestingServiceHandler(grpc.GenericRpcHandler):
 
 
 def create_grpc_server(port: int = 50051) -> grpc.Server:
-    """Create and configure the gRPC server."""
+    """Create and configure the gRPC server.
+
+    When TLS_CERT_PATH and TLS_KEY_PATH environment variables are set,
+    the server uses TLS encryption. Otherwise, it falls back to an
+    insecure port for local development.
+    """
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     servicer = BacktestingServicer()
     server.add_generic_rpc_handlers((BacktestingServiceHandler(servicer),))
-    server.add_insecure_port(f"[::]:{port}")
+
+    cert_path = os.environ.get("TLS_CERT_PATH")
+    key_path = os.environ.get("TLS_KEY_PATH")
+
+    if cert_path and key_path:
+        with open(cert_path, "rb") as f:
+            cert_pem = f.read()
+        with open(key_path, "rb") as f:
+            key_pem = f.read()
+        server_credentials = grpc.ssl_server_credentials([(key_pem, cert_pem)])
+        server.add_secure_port(f"[::]:{port}", server_credentials)
+        logger.info("gRPC server configured with TLS (cert=%s)", cert_path)
+    else:
+        server.add_insecure_port(f"[::]:{port}")
+        logger.warning(
+            "TLS not configured (TLS_CERT_PATH and TLS_KEY_PATH not set). "
+            "Using insecure port."
+        )
+
     return server

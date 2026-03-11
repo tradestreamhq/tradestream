@@ -57,6 +57,7 @@ kt_jvm_library(
         "//protos:backtesting_java_grpc",
         "//protos:backtesting_java_proto",
         "//third_party/java:flogger",
+        "//third_party/java:grpc_netty_shaded",
         "//third_party/java:grpc_stub",
         "//third_party/java:guice",
     ],

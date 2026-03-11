@@ -7,11 +7,14 @@ import com.verlumen.tradestream.backtestingservice.BacktestingGrpcService
 import com.verlumen.tradestream.backtestingservice.BacktestingServiceModule
 import io.grpc.Server
 import io.grpc.ServerBuilder
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import io.grpc.protobuf.services.HealthStatusManager
 import io.grpc.protobuf.services.ProtoReflectionService
+import java.io.File
+import java.util.concurrent.TimeUnit
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.inf.ArgumentParserException
-import java.util.concurrent.TimeUnit
 
 /**
  * Standalone gRPC server for the Backtesting Service.
@@ -25,6 +28,7 @@ import java.util.concurrent.TimeUnit
  * - Batch backtest for GA fitness evaluation
  * - Health checking for Kubernetes readiness/liveness probes
  * - gRPC reflection for debugging with grpcurl
+ * - TLS encryption via TLS_CERT_PATH and TLS_KEY_PATH environment variables
  */
 class BacktestServiceServer
     @Inject
@@ -70,11 +74,41 @@ class BacktestServiceServer
 
         /**
          * Starts the gRPC server on the specified port.
+         *
+         * When TLS_CERT_PATH and TLS_KEY_PATH environment variables are set,
+         * the server uses TLS encryption. Otherwise, it falls back to plaintext
+         * for local development.
          */
         fun start(port: Int) {
+            val certPath = System.getenv("TLS_CERT_PATH")
+            val keyPath = System.getenv("TLS_KEY_PATH")
+
+            val serverBuilder =
+                if (certPath != null && keyPath != null) {
+                    val certFile = File(certPath)
+                    val keyFile = File(keyPath)
+                    require(certFile.exists()) { "TLS certificate not found: $certPath" }
+                    require(keyFile.exists()) { "TLS private key not found: $keyPath" }
+
+                    logger.atInfo().log("Configuring TLS with cert=%s, key=%s", certPath, keyPath)
+
+                    val sslContext =
+                        GrpcSslContexts
+                            .forServer(certFile, keyFile)
+                            .build()
+
+                    NettyServerBuilder
+                        .forPort(port)
+                        .sslContext(sslContext)
+                } else {
+                    logger.atWarning().log(
+                        "TLS not configured (TLS_CERT_PATH and TLS_KEY_PATH not set). Using plaintext.",
+                    )
+                    ServerBuilder.forPort(port)
+                }
+
             server =
-                ServerBuilder
-                    .forPort(port)
+                serverBuilder
                     .addService(backtestingService)
                     .addService(healthStatusManager.healthService)
                     .addService(ProtoReflectionService.newInstance())

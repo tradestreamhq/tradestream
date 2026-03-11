@@ -6,6 +6,9 @@ import com.google.inject.name.Named
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusRuntimeException
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
@@ -13,6 +16,8 @@ import java.util.concurrent.TimeUnit
  *
  * This client enables the Strategy Discovery Pipeline (running on Java 17/Flink)
  * to offload backtesting to the standalone Backtesting Service (running on Java 21).
+ *
+ * TLS is enabled when the TLS_CA_CERT_PATH environment variable is set.
  *
  * Usage:
  * 1. Create with Guice injection (preferred):
@@ -51,10 +56,29 @@ class RemoteBacktestRunner
 
         private val channel: ManagedChannel by lazy {
             logger.atInfo().log("Creating gRPC channel to %s:%d", host, port)
-            ManagedChannelBuilder
-                .forAddress(host, port)
-                .usePlaintext() // TODO: Configure TLS for production
-                .build()
+            val caCertPath = System.getenv("TLS_CA_CERT_PATH")
+            if (caCertPath != null) {
+                val caCertFile = File(caCertPath)
+                require(caCertFile.exists()) { "TLS CA certificate not found: $caCertPath" }
+                logger.atInfo().log("Configuring TLS with CA cert=%s", caCertPath)
+                val sslContext =
+                    GrpcSslContexts
+                        .forClient()
+                        .trustManager(caCertFile)
+                        .build()
+                NettyChannelBuilder
+                    .forAddress(host, port)
+                    .sslContext(sslContext)
+                    .build()
+            } else {
+                logger.atWarning().log(
+                    "TLS not configured (TLS_CA_CERT_PATH not set). Using plaintext.",
+                )
+                ManagedChannelBuilder
+                    .forAddress(host, port)
+                    .usePlaintext()
+                    .build()
+            }
         }
 
         private val blockingStub: BacktestingServiceGrpc.BacktestingServiceBlockingStub by lazy {
