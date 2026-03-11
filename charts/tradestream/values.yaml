@@ -250,7 +250,7 @@ postgresql:
     repository: bitnamilegacy/postgresql
     tag: 17.6.0-debian-12-r4
   auth:
-    postgresPassword: ""  # REQUIRED: Set via --set or external secret
+    postgresPassword: "" # REQUIRED: Set via --set or external secret
     username: "postgres"
     database: "tradestream"
   primary:
