@@ -3,7 +3,8 @@ Agent Gateway Service
 
 FastAPI application that streams agent events (signals, reasoning, tool calls)
 via Server-Sent Events (SSE). Reads from agent_decisions table and uses Redis
-pub/sub for real-time event streaming.
+pub/sub for real-time event streaming. Provides dashboard summary endpoints
+for monitoring active agents, recent decisions, and signal activity.
 """
 
 import asyncio
@@ -19,6 +20,7 @@ import asyncpg
 import redis.asyncio as aioredis
 import uvicorn
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
@@ -89,6 +91,14 @@ class RecentEventsResponse(BaseModel):
     events: list[AgentEvent] = Field(..., description="List of agent events")
     count: int = Field(..., description="Number of events returned", examples=[10])
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Connection pools (initialized on startup)
 _db_pool: Optional[asyncpg.Pool] = None
@@ -300,6 +310,155 @@ async def get_recent_events(
 
     events = [_row_to_event(_serialize_row(row)) for row in rows]
     return {"events": events, "count": len(events)}
+
+
+@app.get("/dashboard/summary")
+async def get_dashboard_summary():
+    """Get a high-level dashboard summary with active agents and decision stats."""
+    async with _db_pool.acquire() as conn:
+        active_agents = await conn.fetch(
+            """
+            SELECT agent_name,
+                   COUNT(*) as decision_count,
+                   MAX(created_at) as last_active,
+                   AVG(latency_ms) as avg_latency_ms,
+                   SUM(CASE WHEN success = true THEN 1 ELSE 0 END) as success_count,
+                   SUM(CASE WHEN success = false THEN 1 ELSE 0 END) as failure_count
+            FROM agent_decisions
+            WHERE created_at > NOW() - INTERVAL '5 minutes'
+              AND agent_name IS NOT NULL
+            GROUP BY agent_name
+            ORDER BY last_active DESC
+            """
+        )
+
+        stats_24h = await conn.fetchrow(
+            """
+            SELECT COUNT(*) as total_decisions,
+                   COUNT(DISTINCT agent_name) as unique_agents,
+                   AVG(latency_ms) as avg_latency_ms,
+                   SUM(CASE WHEN success = true THEN 1 ELSE 0 END) as successes,
+                   SUM(CASE WHEN success = false THEN 1 ELSE 0 END) as failures,
+                   COUNT(DISTINCT signal_id) FILTER (WHERE signal_id IS NOT NULL) as signals_generated
+            FROM agent_decisions
+            WHERE created_at > NOW() - INTERVAL '24 hours'
+            """
+        )
+
+        tier_dist = await conn.fetch(
+            """
+            SELECT tier, COUNT(*) as count
+            FROM agent_decisions
+            WHERE created_at > NOW() - INTERVAL '24 hours'
+              AND tier IS NOT NULL
+            GROUP BY tier
+            ORDER BY count DESC
+            """
+        )
+
+        recent_signals = await conn.fetch(
+            """
+            SELECT id, signal_id, agent_name, score, tier, reasoning,
+                   model_used, latency_ms, tokens_used, success, created_at
+            FROM agent_decisions
+            WHERE signal_id IS NOT NULL
+            ORDER BY created_at DESC
+            LIMIT 10
+            """
+        )
+
+    agents_list = [_serialize_row(row) for row in active_agents]
+    stats = _serialize_row(stats_24h) if stats_24h else {}
+    tiers = {row["tier"]: row["count"] for row in tier_dist}
+    signals = [_serialize_row(row) for row in recent_signals]
+
+    return {
+        "active_agents": agents_list,
+        "stats_24h": stats,
+        "tier_distribution": tiers,
+        "recent_signals": signals,
+    }
+
+
+@app.get("/dashboard/agents")
+async def get_agent_details(
+    agent_name: Optional[str] = Query(None, description="Specific agent to query"),
+):
+    """Get detailed agent activity and performance metrics."""
+    query = """
+        SELECT agent_name,
+               decision_type,
+               COUNT(*) as total_decisions,
+               AVG(latency_ms) as avg_latency_ms,
+               MIN(latency_ms) as min_latency_ms,
+               MAX(latency_ms) as max_latency_ms,
+               AVG(tokens_used) as avg_tokens,
+               SUM(CASE WHEN success = true THEN 1 ELSE 0 END) as successes,
+               SUM(CASE WHEN success = false THEN 1 ELSE 0 END) as failures,
+               MIN(created_at) as first_seen,
+               MAX(created_at) as last_seen
+        FROM agent_decisions
+        WHERE agent_name IS NOT NULL
+    """
+    params = []
+    param_idx = 0
+
+    if agent_name:
+        param_idx += 1
+        query += f" AND agent_name = ${param_idx}"
+        params.append(agent_name)
+
+    query += " GROUP BY agent_name, decision_type ORDER BY agent_name, total_decisions DESC"
+
+    async with _db_pool.acquire() as conn:
+        rows = await conn.fetch(query, *params)
+
+    agents = {}
+    for row in rows:
+        serialized = _serialize_row(row)
+        name = serialized["agent_name"]
+        if name not in agents:
+            agents[name] = {
+                "agent_name": name,
+                "decision_types": [],
+                "total_decisions": 0,
+                "first_seen": serialized["first_seen"],
+                "last_seen": serialized["last_seen"],
+            }
+        agents[name]["decision_types"].append(serialized)
+        agents[name]["total_decisions"] += serialized["total_decisions"]
+        if serialized["first_seen"] < agents[name]["first_seen"]:
+            agents[name]["first_seen"] = serialized["first_seen"]
+        if serialized["last_seen"] > agents[name]["last_seen"]:
+            agents[name]["last_seen"] = serialized["last_seen"]
+
+    return {"agents": list(agents.values())}
+
+
+@app.get("/dashboard/signals")
+async def get_signal_activity(
+    hours: int = Query(24, ge=1, le=168, description="Lookback period in hours"),
+    limit: int = Query(100, ge=1, le=500, description="Max signals to return"),
+):
+    """Get signal activity with scoring details for the dashboard."""
+    async with _db_pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, signal_id, agent_name, score, tier,
+                   reasoning, tool_calls, model_used, latency_ms,
+                   tokens_used, decision_type, success,
+                   error_message, created_at
+            FROM agent_decisions
+            WHERE created_at > NOW() - make_interval(hours => $1)
+            ORDER BY created_at DESC
+            LIMIT $2
+            """,
+            hours,
+            limit,
+        )
+
+    events = [_row_to_event(_serialize_row(row)) for row in rows]
+    return {"signals": events, "count": len(events), "hours": hours}
 
 
 async def publish_event(event: dict):
