@@ -31,11 +31,7 @@ commandTests:
 
   - name: "Strategy Monitor API Dry Run Test"
     command: "/services/strategy_monitor_api/strategy_monitor_api"
-    args:
-      [
-        "--api_port=8080",
-        "--api_host=0.0.0.0",
-      ]
+    args: ["--api_port=8080", "--api_host=0.0.0.0"]
     envVars:
       - key: "POSTGRES_HOST"
         value: "localhost"
