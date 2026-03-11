@@ -125,8 +125,7 @@ public class KafkaPropertiesTest {
     assertThat(kafkaProps.getProperty("ssl.truststore.location"))
         .isEqualTo("/path/to/truststore.jks");
     assertThat(kafkaProps.getProperty("ssl.truststore.password")).isEqualTo("trustpass");
-    assertThat(kafkaProps.getProperty("ssl.keystore.location"))
-        .isEqualTo("/path/to/keystore.jks");
+    assertThat(kafkaProps.getProperty("ssl.keystore.location")).isEqualTo("/path/to/keystore.jks");
     assertThat(kafkaProps.getProperty("ssl.keystore.password")).isEqualTo("keypass");
     assertThat(kafkaProps.getProperty("ssl.key.password")).isEqualTo("keypassword");
   }
