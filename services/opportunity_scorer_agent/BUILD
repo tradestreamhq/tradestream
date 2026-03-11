@@ -10,6 +10,7 @@ py_library(
     srcs = ["agent.py"],
     deps = [
         "//services/shared:mcp_client",
+        "//services/shared:model_config",
         "//third_party/python:openai",
         "//third_party/python:requests",
     ],
@@ -31,6 +32,7 @@ py_test(
     srcs = ["agent_test.py"],
     deps = [
         ":agent_lib",
+        "//services/shared:model_config",
         "//third_party/python:pytest",
     ],
 )

@@ -5,6 +5,8 @@ import json
 from absl import logging
 from openai import OpenAI
 
+from services.shared.model_config import MODEL_PRIMARY, OPENROUTER_BASE_URL
+
 
 SYSTEM_PROMPT = """You are a trading strategy proposer agent. You analyze the existing strategy universe, identify gaps, and propose novel strategy specifications.
 
@@ -218,7 +220,7 @@ def run_proposer_agent(api_key, mcp_urls):
     """
     client = OpenAI(
         api_key=api_key,
-        base_url="https://openrouter.ai/api/v1",
+        base_url=OPENROUTER_BASE_URL,
     )
 
     messages = [
@@ -238,7 +240,7 @@ def run_proposer_agent(api_key, mcp_urls):
         logging.info("Strategy proposer: LLM iteration %d", iteration + 1)
 
         response = client.chat.completions.create(
-            model="anthropic/claude-3-5-sonnet",
+            model=MODEL_PRIMARY,
             messages=messages,
             tools=MCP_TOOLS,
             tool_choice="auto",

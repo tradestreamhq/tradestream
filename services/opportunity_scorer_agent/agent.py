@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 
 from openai import OpenAI
 
+from services.shared.model_config import MODEL_LIGHTWEIGHT, OPENROUTER_BASE_URL
+
 SYSTEM_PROMPT = """You are an opportunity scoring agent. You receive raw trading signals and score them 0-100, then assign a tier (HOT/GOOD/NEUTRAL/LOW).
 
 You have access to MCP tools from three servers: signal-mcp, market-mcp, and strategy-mcp.
@@ -246,7 +248,7 @@ def score_signal(signal, api_key, mcp_urls):
 
     client = OpenAI(
         api_key=api_key,
-        base_url="https://openrouter.ai/api/v1",
+        base_url=OPENROUTER_BASE_URL,
     )
 
     signal_json = json.dumps(signal, default=str)
@@ -265,7 +267,7 @@ def score_signal(signal, api_key, mcp_urls):
     max_iterations = 15
     for _ in range(max_iterations):
         response = client.chat.completions.create(
-            model="anthropic/claude-3-5-haiku",
+            model=MODEL_LIGHTWEIGHT,
             messages=messages,
             tools=TOOLS,
             tool_choice="auto",
