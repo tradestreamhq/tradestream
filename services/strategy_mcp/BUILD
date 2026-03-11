@@ -30,6 +30,7 @@ py_binary(
     deps = [
         ":postgres_client_lib",
         ":server_lib",
+        "//services/shared:auth",
         "//third_party/python:absl_py",
         "//third_party/python:mcp",
     ],

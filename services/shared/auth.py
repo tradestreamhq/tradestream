@@ -1,6 +1,6 @@
 """API key authentication middleware for HTTP services.
 
-Supports both FastAPI and Flask. The API key is read from the
+Supports FastAPI, Flask, and Starlette. The API key is read from the
 TRADESTREAM_API_KEY environment variable and validated against
 the X-API-Key request header.
 
@@ -95,3 +95,13 @@ def flask_auth_middleware(app):
             return jsonify({"error": "Invalid or missing API key"}), 401
 
         return None
+
+
+# ---------------------------------------------------------------------------
+# Starlette middleware (alias for MCP SSE servers and other Starlette apps)
+# ---------------------------------------------------------------------------
+
+# starlette_auth_middleware is the same as fastapi_auth_middleware since
+# FastAPI is built on Starlette.  The alias makes intent clearer when the
+# caller is a plain Starlette application (e.g. MCP SSE transport).
+starlette_auth_middleware = fastapi_auth_middleware

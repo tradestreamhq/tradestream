@@ -5,8 +5,12 @@ from unittest.mock import patch
 
 import pytest
 from flask import Flask, jsonify
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+from starlette.testclient import TestClient
 
-from services.shared.auth import flask_auth_middleware
+from services.shared.auth import flask_auth_middleware, starlette_auth_middleware
 
 
 def _create_test_app():
@@ -82,3 +86,89 @@ class TestFlaskAuthMiddleware:
                 resp = client.get("/data")
                 data = resp.get_json()
                 assert data["error"] == "Invalid or missing API key"
+
+
+# ---------------------------------------------------------------------------
+# Starlette / MCP SSE auth middleware tests
+# ---------------------------------------------------------------------------
+
+
+def _create_starlette_app():
+    """Create a minimal Starlette app with auth middleware for testing."""
+
+    async def health(request):
+        return JSONResponse({"status": "ok"})
+
+    async def data(request):
+        return JSONResponse({"value": 42})
+
+    async def sse(request):
+        return JSONResponse({"stream": "connected"})
+
+    async def messages(request):
+        return JSONResponse({"accepted": True})
+
+    app = Starlette(
+        routes=[
+            Route("/health", endpoint=health),
+            Route("/data", endpoint=data),
+            Route("/sse", endpoint=sse),
+            Route("/messages", endpoint=messages, methods=["POST"]),
+        ],
+    )
+    starlette_auth_middleware(app)
+    return app
+
+
+class TestStarletteAuthMiddleware:
+    """Tests for Starlette API key auth middleware (used by MCP SSE servers)."""
+
+    def test_health_endpoint_bypasses_auth(self):
+        app = _create_starlette_app()
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            client = TestClient(app)
+            resp = client.get("/health")
+            assert resp.status_code == 200
+
+    def test_no_key_configured_allows_all(self):
+        app = _create_starlette_app()
+        with patch.dict(os.environ, {}, clear=True):
+            os.environ.pop("TRADESTREAM_API_KEY", None)
+            client = TestClient(app)
+            resp = client.get("/sse")
+            assert resp.status_code == 200
+
+    def test_valid_api_key_on_sse(self):
+        app = _create_starlette_app()
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            client = TestClient(app)
+            resp = client.get("/sse", headers={"X-API-Key": "secret123"})
+            assert resp.status_code == 200
+
+    def test_invalid_api_key_on_sse(self):
+        app = _create_starlette_app()
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            client = TestClient(app)
+            resp = client.get("/sse", headers={"X-API-Key": "wrong"})
+            assert resp.status_code == 401
+
+    def test_missing_api_key_on_messages(self):
+        app = _create_starlette_app()
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            client = TestClient(app)
+            resp = client.post("/messages")
+            assert resp.status_code == 401
+
+    def test_valid_api_key_on_messages(self):
+        app = _create_starlette_app()
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            client = TestClient(app)
+            resp = client.post("/messages", headers={"X-API-Key": "secret123"})
+            assert resp.status_code == 200
+
+    def test_401_response_body(self):
+        app = _create_starlette_app()
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            client = TestClient(app)
+            resp = client.get("/data")
+            assert resp.json()["error"] == "Invalid or missing API key"
