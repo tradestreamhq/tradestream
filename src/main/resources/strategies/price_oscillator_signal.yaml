@@ -6,21 +6,12 @@ parameterMessageType: com.verlumen.tradestream.strategies.PriceOscillatorSignalP
 indicators:
   - id: close
     type: CLOSE
-  - id: fastEma
-    type: EMA
-    input: close
-    params:
-      period: "${fastPeriod}"
-  - id: slowEma
-    type: EMA
-    input: close
-    params:
-      period: "${slowPeriod}"
   - id: oscillator
-    type: DIFFERENCE
+    type: MACD
+    input: close
     params:
-      first: fastEma
-      second: slowEma
+      shortPeriod: "${fastPeriod}"
+      longPeriod: "${slowPeriod}"
   - id: signalLine
     type: EMA
     input: oscillator
