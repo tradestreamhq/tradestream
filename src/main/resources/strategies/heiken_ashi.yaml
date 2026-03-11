@@ -1,0 +1,42 @@
+name: HEIKEN_ASHI
+description: Heiken Ashi strategy using EMA crossovers to approximate smoothed candlestick signals
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.HeikenAshiParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: fastEma
+    type: EMA
+    input: close
+    params:
+      period: "${period}"
+  - id: slowEma
+    type: EMA
+    input: close
+    params:
+      period: "${slowPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: fastEma
+    params:
+      crosses: slowEma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: fastEma
+    params:
+      crosses: slowEma
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 14
+  - name: slowPeriod
+    type: INTEGER
+    min: 20
+    max: 40
+    defaultValue: 28

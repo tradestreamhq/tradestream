@@ -1,0 +1,44 @@
+name: LINEAR_REGRESSION_CHANNELS
+description: Linear regression channel breakout strategy using Bollinger Bands as channel proxy
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.LinearRegressionChannelsParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: upper
+    type: BOLLINGER_UPPER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: "${multiplier}"
+  - id: lower
+    type: BOLLINGER_LOWER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: "${multiplier}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: upper
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: lower
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 40
+    defaultValue: 20
+  - name: multiplier
+    type: DOUBLE
+    min: 1.0
+    max: 3.0
+    defaultValue: 2.0

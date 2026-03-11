@@ -17,10 +17,12 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 /**
  * Factory for creating KST Oscillator strategies.
  *
- * <p>The KST Oscillator combines four Rate of Change (ROC) indicators with different periods and
- * smoothing to create a comprehensive momentum indicator. The strategy generates buy signals when
- * the KST crosses above its signal line and sell signals when it crosses below.
+ * @deprecated Migrated to YAML configuration. See kst_oscillator.yaml.
+ *     <p>The KST Oscillator combines four Rate of Change (ROC) indicators with different periods
+ *     and smoothing to create a comprehensive momentum indicator. The strategy generates buy
+ *     signals when the KST crosses above its signal line and sell signals when it crosses below.
  */
+@Deprecated
 public final class KstOscillatorStrategyFactory
     implements StrategyFactory<KstOscillatorParameters> {
 

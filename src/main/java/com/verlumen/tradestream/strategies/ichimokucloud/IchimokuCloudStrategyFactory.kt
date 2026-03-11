@@ -16,6 +16,7 @@ import org.ta4j.core.num.Num
 import org.ta4j.core.rules.OverIndicatorRule
 import org.ta4j.core.rules.UnderIndicatorRule
 
+@Deprecated("Migrated to YAML configuration. See ichimoku_cloud.yaml.")
 class IchimokuCloudStrategyFactory : StrategyFactory<IchimokuCloudParameters> {
     override fun createStrategy(
         series: BarSeries,
