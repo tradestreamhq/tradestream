@@ -1,41 +1,29 @@
 name: ELDER_RAY_MA
-description: Elder Ray with EMA - enters when Bull Power crosses above zero
+description: Elder Ray with EMA - enters when high crosses above EMA (bull power positive)
 complexity: SIMPLE
 parameterMessageType: com.verlumen.tradestream.strategies.ElderRayMAParameters
 
 indicators:
-  - id: closePrice
-    type: CLOSE_PRICE
   - id: highPrice
-    type: HIGH_PRICE
+    type: HIGH
   - id: lowPrice
-    type: LOW_PRICE
+    type: LOW
   - id: ema
     type: EMA
     params:
       period: "${emaPeriod}"
-  - id: bullPower
-    type: DIFFERENCE
-    params:
-      first: highPrice
-      second: ema
-  - id: bearPower
-    type: DIFFERENCE
-    params:
-      first: lowPrice
-      second: ema
 
 entryConditions:
-  - type: CROSSED_UP_CONSTANT
-    indicator: bullPower
+  - type: CROSSED_UP
+    indicator: highPrice
     params:
-      threshold: 0
+      crosses: ema
 
 exitConditions:
-  - type: CROSSED_DOWN_CONSTANT
-    indicator: bearPower
+  - type: CROSSED_DOWN
+    indicator: lowPrice
     params:
-      threshold: 0
+      crosses: ema
 
 parameters:
   - name: emaPeriod

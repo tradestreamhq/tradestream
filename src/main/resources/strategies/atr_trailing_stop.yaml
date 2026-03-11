@@ -1,0 +1,38 @@
+name: ATR_TRAILING_STOP
+description: ATR-based trailing stop - enters on price momentum, exits on trailing stop loss
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.AtrTrailingStopParameters
+
+indicators:
+  - id: closePrice
+    type: CLOSE
+  - id: previousClose
+    type: PREVIOUS
+    input: closePrice
+  - id: atr
+    type: ATR
+    params:
+      period: "${atrPeriod}"
+
+entryConditions:
+  - type: ABOVE
+    indicator: closePrice
+    params:
+      other: previousClose
+
+exitConditions:
+  - type: TRAILING_STOP_LOSS
+    params:
+      percentage: "${multiplier}"
+
+parameters:
+  - name: atrPeriod
+    type: INTEGER
+    min: 5
+    max: 30
+    defaultValue: 14
+  - name: multiplier
+    type: DOUBLE
+    min: 1.0
+    max: 5.0
+    defaultValue: 3.0

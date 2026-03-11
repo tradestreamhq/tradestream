@@ -1,0 +1,39 @@
+name: DPO_CROSSOVER
+description: DPO crosses above/below its SMA signal line
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.DpoCrossoverParameters
+
+indicators:
+  - id: dpo
+    type: DPO
+    params:
+      period: "${dpoPeriod}"
+  - id: dpoSignal
+    type: SMA
+    input: dpo
+    params:
+      period: "${maPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: dpo
+    params:
+      crosses: dpoSignal
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: dpo
+    params:
+      crosses: dpoSignal
+
+parameters:
+  - name: dpoPeriod
+    type: INTEGER
+    min: 5
+    max: 50
+    defaultValue: 15
+  - name: maPeriod
+    type: INTEGER
+    min: 5
+    max: 50
+    defaultValue: 10
