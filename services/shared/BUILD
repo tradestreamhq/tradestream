@@ -55,6 +55,17 @@ py_test(
     ],
 )
 
+py_library(
+    name = "structured_logger",
+    srcs = [
+        "__init__.py",
+        "structured_logger.py",
+    ],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
 py_test(
     name = "mcp_client_test",
     srcs = ["mcp_client_test.py"],
@@ -80,6 +91,15 @@ py_test(
     srcs = ["model_config_test.py"],
     deps = [
         ":model_config",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "structured_logger_test",
+    srcs = ["structured_logger_test.py"],
+    deps = [
+        ":structured_logger",
         "//third_party/python:pytest",
     ],
 )
