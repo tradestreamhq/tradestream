@@ -176,7 +176,9 @@ class TestAnomalyScorer:
 
     def test_custom_weights(self):
         """Custom weights should change scoring behavior."""
-        scorer = AnomalyScorer(weight_freshness=50, weight_size=0, weight_niche=0, weight_probability=0)
+        scorer = AnomalyScorer(
+            weight_freshness=50, weight_size=0, weight_niche=0, weight_probability=0
+        )
         wallet = _make_wallet(age_days=1)
         trade = _make_trade()
         result = scorer.score_wallet(wallet, trade)
