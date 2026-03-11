@@ -38,8 +38,7 @@ import com.verlumen.tradestream.strategies.fibonacciretracements.FibonacciRetrac
 import com.verlumen.tradestream.strategies.fibonacciretracements.FibonacciRetracementsStrategyFactory
 import com.verlumen.tradestream.strategies.frama.FramaParamConfig
 import com.verlumen.tradestream.strategies.frama.FramaStrategyFactory
-import com.verlumen.tradestream.strategies.gannswing.GannSwingParamConfig
-import com.verlumen.tradestream.strategies.gannswing.GannSwingStrategyFactory
+
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiStrategyFactory
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfig
@@ -72,8 +71,7 @@ import com.verlumen.tradestream.strategies.pvt.PvtParamConfig
 import com.verlumen.tradestream.strategies.pvt.PvtStrategyFactory
 import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorParamConfig
 import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorStrategyFactory
-import com.verlumen.tradestream.strategies.rangebars.RangeBarsParamConfig
-import com.verlumen.tradestream.strategies.rangebars.RangeBarsStrategyFactory
+
 import com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelParamConfig
 import com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelStrategyFactory
 import com.verlumen.tradestream.strategies.renkochart.RenkoChartParamConfig
@@ -84,8 +82,7 @@ import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverParamC
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.rvi.RviParamConfig
 import com.verlumen.tradestream.strategies.rvi.RviStrategyFactory
-import com.verlumen.tradestream.strategies.sarmfi.SarMfiParamConfig
-import com.verlumen.tradestream.strategies.sarmfi.SarMfiStrategyFactory
+
 import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
@@ -391,21 +388,6 @@ private val strategySpecMap: Map<String, StrategySpec> =
             StrategySpec(
                 RenkoChartParamConfig(),
                 RenkoChartStrategyFactory(),
-            ),
-        "RANGE_BARS" to
-            StrategySpec(
-                paramConfig = RangeBarsParamConfig(),
-                strategyFactory = RangeBarsStrategyFactory(),
-            ),
-        "GANN_SWING" to
-            StrategySpec(
-                paramConfig = GannSwingParamConfig(),
-                strategyFactory = GannSwingStrategyFactory(),
-            ),
-        "SAR_MFI" to
-            StrategySpec(
-                paramConfig = SarMfiParamConfig(),
-                strategyFactory = SarMfiStrategyFactory(),
             ),
         "DPO_CROSSOVER" to
             StrategySpec(
