@@ -52,9 +52,7 @@ def call_mcp_tool(
     # Extract text content from MCP response format
     if "content" in result and isinstance(result["content"], list):
         texts = [
-            c.get("text", "")
-            for c in result["content"]
-            if c.get("type") == "text"
+            c.get("text", "") for c in result["content"] if c.get("type") == "text"
         ]
         if texts:
             combined = "\n".join(texts)

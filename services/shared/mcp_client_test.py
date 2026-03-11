@@ -157,9 +157,7 @@ class TestResolveAndCall:
         assert parsed == {"error": "Unknown tool: unknown_tool"}
 
     def test_missing_server_url(self):
-        result = resolve_and_call(
-            "get_symbols", {}, {"get_symbols": "market"}, {}
-        )
+        result = resolve_and_call("get_symbols", {}, {"get_symbols": "market"}, {})
         assert result == {"error": "No URL configured for MCP server: market"}
 
     @patch("services.shared.mcp_client.requests.post")

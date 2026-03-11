@@ -33,6 +33,7 @@ def _is_health_check(path: str) -> bool:
 # FastAPI middleware
 # ---------------------------------------------------------------------------
 
+
 def fastapi_auth_middleware(app):
     """Add API key authentication to a FastAPI/Starlette application.
 
@@ -68,6 +69,7 @@ def fastapi_auth_middleware(app):
 # ---------------------------------------------------------------------------
 # Flask middleware
 # ---------------------------------------------------------------------------
+
 
 def flask_auth_middleware(app):
     """Add API key authentication to a Flask application.
