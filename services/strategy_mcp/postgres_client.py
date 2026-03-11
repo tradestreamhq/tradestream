@@ -203,6 +203,60 @@ class PostgresClient:
 
             return result
 
+    async def get_performance_batch(
+        self,
+        impl_ids: List[str],
+        environment: Optional[str] = None,
+    ) -> Dict[str, Optional[Dict[str, Any]]]:
+        """Get performance metrics for multiple strategy implementations in one query.
+
+        Args:
+            impl_ids: List of strategy implementation UUIDs.
+            environment: Optional filter to specific environment.
+
+        Returns:
+            Dict mapping impl_id to its performance metrics (or None if not found).
+        """
+        if not self.pool:
+            raise RuntimeError("PostgreSQL connection not established")
+
+        if not impl_ids:
+            return {}
+
+        query = """
+        SELECT id, backtest_metrics, paper_metrics, live_metrics
+        FROM strategy_implementations
+        WHERE id = ANY($1::uuid[])
+        """
+
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(query, impl_ids)
+
+            rows_by_id = {str(row["id"]): row for row in rows}
+
+            results = {}
+            for impl_id in impl_ids:
+                row = rows_by_id.get(impl_id)
+                if not row:
+                    results[impl_id] = None
+                    continue
+
+                metrics = {}
+                if environment:
+                    metrics_key = f"{environment}_metrics"
+                    env_metrics = row.get(metrics_key)
+                    if env_metrics:
+                        metrics[environment] = env_metrics
+                else:
+                    for env in ("backtest", "paper", "live"):
+                        env_metrics = row[f"{env}_metrics"]
+                        if env_metrics:
+                            metrics[env] = env_metrics
+
+                results[impl_id] = metrics
+
+            return results
+
     async def list_strategy_types(self) -> List[str]:
         """Get distinct spec names with VALIDATED or DEPLOYED implementations."""
         if not self.pool:

@@ -87,6 +87,26 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
+            name="get_performance_batch",
+            description="Get performance metrics for multiple strategy implementations in one query",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "impl_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of strategy implementation UUIDs",
+                    },
+                    "environment": {
+                        "type": "string",
+                        "description": "Filter to specific environment (backtest, paper, live)",
+                        "enum": ["backtest", "paper", "live"],
+                    },
+                },
+                "required": ["impl_ids"],
+            },
+        ),
+        Tool(
             name="list_strategy_types",
             description="List distinct strategy types with validated or deployed implementations",
             inputSchema={
@@ -181,6 +201,13 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     type="text", text=json.dumps({"error": "Implementation not found"})
                 )
             ]
+        return [TextContent(type="text", text=json.dumps(result, default=str))]
+
+    elif name == "get_performance_batch":
+        result = await pg.get_performance_batch(
+            impl_ids=arguments["impl_ids"],
+            environment=arguments.get("environment"),
+        )
         return [TextContent(type="text", text=json.dumps(result, default=str))]
 
     elif name == "list_strategy_types":
