@@ -1,56 +1,45 @@
 name: PRICE_OSCILLATOR_SIGNAL
-description: Price Oscillator crosses its Signal Line
-complexity: SIMPLE
+description: Price Oscillator Signal - enters when price oscillator crosses above signal line, exits when it crosses below
+complexity: MODERATE
 parameterMessageType: com.verlumen.tradestream.strategies.PriceOscillatorSignalParameters
 
 indicators:
-  - id: fastEma
-    type: EMA
-    input: close
+  - id: priceOscillator
+    type: PRICE_OSCILLATOR
     params:
-      period: "${fastPeriod}"
-  - id: slowEma
+      fastPeriod: "${fastPeriod}"
+      slowPeriod: "${slowPeriod}"
+  - id: signalLine
     type: EMA
-    input: close
-    params:
-      period: "${slowPeriod}"
-  - id: macd
-    type: MACD
-    input: close
-    params:
-      shortPeriod: "${fastPeriod}"
-      longPeriod: "${slowPeriod}"
-  - id: signal
-    type: EMA
-    input: macd
     params:
       period: "${signalPeriod}"
+      source: priceOscillator
 
 entryConditions:
   - type: CROSSED_UP
-    indicator: macd
+    indicator: priceOscillator
     params:
-      crosses: signal
+      crosses: signalLine
 
 exitConditions:
   - type: CROSSED_DOWN
-    indicator: macd
+    indicator: priceOscillator
     params:
-      crosses: signal
+      crosses: signalLine
 
 parameters:
   - name: fastPeriod
     type: INTEGER
     min: 5
-    max: 15
+    max: 20
     defaultValue: 10
   - name: slowPeriod
     type: INTEGER
-    min: 15
-    max: 30
+    min: 10
+    max: 50
     defaultValue: 20
   - name: signalPeriod
     type: INTEGER
     min: 5
-    max: 12
+    max: 20
     defaultValue: 9
