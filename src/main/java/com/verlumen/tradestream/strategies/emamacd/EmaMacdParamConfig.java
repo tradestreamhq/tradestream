@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.EmaMacdParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class EmaMacdParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(

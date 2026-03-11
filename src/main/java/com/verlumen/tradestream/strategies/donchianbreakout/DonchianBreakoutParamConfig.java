@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.DonchianBreakoutParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class DonchianBreakoutParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(

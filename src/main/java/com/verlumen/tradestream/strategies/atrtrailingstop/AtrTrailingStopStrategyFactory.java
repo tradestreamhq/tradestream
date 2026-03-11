@@ -16,6 +16,7 @@ import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class AtrTrailingStopStrategyFactory
     implements StrategyFactory<AtrTrailingStopParameters> {
 

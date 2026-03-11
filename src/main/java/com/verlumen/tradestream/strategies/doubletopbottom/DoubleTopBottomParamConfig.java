@@ -7,6 +7,7 @@ import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.DoubleTopBottomParameters;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class DoubleTopBottomParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(ChromosomeSpec.ofInteger(10, 50));
