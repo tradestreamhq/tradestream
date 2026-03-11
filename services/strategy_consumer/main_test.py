@@ -47,7 +47,7 @@ class TestStrategyConsumerService:
             assert service.postgres_client is not None
             assert service.kafka_consumer is not None
             mock_postgres.connect.assert_called_once()
-            mock_postgres.ensure_table_exists.assert_called_once()
+            mock_postgres.verify_schema.assert_called_once()
             mock_kafka.connect.assert_called_once()
             mock_kafka.set_processor_callback.assert_called_once()
 

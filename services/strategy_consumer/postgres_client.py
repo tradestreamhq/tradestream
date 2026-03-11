@@ -95,41 +95,22 @@ class PostgresClient:
             await self.pool.close()
             logging.info("PostgreSQL connection pool closed")
 
-    async def ensure_table_exists(self) -> None:
-        """Ensure the Strategies table exists with proper schema."""
+    async def verify_schema(self) -> None:
+        """Verify that required tables exist (managed by Alembic migrations)."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
 
-        create_table_sql = """
-        CREATE TABLE IF NOT EXISTS Strategies (
-            strategy_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            symbol VARCHAR NOT NULL,
-            strategy_type VARCHAR NOT NULL,
-            parameters JSONB NOT NULL,
-            first_discovered_at TIMESTAMP NOT NULL DEFAULT NOW(),
-            last_evaluated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-            current_score DOUBLE PRECISION NOT NULL,
-            is_active BOOLEAN NOT NULL DEFAULT TRUE,
-            strategy_hash VARCHAR UNIQUE NOT NULL,
-            discovery_symbol VARCHAR,
-            discovery_start_time TIMESTAMP,
-            discovery_end_time TIMESTAMP,
-            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-            updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-        
-        -- Create indexes for better performance
-        CREATE INDEX IF NOT EXISTS idx_strategies_symbol ON Strategies(symbol);
-        CREATE INDEX IF NOT EXISTS idx_strategies_strategy_type ON Strategies(strategy_type);
-        CREATE INDEX IF NOT EXISTS idx_strategies_current_score ON Strategies(current_score);
-        CREATE INDEX IF NOT EXISTS idx_strategies_is_active ON Strategies(is_active);
-        CREATE INDEX IF NOT EXISTS idx_strategies_discovery_symbol ON Strategies(discovery_symbol);
-        CREATE INDEX IF NOT EXISTS idx_strategies_created_at ON Strategies(created_at);
-        """
-
         async with self.pool.acquire() as conn:
-            await conn.execute(create_table_sql)
-            logging.info("Strategies table schema verified/created")
+            result = await conn.fetchval(
+                "SELECT COUNT(*) FROM information_schema.tables "
+                "WHERE table_schema = 'public' AND table_name = 'strategies'"
+            )
+            if result == 0:
+                raise RuntimeError(
+                    "Strategies table not found. Run database migrations first: "
+                    "python -m database.alembic.run_migrations"
+                )
+            logging.info("Database schema verified")
 
     async def ensure_or_get_spec(self, strategy_type: str, conn=None) -> uuid.UUID:
         """

@@ -1,57 +1,65 @@
 # Database Migrations
 
-This directory contains Flyway database migrations for TradeStream.
+This directory contains database migrations for TradeStream.
 
-## Migration Tool
+## Migration Tools
 
-TradeStream uses [Flyway](https://flywaydb.org/) for database migrations. Migrations are executed automatically during Helm chart deployment via an init job.
+TradeStream uses two complementary migration frameworks:
+
+- **Flyway** (Java/Kubernetes): Runs as a Helm hook during deployment. SQL files in `migrations/`.
+- **Alembic** (Python): Manages schema for Python services. Configuration in `alembic/`.
+
+Both frameworks track the same schema. The Alembic baseline migration (`001`) consolidates all Flyway V1-V9 migrations and uses `IF NOT EXISTS` so it's a no-op on existing databases.
 
 ## Directory Structure
 
 ```
 database/
-├── migrations/           # SQL migration files
-│   ├── V1__*.sql        # Baseline schema
-│   ├── V2__*.sql        # Strategy specs tables
-│   ├── V3__*.sql        # Performance tracking
-│   ├── V4__*.sql        # Signal history
-│   ├── V5__*.sql        # Walk-forward validation
-│   ├── V6__*.sql        # Agent decisions
-│   ├── V7__*.sql        # Agent decisions enhancements
-│   ├── V8__*.sql        # Paper trades
-│   └── V9__*.sql        # Paper portfolio
-└── README.md            # This file
+├── migrations/           # Flyway SQL migration files (V1-V9)
+├── alembic/              # Alembic migration framework
+│   ├── alembic.ini       # Alembic configuration
+│   ├── env.py            # Migration environment setup
+│   ├── run_migrations.py # Standalone migration runner
+│   ├── script.py.mako    # Migration template
+│   └── versions/         # Versioned migrations
+│       └── 001_baseline_schema.py
+└── README.md
 ```
 
-## Naming Convention
+## Current Schema
 
-Migrations follow Flyway's versioned naming convention:
-```
-V{version}__{description}.sql
-```
-
-Examples:
-- `V1__baseline_strategies_table.sql`
-- `V2__add_strategy_specs.sql`
-- `V3__add_strategy_performance.sql`
-
-## Current Migrations
-
-| Version | Description | Tables/Changes |
-|---------|-------------|----------------|
-| V1 | Baseline | `Strategies` |
-| V2 | Strategy Specs | `strategy_specs`, `strategy_implementations` |
-| V3 | Performance | `strategy_performance` |
-| V4 | Signals | `signals` |
-| V5 | Walk-Forward Validation | `walk_forward_results`, adds validation columns to `Strategies` |
-| V6 | Agent Decisions | `agent_decisions` |
-| V7 | Agent Decisions Enhancements | Adds audit trail columns to `agent_decisions` |
-| V8 | Paper Trades | `paper_trades` |
-| V9 | Paper Portfolio | `paper_portfolio` |
+| Migration | Tables |
+|-----------|--------|
+| V1 / 001 | `Strategies` |
+| V2 / 001 | `strategy_specs`, `strategy_implementations` |
+| V3 / 001 | `strategy_performance` |
+| V4 / 001 | `signals` |
+| V5 / 001 | Walk-forward columns on `Strategies`, `walk_forward_results` |
+| V6 / 001 | `agent_decisions` |
+| V7 / 001 | Enhanced `agent_decisions` columns |
+| V8 / 001 | `paper_trades` |
+| V9 / 001 | `paper_portfolio` |
 
 ## Running Migrations
 
-### In Kubernetes (Production)
+### Alembic (Python services)
+
+```bash
+# Set environment variables
+export POSTGRES_HOST=localhost
+export POSTGRES_PORT=5432
+export POSTGRES_DB=tradestream
+export POSTGRES_USER=postgres
+export POSTGRES_PASSWORD=your_password
+
+# Run all pending migrations
+python -m database.alembic.run_migrations
+
+# For existing databases (already managed by Flyway), stamp without running:
+python -m database.alembic.run_migrations --stamp-only
+```
+
+### Flyway (Kubernetes)
 
 Migrations run automatically as a Helm hook during `helm install` or `helm upgrade`:
 
@@ -59,15 +67,9 @@ Migrations run automatically as a Helm hook during `helm install` or `helm upgra
 helm upgrade --install tradestream ./charts/tradestream
 ```
 
-The migration job:
-1. Waits for PostgreSQL to be ready
-2. Runs Flyway with all pending migrations
-3. Deletes itself after successful completion
-
-### Locally (Development)
+### Locally with Flyway
 
 ```bash
-# Using Docker
 docker run --rm \
   -v $(pwd)/database/migrations:/flyway/sql \
   flyway/flyway:10.22-alpine \
@@ -75,26 +77,20 @@ docker run --rm \
   -user=postgres \
   -password=your_password \
   migrate
-
-# Or using Flyway CLI
-flyway -url=jdbc:postgresql://localhost:5432/tradestream \
-       -user=postgres \
-       -password=your_password \
-       -locations=filesystem:./database/migrations \
-       migrate
 ```
 
 ## Adding New Migrations
 
-1. Create a new file in `database/migrations/`:
-   ```
-   V10__your_description.sql
-   ```
+For new schema changes, add migrations to **both** frameworks:
 
-2. Add the migration SQL to the Helm ConfigMap:
-   Edit `charts/tradestream/templates/database-migration-configmap.yaml`
+1. Create a Flyway migration: `database/migrations/V10__description.sql`
+2. Create an Alembic migration: `alembic revision -m "description"` in `database/alembic/`
+3. Update the Helm ConfigMap: `charts/tradestream/templates/database-migration-configmap.yaml`
+4. Test locally before deploying
 
-3. Test locally before deploying
+## Important: No Inline DDL
+
+**Application code must NOT create or modify database tables.** All schema changes must go through the migration framework. Services should only verify that expected tables exist at startup (read-only check).
 
 ## Configuration
 
@@ -119,26 +115,16 @@ Flyway Community Edition does not support automatic rollback. For production rol
 
 ### Migration job fails
 
-Check job logs:
 ```bash
 kubectl logs job/tradestream-db-migration -n tradestream
 ```
 
-### Database connection issues
+### Alembic current revision
 
-Verify PostgreSQL is running:
 ```bash
-kubectl get pods -n tradestream | grep postgresql
-```
-
-Check connection details:
-```bash
-kubectl describe job/tradestream-db-migration -n tradestream
+alembic -c database/alembic/alembic.ini current
 ```
 
 ### Schema already exists
 
-If running on an existing database, Flyway's `baselineOnMigrate` setting will:
-1. Create the `flyway_schema_history` table
-2. Mark all existing migrations as applied
-3. Only run new migrations going forward
+For existing databases, use `alembic stamp head` or `--stamp-only` to mark migrations as applied without executing them.
