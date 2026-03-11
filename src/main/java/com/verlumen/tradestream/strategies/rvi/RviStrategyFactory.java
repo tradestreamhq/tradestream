@@ -17,6 +17,7 @@ import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public final class RviStrategyFactory implements StrategyFactory<RviParameters> {
 
   @Override
