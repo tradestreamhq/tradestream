@@ -1,28 +1,20 @@
 # Database Migrations
 
-This directory contains database migrations for TradeStream.
-
-## Migration Tools
-
-TradeStream uses two complementary migration frameworks:
-
-- **Flyway** (Java/Kubernetes): Runs as a Helm hook during deployment. SQL files in `migrations/`.
-- **Alembic** (Python): Manages schema for Python services. Configuration in `alembic/`.
-
-Both frameworks track the same schema. The Alembic baseline migration (`001`) consolidates all Flyway V1-V9 migrations and uses `IF NOT EXISTS` so it's a no-op on existing databases.
+This directory contains database migrations for TradeStream, managed by **Alembic**.
 
 ## Directory Structure
 
 ```
 database/
-├── migrations/           # Flyway SQL migration files (V1-V9)
-├── alembic/              # Alembic migration framework
+├── migrations/           # Legacy Flyway SQL files (V1-V9, kept for reference)
+├── alembic/              # Alembic migration framework (primary)
 │   ├── alembic.ini       # Alembic configuration
 │   ├── env.py            # Migration environment setup
 │   ├── run_migrations.py # Standalone migration runner
+│   ├── Dockerfile        # Container image for Kubernetes deployment
 │   ├── script.py.mako    # Migration template
 │   └── versions/         # Versioned migrations
-│       └── 001_baseline_schema.py
+│       └── _001_baseline_schema.py
 └── README.md
 ```
 
@@ -30,19 +22,11 @@ database/
 
 | Migration | Tables |
 |-----------|--------|
-| V1 / 001 | `Strategies` |
-| V2 / 001 | `strategy_specs`, `strategy_implementations` |
-| V3 / 001 | `strategy_performance` |
-| V4 / 001 | `signals` |
-| V5 / 001 | Walk-forward columns on `Strategies`, `walk_forward_results` |
-| V6 / 001 | `agent_decisions` |
-| V7 / 001 | Enhanced `agent_decisions` columns |
-| V8 / 001 | `paper_trades` |
-| V9 / 001 | `paper_portfolio` |
+| 001 (V1-V9) | `Strategies`, `strategy_specs`, `strategy_implementations`, `strategy_performance`, `signals`, `walk_forward_results`, `agent_decisions`, `paper_trades`, `paper_portfolio` |
 
 ## Running Migrations
 
-### Alembic (Python services)
+### Alembic (Python)
 
 ```bash
 # Set environment variables
@@ -59,7 +43,7 @@ python -m database.alembic.run_migrations
 python -m database.alembic.run_migrations --stamp-only
 ```
 
-### Flyway (Kubernetes)
+### Kubernetes (Helm)
 
 Migrations run automatically as a Helm hook during `helm install` or `helm upgrade`:
 
@@ -67,30 +51,18 @@ Migrations run automatically as a Helm hook during `helm install` or `helm upgra
 helm upgrade --install tradestream ./charts/tradestream
 ```
 
-### Locally with Flyway
-
-```bash
-docker run --rm \
-  -v $(pwd)/database/migrations:/flyway/sql \
-  flyway/flyway:10.22-alpine \
-  -url=jdbc:postgresql://localhost:5432/tradestream \
-  -user=postgres \
-  -password=your_password \
-  migrate
-```
+The migration container runs Alembic's `upgrade head` before other workloads start. For databases previously managed by Flyway, set `databaseMigration.stampOnly: true` on the first deployment.
 
 ## Adding New Migrations
 
-For new schema changes, add migrations to **both** frameworks:
-
-1. Create a Flyway migration: `database/migrations/V10__description.sql`
-2. Create an Alembic migration: `alembic revision -m "description"` in `database/alembic/`
-3. Update the Helm ConfigMap: `charts/tradestream/templates/database-migration-configmap.yaml`
+1. Create an Alembic migration: `alembic revision -m "description"` in `database/alembic/`
+2. Implement `upgrade()` and `downgrade()` functions
+3. Run tests: `bazel test //database/alembic:alembic_test`
 4. Test locally before deploying
 
 ## Important: No Inline DDL
 
-**Application code must NOT create or modify database tables.** All schema changes must go through the migration framework. Services should only verify that expected tables exist at startup (read-only check).
+**Application code must NOT create or modify database tables.** All schema changes must go through the Alembic migration framework. Services should only verify that expected tables exist at startup (read-only check).
 
 ## Configuration
 
@@ -99,17 +71,20 @@ Migration configuration is in `charts/tradestream/values.yaml`:
 ```yaml
 databaseMigration:
   enabled: true
-  baselineOnMigrate: "true"  # Creates baseline for existing databases
-  baselineVersion: "0"       # Version to use as baseline
-  connectRetries: 60         # Retries before failing
+  stampOnly: false  # Set to true for databases already managed by Flyway
 ```
 
 ## Rollback
 
-Flyway Community Edition does not support automatic rollback. For production rollbacks:
+Alembic supports downgrade:
 
-1. Create a new migration that reverses the changes
-2. Example: `V10__rollback_v9_paper_portfolio.sql`
+```bash
+# Downgrade one revision
+alembic -c database/alembic/alembic.ini downgrade -1
+
+# Check current revision
+alembic -c database/alembic/alembic.ini current
+```
 
 ## Troubleshooting
 
@@ -119,12 +94,10 @@ Flyway Community Edition does not support automatic rollback. For production rol
 kubectl logs job/tradestream-db-migration -n tradestream
 ```
 
-### Alembic current revision
-
-```bash
-alembic -c database/alembic/alembic.ini current
-```
-
 ### Schema already exists
 
-For existing databases, use `alembic stamp head` or `--stamp-only` to mark migrations as applied without executing them.
+For existing databases, use `--stamp-only` to mark migrations as applied without executing them:
+
+```bash
+python -m database.alembic.run_migrations --stamp-only
+```

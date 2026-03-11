@@ -265,20 +265,18 @@ postgresql:
         cpu: "1"
         memory: "2Gi"
 
-# Database Migration configuration (Flyway)
+# Database Migration configuration (Alembic)
 databaseMigration:
   enabled: true
   image:
-    repository: "flyway/flyway"
-    tag: "10.22-alpine"
+    repository: "ghcr.io/tradestreamhq/db-migrations"
+    tag: "latest"
     pullPolicy: IfNotPresent
   # Wait for PostgreSQL before running migrations
   initContainers: true
-  # Flyway configuration
-  baselineOnMigrate: "true"
-  baselineVersion: "0"
-  connectRetries: 60
-  outOfOrder: false
+  # Set to true to stamp the database at head without running migrations
+  # (use for existing databases already managed by Flyway)
+  stampOnly: false
   # Database connection (reuses PostgreSQL config)
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
