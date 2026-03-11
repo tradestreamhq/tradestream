@@ -1192,9 +1192,7 @@ def fetch_strategy_by_id(strategy_id: str) -> Optional[Dict]:
         decoded_params = {}
         if params_field and isinstance(params_field, dict):
             if "base64_data" in params_field:
-                decoded_params = decode_base64_parameters(
-                    params_field["base64_data"]
-                )
+                decoded_params = decode_base64_parameters(params_field["base64_data"])
             elif "protobuf_data" in params_field:
                 decoded_params = decode_hex_parameters(
                     params_field["protobuf_data"],
@@ -1524,9 +1522,7 @@ def get_strategy_types():
 
         total_count = len(strategy_types)
         applied_limit, applied_offset = clamp_pagination(limit, offset)
-        strategy_types = strategy_types[
-            applied_offset : applied_offset + applied_limit
-        ]
+        strategy_types = strategy_types[applied_offset : applied_offset + applied_limit]
 
         return jsonify(
             {
