@@ -36,8 +36,8 @@ public class DoubleEmaCrossoverConfigTest {
     paramConfig = new ConfigurableParamConfig(config);
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
-    for (int i = 0; i < 100; i++) {
-      double price = 100 + Math.sin(i * 0.1) * 20;
+    for (int i = 0; i < 1200; i++) {
+      double price = 100 + Math.sin(i * 0.1) * 20 + Math.cos(i * 0.03) * 10;
       series.addBar(
           new BaseBar(
               Duration.ofMinutes(1),
@@ -58,12 +58,37 @@ public class DoubleEmaCrossoverConfigTest {
   }
 
   @Test
-  public void strategy_canEvaluateSignals() throws Exception {
+  public void strategy_canEvaluateSignals_over1000Candles() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
+    int entrySignals = 0;
+    int exitSignals = 0;
     for (int i = 50; i < series.getBarCount(); i++) {
-      strategy.shouldEnter(i);
-      strategy.shouldExit(i);
+      if (strategy.shouldEnter(i)) {
+        entrySignals++;
+      }
+      if (strategy.shouldExit(i)) {
+        exitSignals++;
+      }
     }
+    assertThat(entrySignals).isGreaterThan(0);
+    assertThat(exitSignals).isGreaterThan(0);
+  }
+
+  @Test
+  public void config_hasCorrectIndicators() {
+    assertThat(config.getIndicators()).hasSize(2);
+    assertThat(config.getIndicators().get(0).getId()).isEqualTo("shortEma");
+    assertThat(config.getIndicators().get(0).getType()).isEqualTo("EMA");
+    assertThat(config.getIndicators().get(1).getId()).isEqualTo("longEma");
+    assertThat(config.getIndicators().get(1).getType()).isEqualTo("EMA");
+  }
+
+  @Test
+  public void config_hasCorrectEntryExitConditions() {
+    assertThat(config.getEntryConditions()).hasSize(1);
+    assertThat(config.getEntryConditions().get(0).getType()).isEqualTo("CROSSED_UP");
+    assertThat(config.getExitConditions()).hasSize(1);
+    assertThat(config.getExitConditions().get(0).getType()).isEqualTo("CROSSED_DOWN");
   }
 
   @Test
