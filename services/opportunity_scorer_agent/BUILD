@@ -33,6 +33,7 @@ py_test(
     srcs = ["agent_test.py"],
     deps = [
         ":agent_lib",
+        ":app",
         "//services/shared:mcp_client",
         "//services/shared:model_config",
         "//third_party/python:pytest",

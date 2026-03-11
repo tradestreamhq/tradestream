@@ -3,6 +3,7 @@
 import signal
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from absl import app, flags, logging
 
@@ -23,6 +24,9 @@ flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP serve
 flags.DEFINE_integer(
     "poll_interval_seconds", 10, "Seconds between polling for new signals"
 )
+flags.DEFINE_integer(
+    "batch_size", 10, "Number of signals to fetch and score per poll cycle"
+)
 
 _shutdown = False
 
@@ -31,6 +35,12 @@ def _handle_shutdown(signum, frame):
     global _shutdown
     logging.info("Received signal %d, shutting down...", signum)
     _shutdown = True
+
+
+def _score_one(signal_data, api_key, mcp_urls):
+    """Score a single signal, returning (signal_data, result)."""
+    result = score_signal(signal_data, api_key, mcp_urls)
+    return signal_data, result
 
 
 def main(argv):
@@ -52,35 +62,50 @@ def main(argv):
 
     logging.info("Opportunity Scorer Agent starting")
     logging.info("Poll interval: %d seconds", FLAGS.poll_interval_seconds)
+    logging.info("Batch size: %d", FLAGS.batch_size)
 
     while not _shutdown:
         try:
-            # Fetch the most recent unscored signal
+            # Fetch a batch of unscored signals in one MCP call
             signals = resolve_and_call(
                 "get_recent_signals",
-                {"limit": 1},
+                {"limit": FLAGS.batch_size},
                 TOOL_TO_MCP_SERVER,
                 mcp_urls,
                 return_type="parsed",
             )
 
             if signals and isinstance(signals, list) and len(signals) > 0:
-                signal_data = signals[0]
-                logging.info(
-                    "Scoring signal %s for %s",
-                    signal_data.get("signal_id", "unknown"),
-                    signal_data.get("symbol", "unknown"),
-                )
-                result = score_signal(signal_data, FLAGS.openrouter_api_key, mcp_urls)
-                if result:
-                    logging.info(
-                        "Scored signal %s: score=%s tier=%s",
-                        signal_data.get("signal_id", "unknown"),
-                        result.get("score"),
-                        result.get("tier"),
-                    )
-                else:
-                    logging.info("No result for signal scoring")
+                logging.info("Fetched %d signals to score", len(signals))
+
+                # Score all signals concurrently instead of one at a time
+                with ThreadPoolExecutor(max_workers=len(signals)) as executor:
+                    futures = {
+                        executor.submit(
+                            _score_one,
+                            sig,
+                            FLAGS.openrouter_api_key,
+                            mcp_urls,
+                        ): sig
+                        for sig in signals
+                    }
+
+                    for future in as_completed(futures):
+                        sig = futures[future]
+                        sid = sig.get("signal_id", "unknown")
+                        try:
+                            _, result = future.result()
+                            if result:
+                                logging.info(
+                                    "Scored signal %s: score=%s tier=%s",
+                                    sid,
+                                    result.get("score"),
+                                    result.get("tier"),
+                                )
+                            else:
+                                logging.info("No result for signal %s", sid)
+                        except Exception as e:
+                            logging.error("Error scoring signal %s: %s", sid, e)
             else:
                 logging.info("No signals to score")
         except Exception as e:
