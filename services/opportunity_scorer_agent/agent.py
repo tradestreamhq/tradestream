@@ -155,7 +155,6 @@ TOOLS = [
 TOOL_TO_MCP_SERVER = {
     "get_recent_signals": "signal",
     "get_volatility": "market",
-    "get_performance": "strategy",
     "get_performance_batch": "strategy",
     "log_decision": "signal",
 }

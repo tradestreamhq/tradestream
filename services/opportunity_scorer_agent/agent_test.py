@@ -11,6 +11,7 @@ from services.opportunity_scorer_agent.agent import (
     compute_score,
     score_signal,
 )
+from services.opportunity_scorer_agent.main import _score_one
 from services.shared.mcp_client import resolve_and_call
 
 
@@ -273,9 +274,12 @@ class TestCallMcpTool:
     def test_tool_to_mcp_server_mapping(self):
         assert TOOL_TO_MCP_SERVER["get_recent_signals"] == "signal"
         assert TOOL_TO_MCP_SERVER["get_volatility"] == "market"
-        assert TOOL_TO_MCP_SERVER["get_performance"] == "strategy"
         assert TOOL_TO_MCP_SERVER["get_performance_batch"] == "strategy"
         assert TOOL_TO_MCP_SERVER["log_decision"] == "signal"
+
+    def test_no_individual_get_performance_mapping(self):
+        """Ensure individual get_performance is not in the mapping (use batch only)."""
+        assert "get_performance" not in TOOL_TO_MCP_SERVER
 
     @mock.patch("requests.post")
     def test_call_mcp_tool_success(self, mock_post, mcp_urls):
@@ -595,3 +599,77 @@ class TestScoreSignal:
         result = score_signal(sample_signal, "test-key", mcp_urls)
 
         assert result is None
+
+
+class TestBatchScoring:
+    """Tests for batch signal scoring in main loop."""
+
+    @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
+    @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
+    def test_score_one_returns_signal_and_result(
+        self, mock_mcp, mock_openai_cls, mcp_urls
+    ):
+        """Test that _score_one returns (signal_data, result) tuple."""
+        mock_client = mock.MagicMock()
+        mock_openai_cls.return_value = mock_client
+
+        result_json = {"score": 80.0, "tier": "HOT", "reasoning": "Strong"}
+        mock_message = mock.MagicMock()
+        mock_message.tool_calls = None
+        mock_message.content = json.dumps(result_json)
+        mock_response = mock.MagicMock()
+        mock_response.choices = [mock.MagicMock(message=mock_message)]
+        mock_response.usage = mock.MagicMock(total_tokens=100)
+        mock_client.chat.completions.create.return_value = mock_response
+
+        signal_data = {"signal_id": "sig-batch-1", "symbol": "ETH/USD"}
+        sig, result = _score_one(signal_data, "test-key", mcp_urls)
+
+        assert sig is signal_data
+        assert result["score"] == 80.0
+        assert result["tier"] == "HOT"
+
+    @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
+    @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
+    def test_batch_scoring_concurrent(self, mock_mcp, mock_openai_cls, mcp_urls):
+        """Test that multiple signals can be scored concurrently via _score_one."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        mock_client = mock.MagicMock()
+        mock_openai_cls.return_value = mock_client
+
+        def make_response(score, tier):
+            result_json = {"score": score, "tier": tier, "reasoning": "test"}
+            msg = mock.MagicMock()
+            msg.tool_calls = None
+            msg.content = json.dumps(result_json)
+            resp = mock.MagicMock()
+            resp.choices = [mock.MagicMock(message=msg)]
+            resp.usage = mock.MagicMock(total_tokens=100)
+            return resp
+
+        # Each call to create returns a different score
+        mock_client.chat.completions.create.side_effect = [
+            make_response(85.0, "HOT"),
+            make_response(55.0, "NEUTRAL"),
+            make_response(70.0, "GOOD"),
+        ]
+
+        signals = [
+            {"signal_id": "sig-1", "symbol": "BTC/USD"},
+            {"signal_id": "sig-2", "symbol": "ETH/USD"},
+            {"signal_id": "sig-3", "symbol": "SOL/USD"},
+        ]
+
+        results = {}
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = {
+                executor.submit(_score_one, sig, "test-key", mcp_urls): sig
+                for sig in signals
+            }
+            for future in as_completed(futures):
+                sig, result = future.result()
+                results[sig["signal_id"]] = result
+
+        assert len(results) == 3
+        assert all(r is not None for r in results.values())
