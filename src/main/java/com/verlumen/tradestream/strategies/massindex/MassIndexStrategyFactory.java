@@ -20,6 +20,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
  * <p>The Mass Index is designed to identify trend reversals based on changes in the High-Low range.
  * It looks for a "reversal bulge" where the Mass Index rises above 27 and then falls below 26.5.
  */
+@Deprecated
 public final class MassIndexStrategyFactory implements StrategyFactory<MassIndexParameters> {
 
   @Override
