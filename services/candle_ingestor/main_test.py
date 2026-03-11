@@ -106,9 +106,6 @@ class BaseIngestorTest(absltest.TestCase):
 
         self.saved_flags = flagsaver.save_flag_values()
         FLAGS.exchanges = ["binance"]  # Fix: Use CCXT flag instead of tiingo_api_key
-        FLAGS.influxdb_token = "dummy_influx_token_for_test"
-        FLAGS.influxdb_org = "dummy_influx_org_for_test"
-        FLAGS.redis_host = "dummy_redis_host_for_test"  # Added
         FLAGS.redis_key_crypto_symbols = "test_crypto_symbols"  # Added
         FLAGS.candle_granularity_minutes = 1
         FLAGS.catch_up_initial_days = 1

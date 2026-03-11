@@ -2,8 +2,8 @@ schemaVersion: "2.0.0"
 commandTests:
   - name: "Top Crypto Updater Dry Run Test (help message)"
     command: "/services/top_crypto_updater/app"
-    args: ["--help", "--cmc_api_key=dummy_key_for_help_test"]
+    args: ["--help"]
     exitCode: 1
     expectedOutput:
-      - "CoinMarketCap API Key."
-      - "Redis host."
+      - "top_n_cryptos"
+      - "redis_key"

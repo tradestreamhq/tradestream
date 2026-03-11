@@ -33,19 +33,28 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
         self.mock_redis_instance = mock.MagicMock(spec=RedisManager)
 
         self.saved_flags = flagsaver.save_flag_values()
-        # Set default required flags for tests that don't focus on their absence
-        FLAGS.cmc_api_key = "dummy_cmc_for_test_main"
-        FLAGS.redis_host = "dummy_redis_host_main"
+
+        # Set env vars for credentials (no longer flags)
+        self._env_patcher = mock.patch.dict(
+            "os.environ",
+            {
+                "CMC_API_KEY": "dummy_cmc_for_test_main",
+                "REDIS_HOST": "dummy_redis_host_main",
+            },
+        )
+        self._env_patcher.start()
 
     def tearDown(self):
+        self._env_patcher.stop()
         flagsaver.restore_flag_values(self.saved_flags)
         top_crypto_updater_main.redis_manager_global = None  # Clean up global
         super().tearDown()
 
+    @mock.patch.dict(
+        "os.environ", {"CMC_API_KEY": "fake_cmc_key", "REDIS_HOST": "fakeredis"}
+    )
     def test_main_success_flow(self):
         # Arrange
-        FLAGS.cmc_api_key = "fake_cmc_key"
-        FLAGS.redis_host = "fakeredis"
         FLAGS.top_n_cryptos = 5
         FLAGS.redis_key = "test_top_cryptos"
 
@@ -63,23 +72,23 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
         # Assert
         self.mock_get_top_n_symbols.assert_called_once_with("fake_cmc_key", 5)
         self.mock_redis_manager_constructor.assert_called_once_with(
-            host="fakeredis", port=FLAGS.redis_port, password=None
+            host="fakeredis", port=6379, password=None
         )
         self.mock_redis_instance.set_value.assert_called_once_with(
             "test_top_cryptos", json.dumps(expected_symbols)
         )
         self.mock_redis_instance.close.assert_called_once()
 
-    @flagsaver.flagsaver(cmc_api_key="")  # Override flag for this test
+    @mock.patch.dict("os.environ", {"CMC_API_KEY": ""}, clear=False)
     def test_main_no_cmc_api_key_exits(self):
         with self.assertRaises(SystemExit) as cm:
             top_crypto_updater_main.main(None)
         self.assertEqual(cm.exception.code, 1)
         self.mock_get_top_n_symbols.assert_not_called()
 
+    @mock.patch.dict("os.environ", {"CMC_API_KEY": "fake_cmc_key"}, clear=False)
     @mock.patch("services.top_crypto_updater.main.sys.exit")  # Mock sys.exit
     def test_main_redis_connection_failure_exits(self, mock_sys_exit):
-        FLAGS.cmc_api_key = "fake_cmc_key"
         # Simulate RedisManager constructor failing
         self.mock_redis_manager_constructor.side_effect = (
             redis.exceptions.ConnectionError("Mock connection failed")
@@ -100,8 +109,8 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
         # Ensure close was not called since the manager was never successfully created
         self.mock_redis_instance.close.assert_not_called()
 
+    @mock.patch.dict("os.environ", {"CMC_API_KEY": "fake_cmc_key"}, clear=False)
     def test_main_cmc_fetch_fails_logs_warning_but_completes(self):
-        FLAGS.cmc_api_key = "fake_cmc_key"
         self.mock_get_top_n_symbols.return_value = []  # Simulate no symbols returned
 
         self.mock_redis_manager_constructor.return_value = self.mock_redis_instance
@@ -119,8 +128,8 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
         self.mock_redis_instance.set_value.assert_not_called()
         self.mock_redis_instance.close.assert_called_once()
 
+    @mock.patch.dict("os.environ", {"CMC_API_KEY": "fake_cmc_key"}, clear=False)
     def test_main_redis_set_value_fails_logs_error(self):
-        FLAGS.cmc_api_key = "fake_cmc_key"
         expected_symbols = ["btcusd"]
         self.mock_get_top_n_symbols.return_value = expected_symbols
 
@@ -141,9 +150,9 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
         )
         self.mock_redis_instance.close.assert_called_once()
 
+    @mock.patch.dict("os.environ", {"CMC_API_KEY": "fake_cmc_key"}, clear=False)
     @mock.patch("services.top_crypto_updater.main.signal")
     def test_main_registers_signal_handlers(self, mock_signal_module):
-        FLAGS.cmc_api_key = "fake_cmc_key"
         self.mock_redis_manager_constructor.return_value = self.mock_redis_instance
         self.mock_redis_instance.get_client.return_value = True
         self.mock_get_top_n_symbols.return_value = ["btcusd"]

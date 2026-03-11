@@ -44,10 +44,11 @@ py_test(
 py_test(
     name = "main_test",
     srcs = ["main_test.py"],
-    args = [
-        "--cmc_api_key=dummy_cmc_key_for_test",
-        "--redis_host=mockredis",
-    ],
+    args = [],
+    env = {
+        "CMC_API_KEY": "dummy_cmc_key_for_test",
+        "REDIS_HOST": "mockredis",
+    },
     deps = [
         ":app",
         ":redis_client_lib",

@@ -6,7 +6,6 @@ commandTests:
     exitCode: 1 # Help usually exits with non-zero
     expectedOutput:
       - "exchanges"
-      - "influxdb_token"
       - "run_mode"
   - name: "Candle Ingestor Dry Run Basic Test"
     command: "/services/candle_ingestor/app"
@@ -14,12 +13,15 @@ commandTests:
       [
         "--run_mode=dry",
         "--exchanges=binance",
-        "--influxdb_token=dummytoken",
-        "--influxdb_org=dummyorg",
         "--backfill_start_date=1_day_ago",
         "--candle_granularity_minutes=60",
         "--catch_up_initial_days=1",
         "--dry_run_limit=1",
       ]
+    envVars:
+      - key: "INFLUXDB_TOKEN"
+        value: "dummytoken"
+      - key: "INFLUXDB_ORG"
+        value: "dummyorg"
     # Expected to exit cleanly after a single run in dry mode
     exitCode: 0
