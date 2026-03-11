@@ -7,6 +7,7 @@ import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.PriceGapParameters;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class PriceGapParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(ChromosomeSpec.ofInteger(5, 30));
