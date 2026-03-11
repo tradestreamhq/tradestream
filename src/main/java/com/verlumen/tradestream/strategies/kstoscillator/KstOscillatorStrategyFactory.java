@@ -21,6 +21,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
  * smoothing to create a comprehensive momentum indicator. The strategy generates buy signals when
  * the KST crosses above its signal line and sell signals when it crosses below.
  */
+@Deprecated
 public final class KstOscillatorStrategyFactory
     implements StrategyFactory<KstOscillatorParameters> {
 

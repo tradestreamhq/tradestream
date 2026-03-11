@@ -16,6 +16,7 @@ import java.util.logging.Logger;
  * combines four ROC indicators with different periods and smoothing to create a comprehensive
  * momentum indicator.
  */
+@Deprecated
 public final class KstOscillatorParamConfig implements ParamConfig {
   private static final Logger logger = Logger.getLogger(KstOscillatorParamConfig.class.getName());
 

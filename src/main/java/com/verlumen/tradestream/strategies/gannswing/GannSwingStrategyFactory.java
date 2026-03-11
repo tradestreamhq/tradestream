@@ -5,6 +5,7 @@ import com.verlumen.tradestream.strategies.StrategyFactory;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
+@Deprecated
 public final class GannSwingStrategyFactory implements StrategyFactory<GannSwingParameters> {
   @Override
   public GannSwingParameters getDefaultParameters() {
