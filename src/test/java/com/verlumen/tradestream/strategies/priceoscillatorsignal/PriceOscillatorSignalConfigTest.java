@@ -77,9 +77,7 @@ public class PriceOscillatorSignalConfigTest {
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
         ImmutableList.of(
-            IntegerChromosome.of(5, 20),
-            IntegerChromosome.of(10, 50),
-            IntegerChromosome.of(5, 20));
+            IntegerChromosome.of(5, 20), IntegerChromosome.of(10, 50), IntegerChromosome.of(5, 20));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }

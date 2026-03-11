@@ -77,9 +77,7 @@ public class FramaConfigTest {
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
         ImmutableList.of(
-            IntegerChromosome.of(5, 50),
-            IntegerChromosome.of(1, 5),
-            IntegerChromosome.of(10, 60));
+            IntegerChromosome.of(5, 50), IntegerChromosome.of(1, 5), IntegerChromosome.of(10, 60));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
