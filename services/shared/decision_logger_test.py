@@ -29,7 +29,7 @@ class TestDecisionLogger:
             decision_type="signal_emission",
             input_context={"symbol": "BTC-USD"},
             output={"action": "BUY"},
-            model_used="claude-3-5-haiku",
+            model_used="anthropic/claude-haiku-4-5",
             tokens_used=1500,
             success=True,
         )
@@ -172,7 +172,7 @@ class TestTrackContextManager:
         with logger.track("signal_generator", "signal_emission") as ctx:
             ctx.input_context = {"symbol": "ETH-USD"}
             ctx.output = {"action": "SELL"}
-            ctx.model_used = "claude-3-5-haiku"
+            ctx.model_used = "anthropic/claude-haiku-4-5"
             ctx.tokens_used = 800
 
         cursor.execute.assert_called_once()
