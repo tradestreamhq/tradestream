@@ -17,6 +17,7 @@ import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLineParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, CmfZeroLineParameters params) {
