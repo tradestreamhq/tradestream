@@ -44,6 +44,20 @@ py_test(
     ],
 )
 
+py_test(
+    name = "llm_integration_test",
+    srcs = [
+        "conftest.py",
+        "llm_integration_test.py",
+    ],
+    deps = [
+        ":agent_gateway_lib",
+        "//third_party/python:httpx",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
+
 py_image_layer(
     name = "layers",
     binary = ":app",

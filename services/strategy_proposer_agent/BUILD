@@ -56,6 +56,17 @@ py_test(
     ],
 )
 
+py_test(
+    name = "llm_integration_test",
+    srcs = ["llm_integration_test.py"],
+    deps = [
+        ":agent_lib",
+        "//third_party/python:openai",
+        "//third_party/python:pytest",
+        "//third_party/python:requests",
+    ],
+)
+
 # --- OCI Image Rules ---
 py_image_layer(
     name = "layers",
