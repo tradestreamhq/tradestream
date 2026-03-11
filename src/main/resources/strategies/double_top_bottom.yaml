@@ -1,0 +1,31 @@
+name: DOUBLE_TOP_BOTTOM
+description: Double Top/Bottom pattern using EMA crossover
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.DoubleTopBottomParameters
+
+indicators:
+  - id: closePrice
+    type: CLOSE
+  - id: ema
+    type: EMA
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: closePrice
+    params:
+      crosses: ema
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: closePrice
+    params:
+      crosses: ema
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 50
+    defaultValue: 20
