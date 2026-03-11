@@ -11,6 +11,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from services.agent_gateway.main import (
+    AgentEvent,
+    HealthResponse,
+    RecentEventsResponse,
     _row_to_event,
     _serialize_row,
     app,
@@ -391,3 +394,42 @@ class TestStreamEndpoint:
 
         assert response.status_code == 200
         assert "text/event-stream" in response.headers.get("content-type", "")
+
+
+class TestOpenAPIDocs:
+    """Tests for OpenAPI documentation."""
+
+    def test_openapi_schema_available(self):
+        """Test that the OpenAPI schema includes all endpoints."""
+        schema = app.openapi()
+        assert schema["info"]["title"] == "Agent Gateway"
+        paths = schema["paths"]
+        assert "/health" in paths
+        assert "/events/stream" in paths
+        assert "/events/recent" in paths
+
+    def test_response_models_in_schema(self):
+        """Test that Pydantic response models appear in the schema."""
+        schema = app.openapi()
+        component_schemas = schema.get("components", {}).get("schemas", {})
+        assert "HealthResponse" in component_schemas
+        assert "AgentEvent" in component_schemas
+        assert "RecentEventsResponse" in component_schemas
+
+    def test_agent_event_model(self):
+        """Test AgentEvent Pydantic model."""
+        event = AgentEvent(
+            event_type="signal",
+            id="abc-123",
+            agent_name="test-agent",
+            score=0.85,
+        )
+        assert event.event_type == "signal"
+        assert event.score == 0.85
+
+    def test_recent_events_response_model(self):
+        """Test RecentEventsResponse Pydantic model."""
+        event = AgentEvent(event_type="decision")
+        resp = RecentEventsResponse(events=[event], count=1)
+        assert resp.count == 1
+        assert len(resp.events) == 1

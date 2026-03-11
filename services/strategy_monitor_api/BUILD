@@ -7,6 +7,7 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 py_library(
     name = "strategy_monitor_api_lib",
     srcs = ["main.py"],
+    data = ["openapi.yaml"],
     deps = [
         "//services/shared:auth",
         "//third_party/python:absl_py",

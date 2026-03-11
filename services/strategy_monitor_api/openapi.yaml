@@ -1,0 +1,364 @@
+openapi: "3.1.0"
+info:
+  title: Strategy Monitor API
+  description: |
+    REST API for monitoring and exploring trading strategies.
+    Provides endpoints to list strategies, view individual strategy details,
+    retrieve aggregated metrics, and enumerate available symbols and strategy types.
+  version: "1.0.0"
+  contact:
+    name: TradeStream
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      description: Returns the health status of the API service.
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/strategies:
+    get:
+      summary: List strategies
+      description: |
+        Retrieve all strategies with optional filtering by symbol, strategy type,
+        minimum score, and result limit.
+      operationId: getStrategies
+      tags:
+        - Strategies
+      parameters:
+        - name: symbol
+          in: query
+          description: Filter by trading symbol (e.g. BTC/USD)
+          required: false
+          schema:
+            type: string
+            example: "BTC/USD"
+        - name: strategy_type
+          in: query
+          description: Filter by strategy type (e.g. SMA_EMA_CROSSOVER)
+          required: false
+          schema:
+            type: string
+            example: "SMA_EMA_CROSSOVER"
+        - name: limit
+          in: query
+          description: Maximum number of strategies to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 50
+        - name: min_score
+          in: query
+          description: Minimum strategy score threshold
+          required: false
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+            example: 0.7
+      responses:
+        "200":
+          description: List of strategies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategiesResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/strategies/{strategy_id}:
+    get:
+      summary: Get strategy by ID
+      description: Retrieve a single strategy by its unique identifier.
+      operationId: getStrategyById
+      tags:
+        - Strategies
+      parameters:
+        - name: strategy_id
+          in: path
+          required: true
+          description: Unique strategy identifier
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Strategy details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Strategy"
+        "404":
+          description: Strategy not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/metrics:
+    get:
+      summary: Get strategy metrics
+      description: Retrieve aggregated strategy metrics including counts, scores, and breakdowns.
+      operationId: getMetrics
+      tags:
+        - Metrics
+      responses:
+        "200":
+          description: Aggregated strategy metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/symbols:
+    get:
+      summary: List symbols
+      description: Get all unique trading symbols that have associated strategies.
+      operationId: getSymbols
+      tags:
+        - Reference Data
+      responses:
+        "200":
+          description: List of unique symbols
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SymbolsResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/strategy-types:
+    get:
+      summary: List strategy types
+      description: Get all unique strategy types available in the system.
+      operationId: getStrategyTypes
+      tags:
+        - Reference Data
+      responses:
+        "200":
+          description: List of unique strategy types
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyTypesResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-03-11T06:00:00.000000"
+      required:
+        - status
+        - timestamp
+    Strategy:
+      type: object
+      properties:
+        strategy_id:
+          type: string
+          description: Unique strategy identifier
+          example: "42"
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: "BTC/USD"
+        strategy_type:
+          type: string
+          description: Type of trading strategy
+          example: "SMA_EMA_CROSSOVER"
+        current_score:
+          type: number
+          format: float
+          description: Current strategy performance score (0-1)
+          example: 0.85
+        parameters:
+          type: object
+          description: Decoded strategy parameters (varies by strategy type)
+          additionalProperties: true
+        strategy_hash:
+          type: string
+          description: Hash of the strategy configuration
+        discovery_symbol:
+          type: string
+          description: Symbol used during strategy discovery
+        first_discovered_at:
+          type: string
+          format: date-time
+        last_evaluated_at:
+          type: string
+          format: date-time
+      required:
+        - strategy_id
+        - symbol
+        - strategy_type
+        - current_score
+    StrategiesResponse:
+      type: object
+      properties:
+        strategies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Strategy"
+        count:
+          type: integer
+          description: Number of strategies returned
+          example: 10
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - strategies
+        - count
+        - timestamp
+    MetricsResponse:
+      type: object
+      properties:
+        metrics:
+          $ref: "#/components/schemas/Metrics"
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - metrics
+        - timestamp
+    Metrics:
+      type: object
+      properties:
+        total_strategies:
+          type: integer
+          description: Total number of strategies
+          example: 150
+        total_symbols:
+          type: integer
+          description: Number of unique symbols
+          example: 25
+        total_strategy_types:
+          type: integer
+          description: Number of unique strategy types
+          example: 18
+        avg_score:
+          type: number
+          format: float
+          description: Average strategy score
+          example: 0.72
+        max_score:
+          type: number
+          format: float
+          description: Highest strategy score
+          example: 0.98
+        min_score:
+          type: number
+          format: float
+          description: Lowest strategy score
+          example: 0.15
+        recent_strategies_24h:
+          type: integer
+          description: Strategies discovered in the last 24 hours
+          example: 5
+        top_strategy_types:
+          type: array
+          items:
+            type: object
+            properties:
+              strategy_type:
+                type: string
+              count:
+                type: integer
+              avg_score:
+                type: number
+                format: float
+        top_symbols:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              count:
+                type: integer
+              avg_score:
+                type: number
+                format: float
+    SymbolsResponse:
+      type: object
+      properties:
+        symbols:
+          type: array
+          items:
+            type: string
+          example: ["BTC/USD", "ETH/USD", "SOL/USD"]
+        count:
+          type: integer
+          example: 3
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - symbols
+        - count
+        - timestamp
+    StrategyTypesResponse:
+      type: object
+      properties:
+        strategy_types:
+          type: array
+          items:
+            type: string
+          example: ["SMA_EMA_CROSSOVER", "EMA_MACD", "ICHIMOKU_CLOUD"]
+        count:
+          type: integer
+          example: 3
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - strategy_types
+        - count
+        - timestamp
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Database connection failed"
+      required:
+        - error

@@ -13,6 +13,7 @@ py_library(
         "//services/shared:auth",
         "//third_party/python:asyncpg",
         "//third_party/python:fastapi",
+        "//third_party/python:pydantic",
         "//third_party/python:redis",
         "//third_party/python:sse_starlette",
         "//third_party/python:uvicorn",

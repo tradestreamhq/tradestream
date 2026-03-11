@@ -6,6 +6,7 @@ Provides REST endpoints for strategy monitoring and visualization.
 import json
 import logging
 import base64
+import os
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 
@@ -16,7 +17,7 @@ import json
 import urllib.parse
 from absl import flags
 from absl import app as absl_app
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 # Flask configuration
@@ -1540,6 +1541,41 @@ def get_strategy_types():
         return jsonify({"error": str(e)}), 500
 
 
+# OpenAPI documentation endpoints
+_SERVICE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+@app.route("/openapi.yaml")
+def openapi_spec():
+    """Serve the OpenAPI specification."""
+    return send_from_directory(_SERVICE_DIR, "openapi.yaml", mimetype="text/yaml")
+
+
+@app.route("/docs")
+def swagger_ui():
+    """Serve Swagger UI for interactive API documentation."""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Strategy Monitor API - Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+        SwaggerUIBundle({
+            url: '/openapi.yaml',
+            dom_id: '#swagger-ui',
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+            layout: 'BaseLayout'
+        });
+    </script>
+</body>
+</html>"""
+
+
 def main(argv):
     """Main function to start the API server."""
     global DB_CONFIG
@@ -1549,9 +1585,6 @@ def main(argv):
 
     # Set up logging
     logging.basicConfig(level=logging.INFO)
-
-    # Check for environment variables (for Kubernetes deployment)
-    import os
 
     # Get database configuration from environment variables or flags
     postgres_host = os.environ.get("POSTGRES_HOST", FLAGS.postgres_host)
