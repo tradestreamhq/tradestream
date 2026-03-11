@@ -46,9 +46,7 @@ public class TripleEmaCrossoverParamConfigTest {
   @Test
   public void testCreateParameters_invalidChromosomeSize_throwsException() {
     List<NumericChromosome<?, ?>> chromosomes =
-        List.of(
-            IntegerChromosome.of(2, 20, 10),
-            IntegerChromosome.of(10, 50, 20));
+        List.of(IntegerChromosome.of(2, 20, 10), IntegerChromosome.of(10, 50, 20));
 
     IllegalArgumentException thrown =
         assertThrows(
