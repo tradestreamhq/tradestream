@@ -13,6 +13,7 @@ import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public final class HeikenAshiStrategyFactory implements StrategyFactory<HeikenAshiParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, HeikenAshiParameters params) {
