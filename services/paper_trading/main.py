@@ -29,6 +29,7 @@ flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL")
 flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL")
 flags.DEFINE_integer("port", 8090, "HTTP server port")
+flags.DEFINE_string("host", "127.0.0.1", "HTTP server host")
 
 
 def main(argv):
@@ -81,7 +82,7 @@ def main(argv):
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     logging.info("Paper Trading service starting on port %d", FLAGS.port)
-    flask_app.run(host="0.0.0.0", port=FLAGS.port)
+    flask_app.run(host=FLAGS.host, port=FLAGS.port)
 
 
 if __name__ == "__main__":

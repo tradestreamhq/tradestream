@@ -45,6 +45,7 @@ spec:
             - "--mcp_market_url=$(MCP_MARKET_URL)"
             - "--mcp_signal_url=$(MCP_SIGNAL_URL)"
             - "--port={{ .Values.paperTrading.config.port }}"
+            - "--host=0.0.0.0"
           livenessProbe:
             httpGet:
               path: /health
