@@ -9,6 +9,7 @@ import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
+@Deprecated
 public final class TickVolumeAnalysisParamConfig implements ParamConfig {
   private static final Logger logger =
       Logger.getLogger(TickVolumeAnalysisParamConfig.class.getName());
