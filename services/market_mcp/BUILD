@@ -41,6 +41,7 @@ py_binary(
         ":influxdb_client_lib",
         ":redis_client_lib",
         ":server_lib",
+        "//services/shared:config",
         "//third_party/python:absl_py",
         "//third_party/python:mcp",
     ],

@@ -7,10 +7,9 @@ import time
 from absl import app, flags, logging
 
 from services.signal_generator_agent.agent import run_agent_for_symbol
+from services.shared.config import require_env
 
 FLAGS = flags.FLAGS
-
-flags.DEFINE_string("openrouter_api_key", None, "OpenRouter API key.")
 flags.DEFINE_string(
     "symbols",
     "BTC-USD,ETH-USD",
@@ -24,8 +23,6 @@ flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP serve
 flags.DEFINE_integer(
     "interval_seconds", 60, "Interval between signal generation runs in seconds."
 )
-
-flags.mark_flag_as_required("openrouter_api_key")
 
 _shutdown = False
 
@@ -42,6 +39,8 @@ def main(argv):
 
     signal.signal(signal.SIGINT, _handle_shutdown)
     signal.signal(signal.SIGTERM, _handle_shutdown)
+
+    openrouter_api_key = require_env("OPENROUTER_API_KEY")
 
     symbols = [s.strip() for s in FLAGS.symbols.split(",") if s.strip()]
     if not symbols:
@@ -68,7 +67,7 @@ def main(argv):
                 logging.info("Generating signal for %s", symbol)
                 result = run_agent_for_symbol(
                     symbol=symbol,
-                    api_key=FLAGS.openrouter_api_key,
+                    api_key=openrouter_api_key,
                     mcp_urls=mcp_urls,
                 )
                 if result:

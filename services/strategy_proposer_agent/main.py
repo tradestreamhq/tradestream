@@ -7,10 +7,9 @@ import time
 from absl import app, flags, logging
 
 from services.strategy_proposer_agent.agent import run_proposer_agent
+from services.shared.config import require_env
 
 FLAGS = flags.FLAGS
-
-flags.DEFINE_string("openrouter_api_key", None, "OpenRouter API key.")
 flags.DEFINE_string(
     "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL."
 )
@@ -18,8 +17,6 @@ flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP serve
 flags.DEFINE_integer(
     "interval_seconds", 1800, "Interval between strategy proposal runs in seconds."
 )
-
-flags.mark_flag_as_required("openrouter_api_key")
 
 _shutdown = False
 
@@ -37,6 +34,8 @@ def main(argv):
     signal.signal(signal.SIGINT, _handle_shutdown)
     signal.signal(signal.SIGTERM, _handle_shutdown)
 
+    openrouter_api_key = require_env("OPENROUTER_API_KEY")
+
     mcp_urls = {
         "strategy": FLAGS.mcp_strategy_url.rstrip("/"),
         "market": FLAGS.mcp_market_url.rstrip("/"),
@@ -51,7 +50,7 @@ def main(argv):
         try:
             logging.info("Proposing new strategy...")
             result = run_proposer_agent(
-                api_key=FLAGS.openrouter_api_key,
+                api_key=openrouter_api_key,
                 mcp_urls=mcp_urls,
             )
             if result:

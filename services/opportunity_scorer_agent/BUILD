@@ -22,6 +22,7 @@ py_binary(
     main = "main.py",
     deps = [
         ":agent_lib",
+        "//services/shared:config",
         "//services/shared:mcp_client",
         "//third_party/python:absl_py",
     ],

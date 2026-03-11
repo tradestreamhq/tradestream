@@ -10,30 +10,20 @@ from absl import logging
 
 from services.top_crypto_updater.redis_client import RedisManager
 from shared.cryptoclient.cmc_client import get_top_n_crypto_symbols
+from services.shared.config import get_cmc_api_key, get_redis_config
 
 
 FLAGS = flags.FLAGS
 
-# CoinMarketCap Flags
-flags.DEFINE_string("cmc_api_key", os.getenv("CMC_API_KEY"), "CoinMarketCap API Key.")
+# Non-credential flags
 flags.DEFINE_integer(
     "top_n_cryptos",
     int(os.getenv("TOP_N_CRYPTOS", "20")),
     "Number of top cryptocurrencies to fetch from CMC.",
 )
-
-# Redis Flags
-default_redis_host = os.getenv("REDIS_HOST", "localhost")
-flags.DEFINE_string("redis_host", default_redis_host, "Redis host.")
-default_redis_port = int(os.getenv("REDIS_PORT", "6379"))
-flags.DEFINE_integer("redis_port", default_redis_port, "Redis port.")
-flags.DEFINE_string(
-    "redis_password", os.getenv("REDIS_PASSWORD"), "Redis password (if any)."
-)
-default_redis_key = os.getenv("REDIS_KEY", "top_cryptocurrencies")
 flags.DEFINE_string(
     "redis_key",
-    default_redis_key,
+    os.getenv("REDIS_KEY", "top_cryptocurrencies"),
     "Redis key to store the list of top cryptocurrencies.",
 )
 
@@ -66,24 +56,27 @@ def main(argv):
     signal.signal(signal.SIGINT, handle_shutdown_signal)
     signal.signal(signal.SIGTERM, handle_shutdown_signal)
 
-    if not FLAGS.cmc_api_key:
+    cmc_api_key = get_cmc_api_key()
+    if not cmc_api_key:
         logging.error(
-            "CMC_API_KEY is required. Set environment variable or use --cmc_api_key."
+            "CMC_API_KEY is required. Set the CMC_API_KEY environment variable."
         )
         sys.exit(1)
 
+    redis_cfg = get_redis_config()
+
     logging.info("Configuration:")
-    logging.info(
-        f"  CoinMarketCap API Key: {'****' if FLAGS.cmc_api_key else 'Not Set'}"
-    )
+    logging.info(f"  CoinMarketCap API Key: {'****' if cmc_api_key else 'Not Set'}")
     logging.info(f"  Top N Cryptos: {FLAGS.top_n_cryptos}")
-    logging.info(f"  Redis Host: {FLAGS.redis_host}")
-    logging.info(f"  Redis Port: {FLAGS.redis_port}")
+    logging.info(f"  Redis Host: {redis_cfg['host']}")
+    logging.info(f"  Redis Port: {redis_cfg['port']}")
     logging.info(f"  Redis Key: {FLAGS.redis_key}")
 
     try:
         redis_manager_global = RedisManager(
-            host=FLAGS.redis_host, port=FLAGS.redis_port, password=FLAGS.redis_password
+            host=redis_cfg["host"],
+            port=redis_cfg["port"],
+            password=redis_cfg["password"],
         )
         if not redis_manager_global.get_client():
             logging.error("Failed to connect to Redis (client check). Exiting.")
@@ -98,7 +91,7 @@ def main(argv):
             f"Fetching top {FLAGS.top_n_cryptos} cryptocurrency symbols from CoinMarketCap..."
         )
         top_symbols_tiingo_format = get_top_n_crypto_symbols(
-            FLAGS.cmc_api_key, FLAGS.top_n_cryptos
+            cmc_api_key, FLAGS.top_n_cryptos
         )
 
         if not top_symbols_tiingo_format:

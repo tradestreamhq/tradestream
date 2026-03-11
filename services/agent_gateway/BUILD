@@ -11,6 +11,7 @@ py_library(
     srcs = ["main.py"],
     deps = [
         "//services/shared:auth",
+        "//services/shared:config",
         "//third_party/python:asyncpg",
         "//third_party/python:fastapi",
         "//third_party/python:redis",

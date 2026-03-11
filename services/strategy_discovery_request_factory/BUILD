@@ -49,6 +49,7 @@ py_binary(
         ":config_lib",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
+        "//services/shared:config",
         "//shared/cryptoclient:redis_crypto_client_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
@@ -100,11 +101,13 @@ py_test(
     name = "main_test",
     srcs = ["main_test.py"],
     args = [
-        "--influxdb_token=dummy_token_for_test",
-        "--influxdb_org=dummy_org_for_test",
         "--tracker_service_name=test_strategy_discovery",
         "--global_status_tracker_service_name=test_global_candle_status",
     ],
+    env = {
+        "INFLUXDB_TOKEN": "dummy_token_for_test",
+        "INFLUXDB_ORG": "dummy_org_for_test",
+    },
     deps = [
         ":app",
         ":config_lib",

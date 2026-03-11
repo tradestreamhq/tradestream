@@ -1,5 +1,6 @@
 """Unit tests for main module (stateless orchestration version)."""
 
+import os
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 import sys
@@ -19,9 +20,17 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         # Save original flags
         self.saved_flags = flagsaver.save_flag_values()
 
+        # Set env vars for credentials (no longer flags)
+        self._env_patcher = patch.dict(
+            "os.environ",
+            {
+                "INFLUXDB_TOKEN": "test-token",
+                "INFLUXDB_ORG": "test-org",
+            },
+        )
+        self._env_patcher.start()
+
         # Set required flags for tests
-        FLAGS.influxdb_token = "test-token"
-        FLAGS.influxdb_org = "test-org"
         FLAGS.tracker_service_name = "test_strategy_discovery"
         FLAGS.global_status_tracker_service_name = "test_global_candle_status"
         FLAGS.min_processing_advance_minutes = 1
@@ -59,6 +68,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
     def tearDown(self):
         """Clean up test environment."""
         patch.stopall()
+        self._env_patcher.stop()
         flagsaver.restore_flag_values(self.saved_flags)
 
     def test_service_initialization_success(self):
@@ -74,18 +84,18 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         self.mock_tracker_cls.assert_called_once()
         self.mock_strategy_processor_cls.assert_called_once()
 
+    @patch.dict("os.environ", {"INFLUXDB_TOKEN": ""}, clear=False)
     def test_validation_missing_influxdb_token(self):
         """Test validation fails without InfluxDB token."""
-        FLAGS.influxdb_token = None
         service = main.StrategyDiscoveryService()
 
         with self.assertRaises(ValueError) as cm:
             service._validate_configuration()
         self.assertIn("InfluxDB token is required", str(cm.exception))
 
+    @patch.dict("os.environ", {"INFLUXDB_ORG": ""}, clear=False)
     def test_validation_missing_influxdb_org(self):
         """Test validation fails without InfluxDB org."""
-        FLAGS.influxdb_org = None
         service = main.StrategyDiscoveryService()
 
         with self.assertRaises(ValueError) as cm:

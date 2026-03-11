@@ -26,26 +26,23 @@ commandTests:
     args: ["--help"]
     exitCode: 1
     expectedOutput:
-      - "postgres_host"
-      - "postgres_port"
-      - "postgres_database"
-      - "postgres_username"
-      - "postgres_password"
       - "api_port"
       - "api_host"
 
   - name: "Strategy Monitor API Dry Run Test"
     command: "/services/strategy_monitor_api/strategy_monitor_api"
-    args:
-      [
-        "--postgres_host=localhost",
-        "--postgres_port=5432",
-        "--postgres_database=test",
-        "--postgres_username=test",
-        "--postgres_password=test",
-        "--api_port=8080",
-        "--api_host=0.0.0.0",
-      ]
+    args: ["--api_port=8080", "--api_host=0.0.0.0"]
+    envVars:
+      - key: "POSTGRES_HOST"
+        value: "localhost"
+      - key: "POSTGRES_PORT"
+        value: "5432"
+      - key: "POSTGRES_DATABASE"
+        value: "test"
+      - key: "POSTGRES_USERNAME"
+        value: "test"
+      - key: "POSTGRES_PASSWORD"
+        value: "test"
     # Should fail due to database connection, but should start Flask app
     exitCode: 1
     expectedError:

@@ -26,6 +26,7 @@ from shared.cryptoclient.redis_crypto_client import RedisCryptoClient
 from shared.persistence.influxdb_last_processed_tracker import (
     InfluxDBLastProcessedTracker,
 )
+from services.shared.config import get_influxdb_config, get_redis_config
 import redis
 
 FLAGS = flags.FLAGS
@@ -42,34 +43,10 @@ flags.DEFINE_integer(
     "Minimum number of exchanges required for multi-exchange aggregation (0 = auto-detect from exchange count)",
 )
 
-# InfluxDB Flags (unchanged)
-default_influx_url = os.getenv(
-    "INFLUXDB_URL",
-    "http://influxdb.tradestream-namespace.svc.cluster.local:8086",
-)
-flags.DEFINE_string("influxdb_url", default_influx_url, "InfluxDB URL.")
-flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB Token.")
-flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB Organization.")
-flags.DEFINE_string(
-    "influxdb_bucket",
-    os.getenv("INFLUXDB_BUCKET", "tradestream-data"),
-    "InfluxDB Bucket for candles and state.",
-)
-
-# Redis Flags (unchanged)
-default_redis_host = os.getenv("REDIS_HOST", "localhost")
-flags.DEFINE_string("redis_host", default_redis_host, "Redis host.")
-default_redis_port = int(os.getenv("REDIS_PORT", "6379"))
-flags.DEFINE_integer("redis_port", default_redis_port, "Redis port.")
-flags.DEFINE_string(
-    "redis_password", os.getenv("REDIS_PASSWORD"), "Redis password (if any)."
-)
-default_redis_key_crypto_symbols = os.getenv(
-    "REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"
-)
+# Redis key flag (non-credential)
 flags.DEFINE_string(
     "redis_key_crypto_symbols",
-    default_redis_key_crypto_symbols,
+    os.getenv("REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"),
     "Redis key to fetch the list of top cryptocurrency symbols.",
 )
 
@@ -847,15 +824,18 @@ def main(argv):
 
     redis_manager = None
 
+    influx_cfg = get_influxdb_config()
+    redis_cfg = get_redis_config()
+
     if FLAGS.run_mode == "wet":
-        if not FLAGS.influxdb_token:
-            logging.error("INFLUXDB_TOKEN is required. Set via env var or flag.")
+        if not influx_cfg["token"]:
+            logging.error("INFLUXDB_TOKEN is required. Set via env var.")
             sys.exit(1)
-        if not FLAGS.influxdb_org:
-            logging.error("INFLUXDB_ORG is required. Set via env var or flag.")
+        if not influx_cfg["org"]:
+            logging.error("INFLUXDB_ORG is required. Set via env var.")
             sys.exit(1)
-        if not FLAGS.redis_host:
-            logging.error("REDIS_HOST is required. Set via env var or flag.")
+        if not redis_cfg["host"]:
+            logging.error("REDIS_HOST is required. Set via env var.")
             sys.exit(1)
 
     logging.info(
@@ -907,20 +887,20 @@ def main(argv):
     state_tracker = None
     if FLAGS.run_mode == "wet":
         influx_manager = InfluxDBManager(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
-            bucket=FLAGS.influxdb_bucket,
+            url=influx_cfg["url"],
+            token=influx_cfg["token"],
+            org=influx_cfg["org"],
+            bucket=influx_cfg["bucket"],
         )
         if not influx_manager.get_client():
             logging.error("Failed to connect to InfluxDB after retries. Exiting.")
             sys.exit(1)
 
         state_tracker = InfluxDBLastProcessedTracker(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
-            bucket=FLAGS.influxdb_bucket,
+            url=influx_cfg["url"],
+            token=influx_cfg["token"],
+            org=influx_cfg["org"],
+            bucket=influx_cfg["bucket"],
         )
         if not state_tracker.client:
             logging.error("Failed to initialize state tracker. Exiting.")
@@ -930,9 +910,9 @@ def main(argv):
 
         try:
             redis_manager = RedisCryptoClient(
-                host=FLAGS.redis_host,
-                port=FLAGS.redis_port,
-                password=FLAGS.redis_password,
+                host=redis_cfg["host"],
+                port=redis_cfg["port"],
+                password=redis_cfg["password"],
             )
             if not redis_manager.client:
                 logging.error("Failed to connect to Redis. Exiting.")

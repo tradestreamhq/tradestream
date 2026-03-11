@@ -9,6 +9,7 @@ py_library(
     srcs = ["main.py"],
     deps = [
         "//services/shared:auth",
+        "//services/shared:config",
         "//third_party/python:absl_py",
         "//third_party/python:flask",
         "//third_party/python:flask_cors",

@@ -10,6 +10,7 @@ py_library(
     name = "strategy_confidence_scorer_lib",
     srcs = ["main.py"],
     deps = [
+        "//services/shared:config",
         "//third_party/python:absl_py",
         "//third_party/python:asyncpg",
     ],

@@ -10,6 +10,7 @@ py_library(
     name = "risk_adjusted_sizing_lib",
     srcs = ["main.py"],
     deps = [
+        "//services/shared:config",
         "//third_party/python:absl_py",
         "//third_party/python:asyncpg",
     ],
