@@ -5,6 +5,7 @@ import com.verlumen.tradestream.strategies.VolumeProfileParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
+@Deprecated
 public final class VolumeProfileStrategyFactory
     implements StrategyFactory<VolumeProfileParameters> {
 

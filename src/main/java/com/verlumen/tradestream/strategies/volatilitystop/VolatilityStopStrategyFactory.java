@@ -15,6 +15,7 @@ import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class VolatilityStopStrategyFactory
     implements StrategyFactory<VolatilityStopParameters> {
   /**
