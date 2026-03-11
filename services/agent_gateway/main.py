@@ -22,6 +22,8 @@ from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
+from services.shared.config import get_postgres_dsn, get_redis_url
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -37,26 +39,11 @@ _db_pool: Optional[asyncpg.Pool] = None
 _redis: Optional[aioredis.Redis] = None
 
 
-def _get_db_dsn() -> str:
-    host = os.environ.get("POSTGRES_HOST", "localhost")
-    port = os.environ.get("POSTGRES_PORT", "5432")
-    database = os.environ.get("POSTGRES_DATABASE", "tradestream")
-    username = os.environ.get("POSTGRES_USERNAME", "postgres")
-    password = os.environ.get("POSTGRES_PASSWORD", "")
-    return f"postgresql://{username}:{password}@{host}:{port}/{database}"
-
-
-def _get_redis_url() -> str:
-    host = os.environ.get("REDIS_HOST", "localhost")
-    port = os.environ.get("REDIS_PORT", "6379")
-    return f"redis://{host}:{port}/0"
-
-
 @app.on_event("startup")
 async def startup():
     global _db_pool, _redis
-    _db_pool = await asyncpg.create_pool(dsn=_get_db_dsn(), min_size=2, max_size=10)
-    _redis = aioredis.from_url(_get_redis_url(), decode_responses=True)
+    _db_pool = await asyncpg.create_pool(dsn=get_postgres_dsn(), min_size=2, max_size=10)
+    _redis = aioredis.from_url(get_redis_url(), decode_responses=True)
     logger.info("Agent Gateway started")
 
 

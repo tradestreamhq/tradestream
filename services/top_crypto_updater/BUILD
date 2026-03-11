@@ -23,6 +23,7 @@ py_binary(
     main = "main.py",
     deps = [
         ":redis_client_lib",
+        "//services/shared:config",
         "//shared/cryptoclient:cmc_client_lib",
         "//third_party/python:absl_py",
         "//third_party/python:redis",

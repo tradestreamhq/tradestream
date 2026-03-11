@@ -18,15 +18,9 @@ from absl import app, flags, logging
 
 import asyncpg
 from dataclasses import dataclass
+from services.shared.config import get_postgres_config
 
 FLAGS = flags.FLAGS
-
-# Database Configuration
-flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
-flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
-flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
-flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 
 # Confidence Scoring Configuration
 flags.DEFINE_float("performance_weight", 0.6, "Weight for performance score (0.0-1.0)")
@@ -255,13 +249,7 @@ def main(argv):
     logging.info("Starting Strategy Confidence Scorer")
 
     # Database configuration
-    db_config = {
-        "host": FLAGS.postgres_host,
-        "port": FLAGS.postgres_port,
-        "database": FLAGS.postgres_database,
-        "user": FLAGS.postgres_username,
-        "password": FLAGS.postgres_password,
-    }
+    db_config = get_postgres_config()
 
     scorer = StrategyConfidenceScorer(db_config)
 

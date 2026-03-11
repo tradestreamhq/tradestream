@@ -13,18 +13,9 @@ from absl import logging
 from services.market_mcp.influxdb_client import InfluxDBMarketClient
 from services.market_mcp.redis_client import RedisMarketClient
 from services.market_mcp.server import create_server
+from services.shared.config import get_influxdb_config, get_redis_config
 
 FLAGS = flags.FLAGS
-
-# InfluxDB Configuration Flags
-flags.DEFINE_string("influxdb_url", "http://localhost:8086", "InfluxDB URL.")
-flags.DEFINE_string("influxdb_token", "", "InfluxDB authentication token.")
-flags.DEFINE_string("influxdb_org", "tradestream-org", "InfluxDB organization.")
-flags.DEFINE_string("influxdb_bucket", "tradestream-data", "InfluxDB bucket name.")
-
-# Redis Configuration Flags
-flags.DEFINE_string("redis_host", "localhost", "Redis host.")
-flags.DEFINE_integer("redis_port", 6379, "Redis port.")
 
 # MCP Configuration Flags
 flags.DEFINE_string("mcp_transport", "stdio", "MCP transport type (stdio or sse).")
@@ -33,23 +24,25 @@ flags.DEFINE_integer("mcp_port", 8080, "MCP server port (for SSE transport).")
 
 async def main_async() -> None:
     """Main async function."""
-    if not FLAGS.influxdb_token:
-        logging.error("InfluxDB token is required")
+    influx_cfg = get_influxdb_config()
+    if not influx_cfg["token"]:
+        logging.error("InfluxDB token is required (set INFLUXDB_TOKEN)")
         sys.exit(1)
 
     # Initialize InfluxDB client
     influxdb_client = InfluxDBMarketClient(
-        url=FLAGS.influxdb_url,
-        token=FLAGS.influxdb_token,
-        org=FLAGS.influxdb_org,
-        bucket=FLAGS.influxdb_bucket,
+        url=influx_cfg["url"],
+        token=influx_cfg["token"],
+        org=influx_cfg["org"],
+        bucket=influx_cfg["bucket"],
     )
     influxdb_client.connect()
 
     # Initialize Redis client
+    redis_cfg = get_redis_config()
     redis_client = RedisMarketClient(
-        host=FLAGS.redis_host,
-        port=FLAGS.redis_port,
+        host=redis_cfg["host"],
+        port=redis_cfg["port"],
     )
     redis_client.connect()
 

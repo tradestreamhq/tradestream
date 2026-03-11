@@ -853,12 +853,8 @@ def decode_variable_period_ema(protobuf_bytes: bytes, protobuf_type: str) -> Dic
     }
 
 
-# Database configuration flags
-flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
-flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
-flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
-flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
+from services.shared.config import get_postgres_config
+
 flags.DEFINE_integer("api_port", 8080, "API server port")
 flags.DEFINE_string("api_host", "0.0.0.0", "API server host")
 
@@ -1368,33 +1364,21 @@ def main(argv):
     # Set up logging
     logging.basicConfig(level=logging.INFO)
 
-    # Check for environment variables (for Kubernetes deployment)
     import os
 
-    # Get database configuration from environment variables or flags
-    postgres_host = os.environ.get("POSTGRES_HOST", FLAGS.postgres_host)
-    postgres_port = int(os.environ.get("POSTGRES_PORT", str(FLAGS.postgres_port)))
-    postgres_database = os.environ.get("POSTGRES_DATABASE", FLAGS.postgres_database)
-    postgres_username = os.environ.get("POSTGRES_USERNAME", FLAGS.postgres_username)
-    postgres_password = os.environ.get("POSTGRES_PASSWORD", FLAGS.postgres_password)
+    # Get database configuration from shared config module
+    DB_CONFIG = get_postgres_config()
+    # Remap 'user' key to 'username' for backward compatibility with get_db_connection
+    DB_CONFIG["username"] = DB_CONFIG.pop("user")
 
     # Get API configuration from environment variables or flags
     api_port = int(os.environ.get("API_PORT", str(FLAGS.api_port)))
     api_host = os.environ.get("API_HOST", FLAGS.api_host)
 
     # Validate required configuration
-    if not postgres_password:
-        logging.error("PostgreSQL password is required")
+    if not DB_CONFIG["password"]:
+        logging.error("PostgreSQL password is required (set POSTGRES_PASSWORD)")
         return 1
-
-    # Store database configuration
-    DB_CONFIG = {
-        "host": postgres_host,
-        "port": postgres_port,
-        "database": postgres_database,
-        "username": postgres_username,
-        "password": postgres_password,
-    }
 
     # Test database connection
     try:

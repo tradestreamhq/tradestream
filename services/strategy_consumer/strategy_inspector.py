@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 from typing import List, Optional
 
@@ -229,21 +230,30 @@ async def main():
     )
     parser.add_argument("--min-score", type=float, help="Minimum score threshold")
     parser.add_argument(
-        "--host", default="localhost", help="Database host (default: localhost)"
+        "--host",
+        default=os.environ.get("POSTGRES_HOST", "localhost"),
+        help="Database host (default: POSTGRES_HOST or localhost)",
     )
     parser.add_argument(
-        "--port", type=int, default=5432, help="Database port (default: 5432)"
+        "--port",
+        type=int,
+        default=int(os.environ.get("POSTGRES_PORT", "5432")),
+        help="Database port (default: POSTGRES_PORT or 5432)",
     )
     parser.add_argument(
-        "--database", default="tradestream", help="Database name (default: tradestream)"
+        "--database",
+        default=os.environ.get("POSTGRES_DATABASE", "tradestream"),
+        help="Database name (default: POSTGRES_DATABASE or tradestream)",
     )
     parser.add_argument(
-        "--username", default="postgres", help="Database username (default: postgres)"
+        "--username",
+        default=os.environ.get("POSTGRES_USERNAME", "postgres"),
+        help="Database username (default: POSTGRES_USERNAME or postgres)",
     )
     parser.add_argument(
         "--password",
-        default=None,
-        help="Database password (required)",
+        default=os.environ.get("POSTGRES_PASSWORD", ""),
+        help="Database password (default: POSTGRES_PASSWORD env var)",
     )
     parser.add_argument(
         "--no-parameters", action="store_true", help="Hide parameter details"

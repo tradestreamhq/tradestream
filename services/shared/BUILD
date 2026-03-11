@@ -4,6 +4,17 @@ load("@rules_python//python:py_test.bzl", "py_test")
 package(default_visibility = ["//visibility:public"])
 
 py_library(
+    name = "config",
+    srcs = [
+        "__init__.py",
+        "config.py",
+    ],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
     name = "decision_logger",
     srcs = [
         "__init__.py",
@@ -81,5 +92,13 @@ py_test(
     deps = [
         ":model_config",
         "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "config_test",
+    srcs = ["config_test.py"],
+    deps = [
+        ":config",
     ],
 )

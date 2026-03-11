@@ -8,14 +8,9 @@ from absl import app, flags, logging
 
 from services.paper_trading.postgres_client import PostgresClient
 from services.paper_trading.service import create_app
+from services.shared.config import get_postgres_config
 
 FLAGS = flags.FLAGS
-
-flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
-flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
-flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database name")
-flags.DEFINE_string("postgres_username", "tradestream", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL")
 flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL")
 flags.DEFINE_integer("port", 8090, "HTTP server port")
@@ -25,16 +20,17 @@ def main(argv):
     del argv
     logging.set_verbosity(logging.INFO)
 
-    if not FLAGS.postgres_password:
-        logging.error("--postgres_password is required")
+    cfg = get_postgres_config()
+    if not cfg["password"]:
+        logging.error("PostgreSQL password is required (set POSTGRES_PASSWORD)")
         sys.exit(1)
 
     pg_client = PostgresClient(
-        host=FLAGS.postgres_host,
-        port=FLAGS.postgres_port,
-        database=FLAGS.postgres_database,
-        username=FLAGS.postgres_username,
-        password=FLAGS.postgres_password,
+        host=cfg["host"],
+        port=cfg["port"],
+        database=cfg["database"],
+        username=cfg["user"],
+        password=cfg["password"],
     )
 
     try:

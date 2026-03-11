@@ -34,13 +34,9 @@ from shared.persistence.influxdb_last_processed_tracker import (
     InfluxDBLastProcessedTracker,
 )
 from shared.cryptoclient.redis_crypto_client import RedisCryptoClient
+from services.shared.config import get_influxdb_config, get_redis_config
 
-# InfluxDB flags
-flags.DEFINE_string(
-    "influxdb_url", os.getenv("INFLUXDB_URL", "http://localhost:8086"), "InfluxDB URL"
-)
-flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB token")
-flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB organization")
+# InfluxDB flags (non-credential)
 flags.DEFINE_string("influxdb_bucket_tracker", "tradestream-data", "Tracker bucket")
 flags.DEFINE_string(
     "tracker_service_name",
@@ -66,10 +62,7 @@ flags.DEFINE_string(
 )
 flags.DEFINE_string("kafka_topic", "strategy-discovery-requests", "Kafka topic")
 
-# Redis flags
-flags.DEFINE_string("redis_host", os.getenv("REDIS_HOST", "localhost"), "Redis host")
-flags.DEFINE_integer("redis_port", int(os.getenv("REDIS_PORT", "6379")), "Redis port")
-flags.DEFINE_string("redis_password", os.getenv("REDIS_PASSWORD"), "Redis password")
+# Redis key flag (non-credential)
 flags.DEFINE_string(
     "redis_key_crypto_symbols",
     os.getenv("REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"),
@@ -104,10 +97,11 @@ class StrategyDiscoveryService:
 
     def _validate_configuration(self) -> None:
         """Validate all configuration parameters."""
-        if not FLAGS.influxdb_token:
-            raise ValueError("InfluxDB token is required (--influxdb_token)")
-        if not FLAGS.influxdb_org:
-            raise ValueError("InfluxDB organization is required (--influxdb_org)")
+        influx_cfg = get_influxdb_config()
+        if not influx_cfg["token"]:
+            raise ValueError("InfluxDB token is required (set INFLUXDB_TOKEN)")
+        if not influx_cfg["org"]:
+            raise ValueError("InfluxDB organization is required (set INFLUXDB_ORG)")
 
         # Validate processing parameters
         fibonacci_windows = [int(x) for x in FLAGS.fibonacci_windows_minutes]
@@ -127,10 +121,11 @@ class StrategyDiscoveryService:
     def _get_currency_pairs_from_redis(self) -> List[str]:
         """Get currency pairs from Redis, same as candle ingestor."""
         try:
+            redis_cfg = get_redis_config()
             redis_client = RedisCryptoClient(
-                host=FLAGS.redis_host,
-                port=FLAGS.redis_port,
-                password=FLAGS.redis_password,
+                host=redis_cfg["host"],
+                port=redis_cfg["port"],
+                password=redis_cfg["password"],
             )
 
             symbols = redis_client.get_top_crypto_pairs_from_redis(
@@ -165,10 +160,11 @@ class StrategyDiscoveryService:
 
     def _initialize_tracker(self) -> None:
         """Initialize the InfluxDB timestamp tracker."""
+        influx_cfg = get_influxdb_config()
         self.timestamp_tracker = InfluxDBLastProcessedTracker(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
+            url=influx_cfg["url"],
+            token=influx_cfg["token"],
+            org=influx_cfg["org"],
             bucket=FLAGS.influxdb_bucket_tracker,
         )
         if not self.timestamp_tracker.client:
@@ -352,7 +348,7 @@ def main(argv):
 
     # Log configuration
     logging.info("Configuration:")
-    logging.info(f"  InfluxDB URL: {FLAGS.influxdb_url}")
+    logging.info(f"  InfluxDB URL: {get_influxdb_config()['url']}")
     logging.info(f"  Kafka servers: {FLAGS.kafka_bootstrap_servers}")
     logging.info(f"  Kafka topic: {FLAGS.kafka_topic}")
     logging.info(f"  Tracker service name: {FLAGS.tracker_service_name}")
