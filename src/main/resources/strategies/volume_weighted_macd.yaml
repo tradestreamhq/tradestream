@@ -6,21 +6,12 @@ parameterMessageType: com.verlumen.tradestream.strategies.VolumeWeightedMacdPara
 indicators:
   - id: close
     type: CLOSE
-  - id: shortEma
-    type: EMA
-    input: close
-    params:
-      period: "${shortPeriod}"
-  - id: longEma
-    type: EMA
-    input: close
-    params:
-      period: "${longPeriod}"
   - id: macdLine
-    type: DIFFERENCE
+    type: MACD
+    input: close
     params:
-      first: shortEma
-      second: longEma
+      shortPeriod: "${shortPeriod}"
+      longPeriod: "${longPeriod}"
   - id: signalLine
     type: EMA
     input: macdLine
