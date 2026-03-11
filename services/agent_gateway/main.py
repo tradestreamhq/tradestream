@@ -42,7 +42,9 @@ _redis: Optional[aioredis.Redis] = None
 @app.on_event("startup")
 async def startup():
     global _db_pool, _redis
-    _db_pool = await asyncpg.create_pool(dsn=get_postgres_dsn(), min_size=2, max_size=10)
+    _db_pool = await asyncpg.create_pool(
+        dsn=get_postgres_dsn(), min_size=2, max_size=10
+    )
     _redis = aioredis.from_url(get_redis_url(), decode_responses=True)
     logger.info("Agent Gateway started")
 

@@ -66,9 +66,7 @@ def main(argv):
     redis_cfg = get_redis_config()
 
     logging.info("Configuration:")
-    logging.info(
-        f"  CoinMarketCap API Key: {'****' if cmc_api_key else 'Not Set'}"
-    )
+    logging.info(f"  CoinMarketCap API Key: {'****' if cmc_api_key else 'Not Set'}")
     logging.info(f"  Top N Cryptos: {FLAGS.top_n_cryptos}")
     logging.info(f"  Redis Host: {redis_cfg['host']}")
     logging.info(f"  Redis Port: {redis_cfg['port']}")
@@ -76,7 +74,9 @@ def main(argv):
 
     try:
         redis_manager_global = RedisManager(
-            host=redis_cfg["host"], port=redis_cfg["port"], password=redis_cfg["password"]
+            host=redis_cfg["host"],
+            port=redis_cfg["port"],
+            password=redis_cfg["password"],
         )
         if not redis_manager_global.get_client():
             logging.error("Failed to connect to Redis (client check). Exiting.")
