@@ -45,6 +45,27 @@ class WriteDiscoveredStrategiesToKafkaFn
                     put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name)
                     put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java.name)
 
+                    // SSL/TLS security configuration
+                    val securityProtocol = System.getenv("KAFKA_SECURITY_PROTOCOL") ?: "SSL"
+                    put("security.protocol", securityProtocol)
+                    if (securityProtocol == "SSL" || securityProtocol == "SASL_SSL") {
+                        System.getenv("KAFKA_SSL_TRUSTSTORE_LOCATION")?.takeIf { it.isNotEmpty() }?.let {
+                            put("ssl.truststore.location", it)
+                        }
+                        System.getenv("KAFKA_SSL_TRUSTSTORE_PASSWORD")?.takeIf { it.isNotEmpty() }?.let {
+                            put("ssl.truststore.password", it)
+                        }
+                        System.getenv("KAFKA_SSL_KEYSTORE_LOCATION")?.takeIf { it.isNotEmpty() }?.let {
+                            put("ssl.keystore.location", it)
+                        }
+                        System.getenv("KAFKA_SSL_KEYSTORE_PASSWORD")?.takeIf { it.isNotEmpty() }?.let {
+                            put("ssl.keystore.password", it)
+                        }
+                        System.getenv("KAFKA_SSL_KEY_PASSWORD")?.takeIf { it.isNotEmpty() }?.let {
+                            put("ssl.key.password", it)
+                        }
+                    }
+
                     // Reliability settings
                     put(ProducerConfig.ACKS_CONFIG, "all") // Wait for all in-sync replicas acknowledgment
                     put(ProducerConfig.RETRIES_CONFIG, 3)

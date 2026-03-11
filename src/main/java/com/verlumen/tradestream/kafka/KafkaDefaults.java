@@ -31,8 +31,23 @@ public final class KafkaDefaults {
   public static final String VALUE_SERIALIZER =
       "org.apache.kafka.common.serialization.ByteArraySerializer";
 
-  /** Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL) */
-  public static final String SECURITY_PROTOCOL = "PLAINTEXT";
+  /** Protocol used to communicate with brokers (e.g., PLAINTEXT, SSL, SASL_SSL) */
+  public static final String SECURITY_PROTOCOL = "SSL";
+
+  /** SSL truststore location (path to JKS truststore file) */
+  public static final String SSL_TRUSTSTORE_LOCATION = "";
+
+  /** SSL truststore password */
+  public static final String SSL_TRUSTSTORE_PASSWORD = "";
+
+  /** SSL keystore location (path to JKS keystore file) */
+  public static final String SSL_KEYSTORE_LOCATION = "";
+
+  /** SSL keystore password */
+  public static final String SSL_KEYSTORE_PASSWORD = "";
+
+  /** SSL key password */
+  public static final String SSL_KEY_PASSWORD = "";
 
   // Private constructor to prevent instantiation
   private KafkaDefaults() {

@@ -19,11 +19,47 @@ kafka_retry_params = dict(
 
 
 class KafkaPublisher:
-    def __init__(self, bootstrap_servers: str, topic_name: str):
+    def __init__(
+        self,
+        bootstrap_servers: str,
+        topic_name: str,
+        security_protocol: str = "SSL",
+        ssl_cafile: str = None,
+        ssl_certfile: str = None,
+        ssl_keyfile: str = None,
+        ssl_password: str = None,
+    ):
         self.bootstrap_servers = bootstrap_servers
         self.topic_name = topic_name
+        self.security_protocol = security_protocol
+        self.ssl_cafile = ssl_cafile
+        self.ssl_certfile = ssl_certfile
+        self.ssl_keyfile = ssl_keyfile
+        self.ssl_password = ssl_password
+
+        if self.security_protocol in ("SSL", "SASL_SSL") and not self.ssl_cafile:
+            raise ValueError(
+                f"ssl_cafile is required when using {self.security_protocol} "
+                "security protocol. Set KAFKA_SSL_CA_LOCATION environment variable."
+            )
+
         self.producer = None
         self._connect_with_retry()
+
+    def _build_ssl_kwargs(self):
+        """Build SSL keyword arguments for kafka-python client."""
+        kwargs = {}
+        if self.security_protocol in ("SSL", "SASL_SSL"):
+            kwargs["security_protocol"] = self.security_protocol
+            if self.ssl_cafile:
+                kwargs["ssl_cafile"] = self.ssl_cafile
+            if self.ssl_certfile:
+                kwargs["ssl_certfile"] = self.ssl_certfile
+            if self.ssl_keyfile:
+                kwargs["ssl_keyfile"] = self.ssl_keyfile
+            if self.ssl_password:
+                kwargs["ssl_password"] = self.ssl_password
+        return kwargs
 
     @retry(**kafka_retry_params)
     def _connect_with_retry(self):
@@ -32,6 +68,7 @@ class KafkaPublisher:
             self.producer = kafka.KafkaProducer(
                 bootstrap_servers=self.bootstrap_servers,
                 api_version_auto_timeout_ms=10000,  # Added timeout for API version fetch
+                **self._build_ssl_kwargs(),
             )
             logging.info(
                 f"Successfully connected KafkaProducer to {self.bootstrap_servers}"

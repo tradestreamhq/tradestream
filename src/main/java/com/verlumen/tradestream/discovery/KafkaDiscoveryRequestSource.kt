@@ -23,6 +23,30 @@ class KafkaDiscoveryRequestSource
         private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
         @Assisted private val options: StrategyDiscoveryPipelineOptions,
     ) : DiscoveryRequestSource() {
+        private fun buildSslConsumerConfig(): Map<String, Any> {
+            val config = mutableMapOf<String, Any>()
+            val securityProtocol = System.getenv("KAFKA_SECURITY_PROTOCOL") ?: "SSL"
+            config["security.protocol"] = securityProtocol
+            if (securityProtocol == "SSL" || securityProtocol == "SASL_SSL") {
+                System.getenv("KAFKA_SSL_TRUSTSTORE_LOCATION")?.takeIf { it.isNotEmpty() }?.let {
+                    config["ssl.truststore.location"] = it
+                }
+                System.getenv("KAFKA_SSL_TRUSTSTORE_PASSWORD")?.takeIf { it.isNotEmpty() }?.let {
+                    config["ssl.truststore.password"] = it
+                }
+                System.getenv("KAFKA_SSL_KEYSTORE_LOCATION")?.takeIf { it.isNotEmpty() }?.let {
+                    config["ssl.keystore.location"] = it
+                }
+                System.getenv("KAFKA_SSL_KEYSTORE_PASSWORD")?.takeIf { it.isNotEmpty() }?.let {
+                    config["ssl.keystore.password"] = it
+                }
+                System.getenv("KAFKA_SSL_KEY_PASSWORD")?.takeIf { it.isNotEmpty() }?.let {
+                    config["ssl.key.password"] = it
+                }
+            }
+            return config
+        }
+
         override fun expand(input: PBegin): PCollection<StrategyDiscoveryRequest> =
             input.pipeline
                 .apply(
@@ -32,7 +56,8 @@ class KafkaDiscoveryRequestSource
                         .withBootstrapServers(options.kafkaBootstrapServers)
                         .withTopic(options.strategyDiscoveryRequestTopic)
                         .withKeyDeserializer(StringDeserializer::class.java)
-                        .withValueDeserializer(ByteArrayDeserializer::class.java),
+                        .withValueDeserializer(ByteArrayDeserializer::class.java)
+                        .withConsumerConfigUpdates(buildSslConsumerConfig()),
                 ).apply(
                     "ExtractKVFromRecord",
                     MapElements.via(

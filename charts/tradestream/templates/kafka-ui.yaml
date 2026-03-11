@@ -19,17 +19,47 @@ spec:
         app: {{ include "tradestream.name" . }}
         component: kafka-ui
     spec:
+      {{- if .Values.kafkaSsl.enabled }}
+      volumes:
+        - name: kafka-ssl-certs
+          secret:
+            secretName: {{ tpl .Values.kafkaSsl.secretName . }}
+      {{- end }}
       containers:
         - name: kafka-ui
           image: "{{ .Values.kafkaUi.image.repository }}:{{ .Values.kafkaUi.image.tag }}"
           imagePullPolicy: {{ .Values.kafkaUi.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.kafkaUi.service.port }}
+          {{- if .Values.kafkaSsl.enabled }}
+          volumeMounts:
+            - name: kafka-ssl-certs
+              mountPath: {{ .Values.kafkaSsl.mountPath }}
+              readOnly: true
+          {{- end }}
           env:
             - name: KAFKA_CLUSTERS_0_NAME
               value: "local"
             - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
               value: "{{ include "tradestream.fullname" . }}-kafka:9092"
+            - name: KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL
+              value: {{ if .Values.kafkaSsl.enabled }}"SSL"{{ else }}"PLAINTEXT"{{ end }}
+            {{- if .Values.kafkaSsl.enabled }}
+            - name: KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.truststoreFile }}"
+            - name: KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.kafkaSsl.passwordSecretName }}
+                  key: {{ .Values.kafkaSsl.passwordSecretKeys.truststorePassword }}
+            - name: KAFKA_CLUSTERS_0_SSL_KEYSTORELOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.keystoreFile }}"
+            - name: KAFKA_CLUSTERS_0_SSL_KEYSTOREPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.kafkaSsl.passwordSecretName }}
+                  key: {{ .Values.kafkaSsl.passwordSecretKeys.keystorePassword }}
+            {{- end }}
 
 ---
 apiVersion: v1
