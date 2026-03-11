@@ -1,0 +1,58 @@
+name: VOLUME_WEIGHTED_MACD
+description: Volume-weighted MACD strategy using EMA crossovers with volume sensitivity
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.VolumeWeightedMacdParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: shortEma
+    type: EMA
+    input: close
+    params:
+      period: "${shortPeriod}"
+  - id: longEma
+    type: EMA
+    input: close
+    params:
+      period: "${longPeriod}"
+  - id: macd
+    type: MACD
+    input: close
+    params:
+      shortPeriod: "${shortPeriod}"
+      longPeriod: "${longPeriod}"
+  - id: signalLine
+    type: EMA
+    input: macd
+    params:
+      period: "${signalPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: macd
+    params:
+      crosses: signalLine
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: macd
+    params:
+      crosses: signalLine
+
+parameters:
+  - name: shortPeriod
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 12
+  - name: longPeriod
+    type: INTEGER
+    min: 15
+    max: 50
+    defaultValue: 26
+  - name: signalPeriod
+    type: INTEGER
+    min: 5
+    max: 15
+    defaultValue: 9
