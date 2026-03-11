@@ -169,21 +169,31 @@ class RiskAdjustedSizer:
                         symbol=row["symbol"],
                         strategy_type=row["strategy_type"],
                         current_score=row["current_score"],
-                        volatility=float(row["volatility"])
-                        if has_data
-                        else self._DEFAULT_VOLATILITY,
-                        sharpe_ratio=float(row["sharpe_ratio"])
-                        if has_data
-                        else self._DEFAULT_SHARPE_RATIO,
-                        max_drawdown=float(row["max_drawdown"])
-                        if has_data
-                        else self._DEFAULT_MAX_DRAWDOWN,
-                        win_rate=float(row["win_rate"])
-                        if has_data
-                        else self._DEFAULT_WIN_RATE,
-                        profit_factor=float(row["profit_factor"])
-                        if has_data
-                        else self._DEFAULT_PROFIT_FACTOR,
+                        volatility=(
+                            float(row["volatility"])
+                            if has_data
+                            else self._DEFAULT_VOLATILITY
+                        ),
+                        sharpe_ratio=(
+                            float(row["sharpe_ratio"])
+                            if has_data
+                            else self._DEFAULT_SHARPE_RATIO
+                        ),
+                        max_drawdown=(
+                            float(row["max_drawdown"])
+                            if has_data
+                            else self._DEFAULT_MAX_DRAWDOWN
+                        ),
+                        win_rate=(
+                            float(row["win_rate"])
+                            if has_data
+                            else self._DEFAULT_WIN_RATE
+                        ),
+                        profit_factor=(
+                            float(row["profit_factor"])
+                            if has_data
+                            else self._DEFAULT_PROFIT_FACTOR
+                        ),
                     )
                 )
 
