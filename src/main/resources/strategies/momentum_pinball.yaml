@@ -1,0 +1,50 @@
+name: MOMENTUM_PINBALL
+description: Momentum Pinball strategy combining short and long term momentum indicators
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.MomentumPinballParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: shortMomentum
+    type: MOMENTUM
+    input: close
+    params:
+      period: "${shortPeriod}"
+  - id: longMomentum
+    type: MOMENTUM
+    input: close
+    params:
+      period: "${longPeriod}"
+
+entryConditions:
+  - type: OVER_CONSTANT
+    indicator: longMomentum
+    params:
+      threshold: 0
+  - type: CROSSED_UP_CONSTANT
+    indicator: shortMomentum
+    params:
+      threshold: 0
+
+exitConditions:
+  - type: UNDER_CONSTANT
+    indicator: longMomentum
+    params:
+      threshold: 0
+  - type: CROSSED_DOWN_CONSTANT
+    indicator: shortMomentum
+    params:
+      threshold: 0
+
+parameters:
+  - name: shortPeriod
+    type: INTEGER
+    min: 2
+    max: 30
+    defaultValue: 10
+  - name: longPeriod
+    type: INTEGER
+    min: 5
+    max: 60
+    defaultValue: 20

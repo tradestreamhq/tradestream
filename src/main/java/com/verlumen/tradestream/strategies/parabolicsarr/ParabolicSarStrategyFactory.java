@@ -13,6 +13,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class ParabolicSarStrategyFactory implements StrategyFactory<ParabolicSarParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, ParabolicSarParameters params) {
