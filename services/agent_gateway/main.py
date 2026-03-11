@@ -408,7 +408,9 @@ async def get_agent_details(
         query += f" AND agent_name = ${param_idx}"
         params.append(agent_name)
 
-    query += " GROUP BY agent_name, decision_type ORDER BY agent_name, total_decisions DESC"
+    query += (
+        " GROUP BY agent_name, decision_type ORDER BY agent_name, total_decisions DESC"
+    )
 
     async with _db_pool.acquire() as conn:
         rows = await conn.fetch(query, *params)
