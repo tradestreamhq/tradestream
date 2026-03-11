@@ -6,6 +6,7 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 
+@Deprecated
 public final class SarMfiStrategyFactory implements StrategyFactory<SarMfiParameters> {
   @Override
   public SarMfiParameters getDefaultParameters() {

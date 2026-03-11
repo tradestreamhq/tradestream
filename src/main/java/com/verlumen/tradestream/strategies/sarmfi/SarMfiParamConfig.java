@@ -9,6 +9,7 @@ import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class SarMfiParamConfig implements ParamConfig {
   private static final double MIN_AF_START = 0.01;
   private static final double MAX_AF_START = 0.2;

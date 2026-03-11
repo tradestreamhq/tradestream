@@ -16,6 +16,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
  * <p>This strategy uses the TRIX indicator and its signal line (SMA of TRIX). Entry: Buy when TRIX
  * crosses above its Signal Line Exit: Sell when TRIX crosses below its Signal Line
  */
+@Deprecated
 public final class TrixSignalLineStrategyFactory
     implements StrategyFactory<TrixSignalLineParameters> {
 

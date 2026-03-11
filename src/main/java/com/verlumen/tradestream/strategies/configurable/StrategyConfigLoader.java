@@ -45,8 +45,13 @@ public final class StrategyConfigLoader {
     ROC_MA_CROSSOVER("strategies/roc_ma_crossover.yaml"),
     RSI_EMA_CROSSOVER("strategies/rsi_ema_crossover.yaml"),
     SMA_EMA_CROSSOVER("strategies/sma_ema_crossover.yaml"),
+    SAR_MFI("strategies/sar_mfi.yaml"),
+    SMA_RSI("strategies/sma_rsi.yaml"),
+    STOCHASTIC_EMA("strategies/stochastic_ema.yaml"),
     STOCHASTIC_RSI("strategies/stochastic_rsi.yaml"),
-    TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml");
+    TICK_VOLUME_ANALYSIS("strategies/tick_volume_analysis.yaml"),
+    TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml"),
+    TRIX_SIGNAL_LINE("strategies/trix_signal_line.yaml");
 
     private final String resourcePath;
 

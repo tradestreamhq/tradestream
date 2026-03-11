@@ -22,6 +22,7 @@ import org.ta4j.core.rules.UnderIndicatorRule;
  * <p>This strategy combines the Stochastic Oscillator with an Exponential Moving Average to
  * identify overbought/oversold conditions and trend direction.
  */
+@Deprecated
 public class StochasticEmaStrategyFactory implements StrategyFactory<StochasticEmaParameters> {
 
   @Override
