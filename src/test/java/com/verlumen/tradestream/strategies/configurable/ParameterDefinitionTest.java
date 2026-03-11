@@ -87,9 +87,10 @@ public class ParameterDefinitionTest {
   }
 
   @Test
-  public void equals_sameInstance_returnsTrue() {
+  public void equals_differentType_returnsFalse() {
     ParameterDefinition a = new ParameterDefinition("p", ParameterType.INTEGER, 1, 10, 5);
-    assertEquals(a, a);
+    ParameterDefinition b = new ParameterDefinition("p", ParameterType.DOUBLE, 1, 10, 5);
+    assertNotEquals(a, b);
   }
 
   @Test

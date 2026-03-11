@@ -76,9 +76,10 @@ public class ConditionConfigTest {
   }
 
   @Test
-  public void equals_sameInstance_returnsTrue() {
+  public void equals_differentIndicator_returnsFalse() {
     ConditionConfig a = new ConditionConfig("CROSSOVER", "ema", Map.of("period", 14));
-    assertEquals(a, a);
+    ConditionConfig b = new ConditionConfig("CROSSOVER", "sma", Map.of("period", 14));
+    assertNotEquals(a, b);
   }
 
   @Test
