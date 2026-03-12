@@ -81,9 +81,7 @@ class SimulatorConfig:
     @classmethod
     def from_dict(cls, data: dict) -> "SimulatorConfig":
         slippage_data = data.get("slippage", {})
-        slippage_model = SlippageModel(
-            slippage_data.get("model", "PERCENTAGE").upper()
-        )
+        slippage_model = SlippageModel(slippage_data.get("model", "PERCENTAGE").upper())
         slippage = SlippageConfig(
             model=slippage_model,
             value=float(slippage_data.get("value", 0.001)),
@@ -101,9 +99,7 @@ class SimulatorConfig:
             slippage=slippage,
             fees=fees,
             partial_fill_enabled=data.get("partial_fill_enabled", False),
-            partial_fill_min_ratio=float(
-                data.get("partial_fill_min_ratio", 0.5)
-            ),
+            partial_fill_min_ratio=float(data.get("partial_fill_min_ratio", 0.5)),
         )
 
 
@@ -116,9 +112,7 @@ class Order:
     quantity: float
     limit_price: Optional[float] = None
     status: OrderStatus = OrderStatus.PENDING
-    created_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __post_init__(self):
         if self.order_type == OrderType.LIMIT and self.limit_price is None:
@@ -137,9 +131,7 @@ class Fill:
     slippage: float
     notional: float
     net_cost: float
-    timestamp: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict:
         return {
@@ -285,9 +277,7 @@ class OrderSimulator:
         """Get all positions."""
         return dict(self._positions)
 
-    def get_fills(
-        self, symbol: Optional[str] = None, limit: int = 100
-    ) -> List[Fill]:
+    def get_fills(self, symbol: Optional[str] = None, limit: int = 100) -> List[Fill]:
         """Get fill history, optionally filtered by symbol."""
         fills = self._fills
         if symbol:

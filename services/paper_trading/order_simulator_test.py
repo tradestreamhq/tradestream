@@ -500,9 +500,7 @@ order_simulator:
     maker_fee_rate: 0.001
     taker_fee_rate: 0.002
 """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
             f.flush()
             config = load_config(f.name)

@@ -77,8 +77,8 @@ py_test(
     name = "order_simulator_test",
     srcs = ["order_simulator_test.py"],
     deps = [
-        ":order_simulator_lib",
         ":order_simulator_config_lib",
+        ":order_simulator_lib",
         "//third_party/python:pytest",
         "//third_party/python:pyyaml",
     ],
