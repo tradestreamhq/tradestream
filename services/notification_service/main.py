@@ -66,7 +66,12 @@ def _build_senders(config: dict) -> list[tuple[str, object]]:
 
     if config["telegram_bot_token"] and config["telegram_chat_id"]:
         senders.append(
-            ("telegram", TelegramSender(config["telegram_bot_token"], config["telegram_chat_id"]))
+            (
+                "telegram",
+                TelegramSender(
+                    config["telegram_bot_token"], config["telegram_chat_id"]
+                ),
+            )
         )
         _log.info("Telegram sender enabled.")
 

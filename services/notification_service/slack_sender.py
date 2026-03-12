@@ -41,9 +41,11 @@ class SlackSender:
         score = signal.get("opportunity_score", 0)
         summary = signal.get("summary", "")
 
-        emoji = {"BUY": ":chart_with_upwards_trend:", "SELL": ":chart_with_downwards_trend:", "HOLD": ":pause_button:"}.get(
-            action, ":grey_question:"
-        )
+        emoji = {
+            "BUY": ":chart_with_upwards_trend:",
+            "SELL": ":chart_with_downwards_trend:",
+            "HOLD": ":pause_button:",
+        }.get(action, ":grey_question:")
 
         blocks = [
             {

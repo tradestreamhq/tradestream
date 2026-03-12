@@ -52,9 +52,7 @@ class WebhookSender:
             raise requests.RequestException(
                 f"Server error {resp.status_code}: {resp.text}"
             )
-        logging.warning(
-            "Webhook returned %d: %s", resp.status_code, resp.text
-        )
+        logging.warning("Webhook returned %d: %s", resp.status_code, resp.text)
         return False
 
     def _build_payload(self, signal: dict) -> str:

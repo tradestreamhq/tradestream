@@ -205,7 +205,9 @@ class TestWebhookSender:
 
     @mock.patch("services.notification_service.webhook_sender.requests.post")
     def test_send_signal_server_error_retries(self, mock_post):
-        mock_post.return_value = mock.Mock(status_code=500, text="Internal Server Error")
+        mock_post.return_value = mock.Mock(
+            status_code=500, text="Internal Server Error"
+        )
         sender = WebhookSender("https://example.com/webhook")
         assert sender.send_signal(SAMPLE_SIGNAL) is False
         assert mock_post.call_count == 3  # 3 retries
@@ -213,21 +215,27 @@ class TestWebhookSender:
 
 class TestEmailSender:
     def test_render_plain(self):
-        sender = EmailSender("smtp.test.com", 587, "", "", "from@test.com", ["to@test.com"])
+        sender = EmailSender(
+            "smtp.test.com", 587, "", "", "from@test.com", ["to@test.com"]
+        )
         text = sender._render_plain(SAMPLE_SIGNAL)
         assert "BUY" in text
         assert "BTC/USD" in text
         assert "85%" in text
 
     def test_render_html(self):
-        sender = EmailSender("smtp.test.com", 587, "", "", "from@test.com", ["to@test.com"])
+        sender = EmailSender(
+            "smtp.test.com", 587, "", "", "from@test.com", ["to@test.com"]
+        )
         html = sender._render_html(SAMPLE_SIGNAL)
         assert "BUY" in html
         assert "BTC/USD" in html
         assert "#00CC00" in html
 
     def test_render_html_sell(self):
-        sender = EmailSender("smtp.test.com", 587, "", "", "from@test.com", ["to@test.com"])
+        sender = EmailSender(
+            "smtp.test.com", 587, "", "", "from@test.com", ["to@test.com"]
+        )
         sig = {**SAMPLE_SIGNAL, "action": "SELL"}
         html = sender._render_html(sig)
         assert "#CC0000" in html
