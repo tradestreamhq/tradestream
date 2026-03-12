@@ -30,11 +30,11 @@ exitConditions:
 parameters:
   - name: shortEmaPeriod
     type: INTEGER
-    min: 5
-    max: 20
-    defaultValue: 10
+    min: 2
+    max: 30
+    defaultValue: 12
   - name: longEmaPeriod
     type: INTEGER
-    min: 20
-    max: 50
-    defaultValue: 30
+    min: 10
+    max: 100
+    defaultValue: 26

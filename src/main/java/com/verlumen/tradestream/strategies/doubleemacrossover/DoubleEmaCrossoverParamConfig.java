@@ -8,6 +8,10 @@ import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+/**
+ * @deprecated Use the YAML-based configurable strategy instead
+ *     (resources/strategies/double_ema_crossover.yaml with ConfigurableParamConfig).
+ */
 @Deprecated
 public final class DoubleEmaCrossoverParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
