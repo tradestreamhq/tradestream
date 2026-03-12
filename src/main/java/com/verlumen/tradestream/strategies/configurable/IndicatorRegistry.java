@@ -284,6 +284,16 @@ public final class IndicatorRegistry {
         (series, input, params) ->
             new ConstantIndicator<>(series, series.numFactory().numOf(params.getDouble("value"))));
 
+    // Fractal Adaptive Moving Average
+    registry.register(
+        "FRAMA",
+        (series, input, params) ->
+            new FramaIndicator(
+                series,
+                params.getDouble("sc", 0.5),
+                params.getInt("fc", 20),
+                params.getDouble("alpha", 0.5)));
+
     return registry;
   }
 
@@ -418,6 +428,57 @@ public final class IndicatorRegistry {
     @Override
     public int getCountOfUnstableBars() {
       return 0;
+    }
+  }
+
+  /** Fractal Adaptive Moving Average indicator. */
+  private static class FramaIndicator extends CachedIndicator<Num> {
+    private final double sc;
+    private final int fc;
+    private final double alpha;
+
+    FramaIndicator(BarSeries series, double sc, int fc, double alpha) {
+      super(series);
+      this.sc = sc;
+      this.fc = fc;
+      this.alpha = alpha;
+    }
+
+    @Override
+    protected Num calculate(int index) {
+      if (index < fc) {
+        return numOf(0);
+      }
+
+      double fractalDimension = calculateFractalDimension(index);
+      double adaptiveAlpha = Math.pow(fractalDimension, alpha);
+
+      if (index == fc) {
+        return getBarSeries().getBar(index).getClosePrice();
+      }
+
+      Num prevFrama = getValue(index - 1);
+      Num currentPrice = getBarSeries().getBar(index).getClosePrice();
+      return prevFrama.plus(currentPrice.minus(prevFrama).multipliedBy(numOf(adaptiveAlpha)));
+    }
+
+    private double calculateFractalDimension(int index) {
+      double high = getBarSeries().getBar(index).getHighPrice().doubleValue();
+      double low = getBarSeries().getBar(index).getLowPrice().doubleValue();
+      double close = getBarSeries().getBar(index).getClosePrice().doubleValue();
+
+      double range = high - low;
+      double body = Math.abs(close - (high + low) / 2);
+
+      if (range == 0) return 1.0;
+
+      double ratio = body / range;
+      return 1.0 + ratio * sc;
+    }
+
+    @Override
+    public int getUnstableBars() {
+      return fc;
     }
   }
 }
