@@ -31,12 +31,51 @@ py_library(
 )
 
 py_library(
+    name = "slack_sender_lib",
+    srcs = ["slack_sender.py"],
+    deps = [
+        "//third_party/python:absl_py",
+        "//third_party/python:requests",
+    ],
+)
+
+py_library(
+    name = "webhook_sender_lib",
+    srcs = ["webhook_sender.py"],
+    deps = [
+        "//third_party/python:absl_py",
+        "//third_party/python:requests",
+        "//third_party/python:tenacity",
+    ],
+)
+
+py_library(
+    name = "email_sender_lib",
+    srcs = ["email_sender.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "notification_history_lib",
+    srcs = ["notification_history.py"],
+    deps = [
+        "//third_party/python:redis",
+    ],
+)
+
+py_library(
     name = "main_lib",
     srcs = ["main.py"],
     deps = [
         ":config_lib",
         ":discord_sender_lib",
+        ":email_sender_lib",
+        ":notification_history_lib",
+        ":slack_sender_lib",
         ":telegram_sender_lib",
+        ":webhook_sender_lib",
         "//services/shared:structured_logger",
         "//third_party/python:absl_py",
         "//third_party/python:redis",
@@ -58,12 +97,17 @@ py_test(
     deps = [
         ":config_lib",
         ":discord_sender_lib",
+        ":email_sender_lib",
         ":main_lib",
+        ":notification_history_lib",
+        ":slack_sender_lib",
         ":telegram_sender_lib",
+        ":webhook_sender_lib",
         "//third_party/python:absl_py",
         "//third_party/python:pytest",
         "//third_party/python:redis",
         "//third_party/python:requests",
+        "//third_party/python:tenacity",
     ],
 )
 
