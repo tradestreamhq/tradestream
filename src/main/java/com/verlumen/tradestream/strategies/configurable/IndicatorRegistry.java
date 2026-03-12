@@ -447,7 +447,7 @@ public final class IndicatorRegistry {
     @Override
     protected Num calculate(int index) {
       if (index < fc) {
-        return numOf(0);
+        return getBarSeries().numOf(0);
       }
 
       double fractalDimension = calculateFractalDimension(index);
@@ -459,7 +459,8 @@ public final class IndicatorRegistry {
 
       Num prevFrama = getValue(index - 1);
       Num currentPrice = getBarSeries().getBar(index).getClosePrice();
-      return prevFrama.plus(currentPrice.minus(prevFrama).multipliedBy(numOf(adaptiveAlpha)));
+      return prevFrama.plus(
+          currentPrice.minus(prevFrama).multipliedBy(getBarSeries().numOf(adaptiveAlpha)));
     }
 
     private double calculateFractalDimension(int index) {
@@ -477,7 +478,7 @@ public final class IndicatorRegistry {
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return fc;
     }
   }
