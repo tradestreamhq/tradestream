@@ -148,9 +148,7 @@ class TestDetectBreakdowns:
     def test_skips_none_values(self):
         current = {"BTC": {"ETH": None}, "ETH": {"BTC": None}}
         historical = {"BTC": {"ETH": 0.5}, "ETH": {"BTC": 0.5}}
-        breakdowns = detect_breakdowns(
-            current, historical, ["BTC", "ETH"], "30d"
-        )
+        breakdowns = detect_breakdowns(current, historical, ["BTC", "ETH"], "30d")
         assert len(breakdowns) == 0
 
 
@@ -215,15 +213,11 @@ class TestCorrelationsEndpoint:
         conn.fetch.side_effect = [
             [FakeRecord(symbol="BTC"), FakeRecord(symbol="ETH")],
             [
-                FakeRecord(
-                    symbol="BTC", close=100.0 + i, bucket=datetime(2026, 1, i)
-                )
+                FakeRecord(symbol="BTC", close=100.0 + i, bucket=datetime(2026, 1, i))
                 for i in range(1, 10)
             ]
             + [
-                FakeRecord(
-                    symbol="ETH", close=50.0 + i, bucket=datetime(2026, 1, i)
-                )
+                FakeRecord(symbol="ETH", close=50.0 + i, bucket=datetime(2026, 1, i))
                 for i in range(1, 10)
             ],
         ]

@@ -218,9 +218,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         try:
             async with db_pool.acquire() as conn:
                 current_prices = await _fetch_prices(conn, sym_list, window_days)
-                historical_prices = await _fetch_prices(
-                    conn, sym_list, historical_days
-                )
+                historical_prices = await _fetch_prices(conn, sym_list, historical_days)
 
             current_matrix = build_correlation_matrix(
                 sym_list, current_prices, window_days
