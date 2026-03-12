@@ -225,7 +225,11 @@ class TestStage1SignalGeneration:
 
         # Step 1: get_top_strategies
         resp1 = _mock_assistant_with_tools(
-            [_mock_tool_call("tc1", "get_top_strategies", {"symbol": SYMBOL, "limit": 10})]
+            [
+                _mock_tool_call(
+                    "tc1", "get_top_strategies", {"symbol": SYMBOL, "limit": 10}
+                )
+            ]
         )
         # Step 2: get_market_summary + get_candles
         resp2 = _mock_assistant_with_tools(
@@ -236,7 +240,11 @@ class TestStage1SignalGeneration:
         )
         # Step 3: get_recent_signals
         resp3 = _mock_assistant_with_tools(
-            [_mock_tool_call("tc3", "get_recent_signals", {"symbol": SYMBOL, "limit": 5})]
+            [
+                _mock_tool_call(
+                    "tc3", "get_recent_signals", {"symbol": SYMBOL, "limit": 5}
+                )
+            ]
         )
         # Step 4: emit_signal
         signal_payload = {
@@ -246,7 +254,11 @@ class TestStage1SignalGeneration:
             "reasoning": "Strong bullish consensus across momentum and mean_reversion strategies",
             "strategy_breakdown": [
                 {"strategy_type": "momentum", "signal": "BUY", "confidence": 0.85},
-                {"strategy_type": "mean_reversion", "signal": "BUY", "confidence": 0.75},
+                {
+                    "strategy_type": "mean_reversion",
+                    "signal": "BUY",
+                    "confidence": 0.75,
+                },
                 {"strategy_type": "breakout", "signal": "BUY", "confidence": 0.70},
             ],
         }
@@ -256,7 +268,13 @@ class TestStage1SignalGeneration:
         # Step 5: final
         resp5 = _mock_assistant_stop(signal_payload)
 
-        mock_client.chat.completions.create.side_effect = [resp1, resp2, resp3, resp4, resp5]
+        mock_client.chat.completions.create.side_effect = [
+            resp1,
+            resp2,
+            resp3,
+            resp4,
+            resp5,
+        ]
 
         mcp_data = {
             "get_top_strategies": _strategies(),
@@ -373,7 +391,9 @@ class TestStage2RiskCheck:
                 opened_at="2026-03-12T00:00:00Z",
             )
         ]
-        balance = compute_balance(positions, realized_pnl_today=0.0, total_realized_pnl=0.0)
+        balance = compute_balance(
+            positions, realized_pnl_today=0.0, total_realized_pnl=0.0
+        )
         risk = compute_risk_metrics(positions, balance.total_equity)
         state = build_portfolio_state(positions, balance, risk, [])
 
@@ -391,7 +411,9 @@ class TestStage2RiskCheck:
     def test_portfolio_validation_rejects_oversized_position(self):
         """A position exceeding max_position_pct is rejected."""
         positions = []
-        balance = compute_balance(positions, realized_pnl_today=0.0, total_realized_pnl=0.0)
+        balance = compute_balance(
+            positions, realized_pnl_today=0.0, total_realized_pnl=0.0
+        )
         risk = compute_risk_metrics(positions, balance.total_equity)
         state = build_portfolio_state(positions, balance, risk, [])
 
@@ -406,7 +428,9 @@ class TestStage2RiskCheck:
         )
 
         assert result["valid"] is False
-        assert any("too large" in e.lower() or "exceeds" in e.lower() for e in result["errors"])
+        assert any(
+            "too large" in e.lower() or "exceeds" in e.lower() for e in result["errors"]
+        )
 
     def test_portfolio_validation_rejects_insufficient_buying_power(self):
         """Insufficient buying power rejects the trade."""
@@ -423,7 +447,9 @@ class TestStage2RiskCheck:
                 opened_at="2026-03-12T00:00:00Z",
             )
         ]
-        balance = compute_balance(positions, realized_pnl_today=0.0, total_realized_pnl=0.0)
+        balance = compute_balance(
+            positions, realized_pnl_today=0.0, total_realized_pnl=0.0
+        )
         risk = compute_risk_metrics(positions, balance.total_equity)
         state = build_portfolio_state(positions, balance, risk, [])
 
@@ -645,7 +671,9 @@ class TestStage4PositionTracking:
                 opened_at="2026-03-12T10:00:00Z",
             ),
         ]
-        balance = compute_balance(positions, realized_pnl_today=50.0, total_realized_pnl=500.0)
+        balance = compute_balance(
+            positions, realized_pnl_today=50.0, total_realized_pnl=500.0
+        )
         risk = compute_risk_metrics(positions, balance.total_equity)
 
         assert risk.num_open_positions == 2
@@ -783,12 +811,20 @@ class TestFullPipelineIntegration:
             "reasoning": "Strong bullish consensus",
             "strategy_breakdown": [
                 {"strategy_type": "momentum", "signal": "BUY", "confidence": 0.85},
-                {"strategy_type": "mean_reversion", "signal": "BUY", "confidence": 0.75},
+                {
+                    "strategy_type": "mean_reversion",
+                    "signal": "BUY",
+                    "confidence": 0.75,
+                },
             ],
         }
 
         resp1 = _mock_assistant_with_tools(
-            [_mock_tool_call("tc1", "get_top_strategies", {"symbol": SYMBOL, "limit": 10})]
+            [
+                _mock_tool_call(
+                    "tc1", "get_top_strategies", {"symbol": SYMBOL, "limit": 10}
+                )
+            ]
         )
         resp2 = _mock_assistant_with_tools(
             [_mock_tool_call("tc2", "emit_signal", signal_payload)]
@@ -1023,9 +1059,24 @@ class TestFullPipelineIntegration:
             },
         ]
         open_trades = [
-            {"symbol": "BTC-USD", "side": "BUY", "opened_at": "2026-03-12T10:00:00", "trade_id": "t-1"},
-            {"symbol": "ETH-USD", "side": "BUY", "opened_at": "2026-03-12T10:00:00", "trade_id": "t-2"},
-            {"symbol": "SOL-USD", "side": "BUY", "opened_at": "2026-03-12T10:00:00", "trade_id": "t-3"},
+            {
+                "symbol": "BTC-USD",
+                "side": "BUY",
+                "opened_at": "2026-03-12T10:00:00",
+                "trade_id": "t-1",
+            },
+            {
+                "symbol": "ETH-USD",
+                "side": "BUY",
+                "opened_at": "2026-03-12T10:00:00",
+                "trade_id": "t-2",
+            },
+            {
+                "symbol": "SOL-USD",
+                "side": "BUY",
+                "opened_at": "2026-03-12T10:00:00",
+                "trade_id": "t-3",
+            },
         ]
         current_prices = {
             "BTC-USD": 52000.0,
@@ -1048,9 +1099,13 @@ class TestFullPipelineIntegration:
 
         # Compute aggregate balance
         total_realized = 100.0
-        balance = compute_balance(positions, realized_pnl_today=50.0, total_realized_pnl=total_realized)
+        balance = compute_balance(
+            positions, realized_pnl_today=50.0, total_realized_pnl=total_realized
+        )
         total_unrealized = sum(p.unrealized_pnl for p in positions)
-        assert balance.total_equity == round(10000.0 + total_realized + total_unrealized, 2)
+        assert balance.total_equity == round(
+            10000.0 + total_realized + total_unrealized, 2
+        )
 
         # Risk metrics
         risk = compute_risk_metrics(positions, balance.total_equity)
