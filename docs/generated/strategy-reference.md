@@ -246,7 +246,7 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| ao | AWESOME_OSCILLATOR | N/A | shortPeriod=${shortPeriod}, longPeriod=${longPeriod} |
+| ao | AWESOME_OSCILLATOR | N/A | longPeriod=${longPeriod}, shortPeriod=${shortPeriod} |
 
 #### Entry Conditions
 
@@ -276,8 +276,8 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
 | closePrice | CLOSE_PRICE | N/A |  |
-| bbUpper | BOLLINGER_UPPER | N/A | period=${bbandsPeriod}, k=${stdDevMultiplier} |
-| bbLower | BOLLINGER_LOWER | N/A | period=${bbandsPeriod}, k=${stdDevMultiplier} |
+| bbUpper | BOLLINGER_UPPER | N/A | k=${stdDevMultiplier}, period=${bbandsPeriod} |
+| bbLower | BOLLINGER_LOWER | N/A | k=${stdDevMultiplier}, period=${bbandsPeriod} |
 | williamsR | WILLIAMS_R | N/A | period=${wrPeriod} |
 
 #### Entry Conditions
@@ -310,7 +310,7 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| chaikin | CHAIKIN_OSCILLATOR | close | shortPeriod=${fastPeriod}, longPeriod=${slowPeriod} |
+| chaikin | CHAIKIN_OSCILLATOR | close | longPeriod=${slowPeriod}, shortPeriod=${fastPeriod} |
 | zeroLine | CONSTANT | N/A | value=0 |
 
 #### Entry Conditions
@@ -579,7 +579,7 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| macd | MACD | N/A | shortPeriod=${shortEmaPeriod}, longPeriod=${longEmaPeriod} |
+| macd | MACD | N/A | longPeriod=${longEmaPeriod}, shortPeriod=${shortEmaPeriod} |
 | signalLine | EMA | macd | period=${signalPeriod} |
 
 #### Entry Conditions
@@ -641,7 +641,7 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| frama | FRAMA | N/A | sc=${sc}, fc=${fc}, alpha=${alpha} |
+| frama | FRAMA | N/A | alpha=${alpha}, fc=${fc}, sc=${sc} |
 
 #### Entry Conditions
 
@@ -765,7 +765,7 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| kvo | KLINGER_VOLUME_OSCILLATOR | N/A | shortPeriod=${shortPeriod}, longPeriod=${longPeriod} |
+| kvo | KLINGER_VOLUME_OSCILLATOR | N/A | longPeriod=${longPeriod}, shortPeriod=${shortPeriod} |
 | signalLine | EMA | kvo | period=${signalPeriod} |
 
 #### Entry Conditions
@@ -833,8 +833,8 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| lrcUpper | LINEAR_REGRESSION_UPPER_CHANNEL | N/A | period=${period}, multiplier=${multiplier} |
-| lrcLower | LINEAR_REGRESSION_LOWER_CHANNEL | N/A | period=${period}, multiplier=${multiplier} |
+| lrcUpper | LINEAR_REGRESSION_UPPER_CHANNEL | N/A | multiplier=${multiplier}, period=${period} |
+| lrcLower | LINEAR_REGRESSION_LOWER_CHANNEL | N/A | multiplier=${multiplier}, period=${period} |
 
 #### Entry Conditions
 
@@ -863,7 +863,7 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| macd | MACD | close | shortPeriod=${shortEmaPeriod}, longPeriod=${longEmaPeriod} |
+| macd | MACD | close | longPeriod=${longEmaPeriod}, shortPeriod=${shortEmaPeriod} |
 | signal | EMA | macd | period=${signalPeriod} |
 
 #### Entry Conditions
@@ -1194,8 +1194,8 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 |----|------|-------|------------|
 | close | CLOSE | N/A |  |
 | atr | ATR | N/A | period=14 |
-| upperRange | BOLLINGER_UPPER | close | period=20, multiplier=${rangeSize} |
-| lowerRange | BOLLINGER_LOWER | close | period=20, multiplier=${rangeSize} |
+| upperRange | BOLLINGER_UPPER | close | multiplier=${rangeSize}, period=20 |
+| lowerRange | BOLLINGER_LOWER | close | multiplier=${rangeSize}, period=20 |
 
 #### Entry Conditions
 
@@ -1225,8 +1225,8 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 |----|------|-------|------------|
 | close | CLOSE | N/A |  |
 | middle | BOLLINGER_MIDDLE | close | period=${period} |
-| upper | BOLLINGER_UPPER | close | period=${period}, multiplier=2.0 |
-| lower | BOLLINGER_LOWER | close | period=${period}, multiplier=2.0 |
+| upper | BOLLINGER_UPPER | close | multiplier=2.0, period=${period} |
+| lower | BOLLINGER_LOWER | close | multiplier=2.0, period=${period} |
 
 #### Entry Conditions
 
@@ -1643,8 +1643,8 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
 | close | CLOSE | N/A |  |
-| fastKama | KAMA | close | period=${minPeriod}, fastPeriod=2, slowPeriod=30 |
-| slowKama | KAMA | close | period=${maxPeriod}, fastPeriod=2, slowPeriod=30 |
+| fastKama | KAMA | close | fastPeriod=2, period=${minPeriod}, slowPeriod=30 |
+| slowKama | KAMA | close | fastPeriod=2, period=${maxPeriod}, slowPeriod=30 |
 
 #### Entry Conditions
 
@@ -1771,8 +1771,8 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 | close | CLOSE | N/A |  |
 | volume | VOLUME | N/A |  |
 | volumeSma | SMA | volume | period=${period} |
-| upperBand | BOLLINGER_UPPER | close | period=${period}, multiplier=2.0 |
-| lowerBand | BOLLINGER_LOWER | close | period=${period}, multiplier=2.0 |
+| upperBand | BOLLINGER_UPPER | close | multiplier=2.0, period=${period} |
+| lowerBand | BOLLINGER_LOWER | close | multiplier=2.0, period=${period} |
 
 #### Entry Conditions
 
@@ -1833,7 +1833,7 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 
 | ID | Type | Input | Parameters |
 |----|------|-------|------------|
-| macdLine | VOLUME_WEIGHTED_MACD | N/A | shortPeriod=${shortPeriod}, longPeriod=${longPeriod} |
+| macdLine | VOLUME_WEIGHTED_MACD | N/A | longPeriod=${longPeriod}, shortPeriod=${shortPeriod} |
 | signalLine | EMA | N/A | period=${signalPeriod}, source=macdLine |
 
 #### Entry Conditions
@@ -1926,8 +1926,8 @@ Auto-generated from YAML configs in `src/main/resources/strategies/`.
 |----|------|-------|------------|
 | close | CLOSE | N/A |  |
 | vwap | VWAP | N/A | period=${vwapPeriod} |
-| upperBand | BOLLINGER_UPPER | close | period=${movingAveragePeriod}, multiplier=${deviationMultiplier} |
-| lowerBand | BOLLINGER_LOWER | close | period=${movingAveragePeriod}, multiplier=${deviationMultiplier} |
+| upperBand | BOLLINGER_UPPER | close | multiplier=${deviationMultiplier}, period=${movingAveragePeriod} |
+| lowerBand | BOLLINGER_LOWER | close | multiplier=${deviationMultiplier}, period=${movingAveragePeriod} |
 
 #### Entry Conditions
 

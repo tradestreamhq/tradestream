@@ -95,7 +95,9 @@ def generate_strategy_reference(strategies: List[Dict[str, Any]]) -> str:
             lines.append("|----|------|-------|------------|")
             for ind in indicators:
                 params = ind.get("params", {})
-                param_str = ", ".join(f"{k}={v}" for k, v in params.items())
+                param_str = ", ".join(
+                    f"{k}={v}" for k, v in sorted(params.items())
+                )
                 lines.append(
                     f"| {ind.get('id', 'N/A')} | {ind.get('type', 'N/A')} "
                     f"| {ind.get('input', 'N/A')} | {param_str} |"
@@ -109,7 +111,9 @@ def generate_strategy_reference(strategies: List[Dict[str, Any]]) -> str:
             lines.append("")
             for cond in entry:
                 params = cond.get("params", {})
-                param_str = ", ".join(f"{k}={v}" for k, v in params.items())
+                param_str = ", ".join(
+                    f"{k}={v}" for k, v in sorted(params.items())
+                )
                 lines.append(
                     f"- **{cond.get('type', '?')}** on `{cond.get('indicator', '?')}`"
                     + (f" ({param_str})" if param_str else "")
@@ -123,7 +127,9 @@ def generate_strategy_reference(strategies: List[Dict[str, Any]]) -> str:
             lines.append("")
             for cond in exit_conds:
                 params = cond.get("params", {})
-                param_str = ", ".join(f"{k}={v}" for k, v in params.items())
+                param_str = ", ".join(
+                    f"{k}={v}" for k, v in sorted(params.items())
+                )
                 lines.append(
                     f"- **{cond.get('type', '?')}** on `{cond.get('indicator', '?')}`"
                     + (f" ({param_str})" if param_str else "")
