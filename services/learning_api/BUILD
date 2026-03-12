@@ -10,9 +10,12 @@ py_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//services/rest_api_shared:circuit_breaker",
+        "//services/rest_api_shared:error_middleware",
         "//services/rest_api_shared:health",
         "//services/rest_api_shared:pagination",
         "//services/rest_api_shared:responses",
+        "//services/rest_api_shared:retry",
         "//services/shared:auth",
         "//third_party/python:asyncpg",
         "//third_party/python:fastapi",
