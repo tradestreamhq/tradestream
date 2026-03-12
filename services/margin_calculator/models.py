@@ -73,9 +73,7 @@ class MarginRequirementRequest(BaseModel):
     price: float = Field(..., gt=0, description="Current or limit price")
     exchange: str = Field("default", description="Exchange identifier")
     account_equity: float = Field(..., gt=0, description="Total account equity")
-    existing_margin_used: float = Field(
-        0.0, ge=0, description="Margin already in use"
-    )
+    existing_margin_used: float = Field(0.0, ge=0, description="Margin already in use")
 
 
 class MarginRequirementResult(BaseModel):

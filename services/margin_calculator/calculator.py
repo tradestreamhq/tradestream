@@ -46,9 +46,7 @@ class MarginCalculator:
         rates = self.get_exchange_rates(req.exchange)
         notional_value = req.quantity * req.price
 
-        initial_margin = self.compute_margin(
-            MarginType.INITIAL, notional_value, rates
-        )
+        initial_margin = self.compute_margin(MarginType.INITIAL, notional_value, rates)
         maintenance_margin = self.compute_margin(
             MarginType.MAINTENANCE, notional_value, rates
         )
@@ -57,7 +55,9 @@ class MarginCalculator:
         )
 
         margin_available = req.account_equity - req.existing_margin_used
-        buying_power = margin_available / rates.initial_rate if rates.initial_rate > 0 else 0.0
+        buying_power = (
+            margin_available / rates.initial_rate if rates.initial_rate > 0 else 0.0
+        )
 
         margin_utilization_pct = (
             (req.existing_margin_used + initial_margin) / req.account_equity * 100
@@ -66,9 +66,13 @@ class MarginCalculator:
         )
 
         can_execute = initial_margin <= margin_available
-        reason = None if can_execute else (
-            f"Insufficient margin: required {initial_margin:.2f}, "
-            f"available {margin_available:.2f}"
+        reason = (
+            None
+            if can_execute
+            else (
+                f"Insufficient margin: required {initial_margin:.2f}, "
+                f"available {margin_available:.2f}"
+            )
         )
 
         return MarginRequirementResult(

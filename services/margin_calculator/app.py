@@ -45,7 +45,9 @@ def create_app(calculator: MarginCalculator | None = None) -> FastAPI:
         price: float = Query(..., gt=0, description="Current or limit price"),
         exchange: str = Query("default", description="Exchange identifier"),
         account_equity: float = Query(..., gt=0, description="Total account equity"),
-        existing_margin_used: float = Query(0.0, ge=0, description="Margin already in use"),
+        existing_margin_used: float = Query(
+            0.0, ge=0, description="Margin already in use"
+        ),
     ):
         """Compute margin requirements for a proposed order."""
         side_upper = side.upper()
