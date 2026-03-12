@@ -29,8 +29,7 @@ public final class CsvHistoricalDataLoader implements HistoricalDataLoader {
 
   @Override
   public List<Candle> loadCandles() throws IOException {
-    try (BufferedReader reader =
-        Files.newBufferedReader(csvPath, StandardCharsets.UTF_8)) {
+    try (BufferedReader reader = Files.newBufferedReader(csvPath, StandardCharsets.UTF_8)) {
       return parseCandles(reader);
     }
   }

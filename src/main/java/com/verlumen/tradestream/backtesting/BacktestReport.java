@@ -14,8 +14,10 @@ public final class BacktestReport {
     sb.append(String.format("  Backtest Report: %s%n", strategyName));
     sb.append("========================================\n");
     sb.append("\n--- Performance ---\n");
-    sb.append(String.format(Locale.US, "  Cumulative Return:   %+.4f%n", result.getCumulativeReturn()));
-    sb.append(String.format(Locale.US, "  Annualized Return:   %+.4f%n", result.getAnnualizedReturn()));
+    sb.append(
+        String.format(Locale.US, "  Cumulative Return:   %+.4f%n", result.getCumulativeReturn()));
+    sb.append(
+        String.format(Locale.US, "  Annualized Return:   %+.4f%n", result.getAnnualizedReturn()));
     sb.append(String.format(Locale.US, "  Strategy Score:      %.4f%n", result.getStrategyScore()));
     sb.append("\n--- Risk Metrics ---\n");
     sb.append(String.format(Locale.US, "  Sharpe Ratio:        %+.4f%n", result.getSharpeRatio()));
@@ -24,9 +26,12 @@ public final class BacktestReport {
     sb.append(String.format(Locale.US, "  Volatility:          %.4f%n", result.getVolatility()));
     sb.append("\n--- Trade Statistics ---\n");
     sb.append(String.format(Locale.US, "  Number of Trades:    %d%n", result.getNumberOfTrades()));
-    sb.append(String.format(Locale.US, "  Win Rate:            %.2f%%%n", result.getWinRate() * 100));
+    sb.append(
+        String.format(Locale.US, "  Win Rate:            %.2f%%%n", result.getWinRate() * 100));
     sb.append(String.format(Locale.US, "  Profit Factor:       %.4f%n", result.getProfitFactor()));
-    sb.append(String.format(Locale.US, "  Avg Trade Duration:  %.1f bars%n", result.getAverageTradeDuration()));
+    sb.append(
+        String.format(
+            Locale.US, "  Avg Trade Duration:  %.1f bars%n", result.getAverageTradeDuration()));
     sb.append("========================================\n");
     return sb.toString();
   }

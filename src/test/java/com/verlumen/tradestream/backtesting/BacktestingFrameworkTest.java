@@ -97,7 +97,8 @@ public class BacktestingFrameworkTest {
       throws InvalidProtocolBufferException {
     List<String> strategies = ImmutableList.of("SMA_RSI", "DOUBLE_EMA_CROSSOVER", "MACD_CROSSOVER");
 
-    Map<String, BacktestResult> results = framework.compareStrategies(strategies, trendingUpCandles);
+    Map<String, BacktestResult> results =
+        framework.compareStrategies(strategies, trendingUpCandles);
 
     assertThat(results).hasSize(3);
     assertThat(results).containsKey("SMA_RSI");
