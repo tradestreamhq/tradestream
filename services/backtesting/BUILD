@@ -52,6 +52,33 @@ py_library(
     ],
 )
 
+py_library(
+    name = "engine_lib",
+    srcs = ["engine.py"],
+    deps = [
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+    ],
+)
+
+py_library(
+    name = "app_lib",
+    srcs = ["app.py"],
+    deps = [
+        ":engine_lib",
+        ":vectorbt_runner_lib",
+        "//services/rest_api_shared:health",
+        "//services/rest_api_shared:pagination",
+        "//services/rest_api_shared:responses",
+        "//services/shared:auth",
+        "//third_party/python:asyncpg",
+        "//third_party/python:fastapi",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:pydantic",
+    ],
+)
+
 py_binary(
     name = "app",
     srcs = ["main.py"],
@@ -97,6 +124,33 @@ py_test(
     deps = [
         ":backtesting_service_lib",
         "//third_party/python:grpcio",
+    ],
+)
+
+py_test(
+    name = "test_engine",
+    size = "medium",
+    srcs = ["tests/test_engine.py"],
+    deps = [
+        ":engine_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "test_app",
+    size = "medium",
+    srcs = ["tests/test_app.py"],
+    deps = [
+        ":app_lib",
+        ":engine_lib",
+        ":vectorbt_runner_lib",
+        "//third_party/python:fastapi",
+        "//third_party/python:httpx",
+        "//third_party/python:numpy",
+        "//third_party/python:pytest",
     ],
 )
 
