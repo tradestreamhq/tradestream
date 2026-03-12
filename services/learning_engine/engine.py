@@ -77,7 +77,9 @@ class PerformanceReport:
 
     def to_dict(self):
         return {
-            "period_start": self.period_start.isoformat() if self.period_start else None,
+            "period_start": (
+                self.period_start.isoformat() if self.period_start else None
+            ),
             "period_end": self.period_end.isoformat() if self.period_end else None,
             "total_decisions": self.total_decisions,
             "total_outcomes": self.total_outcomes,
@@ -259,19 +261,33 @@ class LearningEngine:
         )
         results = []
         for row in rows:
-            results.append({
-                "decision_id": str(row["id"]),
-                "timestamp": row["created_at"].isoformat() if row["created_at"] else None,
-                "agent_name": row["agent_name"],
-                "decision_type": row["decision_type"],
-                "score": float(row["score"]) if row["score"] is not None else None,
-                "reasoning": row["reasoning"],
-                "pnl_percent": float(row["pnl_percent"]) if row["pnl_percent"] is not None else None,
-                "pnl_absolute": float(row["pnl_absolute"]) if row["pnl_absolute"] is not None else None,
-                "hold_duration": str(row["hold_duration"]) if row["hold_duration"] else None,
-                "exit_reason": row["exit_reason"],
-                "success": row["success"],
-            })
+            results.append(
+                {
+                    "decision_id": str(row["id"]),
+                    "timestamp": (
+                        row["created_at"].isoformat() if row["created_at"] else None
+                    ),
+                    "agent_name": row["agent_name"],
+                    "decision_type": row["decision_type"],
+                    "score": float(row["score"]) if row["score"] is not None else None,
+                    "reasoning": row["reasoning"],
+                    "pnl_percent": (
+                        float(row["pnl_percent"])
+                        if row["pnl_percent"] is not None
+                        else None
+                    ),
+                    "pnl_absolute": (
+                        float(row["pnl_absolute"])
+                        if row["pnl_absolute"] is not None
+                        else None
+                    ),
+                    "hold_duration": (
+                        str(row["hold_duration"]) if row["hold_duration"] else None
+                    ),
+                    "exit_reason": row["exit_reason"],
+                    "success": row["success"],
+                }
+            )
         return results
 
     def calculate_win_rate(self, instrument=None):
@@ -294,7 +310,11 @@ class LearningEngine:
 
     def calculate_avg_hold_time(self, instrument=None):
         """Calculate average hold time for closed positions."""
-        where = "WHERE do.instrument = %s AND do.hold_duration IS NOT NULL" if instrument else "WHERE do.hold_duration IS NOT NULL"
+        where = (
+            "WHERE do.instrument = %s AND do.hold_duration IS NOT NULL"
+            if instrument
+            else "WHERE do.hold_duration IS NOT NULL"
+        )
         params = (instrument,) if instrument else ()
         rows = self._execute_query(
             f"""
@@ -310,7 +330,11 @@ class LearningEngine:
 
     def get_best_conditions(self, instrument=None, limit=3):
         """Find market conditions that correlated with the best outcomes."""
-        where = "WHERE do.instrument = %s AND do.market_context IS NOT NULL" if instrument else "WHERE do.market_context IS NOT NULL"
+        where = (
+            "WHERE do.instrument = %s AND do.market_context IS NOT NULL"
+            if instrument
+            else "WHERE do.market_context IS NOT NULL"
+        )
         params = (instrument, limit) if instrument else (limit,)
         rows = self._execute_query(
             f"""
@@ -336,7 +360,11 @@ class LearningEngine:
 
     def get_worst_conditions(self, instrument=None, limit=3):
         """Find market conditions that correlated with the worst outcomes."""
-        where = "WHERE do.instrument = %s AND do.market_context IS NOT NULL" if instrument else "WHERE do.market_context IS NOT NULL"
+        where = (
+            "WHERE do.instrument = %s AND do.market_context IS NOT NULL"
+            if instrument
+            else "WHERE do.market_context IS NOT NULL"
+        )
         params = (instrument, limit) if instrument else (limit,)
         rows = self._execute_query(
             f"""
@@ -424,7 +452,10 @@ class LearningEngine:
             """,
             params + (BIAS_THRESHOLDS["overconfidence"]["min_confidence"] * 100,),
         )
-        if not rows or rows[0]["total"] < BIAS_THRESHOLDS["overconfidence"]["min_decisions"]:
+        if (
+            not rows
+            or rows[0]["total"] < BIAS_THRESHOLDS["overconfidence"]["min_decisions"]
+        ):
             return None
         win_rate = rows[0]["wins"] / rows[0]["total"]
         if win_rate < BIAS_THRESHOLDS["overconfidence"]["max_win_rate"]:
@@ -533,17 +564,19 @@ class LearningEngine:
             win_rate = row["wins"] / row["total"] if row["total"] > 0 else 0
             avg_pnl = float(row["avg_pnl"]) if row["avg_pnl"] is not None else 0
             pattern_type = "strong_strategy" if avg_pnl > 0 else "weak_strategy"
-            patterns.append({
-                "pattern_type": pattern_type,
-                "description": (
-                    f"Decision type '{row['decision_type']}' has a {win_rate:.1%} win rate "
-                    f"with avg P&L of {avg_pnl:.2f}% over {row['total']} trades."
-                ),
-                "frequency": row["total"],
-                "avg_pnl_impact": avg_pnl,
-                "decision_type": row["decision_type"],
-                "win_rate": round(win_rate, 4),
-            })
+            patterns.append(
+                {
+                    "pattern_type": pattern_type,
+                    "description": (
+                        f"Decision type '{row['decision_type']}' has a {win_rate:.1%} win rate "
+                        f"with avg P&L of {avg_pnl:.2f}% over {row['total']} trades."
+                    ),
+                    "frequency": row["total"],
+                    "avg_pnl_impact": avg_pnl,
+                    "decision_type": row["decision_type"],
+                    "win_rate": round(win_rate, 4),
+                }
+            )
         return patterns
 
     def _detect_time_patterns(self, instrument=None, min_frequency=3):
@@ -572,16 +605,18 @@ class LearningEngine:
             if abs(avg_pnl) > 1.0:  # Only flag significant time patterns
                 hour = int(row["hour"])
                 pattern_type = "favorable_time" if avg_pnl > 0 else "unfavorable_time"
-                patterns.append({
-                    "pattern_type": pattern_type,
-                    "description": (
-                        f"Decisions made around {hour:02d}:00 UTC have avg P&L of "
-                        f"{avg_pnl:.2f}% over {row['total']} trades."
-                    ),
-                    "frequency": row["total"],
-                    "avg_pnl_impact": avg_pnl,
-                    "hour": hour,
-                })
+                patterns.append(
+                    {
+                        "pattern_type": pattern_type,
+                        "description": (
+                            f"Decisions made around {hour:02d}:00 UTC have avg P&L of "
+                            f"{avg_pnl:.2f}% over {row['total']} trades."
+                        ),
+                        "frequency": row["total"],
+                        "avg_pnl_impact": avg_pnl,
+                        "hour": hour,
+                    }
+                )
         return patterns
 
     def _store_pattern(self, pattern, instrument=None):
@@ -679,11 +714,17 @@ class LearningEngine:
             tuple(params),
         )
 
-        best_instrument = instrument_stats[0]["instrument"] if instrument_stats else None
-        worst_instrument = instrument_stats[-1]["instrument"] if instrument_stats else None
+        best_instrument = (
+            instrument_stats[0]["instrument"] if instrument_stats else None
+        )
+        worst_instrument = (
+            instrument_stats[-1]["instrument"] if instrument_stats else None
+        )
 
         # Max drawdown (simplified: largest peak-to-trough P&L decline)
-        max_drawdown = float(row["max_loss"]) if row.get("max_loss") is not None else None
+        max_drawdown = (
+            float(row["max_loss"]) if row.get("max_loss") is not None else None
+        )
 
         # Detected biases and patterns
         biases = self.detect_biases()
@@ -695,8 +736,16 @@ class LearningEngine:
             total_decisions=row.get("total_decisions", 0) or 0,
             total_outcomes=total_outcomes,
             win_rate=win_rate,
-            avg_pnl_percent=round(float(row["avg_pnl"]), 4) if row.get("avg_pnl") is not None else None,
-            total_pnl=round(float(row["total_pnl"]), 2) if row.get("total_pnl") is not None else None,
+            avg_pnl_percent=(
+                round(float(row["avg_pnl"]), 4)
+                if row.get("avg_pnl") is not None
+                else None
+            ),
+            total_pnl=(
+                round(float(row["total_pnl"]), 2)
+                if row.get("total_pnl") is not None
+                else None
+            ),
             max_drawdown=max_drawdown,
             best_instrument=best_instrument,
             worst_instrument=worst_instrument,
@@ -710,7 +759,9 @@ class LearningEngine:
         """Build a self-reflection prompt for the agent before making a decision."""
         ctx = self.get_historical_context(instrument)
 
-        sections = [f"Before making this decision, review your historical performance on {instrument}:\n"]
+        sections = [
+            f"Before making this decision, review your historical performance on {instrument}:\n"
+        ]
 
         if ctx.win_rate is not None:
             sections.append(f"YOUR WIN RATE: {ctx.win_rate:.1%}")
@@ -718,13 +769,21 @@ class LearningEngine:
         if ctx.pnl_by_confidence:
             sections.append("P&L BY CONFIDENCE LEVEL:")
             for bucket, stats in ctx.pnl_by_confidence.items():
-                sections.append(f"  {bucket}: avg {stats['avg_pnl']:.2f}% ({stats['count']} trades)")
+                sections.append(
+                    f"  {bucket}: avg {stats['avg_pnl']:.2f}% ({stats['count']} trades)"
+                )
 
         if ctx.recent_decisions:
             sections.append(f"\nRECENT DECISIONS ({len(ctx.recent_decisions)}):")
             for d in ctx.recent_decisions[:5]:
-                pnl = f"{d['pnl_percent']:.2f}%" if d.get("pnl_percent") is not None else "pending"
-                sections.append(f"  - {d.get('decision_type', 'N/A')}: P&L={pnl}, score={d.get('score', 'N/A')}")
+                pnl = (
+                    f"{d['pnl_percent']:.2f}%"
+                    if d.get("pnl_percent") is not None
+                    else "pending"
+                )
+                sections.append(
+                    f"  - {d.get('decision_type', 'N/A')}: P&L={pnl}, score={d.get('score', 'N/A')}"
+                )
 
         if ctx.detected_biases:
             sections.append("\nDETECTED BIASES:")

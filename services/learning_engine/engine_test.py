@@ -48,7 +48,9 @@ class TestHistoricalContext:
         assert ctx.detected_biases == []
 
     def test_to_dict(self):
-        ctx = HistoricalContext(win_rate=0.65, detected_biases=[{"type": "overconfidence"}])
+        ctx = HistoricalContext(
+            win_rate=0.65, detected_biases=[{"type": "overconfidence"}]
+        )
         d = ctx.to_dict()
         assert d["win_rate"] == 0.65
         assert len(d["detected_biases"]) == 1
@@ -86,11 +88,18 @@ class TestPerformanceReport:
 
     def test_to_dict_none_dates(self):
         report = PerformanceReport(
-            period_start=None, period_end=None,
-            total_decisions=0, total_outcomes=0, win_rate=None,
-            avg_pnl_percent=None, total_pnl=None, max_drawdown=None,
-            best_instrument=None, worst_instrument=None,
-            patterns=[], biases=[],
+            period_start=None,
+            period_end=None,
+            total_decisions=0,
+            total_outcomes=0,
+            win_rate=None,
+            avg_pnl_percent=None,
+            total_pnl=None,
+            max_drawdown=None,
+            best_instrument=None,
+            worst_instrument=None,
+            patterns=[],
+            biases=[],
         )
         d = report.to_dict()
         assert d["period_start"] is None
@@ -363,7 +372,13 @@ class TestConditions:
             rows=[
                 ({"volatility": "low"}, 5.0, "BUY", "target_hit", "BTC-USD"),
             ],
-            columns=["market_context", "pnl_percent", "action", "exit_reason", "instrument"],
+            columns=[
+                "market_context",
+                "pnl_percent",
+                "action",
+                "exit_reason",
+                "instrument",
+            ],
         )
 
         best = engine.get_best_conditions("BTC-USD")
@@ -377,7 +392,13 @@ class TestConditions:
             rows=[
                 ({"volatility": "high"}, -8.0, "BUY", "stop_loss", "BTC-USD"),
             ],
-            columns=["market_context", "pnl_percent", "action", "exit_reason", "instrument"],
+            columns=[
+                "market_context",
+                "pnl_percent",
+                "action",
+                "exit_reason",
+                "instrument",
+            ],
         )
 
         worst = engine.get_worst_conditions("BTC-USD")
@@ -416,18 +437,21 @@ class TestGenerateReport:
 
         # We need to mock multiple _execute_query calls
         call_count = [0]
+
         def mock_execute_query(query, params=None):
             call_count[0] += 1
             if call_count[0] == 1:
                 # Summary query
-                return [{
-                    "total_decisions": 50,
-                    "total_outcomes": 40,
-                    "wins": 25,
-                    "avg_pnl": 1.5,
-                    "total_pnl": 3000.0,
-                    "max_loss": -5.0,
-                }]
+                return [
+                    {
+                        "total_decisions": 50,
+                        "total_outcomes": 40,
+                        "wins": 25,
+                        "avg_pnl": 1.5,
+                        "total_pnl": 3000.0,
+                        "max_loss": -5.0,
+                    }
+                ]
             elif call_count[0] == 2:
                 # Instrument stats query
                 return [
@@ -456,18 +480,24 @@ class TestGenerateReport:
 class TestBuildReflectionPrompt:
     def test_builds_prompt_with_data(self):
         engine = LearningEngine(connection=mock.Mock())
-        engine.get_historical_context = mock.Mock(return_value=HistoricalContext(
-            win_rate=0.65,
-            recent_decisions=[
-                {"decision_type": "signal_emission", "pnl_percent": 2.5, "score": 85},
-            ],
-            detected_biases=[
-                {"bias_type": "overconfidence", "description": "test bias"},
-            ],
-            pnl_by_confidence={"high": {"avg_pnl": 3.0, "count": 10}},
-            best_conditions=[{"action": "BUY", "pnl_percent": 5.0}],
-            worst_conditions=[{"action": "BUY", "pnl_percent": -3.0}],
-        ))
+        engine.get_historical_context = mock.Mock(
+            return_value=HistoricalContext(
+                win_rate=0.65,
+                recent_decisions=[
+                    {
+                        "decision_type": "signal_emission",
+                        "pnl_percent": 2.5,
+                        "score": 85,
+                    },
+                ],
+                detected_biases=[
+                    {"bias_type": "overconfidence", "description": "test bias"},
+                ],
+                pnl_by_confidence={"high": {"avg_pnl": 3.0, "count": 10}},
+                best_conditions=[{"action": "BUY", "pnl_percent": 5.0}],
+                worst_conditions=[{"action": "BUY", "pnl_percent": -3.0}],
+            )
+        )
 
         prompt = engine.build_reflection_prompt("BTC-USD")
 
@@ -543,19 +573,41 @@ class TestGetRecentDecisions:
             conn,
             rows=[
                 (
-                    uuid.uuid4(), now, "signal_generator", "signal_emission",
-                    '{"symbol": "BTC-USD"}', '{"action": "BUY"}', 85, "Strong buy",
-                    True, "claude-haiku",
-                    2.5, 1250.0, timedelta(hours=2),
-                    "target_hit", 50000, 51250,
+                    uuid.uuid4(),
+                    now,
+                    "signal_generator",
+                    "signal_emission",
+                    '{"symbol": "BTC-USD"}',
+                    '{"action": "BUY"}',
+                    85,
+                    "Strong buy",
+                    True,
+                    "claude-haiku",
+                    2.5,
+                    1250.0,
+                    timedelta(hours=2),
+                    "target_hit",
+                    50000,
+                    51250,
                 ),
             ],
             columns=[
-                "id", "created_at", "agent_name", "decision_type",
-                "input_context", "output", "score", "reasoning",
-                "success", "model_used",
-                "pnl_percent", "pnl_absolute", "hold_duration",
-                "exit_reason", "entry_price", "exit_price",
+                "id",
+                "created_at",
+                "agent_name",
+                "decision_type",
+                "input_context",
+                "output",
+                "score",
+                "reasoning",
+                "success",
+                "model_used",
+                "pnl_percent",
+                "pnl_absolute",
+                "hold_duration",
+                "exit_reason",
+                "entry_price",
+                "exit_price",
             ],
         )
 
