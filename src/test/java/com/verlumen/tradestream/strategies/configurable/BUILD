@@ -83,6 +83,17 @@ java_test(
     ],
 )
 
+java_test(
+    name = "StrategyConfigValidationServiceTest",
+    srcs = ["StrategyConfigValidationServiceTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.StrategyConfigValidationServiceTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:strategy_config_validation_service",
+        "//third_party/java:junit",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
@@ -92,5 +103,6 @@ test_suite(
         ":IndicatorRegistryTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
+        ":StrategyConfigValidationServiceTest",
     ],
 )
