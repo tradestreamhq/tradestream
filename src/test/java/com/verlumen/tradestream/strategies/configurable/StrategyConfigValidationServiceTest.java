@@ -28,9 +28,7 @@ public class StrategyConfigValidationServiceTest {
     StrategyConfig config = buildValidConfig();
     List<ValidationResult> results = service.validate(config);
     long errorCount =
-        results.stream()
-            .filter(r -> r.getSeverity() == ValidationResult.Severity.ERROR)
-            .count();
+        results.stream().filter(r -> r.getSeverity() == ValidationResult.Severity.ERROR).count();
     assertEquals("Valid config should have no errors: " + results, 0, errorCount);
   }
 
@@ -204,9 +202,7 @@ public class StrategyConfigValidationServiceTest {
   public void deprecatedIndicatorType_producesWarning() {
     StrategyConfig config = buildValidConfig();
     config.setIndicators(
-        List.of(
-            new IndicatorConfig(
-                "mom", "MOMENTUM", "close", Map.of("period", "${smaPeriod}"))));
+        List.of(new IndicatorConfig("mom", "MOMENTUM", "close", Map.of("period", "${smaPeriod}"))));
     // Need to update conditions to reference existing indicator
     config.setEntryConditions(
         List.of(new ConditionConfig("CROSSED_UP", "mom", Map.of("value", 0.0))));
@@ -241,8 +237,7 @@ public class StrategyConfigValidationServiceTest {
   @Test
   public void unknownConditionType_producesError() {
     StrategyConfig config = buildValidConfig();
-    config.setEntryConditions(
-        List.of(new ConditionConfig("NONEXISTENT_RULE", "sma", Map.of())));
+    config.setEntryConditions(List.of(new ConditionConfig("NONEXISTENT_RULE", "sma", Map.of())));
     List<ValidationResult> results = service.validate(config);
     assertTrue(
         results.stream()
@@ -256,9 +251,7 @@ public class StrategyConfigValidationServiceTest {
   public void conditionReferencesUndefinedIndicator_producesError() {
     StrategyConfig config = buildValidConfig();
     config.setEntryConditions(
-        List.of(
-            new ConditionConfig(
-                "CROSSED_UP", "nonexistent", Map.of("value", 50.0))));
+        List.of(new ConditionConfig("CROSSED_UP", "nonexistent", Map.of("value", 50.0))));
     List<ValidationResult> results = service.validate(config);
     assertTrue(
         results.stream()
@@ -272,9 +265,7 @@ public class StrategyConfigValidationServiceTest {
   public void crossesParamReferencesUndefinedIndicator_producesError() {
     StrategyConfig config = buildValidConfig();
     config.setEntryConditions(
-        List.of(
-            new ConditionConfig(
-                "CROSSED_UP", "sma", Map.of("crosses", "nonexistent_signal"))));
+        List.of(new ConditionConfig("CROSSED_UP", "sma", Map.of("crosses", "nonexistent_signal"))));
     List<ValidationResult> results = service.validate(config);
     assertTrue(
         results.stream()
@@ -325,9 +316,7 @@ public class StrategyConfigValidationServiceTest {
         List.of(new ConditionConfig("CROSSED_DOWN", "sma", Map.of("crosses", "ema"))));
     List<ValidationResult> results = service.validate(config);
     long errorCount =
-        results.stream()
-            .filter(r -> r.getSeverity() == ValidationResult.Severity.ERROR)
-            .count();
+        results.stream().filter(r -> r.getSeverity() == ValidationResult.Severity.ERROR).count();
     assertEquals("Config with chained indicators should be valid: " + results, 0, errorCount);
   }
 
@@ -342,10 +331,8 @@ public class StrategyConfigValidationServiceTest {
   private StrategyConfig buildValidConfig() {
     IndicatorConfig indicator =
         new IndicatorConfig("sma", "SMA", "close", Map.of("period", "${smaPeriod}"));
-    ConditionConfig entry =
-        new ConditionConfig("CROSSED_UP", "sma", Map.of("value", 50.0));
-    ConditionConfig exit =
-        new ConditionConfig("CROSSED_DOWN", "sma", Map.of("value", 50.0));
+    ConditionConfig entry = new ConditionConfig("CROSSED_UP", "sma", Map.of("value", 50.0));
+    ConditionConfig exit = new ConditionConfig("CROSSED_DOWN", "sma", Map.of("value", 50.0));
     ParameterDefinition param =
         new ParameterDefinition("smaPeriod", ParameterType.INTEGER, 5, 50, 14);
 

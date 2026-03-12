@@ -13,8 +13,7 @@ import java.util.regex.Pattern;
  */
 public final class StrategyConfigValidationService {
   private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
-  private static final Set<String> VALID_COMPLEXITIES =
-      Set.of("SIMPLE", "MODERATE", "COMPLEX");
+  private static final Set<String> VALID_COMPLEXITIES = Set.of("SIMPLE", "MODERATE", "COMPLEX");
   private static final Set<String> VALID_INPUTS =
       Set.of("close", "open", "high", "low", "volume", "typical_price", "median_price");
   private static final Set<String> DEPRECATED_INDICATOR_TYPES = Set.of("MOMENTUM");
@@ -61,9 +60,7 @@ public final class StrategyConfigValidationService {
         StrategyConfig config = strategy.get();
         results.addAll(validate(config));
       } catch (Exception e) {
-        results.add(
-            ValidationResult.error(
-                strategy.name(), "Failed to load config: " + e.getMessage()));
+        results.add(ValidationResult.error(strategy.name(), "Failed to load config: " + e.getMessage()));
       }
     }
     return results;
@@ -85,8 +82,7 @@ public final class StrategyConfigValidationService {
           ValidationResult.error(name, "Strategy must define at least one entry condition"));
     }
     if (config.getExitConditions() == null || config.getExitConditions().isEmpty()) {
-      results.add(
-          ValidationResult.error(name, "Strategy must define at least one exit condition"));
+      results.add(ValidationResult.error(name, "Strategy must define at least one exit condition"));
     }
     if (config.getParameters() == null || config.getParameters().isEmpty()) {
       results.add(
@@ -122,14 +118,11 @@ public final class StrategyConfigValidationService {
       }
 
       if (!seenNames.add(param.getName())) {
-        results.add(
-            ValidationResult.error(name, "Duplicate parameter name: " + param.getName()));
+        results.add(ValidationResult.error(name, "Duplicate parameter name: " + param.getName()));
       }
 
       if (param.getType() == null) {
-        results.add(
-            ValidationResult.error(
-                name, "Parameter '" + param.getName() + "' has no type"));
+        results.add(ValidationResult.error(name, "Parameter '" + param.getName() + "' has no type"));
       }
 
       if (param.getMin() != null && param.getMax() != null) {
@@ -204,15 +197,11 @@ public final class StrategyConfigValidationService {
       }
 
       if (!definedIds.add(indicator.getId())) {
-        results.add(
-            ValidationResult.error(
-                name, "Duplicate indicator id: " + indicator.getId()));
+        results.add(ValidationResult.error(name, "Duplicate indicator id: " + indicator.getId()));
       }
 
       if (indicator.getType() == null || indicator.getType().isEmpty()) {
-        results.add(
-            ValidationResult.error(
-                name, "Indicator '" + indicator.getId() + "' has no type"));
+        results.add(ValidationResult.error(name, "Indicator '" + indicator.getId() + "' has no type"));
       } else if (!indicatorRegistry.hasIndicator(indicator.getType())) {
         results.add(
             ValidationResult.error(
@@ -274,17 +263,13 @@ public final class StrategyConfigValidationService {
 
     for (ConditionConfig condition : conditions) {
       if (condition.getType() == null || condition.getType().isEmpty()) {
-        results.add(
-            ValidationResult.error(
-                name, "An " + conditionType + " condition has no type"));
+        results.add(ValidationResult.error(name, "An " + conditionType + " condition has no type"));
         continue;
       }
 
       if (!ruleRegistry.hasRule(condition.getType())) {
         results.add(
-            ValidationResult.error(
-                name,
-                "Unknown " + conditionType + " condition type: " + condition.getType()));
+            ValidationResult.error(name, "Unknown " + conditionType + " condition type: " + condition.getType()));
       }
 
       if (condition.getIndicator() != null
@@ -301,21 +286,16 @@ public final class StrategyConfigValidationService {
       // Check that cross-reference params (like "crosses") refer to defined indicators
       if (condition.getParams() != null) {
         Object crossesRef = condition.getParams().get("crosses");
-        if (crossesRef instanceof String
-            && !definedIndicatorIds.contains((String) crossesRef)) {
+        if (crossesRef instanceof String && !definedIndicatorIds.contains((String) crossesRef)) {
           results.add(
               ValidationResult.error(
-                  name,
-                  "Condition param 'crosses' references undefined indicator: "
-                      + crossesRef));
+                  name, "Condition param 'crosses' references undefined indicator: " + crossesRef));
         }
         Object otherRef = condition.getParams().get("other");
-        if (otherRef instanceof String
-            && !definedIndicatorIds.contains((String) otherRef)) {
+        if (otherRef instanceof String && !definedIndicatorIds.contains((String) otherRef)) {
           results.add(
               ValidationResult.error(
-                  name,
-                  "Condition param 'other' references undefined indicator: " + otherRef));
+                  name, "Condition param 'other' references undefined indicator: " + otherRef));
         }
       }
     }
