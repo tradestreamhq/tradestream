@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThrows;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import org.ta4j.core.num.DecimalNum;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -20,6 +19,7 @@ import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
 import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 @RunWith(JUnit4.class)

@@ -7,7 +7,6 @@ import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import org.ta4j.core.num.DecimalNum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +17,7 @@ import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyFactoryTest {

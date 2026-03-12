@@ -126,7 +126,9 @@ public final class KlingerVolumeStrategyFactory
         if (trend.isGreaterThan(getBarSeries().numFactory().numOf(0))) {
           dailyForce = vol.multipliedBy(priceChange).dividedBy(range);
         } else if (trend.isLessThan(getBarSeries().numFactory().numOf(0))) {
-          dailyForce = vol.multipliedBy(getBarSeries().numFactory().numOf(0).minus(priceChange)).dividedBy(range);
+          dailyForce =
+              vol.multipliedBy(getBarSeries().numFactory().numOf(0).minus(priceChange))
+                  .dividedBy(range);
         }
       }
 
@@ -145,7 +147,9 @@ public final class KlingerVolumeStrategyFactory
       Num multiplier = getBarSeries().numFactory().numOf(2.0 / (period + 1));
       Num prevEMA = getValue(index - 1);
 
-      return value.multipliedBy(multiplier).plus(prevEMA.multipliedBy(getBarSeries().numFactory().numOf(1).minus(multiplier)));
+      return value
+          .multipliedBy(multiplier)
+          .plus(prevEMA.multipliedBy(getBarSeries().numFactory().numOf(1).minus(multiplier)));
     }
 
     @Override

@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 

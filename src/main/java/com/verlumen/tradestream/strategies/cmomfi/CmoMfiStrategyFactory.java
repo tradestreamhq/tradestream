@@ -91,7 +91,10 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
         return getBarSeries().numFactory().numOf(0);
       }
 
-      return sumGains.minus(sumLosses).dividedBy(total).multipliedBy(getBarSeries().numFactory().numOf(100));
+      return sumGains
+          .minus(sumLosses)
+          .dividedBy(total)
+          .multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override
@@ -165,7 +168,14 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
       }
 
       Num moneyRatio = positiveMoneyFlow.dividedBy(negativeMoneyFlow);
-      return getBarSeries().numFactory().numOf(100).minus(getBarSeries().numFactory().numOf(100).dividedBy(getBarSeries().numFactory().numOf(1).plus(moneyRatio)));
+      return getBarSeries()
+          .numFactory()
+          .numOf(100)
+          .minus(
+              getBarSeries()
+                  .numFactory()
+                  .numOf(100)
+                  .dividedBy(getBarSeries().numFactory().numOf(1).plus(moneyRatio)));
     }
 
     @Override

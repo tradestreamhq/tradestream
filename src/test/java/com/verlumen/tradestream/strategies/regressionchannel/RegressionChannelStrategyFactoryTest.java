@@ -6,13 +6,12 @@ import com.verlumen.tradestream.strategies.RegressionChannelParameters;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import org.ta4j.core.num.DecimalNum;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.num.DecimalNum;
 
 public final class RegressionChannelStrategyFactoryTest {
   private final RegressionChannelStrategyFactory factory = new RegressionChannelStrategyFactory();

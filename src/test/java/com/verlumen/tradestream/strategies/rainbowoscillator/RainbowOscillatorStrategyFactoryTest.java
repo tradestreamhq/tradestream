@@ -4,7 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.verlumen.tradestream.strategies.RainbowOscillatorParameters;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;

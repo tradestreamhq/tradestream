@@ -64,7 +64,10 @@ public final class FramaStrategyFactory implements StrategyFactory<FramaParamete
       Num prevFrama = getValue(index - 1);
       Num currentPrice = getBarSeries().getBar(index).getClosePrice();
 
-      return prevFrama.plus(currentPrice.minus(prevFrama).multipliedBy(getBarSeries().numFactory().numOf(adaptiveAlpha)));
+      return prevFrama.plus(
+          currentPrice
+              .minus(prevFrama)
+              .multipliedBy(getBarSeries().numFactory().numOf(adaptiveAlpha)));
     }
 
     private double calculateFractalDimension(int index) {

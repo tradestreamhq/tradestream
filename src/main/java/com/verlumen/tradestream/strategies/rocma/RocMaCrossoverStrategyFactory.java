@@ -72,7 +72,10 @@ public final class RocMaCrossoverStrategyFactory
         return getBarSeries().numFactory().numOf(0);
       }
 
-      return currentPrice.minus(pastPrice).dividedBy(pastPrice).multipliedBy(getBarSeries().numFactory().numOf(100));
+      return currentPrice
+          .minus(pastPrice)
+          .dividedBy(pastPrice)
+          .multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override

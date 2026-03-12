@@ -5,7 +5,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.verlumen.tradestream.strategies.VolumeProfileDeviationsParameters;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 

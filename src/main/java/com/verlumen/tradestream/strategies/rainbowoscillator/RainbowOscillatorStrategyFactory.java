@@ -87,7 +87,10 @@ public final class RainbowOscillatorStrategyFactory
         return getBarSeries().numFactory().numOf(0);
       }
 
-      return shortEmaValue.minus(longEmaValue).dividedBy(longEmaValue).multipliedBy(getBarSeries().numFactory().numOf(100));
+      return shortEmaValue
+          .minus(longEmaValue)
+          .dividedBy(longEmaValue)
+          .multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override

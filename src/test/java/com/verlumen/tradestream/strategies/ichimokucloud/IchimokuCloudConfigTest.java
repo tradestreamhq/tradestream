@@ -13,17 +13,16 @@ import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
 public class IchimokuCloudConfigTest {
@@ -43,7 +42,17 @@ public class IchimokuCloudConfigTest {
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
       series.addBar(
-          new BaseBar(Duration.ofMinutes(1), now.plusMinutes(i).toInstant().minus(Duration.ofMinutes(1)), now.plusMinutes(i).toInstant(), DecimalNum.valueOf(price), DecimalNum.valueOf(price + 2), DecimalNum.valueOf(price - 2), DecimalNum.valueOf(price), DecimalNum.valueOf(1000.0), DecimalNum.valueOf(0), 0));
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i).toInstant().minus(Duration.ofMinutes(1)),
+              now.plusMinutes(i).toInstant(),
+              DecimalNum.valueOf(price),
+              DecimalNum.valueOf(price + 2),
+              DecimalNum.valueOf(price - 2),
+              DecimalNum.valueOf(price),
+              DecimalNum.valueOf(1000.0),
+              DecimalNum.valueOf(0),
+              0));
     }
   }
 

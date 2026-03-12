@@ -78,7 +78,10 @@ public final class VwapMeanReversionStrategyFactory
       Num vwapValue = vwap.getValue(index);
       Num smaValue = sma.getValue(index);
       Num deviation =
-          vwapValue.minus(smaValue).abs().multipliedBy(getBarSeries().numFactory().numOf(deviationMultiplier));
+          vwapValue
+              .minus(smaValue)
+              .abs()
+              .multipliedBy(getBarSeries().numFactory().numOf(deviationMultiplier));
       return vwapValue.plus(deviation);
     }
 
@@ -107,7 +110,10 @@ public final class VwapMeanReversionStrategyFactory
       Num vwapValue = vwap.getValue(index);
       Num smaValue = sma.getValue(index);
       Num deviation =
-          vwapValue.minus(smaValue).abs().multipliedBy(getBarSeries().numFactory().numOf(deviationMultiplier));
+          vwapValue
+              .minus(smaValue)
+              .abs()
+              .multipliedBy(getBarSeries().numFactory().numOf(deviationMultiplier));
       return vwapValue.minus(deviation);
     }
 

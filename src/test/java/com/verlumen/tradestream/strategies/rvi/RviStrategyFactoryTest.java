@@ -7,7 +7,6 @@ import com.verlumen.tradestream.ta4j.RviIndicator;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import org.ta4j.core.num.DecimalNum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +20,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
 public class RviStrategyFactoryTest {

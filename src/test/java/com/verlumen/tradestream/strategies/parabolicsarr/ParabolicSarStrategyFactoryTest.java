@@ -7,7 +7,6 @@ import com.verlumen.tradestream.strategies.ParabolicSarParameters;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import org.ta4j.core.num.DecimalNum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +15,7 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
 public class ParabolicSarStrategyFactoryTest {
@@ -66,9 +66,15 @@ public class ParabolicSarStrategyFactoryTest {
     Instant endTime = time.toInstant();
     Instant beginTime = endTime.minus(duration);
     return new BaseBar(
-        duration, beginTime, endTime,
-        DecimalNum.valueOf(price), DecimalNum.valueOf(price),
-        DecimalNum.valueOf(price), DecimalNum.valueOf(price),
-        DecimalNum.valueOf(100.0), DecimalNum.valueOf(0), 0);
+        duration,
+        beginTime,
+        endTime,
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(100.0),
+        DecimalNum.valueOf(0),
+        0);
   }
 }

@@ -55,7 +55,10 @@ public class TRIXIndicator extends CachedIndicator<Num> {
     }
 
     // TRIX = (current - previous) / previous * 100
-    return currentValue.minus(previousValue).dividedBy(previousValue).multipliedBy(getBarSeries().numFactory().numOf(100));
+    return currentValue
+        .minus(previousValue)
+        .dividedBy(previousValue)
+        .multipliedBy(getBarSeries().numFactory().numOf(100));
   }
 
   @Override

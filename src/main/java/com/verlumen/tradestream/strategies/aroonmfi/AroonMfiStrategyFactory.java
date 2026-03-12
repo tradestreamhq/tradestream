@@ -36,11 +36,15 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
 
     Rule entryRule =
         new CrossedUpIndicatorRule(aroonUp, aroonDown)
-            .and(new UnderIndicatorRule(mfi, series.numFactory().numOf(params.getOversoldThreshold())));
+            .and(
+                new UnderIndicatorRule(
+                    mfi, series.numFactory().numOf(params.getOversoldThreshold())));
 
     Rule exitRule =
         new OverIndicatorRule(aroonUp, aroonDown)
-            .and(new OverIndicatorRule(mfi, series.numFactory().numOf(params.getOverboughtThreshold())));
+            .and(
+                new OverIndicatorRule(
+                    mfi, series.numFactory().numOf(params.getOverboughtThreshold())));
 
     return new BaseStrategy(
         String.format(
@@ -93,7 +97,11 @@ class AroonUpIndicator extends CachedIndicator<Num> {
     // Calculate periods since highest high
     int periodsSinceHigh = index - highestIndex;
     // Aroon Up = ((timeFrame - periods since highest high) / timeFrame) * 100
-    return getBarSeries().numFactory().numOf(timeFrame - periodsSinceHigh).dividedBy(getBarSeries().numFactory().numOf(timeFrame)).multipliedBy(getBarSeries().numFactory().numOf(100));
+    return getBarSeries()
+        .numFactory()
+        .numOf(timeFrame - periodsSinceHigh)
+        .dividedBy(getBarSeries().numFactory().numOf(timeFrame))
+        .multipliedBy(getBarSeries().numFactory().numOf(100));
   }
 
   @Override
@@ -139,7 +147,11 @@ class AroonDownIndicator extends CachedIndicator<Num> {
     // Calculate periods since lowest low
     int periodsSinceLow = index - lowestIndex;
     // Aroon Down = ((timeFrame - periods since lowest low) / timeFrame) * 100
-    return getBarSeries().numFactory().numOf(timeFrame - periodsSinceLow).dividedBy(getBarSeries().numFactory().numOf(timeFrame)).multipliedBy(getBarSeries().numFactory().numOf(100));
+    return getBarSeries()
+        .numFactory()
+        .numOf(timeFrame - periodsSinceLow)
+        .dividedBy(getBarSeries().numFactory().numOf(timeFrame))
+        .multipliedBy(getBarSeries().numFactory().numOf(100));
   }
 
   @Override
@@ -203,7 +215,15 @@ class MFIIndicator extends CachedIndicator<Num> {
     Num moneyFlowRatio = positiveFlow.dividedBy(negativeFlow);
 
     // Calculate Money Flow Index
-    Num mfi = getBarSeries().numFactory().numOf(100).minus(getBarSeries().numFactory().numOf(100).dividedBy(getBarSeries().numFactory().numOf(1).plus(moneyFlowRatio)));
+    Num mfi =
+        getBarSeries()
+            .numFactory()
+            .numOf(100)
+            .minus(
+                getBarSeries()
+                    .numFactory()
+                    .numOf(100)
+                    .dividedBy(getBarSeries().numFactory().numOf(1).plus(moneyFlowRatio)));
 
     return mfi;
   }

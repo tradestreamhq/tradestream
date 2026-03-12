@@ -7,8 +7,6 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import org.junit.Test;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;

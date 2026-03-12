@@ -119,7 +119,8 @@ public final class KstOscillatorStrategyFactory
               .multipliedBy(getBarSeries().numFactory().numOf(1))
               .plus(smoothedRoc2.getValue(index).multipliedBy(getBarSeries().numFactory().numOf(2)))
               .plus(smoothedRoc3.getValue(index).multipliedBy(getBarSeries().numFactory().numOf(3)))
-              .plus(smoothedRoc4.getValue(index).multipliedBy(getBarSeries().numFactory().numOf(4)));
+              .plus(
+                  smoothedRoc4.getValue(index).multipliedBy(getBarSeries().numFactory().numOf(4)));
 
       return weightedSum;
     }
@@ -132,8 +133,10 @@ public final class KstOscillatorStrategyFactory
               Math.max(roc1.getCountOfUnstableBars(), roc2.getCountOfUnstableBars()),
               Math.max(roc3.getCountOfUnstableBars(), roc4.getCountOfUnstableBars())),
           Math.max(
-              Math.max(smoothedRoc1.getCountOfUnstableBars(), smoothedRoc2.getCountOfUnstableBars()),
-              Math.max(smoothedRoc3.getCountOfUnstableBars(), smoothedRoc4.getCountOfUnstableBars())));
+              Math.max(
+                  smoothedRoc1.getCountOfUnstableBars(), smoothedRoc2.getCountOfUnstableBars()),
+              Math.max(
+                  smoothedRoc3.getCountOfUnstableBars(), smoothedRoc4.getCountOfUnstableBars())));
     }
   }
 
@@ -165,7 +168,10 @@ public final class KstOscillatorStrategyFactory
         return getBarSeries().numFactory().numOf(0);
       }
 
-      return currentPrice.minus(pastPrice).dividedBy(pastPrice).multipliedBy(getBarSeries().numFactory().numOf(100));
+      return currentPrice
+          .minus(pastPrice)
+          .dividedBy(pastPrice)
+          .multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override

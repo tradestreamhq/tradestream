@@ -5,12 +5,12 @@ import java.util.Map;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.*;
-import org.ta4j.core.indicators.averages.*;
 import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.adx.MinusDIIndicator;
 import org.ta4j.core.indicators.adx.PlusDIIndicator;
 import org.ta4j.core.indicators.aroon.AroonDownIndicator;
 import org.ta4j.core.indicators.aroon.AroonUpIndicator;
+import org.ta4j.core.indicators.averages.*;
 import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
@@ -335,9 +335,13 @@ public final class IndicatorRegistry {
       for (int i = 1; i <= index; i++) {
         Num force = calculateForce(i);
         shortEma =
-            force.multipliedBy(getBarSeries().numFactory().numOf(shortMult)).plus(shortEma.multipliedBy(getBarSeries().numFactory().numOf(1 - shortMult)));
+            force
+                .multipliedBy(getBarSeries().numFactory().numOf(shortMult))
+                .plus(shortEma.multipliedBy(getBarSeries().numFactory().numOf(1 - shortMult)));
         longEma =
-            force.multipliedBy(getBarSeries().numFactory().numOf(longMult)).plus(longEma.multipliedBy(getBarSeries().numFactory().numOf(1 - longMult)));
+            force
+                .multipliedBy(getBarSeries().numFactory().numOf(longMult))
+                .plus(longEma.multipliedBy(getBarSeries().numFactory().numOf(1 - longMult)));
       }
       return shortEma.minus(longEma);
     }

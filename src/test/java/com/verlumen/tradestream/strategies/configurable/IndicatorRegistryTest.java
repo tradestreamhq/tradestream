@@ -8,9 +8,9 @@ import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeriesBuilder;
-import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 /** Tests for IndicatorRegistry verifying all indicator types can be created. */
@@ -27,7 +27,21 @@ public class IndicatorRegistryTest {
     testSeries = new BaseBarSeriesBuilder().withName("test").build();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 10;
-      testSeries.addBar(new BaseBar(java.time.Duration.ofMinutes(1), java.time.ZonedDateTime.now().plusMinutes(i).toInstant().minus(java.time.Duration.ofMinutes(1)), java.time.ZonedDateTime.now().plusMinutes(i).toInstant(), DecimalNum.valueOf(price - 1), DecimalNum.valueOf(price + 2), DecimalNum.valueOf(price - 2), DecimalNum.valueOf(price), DecimalNum.valueOf(1000 + i), DecimalNum.valueOf(0), 0));
+      testSeries.addBar(
+          new BaseBar(
+              java.time.Duration.ofMinutes(1),
+              java.time.ZonedDateTime.now()
+                  .plusMinutes(i)
+                  .toInstant()
+                  .minus(java.time.Duration.ofMinutes(1)),
+              java.time.ZonedDateTime.now().plusMinutes(i).toInstant(),
+              DecimalNum.valueOf(price - 1),
+              DecimalNum.valueOf(price + 2),
+              DecimalNum.valueOf(price - 2),
+              DecimalNum.valueOf(price),
+              DecimalNum.valueOf(1000 + i),
+              DecimalNum.valueOf(0),
+              0));
     }
 
     closePrice = new ClosePriceIndicator(testSeries);
