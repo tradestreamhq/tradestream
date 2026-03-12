@@ -27,7 +27,9 @@ class AuditEvent(BaseModel):
         description="UTC timestamp of the event",
     )
     symbol: Optional[str] = Field(None, description="Trading instrument symbol")
-    strategy: Optional[str] = Field(None, description="Strategy that generated the order")
+    strategy: Optional[str] = Field(
+        None, description="Strategy that generated the order"
+    )
     details: Dict[str, Any] = Field(
         default_factory=dict, description="Additional event context as JSON"
     )

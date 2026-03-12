@@ -56,7 +56,5 @@ class AuditRecorder:
                 json.dumps(event.details),
             )
 
-        logger.info(
-            "Audit event recorded: %s for order %s", event_type.value, order_id
-        )
+        logger.info("Audit event recorded: %s for order %s", event_type.value, order_id)
         return event
