@@ -110,8 +110,7 @@ class RebalancingService:
 
         equal_weight = 1.0 / len(holdings)
         return [
-            AllocationTarget(symbol=h.symbol, target_pct=equal_weight)
-            for h in holdings
+            AllocationTarget(symbol=h.symbol, target_pct=equal_weight) for h in holdings
         ]
 
     async def run_rebalance(
