@@ -38,6 +38,17 @@ py_library(
 )
 
 py_library(
+    name = "parameter_optimizer_lib",
+    srcs = ["parameter_optimizer.py"],
+    deps = [
+        ":vectorbt_runner_lib",
+        ":yaml_strategy_loader_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+    ],
+)
+
+py_library(
     name = "backtesting_service_lib",
     srcs = ["backtesting_service.py"],
     deps = [
@@ -97,6 +108,20 @@ py_test(
     deps = [
         ":backtesting_service_lib",
         "//third_party/python:grpcio",
+    ],
+)
+
+py_test(
+    name = "test_parameter_optimizer",
+    size = "medium",
+    srcs = ["tests/test_parameter_optimizer.py"],
+    deps = [
+        ":parameter_optimizer_lib",
+        ":vectorbt_runner_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:pytest",
+        "//third_party/python:vectorbt",
     ],
 )
 
