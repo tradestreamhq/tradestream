@@ -1,0 +1,12 @@
+schemaVersion: 2.0.0
+
+commandTests:
+  - name: "python is available"
+    command: "which"
+    args: ["python3"]
+    expectedOutput: ["/usr/local/bin/python3"]
+
+metadataTest:
+  user: "nobody"
+  workdir: "/services/learning_engine"
+  entrypoint: ["/services/learning_engine/app"]
