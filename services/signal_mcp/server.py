@@ -1,22 +1,28 @@
 """
 MCP server for the signal service.
-Exposes tools for signal emission, decision logging, and analytics.
+Exposes tools for signal emission, decision logging, analytics,
+signal audit trail, and signal replay.
 """
 
 import asyncio
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
+from services.signal_mcp.audit_recorder import AuditRecorder
 from services.signal_mcp.postgres_client import PostgresClient
 from services.signal_mcp.redis_client import RedisClient
+from services.signal_mcp.signal_replayer import SignalReplayer
 
 
 def create_server(
     postgres_client: PostgresClient,
     redis_client: RedisClient,
+    audit_recorder: Optional[AuditRecorder] = None,
+    signal_replayer: Optional[SignalReplayer] = None,
 ) -> Server:
     """Create and configure the MCP server with all tools."""
     server = Server("signal-mcp")
@@ -172,6 +178,73 @@ def create_server(
                     },
                 },
             ),
+            Tool(
+                name="get_audit_log",
+                description="Get signal audit trail events for debugging. Returns timestamped, sequenced signal events.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "symbol": {
+                            "type": "string",
+                            "description": "Filter by symbol (optional)",
+                        },
+                        "start_time": {
+                            "type": "string",
+                            "description": "ISO 8601 start time (optional)",
+                        },
+                        "end_time": {
+                            "type": "string",
+                            "description": "ISO 8601 end time (optional)",
+                        },
+                        "event_types": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Filter by event types: SIGNAL_EMITTED, SIGNAL_SKIPPED, DECISION_LOGGED (optional)",
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "default": 100,
+                            "description": "Max results to return",
+                        },
+                    },
+                },
+            ),
+            Tool(
+                name="replay_signals",
+                description="Replay signal sequences from a time range for debugging. Compares replay results with original outcomes.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "start_time": {
+                            "type": "string",
+                            "description": "ISO 8601 start time",
+                        },
+                        "end_time": {
+                            "type": "string",
+                            "description": "ISO 8601 end time",
+                        },
+                        "symbol": {
+                            "type": "string",
+                            "description": "Filter by symbol (optional)",
+                        },
+                    },
+                    "required": ["start_time", "end_time"],
+                },
+            ),
+            Tool(
+                name="get_replay_result",
+                description="Get the result of a previous signal replay session.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "replay_group_id": {
+                            "type": "string",
+                            "description": "UUID of the replay session",
+                        },
+                    },
+                    "required": ["replay_group_id"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -197,6 +270,16 @@ def create_server(
             }
             redis_client.publish_signal(arguments["symbol"], signal_data)
 
+            if audit_recorder:
+                await audit_recorder.record_signal_emitted(
+                    signal_id=signal_id,
+                    symbol=arguments["symbol"],
+                    action=arguments["action"],
+                    confidence=arguments["confidence"],
+                    reasoning=arguments["reasoning"],
+                    strategy_breakdown=arguments["strategy_breakdown"],
+                )
+
             return [
                 TextContent(
                     type="text",
@@ -215,6 +298,14 @@ def create_server(
                 latency_ms=arguments["latency_ms"],
                 tokens_used=arguments["tokens"],
             )
+
+            if audit_recorder:
+                await audit_recorder.record_decision_logged(
+                    signal_id=arguments["signal_id"],
+                    symbol="unknown",
+                    model_used=arguments["model_used"],
+                    tool_calls=arguments["tool_calls"],
+                )
 
             return [
                 TextContent(
@@ -258,6 +349,90 @@ def create_server(
                 TextContent(
                     type="text",
                     text=json.dumps(accuracy),
+                )
+            ]
+
+        elif name == "get_audit_log":
+            if not audit_recorder:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps({"error": "Audit recorder not configured"}),
+                    )
+                ]
+
+            start_time = None
+            end_time = None
+            if arguments.get("start_time"):
+                start_time = datetime.fromisoformat(arguments["start_time"])
+            if arguments.get("end_time"):
+                end_time = datetime.fromisoformat(arguments["end_time"])
+
+            events = await audit_recorder.get_events(
+                symbol=arguments.get("symbol"),
+                start_time=start_time,
+                end_time=end_time,
+                event_types=arguments.get("event_types"),
+                limit=arguments.get("limit", 100),
+            )
+
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(events, default=str),
+                )
+            ]
+
+        elif name == "replay_signals":
+            if not signal_replayer:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps({"error": "Signal replayer not configured"}),
+                    )
+                ]
+
+            start_time = datetime.fromisoformat(arguments["start_time"])
+            end_time = datetime.fromisoformat(arguments["end_time"])
+
+            summary = await signal_replayer.replay(
+                start_time=start_time,
+                end_time=end_time,
+                symbol=arguments.get("symbol"),
+            )
+
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(summary.to_dict(), default=str),
+                )
+            ]
+
+        elif name == "get_replay_result":
+            if not signal_replayer:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps({"error": "Signal replayer not configured"}),
+                    )
+                ]
+
+            result = await signal_replayer.get_replay_summary(
+                arguments["replay_group_id"],
+            )
+
+            if result is None:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps({"error": "Replay session not found"}),
+                    )
+                ]
+
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(result, default=str),
                 )
             ]
 
