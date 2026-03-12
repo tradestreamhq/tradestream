@@ -90,6 +90,16 @@ public class RsiEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenRsiCrossesAboveEmaAndNotOverbought() {
+    // Log RSI values to diagnose
+    for (int i = 20; i <= 39; i++) {
+      System.out.printf(
+          "Bar %d - RSI: %.2f, RSI EMA: %.2f, Entry: %s%n",
+          i,
+          rsi.getValue(i).doubleValue(),
+          rsiEma.getValue(i).doubleValue(),
+          strategy.getEntryRule().isSatisfied(i));
+    }
+
     // Find when entry rule is satisfied during the price increase phase
     boolean entryTriggered = false;
     for (int i = 25; i <= 39; i++) {
