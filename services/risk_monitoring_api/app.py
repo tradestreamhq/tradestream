@@ -107,9 +107,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             cutoff,
         )
         return [
-            float(r["pnl"]) / float(r["exposure"])
-            if r["pnl"] and float(r["exposure"]) > 0
-            else 0.0
+            (
+                float(r["pnl"]) / float(r["exposure"])
+                if r["pnl"] and float(r["exposure"]) > 0
+                else 0.0
+            )
             for r in rows
         ]
 
@@ -117,8 +119,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @app.get("/summary", tags=["Risk"])
     async def get_risk_summary(
-        lookback_days: int = Query(30, ge=1, le=365, description="Lookback window in days"),
-        confidence: float = Query(0.95, ge=0.5, le=0.99, description="VaR confidence level"),
+        lookback_days: int = Query(
+            30, ge=1, le=365, description="Lookback window in days"
+        ),
+        confidence: float = Query(
+            0.95, ge=0.5, le=0.99, description="VaR confidence level"
+        ),
     ):
         """Get portfolio-wide risk summary with exposure, VaR, beta, correlations, and alerts."""
         try:
@@ -166,8 +172,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.get("/by-strategy/{strategy_id}", tags=["Risk"])
     async def get_risk_by_strategy(
         strategy_id: str,
-        lookback_days: int = Query(30, ge=1, le=365, description="Lookback window in days"),
-        confidence: float = Query(0.95, ge=0.5, le=0.99, description="VaR confidence level"),
+        lookback_days: int = Query(
+            30, ge=1, le=365, description="Lookback window in days"
+        ),
+        confidence: float = Query(
+            0.95, ge=0.5, le=0.99, description="VaR confidence level"
+        ),
     ):
         """Get risk metrics for a specific strategy."""
         cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
@@ -221,9 +231,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         # Compute returns
         returns = [
-            float(r["pnl"]) / float(r["exposure"])
-            if r["pnl"] and float(r["exposure"]) > 0
-            else 0.0
+            (
+                float(r["pnl"]) / float(r["exposure"])
+                if r["pnl"] and float(r["exposure"]) > 0
+                else 0.0
+            )
             for r in rows
         ]
 
@@ -251,7 +263,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "value_at_risk": var,
                 "var_confidence": confidence,
                 "trade_count": trade_count,
-                "win_rate": round(winning / trade_count, 4) if trade_count > 0 else None,
+                "win_rate": (
+                    round(winning / trade_count, 4) if trade_count > 0 else None
+                ),
                 "total_pnl": round(total_pnl, 2),
                 "returns": returns[-20:] if len(returns) > 20 else returns,
                 "lookback_days": lookback_days,
@@ -264,7 +278,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @app.get("/history", tags=["Risk"])
     async def get_risk_history(
-        lookback_days: int = Query(30, ge=1, le=365, description="Lookback window in days"),
+        lookback_days: int = Query(
+            30, ge=1, le=365, description="Lookback window in days"
+        ),
     ):
         """Get historical daily risk metrics (exposure and PnL) over the lookback window."""
         cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
@@ -298,7 +314,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     "date": r["trade_date"].isoformat(),
                     "daily_pnl": round(daily_pnl, 2),
                     "daily_exposure": round(daily_exp, 2),
-                    "daily_return": round(daily_pnl / daily_exp, 4) if daily_exp > 0 else 0.0,
+                    "daily_return": (
+                        round(daily_pnl / daily_exp, 4) if daily_exp > 0 else 0.0
+                    ),
                     "trade_count": r["trade_count"],
                 }
             )

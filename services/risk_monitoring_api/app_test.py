@@ -148,14 +148,24 @@ class TestRiskByStrategy:
 
     def test_strategy_with_trades(self, client):
         tc, conn = client
-        conn.fetchrow.return_value = FakeRecord(
-            id="spec-1", name="RSI Reversal"
-        )
+        conn.fetchrow.return_value = FakeRecord(id="spec-1", name="RSI Reversal")
         conn.fetch.side_effect = [
             # closed trades
             [
-                FakeRecord(symbol="BTC/USD", pnl=500.0, quantity=0.1, entry_price=60000.0, exposure=6000.0),
-                FakeRecord(symbol="BTC/USD", pnl=-200.0, quantity=0.1, entry_price=60000.0, exposure=6000.0),
+                FakeRecord(
+                    symbol="BTC/USD",
+                    pnl=500.0,
+                    quantity=0.1,
+                    entry_price=60000.0,
+                    exposure=6000.0,
+                ),
+                FakeRecord(
+                    symbol="BTC/USD",
+                    pnl=-200.0,
+                    quantity=0.1,
+                    entry_price=60000.0,
+                    exposure=6000.0,
+                ),
             ],
             # open positions
             [
@@ -175,9 +185,7 @@ class TestRiskByStrategy:
 
     def test_strategy_no_trades(self, client):
         tc, conn = client
-        conn.fetchrow.return_value = FakeRecord(
-            id="spec-2", name="MACD Trend"
-        )
+        conn.fetchrow.return_value = FakeRecord(id="spec-2", name="MACD Trend")
         conn.fetch.side_effect = [[], []]
 
         resp = tc.get("/by-strategy/spec-2")

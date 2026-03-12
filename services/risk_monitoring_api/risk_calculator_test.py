@@ -40,7 +40,13 @@ class TestExposureByAsset:
 
 class TestConcentrationAlerts:
     def test_no_alert_under_threshold(self):
-        exposure = {"BTC/USD": 5000, "ETH/USD": 5000, "SOL/USD": 5000, "AVAX/USD": 5000, "LINK/USD": 5000}
+        exposure = {
+            "BTC/USD": 5000,
+            "ETH/USD": 5000,
+            "SOL/USD": 5000,
+            "AVAX/USD": 5000,
+            "LINK/USD": 5000,
+        }
         alerts = compute_concentration_alerts(exposure, threshold=0.20)
         assert alerts == []
 
@@ -89,8 +95,28 @@ class TestComputeReturns:
 class TestComputeVar:
     def test_basic_var(self):
         # 20 returns, 5th percentile at 95% confidence
-        returns = [-0.05, -0.03, -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.04, 0.05,
-                   0.01, 0.02, 0.03, 0.04, 0.05, 0.01, 0.02, 0.03, 0.04, 0.05]
+        returns = [
+            -0.05,
+            -0.03,
+            -0.02,
+            -0.01,
+            0.0,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05,
+        ]
         var = compute_var(returns, confidence=0.95, current_exposure=100000)
         assert var is not None
         assert var > 0
