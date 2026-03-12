@@ -7,6 +7,7 @@ load("@rules_python//python:py_test.bzl", "py_test")
 
 py_library(
     name = "influxdb_client_lib",
+    visibility = ["//visibility:public"],
     srcs = ["influxdb_client.py"],
     deps = [
         "//third_party/python:absl_py",
@@ -16,6 +17,7 @@ py_library(
 
 py_library(
     name = "redis_client_lib",
+    visibility = ["//visibility:public"],
     srcs = ["redis_client.py"],
     deps = [
         "//third_party/python:absl_py",
