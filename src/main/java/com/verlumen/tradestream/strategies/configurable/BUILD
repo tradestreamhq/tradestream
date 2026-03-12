@@ -1,4 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,6 +11,7 @@ java_library(
         "ParameterType.java",
         "ResolvedParams.java",
         "StrategyConfig.java",
+        "ValidationResult.java",
     ],
 )
 
@@ -79,6 +80,28 @@ java_library(
 )
 
 java_library(
+    name = "strategy_config_validation_service",
+    srcs = ["StrategyConfigValidationService.java"],
+    deps = [
+        ":config_pojos",
+        ":indicator_registry",
+        ":rule_registry",
+        ":strategy_config_loader",
+    ],
+)
+
+java_binary(
+    name = "strategy_config_validator",
+    srcs = ["StrategyConfigValidator.java"],
+    main_class = "com.verlumen.tradestream.strategies.configurable.StrategyConfigValidator",
+    deps = [
+        ":config_pojos",
+        ":strategy_config_loader",
+        ":strategy_config_validation_service",
+    ],
+)
+
+java_library(
     name = "configurable_strategy_spec",
     srcs = ["ConfigurableStrategySpec.java"],
     deps = [
@@ -101,5 +124,6 @@ java_library(
         ":indicator_registry",
         ":rule_registry",
         ":strategy_config_loader",
+        ":strategy_config_validation_service",
     ],
 )
