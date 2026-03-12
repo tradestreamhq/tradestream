@@ -56,6 +56,17 @@ py_test(
 )
 
 py_test(
+    name = "config_test",
+    srcs = ["config_test.py"],
+    deps = [
+        ":app_lib",
+        "//third_party/python:fastapi",
+        "//third_party/python:httpx",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
     name = "mcp_server_test",
     srcs = ["mcp_server_test.py"],
     deps = [

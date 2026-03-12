@@ -55,6 +55,19 @@ class EvaluateRequest(BaseModel):
     end_date: str = Field(..., description="Backtest end date (ISO format)")
 
 
+class StrategyConfigCreate(BaseModel):
+    parameters: Dict[str, Any] = Field(..., description="Strategy parameter values")
+    description: Optional[str] = Field(None, description="Config description")
+    author: Optional[str] = Field(None, description="Author of this config version")
+
+
+class StrategyConfigUpdate(BaseModel):
+    parameters: Optional[Dict[str, Any]] = Field(
+        None, description="Updated parameters (partial)"
+    )
+    description: Optional[str] = Field(None, description="Updated description")
+
+
 # --- Application Factory ---
 
 
@@ -462,6 +475,251 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             item["created_at"] = item["created_at"].isoformat()
         return success_response(item, "signal")
 
+    # --- Strategy config endpoints ---
+
+    config_router = APIRouter(
+        prefix="/strategies/{strategy_id}/config", tags=["Config"]
+    )
+
+    @config_router.post("", status_code=201)
+    async def create_config(strategy_id: str, body: StrategyConfigCreate):
+        import json
+
+        async with db_pool.acquire() as conn:
+            spec = await conn.fetchrow(
+                "SELECT id FROM strategy_specs WHERE id = $1::uuid", strategy_id
+            )
+            if not spec:
+                return not_found("Strategy", strategy_id)
+
+            # Get next version number
+            max_ver = await conn.fetchval(
+                "SELECT COALESCE(MAX(version), 0) FROM strategy_configs WHERE strategy_id = $1::uuid",
+                strategy_id,
+            )
+            new_version = max_ver + 1
+
+            # Deactivate previous active config
+            await conn.execute(
+                "UPDATE strategy_configs SET is_active = FALSE WHERE strategy_id = $1::uuid AND is_active = TRUE",
+                strategy_id,
+            )
+
+            row = await conn.fetchrow(
+                """
+                INSERT INTO strategy_configs (strategy_id, version, parameters, description, author, is_active)
+                VALUES ($1::uuid, $2, $3::jsonb, $4, $5, TRUE)
+                RETURNING id, strategy_id, version, parameters, description, author, is_active, created_at
+                """,
+                strategy_id,
+                new_version,
+                json.dumps(body.parameters),
+                body.description,
+                body.author,
+            )
+
+        item = dict(row)
+        item["id"] = str(item["id"])
+        item["strategy_id"] = str(item["strategy_id"])
+        if item.get("created_at"):
+            item["created_at"] = item["created_at"].isoformat()
+        return success_response(
+            item, "strategy_config", resource_id=item["id"], status_code=201
+        )
+
+    @config_router.get("")
+    async def get_active_config(strategy_id: str):
+        async with db_pool.acquire() as conn:
+            spec = await conn.fetchrow(
+                "SELECT id FROM strategy_specs WHERE id = $1::uuid", strategy_id
+            )
+            if not spec:
+                return not_found("Strategy", strategy_id)
+
+            row = await conn.fetchrow(
+                """
+                SELECT id, strategy_id, version, parameters, description, author, is_active, created_at
+                FROM strategy_configs
+                WHERE strategy_id = $1::uuid AND is_active = TRUE
+                """,
+                strategy_id,
+            )
+
+        if not row:
+            return not_found("Config", strategy_id)
+        item = dict(row)
+        item["id"] = str(item["id"])
+        item["strategy_id"] = str(item["strategy_id"])
+        if item.get("created_at"):
+            item["created_at"] = item["created_at"].isoformat()
+        return success_response(item, "strategy_config", resource_id=item["id"])
+
+    @config_router.patch("")
+    async def update_config(strategy_id: str, body: StrategyConfigUpdate):
+        import json
+
+        async with db_pool.acquire() as conn:
+            spec = await conn.fetchrow(
+                "SELECT id FROM strategy_specs WHERE id = $1::uuid", strategy_id
+            )
+            if not spec:
+                return not_found("Strategy", strategy_id)
+
+            # Get current active config
+            current = await conn.fetchrow(
+                """
+                SELECT id, parameters, description, author
+                FROM strategy_configs
+                WHERE strategy_id = $1::uuid AND is_active = TRUE
+                """,
+                strategy_id,
+            )
+            if not current:
+                return not_found("Config", strategy_id)
+
+            # Merge parameters
+            merged_params = dict(current["parameters"])
+            if body.parameters is not None:
+                merged_params.update(body.parameters)
+            new_desc = body.description if body.description is not None else current["description"]
+
+            # Get next version
+            max_ver = await conn.fetchval(
+                "SELECT COALESCE(MAX(version), 0) FROM strategy_configs WHERE strategy_id = $1::uuid",
+                strategy_id,
+            )
+            new_version = max_ver + 1
+
+            # Deactivate current
+            await conn.execute(
+                "UPDATE strategy_configs SET is_active = FALSE WHERE strategy_id = $1::uuid AND is_active = TRUE",
+                strategy_id,
+            )
+
+            row = await conn.fetchrow(
+                """
+                INSERT INTO strategy_configs (strategy_id, version, parameters, description, author, is_active)
+                VALUES ($1::uuid, $2, $3::jsonb, $4, $5, TRUE)
+                RETURNING id, strategy_id, version, parameters, description, author, is_active, created_at
+                """,
+                strategy_id,
+                new_version,
+                json.dumps(merged_params),
+                new_desc,
+                current["author"],
+            )
+
+        item = dict(row)
+        item["id"] = str(item["id"])
+        item["strategy_id"] = str(item["strategy_id"])
+        if item.get("created_at"):
+            item["created_at"] = item["created_at"].isoformat()
+        return success_response(item, "strategy_config", resource_id=item["id"])
+
+    @config_router.get("/history")
+    async def config_history(
+        strategy_id: str,
+        pagination: PaginationParams = Depends(),
+    ):
+        async with db_pool.acquire() as conn:
+            spec = await conn.fetchrow(
+                "SELECT id FROM strategy_specs WHERE id = $1::uuid", strategy_id
+            )
+            if not spec:
+                return not_found("Strategy", strategy_id)
+
+            rows = await conn.fetch(
+                """
+                SELECT id, strategy_id, version, parameters, description, author, is_active, created_at
+                FROM strategy_configs
+                WHERE strategy_id = $1::uuid
+                ORDER BY version DESC
+                LIMIT $2 OFFSET $3
+                """,
+                strategy_id,
+                pagination.limit,
+                pagination.offset,
+            )
+            total = await conn.fetchval(
+                "SELECT COUNT(*) FROM strategy_configs WHERE strategy_id = $1::uuid",
+                strategy_id,
+            )
+
+        items = []
+        for row in rows:
+            item = dict(row)
+            item["id"] = str(item["id"])
+            item["strategy_id"] = str(item["strategy_id"])
+            if item.get("created_at"):
+                item["created_at"] = item["created_at"].isoformat()
+            items.append(item)
+        return collection_response(
+            items,
+            "strategy_config",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
+        )
+
+    @config_router.post("/rollback/{version}")
+    async def rollback_config(strategy_id: str, version: int):
+        import json
+
+        async with db_pool.acquire() as conn:
+            spec = await conn.fetchrow(
+                "SELECT id FROM strategy_specs WHERE id = $1::uuid", strategy_id
+            )
+            if not spec:
+                return not_found("Strategy", strategy_id)
+
+            # Find the target version
+            target = await conn.fetchrow(
+                """
+                SELECT parameters, description, author
+                FROM strategy_configs
+                WHERE strategy_id = $1::uuid AND version = $2
+                """,
+                strategy_id,
+                version,
+            )
+            if not target:
+                return not_found("Config version", str(version))
+
+            # Get next version number
+            max_ver = await conn.fetchval(
+                "SELECT COALESCE(MAX(version), 0) FROM strategy_configs WHERE strategy_id = $1::uuid",
+                strategy_id,
+            )
+            new_version = max_ver + 1
+
+            # Deactivate current active
+            await conn.execute(
+                "UPDATE strategy_configs SET is_active = FALSE WHERE strategy_id = $1::uuid AND is_active = TRUE",
+                strategy_id,
+            )
+
+            # Create new version with same parameters as target
+            row = await conn.fetchrow(
+                """
+                INSERT INTO strategy_configs (strategy_id, version, parameters, description, author, is_active)
+                VALUES ($1::uuid, $2, $3::jsonb, $4, $5, TRUE)
+                RETURNING id, strategy_id, version, parameters, description, author, is_active, created_at
+                """,
+                strategy_id,
+                new_version,
+                json.dumps(dict(target["parameters"])),
+                f"Rollback to version {version}",
+                target["author"],
+            )
+
+        item = dict(row)
+        item["id"] = str(item["id"])
+        item["strategy_id"] = str(item["strategy_id"])
+        if item.get("created_at"):
+            item["created_at"] = item["created_at"].isoformat()
+        return success_response(item, "strategy_config", resource_id=item["id"])
+
     app.include_router(specs_router)
     app.include_router(impls_router)
+    app.include_router(config_router)
     return app
