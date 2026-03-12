@@ -107,6 +107,46 @@ py_test(
 )
 
 py_library(
+    name = "mcp_server_base",
+    srcs = [
+        "__init__.py",
+        "mcp_server_base.py",
+    ],
+    deps = [
+        "//third_party/python:mcp",
+    ],
+)
+
+py_test(
+    name = "mcp_server_base_test",
+    srcs = ["mcp_server_base_test.py"],
+    deps = [
+        ":mcp_server_base",
+        "//third_party/python:mcp",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_library(
+    name = "evolution",
+    srcs = [
+        "__init__.py",
+        "evolution.py",
+    ],
+)
+
+py_test(
+    name = "evolution_test",
+    srcs = ["evolution_test.py"],
+    deps = [
+        ":evolution",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_library(
     name = "strategy_parameter_registry",
     srcs = [
         "__init__.py",
