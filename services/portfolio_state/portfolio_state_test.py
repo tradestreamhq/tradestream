@@ -296,18 +296,30 @@ class TestValidateDecision:
     def test_position_too_large(self):
         state = self._make_state()
         # 0.1 * 50000 = 5000 = 50% of 10000, exceeds 2%
-        result = validate_decision("BUY", "BTC-USD", 0.1, 50000.0, state, max_position_pct=0.02)
+        result = validate_decision(
+            "BUY", "BTC-USD", 0.1, 50000.0, state, max_position_pct=0.02
+        )
         assert result["valid"] is False
         assert any("too large" in e.lower() for e in result["errors"])
 
     def test_exceeds_portfolio_heat(self):
         state = self._make_state(heat=45.0)
         # 0.01 * 50000 = 500 = 5% + 45% = 50% heat, right at limit
-        result = validate_decision("BUY", "BTC-USD", 0.01, 50000.0, state, max_position_pct=1.0, max_portfolio_heat=0.49)
+        result = validate_decision(
+            "BUY",
+            "BTC-USD",
+            0.01,
+            50000.0,
+            state,
+            max_position_pct=1.0,
+            max_portfolio_heat=0.49,
+        )
         assert result["valid"] is False
         assert any("heat" in e.lower() for e in result["errors"])
 
     def test_sell_skips_buying_power_check(self):
         state = self._make_state(buying_power=0.0)
-        result = validate_decision("SELL", "BTC-USD", 0.1, 50000.0, state, max_position_pct=1.0)
+        result = validate_decision(
+            "SELL", "BTC-USD", 0.1, 50000.0, state, max_position_pct=1.0
+        )
         assert result["valid"] is True

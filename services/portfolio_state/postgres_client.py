@@ -103,9 +103,7 @@ class PostgresClient:
                 for row in rows
             ]
 
-    async def get_recent_closed_trades(
-        self, limit: int = 20
-    ) -> List[Dict[str, Any]]:
+    async def get_recent_closed_trades(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get recently closed trades for activity history."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
@@ -128,11 +126,15 @@ class PostgresClient:
                     "symbol": row["symbol"],
                     "side": row["side"],
                     "entry_price": float(row["entry_price"]),
-                    "exit_price": float(row["exit_price"]) if row["exit_price"] else None,
+                    "exit_price": (
+                        float(row["exit_price"]) if row["exit_price"] else None
+                    ),
                     "quantity": float(row["quantity"]),
                     "pnl": float(row["pnl"]) if row["pnl"] else 0.0,
                     "opened_at": row["opened_at"].isoformat(),
-                    "closed_at": row["closed_at"].isoformat() if row["closed_at"] else None,
+                    "closed_at": (
+                        row["closed_at"].isoformat() if row["closed_at"] else None
+                    ),
                 }
                 for row in rows
             ]

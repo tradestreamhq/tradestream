@@ -37,9 +37,7 @@ def _get_current_price(symbol: str, market_mcp_url: str) -> Optional[float]:
     return None
 
 
-def _fetch_current_prices(
-    symbols: list, market_mcp_url: str
-) -> dict:
+def _fetch_current_prices(symbols: list, market_mcp_url: str) -> dict:
     """Fetch current prices for a list of symbols."""
     prices = {}
     for symbol in symbols:
@@ -110,40 +108,42 @@ def create_app(
         """Get full portfolio state including positions, balance, and risk."""
         try:
             state = _build_state()
-            return jsonify({
-                "balance": {
-                    "total_equity": state.balance.total_equity,
-                    "available_cash": state.balance.available_cash,
-                    "buying_power": state.balance.buying_power,
-                    "margin_used": state.balance.margin_used,
-                    "margin_available": state.balance.margin_available,
-                    "unrealized_pnl": state.balance.unrealized_pnl,
-                    "realized_pnl_today": state.balance.realized_pnl_today,
-                },
-                "positions": [
-                    {
-                        "symbol": p.symbol,
-                        "side": p.side,
-                        "quantity": p.quantity,
-                        "entry_price": p.entry_price,
-                        "current_price": p.current_price,
-                        "unrealized_pnl": p.unrealized_pnl,
-                        "unrealized_pnl_percent": p.unrealized_pnl_percent,
-                        "opened_at": p.opened_at,
-                    }
-                    for p in state.positions
-                ],
-                "risk_metrics": {
-                    "portfolio_heat": state.risk_metrics.portfolio_heat,
-                    "max_position_pct": state.risk_metrics.max_position_pct,
-                    "max_position_symbol": state.risk_metrics.max_position_symbol,
-                    "num_open_positions": state.risk_metrics.num_open_positions,
-                    "sector_exposure": state.risk_metrics.sector_exposure,
-                    "daily_drawdown": state.risk_metrics.daily_drawdown,
-                },
-                "recent_trades": state.recent_trades,
-                "as_of": state.as_of,
-            })
+            return jsonify(
+                {
+                    "balance": {
+                        "total_equity": state.balance.total_equity,
+                        "available_cash": state.balance.available_cash,
+                        "buying_power": state.balance.buying_power,
+                        "margin_used": state.balance.margin_used,
+                        "margin_available": state.balance.margin_available,
+                        "unrealized_pnl": state.balance.unrealized_pnl,
+                        "realized_pnl_today": state.balance.realized_pnl_today,
+                    },
+                    "positions": [
+                        {
+                            "symbol": p.symbol,
+                            "side": p.side,
+                            "quantity": p.quantity,
+                            "entry_price": p.entry_price,
+                            "current_price": p.current_price,
+                            "unrealized_pnl": p.unrealized_pnl,
+                            "unrealized_pnl_percent": p.unrealized_pnl_percent,
+                            "opened_at": p.opened_at,
+                        }
+                        for p in state.positions
+                    ],
+                    "risk_metrics": {
+                        "portfolio_heat": state.risk_metrics.portfolio_heat,
+                        "max_position_pct": state.risk_metrics.max_position_pct,
+                        "max_position_symbol": state.risk_metrics.max_position_symbol,
+                        "num_open_positions": state.risk_metrics.num_open_positions,
+                        "sector_exposure": state.risk_metrics.sector_exposure,
+                        "daily_drawdown": state.risk_metrics.daily_drawdown,
+                    },
+                    "recent_trades": state.recent_trades,
+                    "as_of": state.as_of,
+                }
+            )
         except Exception as e:
             logging.error("Failed to get portfolio state: %s", e)
             return jsonify({"error": str(e)}), 500
@@ -169,22 +169,24 @@ def create_app(
             current_prices = _fetch_current_prices(symbols, market_mcp_url)
             positions = compute_positions(portfolio_rows, open_trades, current_prices)
 
-            return jsonify({
-                "positions": [
-                    {
-                        "symbol": p.symbol,
-                        "side": p.side,
-                        "quantity": p.quantity,
-                        "entry_price": p.entry_price,
-                        "current_price": p.current_price,
-                        "unrealized_pnl": p.unrealized_pnl,
-                        "unrealized_pnl_percent": p.unrealized_pnl_percent,
-                        "opened_at": p.opened_at,
-                    }
-                    for p in positions
-                ],
-                "count": len(positions),
-            })
+            return jsonify(
+                {
+                    "positions": [
+                        {
+                            "symbol": p.symbol,
+                            "side": p.side,
+                            "quantity": p.quantity,
+                            "entry_price": p.entry_price,
+                            "current_price": p.current_price,
+                            "unrealized_pnl": p.unrealized_pnl,
+                            "unrealized_pnl_percent": p.unrealized_pnl_percent,
+                            "opened_at": p.opened_at,
+                        }
+                        for p in positions
+                    ],
+                    "count": len(positions),
+                }
+            )
         except Exception as e:
             logging.error("Failed to get positions: %s", e)
             return jsonify({"error": str(e)}), 500
@@ -195,16 +197,18 @@ def create_app(
         try:
             state = _build_state()
             r = state.risk_metrics
-            return jsonify({
-                "portfolio_heat": r.portfolio_heat,
-                "max_position_pct": r.max_position_pct,
-                "max_position_symbol": r.max_position_symbol,
-                "num_open_positions": r.num_open_positions,
-                "sector_exposure": r.sector_exposure,
-                "daily_drawdown": r.daily_drawdown,
-                "total_equity": state.balance.total_equity,
-                "margin_used": state.balance.margin_used,
-            })
+            return jsonify(
+                {
+                    "portfolio_heat": r.portfolio_heat,
+                    "max_position_pct": r.max_position_pct,
+                    "max_position_symbol": r.max_position_symbol,
+                    "num_open_positions": r.num_open_positions,
+                    "sector_exposure": r.sector_exposure,
+                    "daily_drawdown": r.daily_drawdown,
+                    "total_equity": state.balance.total_equity,
+                    "margin_used": state.balance.margin_used,
+                }
+            )
         except Exception as e:
             logging.error("Failed to get risk metrics: %s", e)
             return jsonify({"error": str(e)}), 500
@@ -231,7 +235,10 @@ def create_app(
         price = data.get("price")
 
         if not all([action, symbol, quantity, price]):
-            return jsonify({"error": "action, symbol, quantity, and price are required"}), 400
+            return (
+                jsonify({"error": "action, symbol, quantity, and price are required"}),
+                400,
+            )
 
         try:
             state = _build_state()

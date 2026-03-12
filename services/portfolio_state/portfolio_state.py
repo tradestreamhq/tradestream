@@ -79,7 +79,11 @@ def compute_positions(
         current_price = current_prices.get(symbol, entry_price)
 
         unrealized_pnl = qty * (current_price - entry_price)
-        pnl_pct = ((current_price - entry_price) / entry_price * 100) if entry_price > 0 else 0.0
+        pnl_pct = (
+            ((current_price - entry_price) / entry_price * 100)
+            if entry_price > 0
+            else 0.0
+        )
 
         trade_info = trades_by_symbol.get(symbol, {})
         side = trade_info.get("side", "BUY")
@@ -89,7 +93,11 @@ def compute_positions(
         # For SHORT positions, P&L is inverted
         if side == "SELL":
             unrealized_pnl = qty * (entry_price - current_price)
-            pnl_pct = ((entry_price - current_price) / entry_price * 100) if entry_price > 0 else 0.0
+            pnl_pct = (
+                ((entry_price - current_price) / entry_price * 100)
+                if entry_price > 0
+                else 0.0
+            )
 
         positions.append(
             Position(
@@ -176,7 +184,20 @@ def compute_risk_metrics(
 
 def _classify_sector(symbol: str) -> str:
     """Classify a symbol into a broad sector."""
-    crypto_symbols = {"BTC", "ETH", "SOL", "ADA", "DOT", "AVAX", "MATIC", "LINK", "UNI", "DOGE", "XRP", "BNB"}
+    crypto_symbols = {
+        "BTC",
+        "ETH",
+        "SOL",
+        "ADA",
+        "DOT",
+        "AVAX",
+        "MATIC",
+        "LINK",
+        "UNI",
+        "DOGE",
+        "XRP",
+        "BNB",
+    }
     base = symbol.split("-")[0].split("/")[0].upper()
     if base in crypto_symbols:
         return "Crypto"
@@ -206,12 +227,16 @@ def format_portfolio_context(state: PortfolioState) -> str:
     # Account section
     b = state.balance
     pnl_sign = "+" if b.realized_pnl_today >= 0 else ""
-    pnl_pct = (b.realized_pnl_today / b.total_equity * 100) if b.total_equity > 0 else 0.0
+    pnl_pct = (
+        (b.realized_pnl_today / b.total_equity * 100) if b.total_equity > 0 else 0.0
+    )
     lines.append("Account:")
     lines.append(f"- Balance: ${b.total_equity:,.2f}")
     lines.append(f"- Available to trade: ${b.buying_power:,.2f}")
     lines.append(f"- Margin used: ${b.margin_used:,.2f}")
-    lines.append(f"- Today's P&L: {pnl_sign}${b.realized_pnl_today:,.2f} ({pnl_sign}{pnl_pct:.1f}%)")
+    lines.append(
+        f"- Today's P&L: {pnl_sign}${b.realized_pnl_today:,.2f} ({pnl_sign}{pnl_pct:.1f}%)"
+    )
     lines.append(f"- Unrealized P&L: ${b.unrealized_pnl:,.2f}")
     lines.append("")
 
@@ -236,7 +261,9 @@ def format_portfolio_context(state: PortfolioState) -> str:
     lines.append("Risk Status:")
     lines.append(f"- Portfolio heat: {r.portfolio_heat:.1f}%")
     if r.max_position_symbol:
-        lines.append(f"- Largest position: {r.max_position_symbol} at {r.max_position_pct:.1f}% of portfolio")
+        lines.append(
+            f"- Largest position: {r.max_position_symbol} at {r.max_position_pct:.1f}% of portfolio"
+        )
     if r.sector_exposure:
         exposure_parts = [f"{k}: {v:.1f}%" for k, v in r.sector_exposure.items()]
         lines.append(f"- Sector exposure: {', '.join(exposure_parts)}")
