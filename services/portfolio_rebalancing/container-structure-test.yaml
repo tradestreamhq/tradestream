@@ -1,0 +1,9 @@
+schemaVersion: "2.0.0"
+fileExistenceTests:
+  - name: "app binary exists"
+    path: /services/portfolio_rebalancing/app
+    shouldExist: true
+metadataTest:
+  user: "nobody"
+  workdir: /services/portfolio_rebalancing
+  entrypoint: ["/services/portfolio_rebalancing/app"]
