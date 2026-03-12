@@ -2,6 +2,15 @@
 
 Subscribes to Redis Pub/Sub signal channels and forwards
 high-confidence signals to configured messaging platforms.
+
+Supports multiple delivery channels:
+  - Telegram bot
+  - Discord webhook
+  - Slack incoming webhook
+  - Generic HTTP webhook (with HMAC signing)
+  - Email (SMTP)
+
+Tracks notification delivery history in Redis.
 """
 
 import json
@@ -13,7 +22,11 @@ from absl import app, flags, logging
 
 from services.notification_service.config import get_config
 from services.notification_service.discord_sender import DiscordSender
+from services.notification_service.email_sender import EmailSender
+from services.notification_service.notification_history import NotificationHistory
+from services.notification_service.slack_sender import SlackSender
 from services.notification_service.telegram_sender import TelegramSender
+from services.notification_service.webhook_sender import WebhookSender
 from services.shared.structured_logger import StructuredLogger
 
 FLAGS = flags.FLAGS
@@ -44,6 +57,57 @@ def _passes_filter(signal_data: dict, min_score: float, tiers: list[str]) -> boo
     return True
 
 
+def _build_senders(config: dict) -> list[tuple[str, object]]:
+    """Build sender instances from configuration.
+
+    Returns a list of (channel_name, sender) tuples.
+    """
+    senders = []
+
+    if config["telegram_bot_token"] and config["telegram_chat_id"]:
+        senders.append(
+            ("telegram", TelegramSender(config["telegram_bot_token"], config["telegram_chat_id"]))
+        )
+        _log.info("Telegram sender enabled.")
+
+    if config["discord_webhook_url"]:
+        senders.append(("discord", DiscordSender(config["discord_webhook_url"])))
+        _log.info("Discord sender enabled.")
+
+    if config["slack_webhook_url"]:
+        senders.append(("slack", SlackSender(config["slack_webhook_url"])))
+        _log.info("Slack sender enabled.")
+
+    if config["webhook_url"]:
+        senders.append(
+            (
+                "webhook",
+                WebhookSender(config["webhook_url"], config["webhook_signing_secret"]),
+            )
+        )
+        _log.info("Webhook sender enabled.")
+
+    if config["email_smtp_host"] and config["email_to"]:
+        to_addrs = [a.strip() for a in config["email_to"].split(",") if a.strip()]
+        senders.append(
+            (
+                "email",
+                EmailSender(
+                    smtp_host=config["email_smtp_host"],
+                    smtp_port=config["email_smtp_port"],
+                    username=config["email_username"],
+                    password=config["email_password"],
+                    from_addr=config["email_from"],
+                    to_addrs=to_addrs,
+                    use_tls=config["email_use_tls"],
+                ),
+            )
+        )
+        _log.info("Email sender enabled.")
+
+    return senders
+
+
 def main(argv):
     del argv
     logging.set_verbosity(logging.INFO)
@@ -60,21 +124,7 @@ def main(argv):
     min_score = config["min_score"]
     tiers = [t.strip() for t in config["tiers"].split(",") if t.strip()]
 
-    senders = []
-
-    if config["telegram_bot_token"] and config["telegram_chat_id"]:
-        senders.append(
-            TelegramSender(config["telegram_bot_token"], config["telegram_chat_id"])
-        )
-        _log.info("Telegram sender enabled.")
-    else:
-        _log.info("Telegram not configured, skipping.")
-
-    if config["discord_webhook_url"]:
-        senders.append(DiscordSender(config["discord_webhook_url"]))
-        _log.info("Discord sender enabled.")
-    else:
-        _log.info("Discord not configured, skipping.")
+    senders = _build_senders(config)
 
     if not senders:
         _log.warning("No notification channels configured. Exiting.")
@@ -97,13 +147,19 @@ def main(argv):
     client.ping()
     _log.info("Connected to Redis.")
 
+    history = NotificationHistory(client) if config["enable_history"] else None
+
     pubsub = client.pubsub()
     if "signals:*" in channels:
         pubsub.psubscribe("signals:*")
     else:
         pubsub.subscribe(*channels)
 
-    _log.info("Notification service started. Listening for signals.")
+    _log.info(
+        "Notification service started. Listening for signals.",
+        channels_count=len(senders),
+        history_enabled=config["enable_history"],
+    )
 
     while not _shutdown:
         message = pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
@@ -120,31 +176,47 @@ def main(argv):
             _log.warning("Failed to parse signal JSON", raw=data[:200])
             continue
 
+        signal_id = signal_data.get("signal_id", "unknown")
+
         if not _passes_filter(signal_data, min_score, tiers):
             _log.info(
                 "Signal filtered out",
+                signal_id=signal_id,
                 action=signal_data.get("action"),
                 symbol=signal_data.get("symbol"),
                 confidence=signal_data.get("confidence", 0),
             )
+            if history:
+                reason = f"confidence={signal_data.get('confidence', 0)} < {min_score}"
+                history.record_filtered(signal_id, reason, signal_data)
             continue
 
         _log.info(
             "Forwarding signal",
+            signal_id=signal_id,
             action=signal_data.get("action"),
             symbol=signal_data.get("symbol"),
             confidence=signal_data.get("confidence", 0),
+            channels=[name for name, _ in senders],
         )
 
-        for sender in senders:
+        for channel_name, sender in senders:
             try:
-                sender.send_signal(signal_data)
+                success = sender.send_signal(signal_data)
+                if history:
+                    history.record_delivery(
+                        signal_id, channel_name, success, signal_data
+                    )
             except Exception as e:
                 _log.error(
                     "Sender failed",
-                    sender=type(sender).__name__,
+                    sender=channel_name,
                     error=str(e),
                 )
+                if history:
+                    history.record_delivery(
+                        signal_id, channel_name, False, signal_data, error=str(e)
+                    )
 
     pubsub.close()
     client.close()
