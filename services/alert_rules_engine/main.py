@@ -157,14 +157,15 @@ def create_api(rule_store: RuleStore, engine: AlertEngine) -> Flask:
     def trigger_evaluation():
         """Manually trigger an evaluation cycle."""
         events = engine.evaluate_all()
-        return jsonify({
-            "evaluated": True,
-            "alerts_fired": len(events),
-            "events": [
-                {"rule_name": e.rule_name, "message": e.message}
-                for e in events
-            ],
-        })
+        return jsonify(
+            {
+                "evaluated": True,
+                "alerts_fired": len(events),
+                "events": [
+                    {"rule_name": e.rule_name, "message": e.message} for e in events
+                ],
+            }
+        )
 
     return flask_app
 

@@ -13,7 +13,9 @@ from services.shared.structured_logger import StructuredLogger
 _log = StructuredLogger(service_name="alert_rules_engine")
 
 
-def dispatch_action(action_type: str, action_params: dict, alert_message: str, context: dict) -> bool:
+def dispatch_action(
+    action_type: str, action_params: dict, alert_message: str, context: dict
+) -> bool:
     """Dispatch an alert through the specified action channel.
 
     Returns True if the action was delivered successfully.

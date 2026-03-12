@@ -30,7 +30,9 @@ def evaluate_condition(
     evaluator = _EVALUATORS.get(condition.condition_type)
     if evaluator is None:
         return False, f"Unknown condition type: {condition.condition_type}", {}
-    return evaluator(condition.params, market_data, portfolio_data, signal_data, regime_data)
+    return evaluator(
+        condition.params, market_data, portfolio_data, signal_data, regime_data
+    )
 
 
 def _eval_price_above(params, market_data, portfolio_data, signal_data, regime_data):
@@ -55,7 +57,9 @@ def _eval_price_below(params, market_data, portfolio_data, signal_data, regime_d
     return False, "", {}
 
 
-def _eval_drawdown_exceeds(params, market_data, portfolio_data, signal_data, regime_data):
+def _eval_drawdown_exceeds(
+    params, market_data, portfolio_data, signal_data, regime_data
+):
     threshold = float(params.get("threshold", 0))
     drawdown = float(portfolio_data.get("daily_drawdown", 0))
     if drawdown > threshold:
@@ -66,7 +70,9 @@ def _eval_drawdown_exceeds(params, market_data, portfolio_data, signal_data, reg
     return False, "", {}
 
 
-def _eval_portfolio_heat_exceeds(params, market_data, portfolio_data, signal_data, regime_data):
+def _eval_portfolio_heat_exceeds(
+    params, market_data, portfolio_data, signal_data, regime_data
+):
     threshold = float(params.get("threshold", 0))
     heat = float(portfolio_data.get("portfolio_heat", 0))
     if heat > threshold:
@@ -96,11 +102,15 @@ def _eval_signal_match(params, market_data, portfolio_data, signal_data, regime_
         return False, "", {}
 
     msg = f"Signal matched: {signal_action} {signal_symbol} (confidence {signal_confidence:.0%})"
-    return True, msg, {
-        "signal_symbol": signal_symbol,
-        "signal_action": signal_action,
-        "signal_confidence": signal_confidence,
-    }
+    return (
+        True,
+        msg,
+        {
+            "signal_symbol": signal_symbol,
+            "signal_action": signal_action,
+            "signal_confidence": signal_confidence,
+        },
+    )
 
 
 def _eval_regime_change(params, market_data, portfolio_data, signal_data, regime_data):
@@ -119,10 +129,14 @@ def _eval_regime_change(params, market_data, portfolio_data, signal_data, regime
         return False, "", {}
 
     msg = f"Market regime changed from '{previous}' to '{current}'"
-    return True, msg, {
-        "previous_regime": previous,
-        "current_regime": current,
-    }
+    return (
+        True,
+        msg,
+        {
+            "previous_regime": previous,
+            "current_regime": current,
+        },
+    )
 
 
 _EVALUATORS = {
