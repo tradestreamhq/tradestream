@@ -7,19 +7,16 @@ import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 
 final class BarSeriesBuilder {
   private static Duration ONE_MINUTE = Duration.ofMinutes(1);
-  private static ZoneId UTC = ZoneId.of("UTC");
 
   public static BarSeries createBarSeries(ImmutableList<Candle> candles) {
-    BaseBarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
 
     candles.stream().map(BarSeriesBuilder::createBar).forEach(series::addBar);
 
@@ -27,20 +24,23 @@ final class BarSeriesBuilder {
   }
 
   private static Bar createBar(Candle candle) {
-    ZonedDateTime dateTime = getZonedDateTime(candle);
-    return BaseBar.builder()
-        .timePeriod(ONE_MINUTE)
-        .endTime(dateTime.plus(ONE_MINUTE))
-        .openPrice(valueOf(candle.getOpen()))
-        .highPrice(valueOf(candle.getHigh()))
-        .lowPrice(valueOf(candle.getLow()))
-        .closePrice(valueOf(candle.getClose()))
-        .volume(valueOf(candle.getVolume()))
-        .build();
+    Instant endTime = getInstant(candle).plus(ONE_MINUTE);
+    Instant beginTime = getInstant(candle);
+    return new BaseBar(
+        ONE_MINUTE,
+        beginTime,
+        endTime,
+        valueOf(candle.getOpen()),
+        valueOf(candle.getHigh()),
+        valueOf(candle.getLow()),
+        valueOf(candle.getClose()),
+        valueOf(candle.getVolume()),
+        valueOf(0),
+        0);
   }
 
-  private static ZonedDateTime getZonedDateTime(Candle candle) {
+  private static Instant getInstant(Candle candle) {
     long epochMillis = Timestamps.toMillis(candle.getTimestamp());
-    return Instant.ofEpochMilli(epochMillis).atZone(UTC);
+    return Instant.ofEpochMilli(epochMillis);
   }
 }

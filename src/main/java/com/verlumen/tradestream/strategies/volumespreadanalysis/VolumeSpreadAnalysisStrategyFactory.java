@@ -5,7 +5,7 @@ import com.verlumen.tradestream.strategies.VolumeSpreadAnalysisParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
@@ -72,7 +72,7 @@ public final class VolumeSpreadAnalysisStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index == 0) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
       Num currentClose = closePrice.getValue(index);
       Num currentHigh = highPrice.getValue(index);
@@ -94,7 +94,7 @@ public final class VolumeSpreadAnalysisStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }

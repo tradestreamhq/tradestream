@@ -9,9 +9,9 @@ import org.ta4j.core.BarSeries
 import org.ta4j.core.BaseTradingRecord
 import org.ta4j.core.Strategy
 import org.ta4j.core.TradingRecord
-import org.ta4j.core.criteria.pnl.ProfitLossCriterion
-import org.ta4j.core.criteria.pnl.ProfitLossRatioCriterion
-import org.ta4j.core.criteria.pnl.ReturnCriterion
+import org.ta4j.core.criteria.pnl.GrossProfitLossCriterion
+import org.ta4j.core.criteria.pnl.GrossProfitLossRatioCriterion
+import org.ta4j.core.criteria.pnl.GrossReturnCriterion
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -50,8 +50,8 @@ class BacktestRunnerImpl
             val tradingRecord = runStrategy(series, strategy)
 
             // Calculate basic metrics
-            val cumulativeReturn = calculateMetric(series, tradingRecord, ProfitLossCriterion())
-            val profitFactor = calculateMetric(series, tradingRecord, ProfitLossRatioCriterion())
+            val cumulativeReturn = calculateMetric(series, tradingRecord, GrossProfitLossCriterion())
+            val profitFactor = calculateMetric(series, tradingRecord, GrossProfitLossRatioCriterion())
             val annualizedReturn = calculateAnnualizedReturn(series, tradingRecord)
 
             // Calculate risk metrics
@@ -101,9 +101,9 @@ class BacktestRunnerImpl
             for (i in strategy.unstableBars until series.barCount) {
                 if (strategy.shouldEnter(i)) {
                     // Enter with a position size of 1 unit
-                    tradingRecord.enter(i, series.getBar(i).closePrice, series.numOf(1))
+                    tradingRecord.enter(i, series.getBar(i).closePrice, series.numFactory().one())
                 } else if (strategy.shouldExit(i) && tradingRecord.currentPosition.isOpened) {
-                    tradingRecord.exit(i, series.getBar(i).closePrice, series.numOf(1))
+                    tradingRecord.exit(i, series.getBar(i).closePrice, series.numFactory().one())
                 }
             }
 
@@ -190,7 +190,7 @@ class BacktestRunnerImpl
             series: BarSeries,
             record: TradingRecord,
         ): Double {
-            val totalReturn = calculateMetric(series, record, ReturnCriterion())
+            val totalReturn = calculateMetric(series, record, GrossReturnCriterion())
             val barsPerYear = 252 * 1440 // Assuming 1-minute bars and 252 trading days
             val years = series.barCount.toDouble() / barsPerYear
 
@@ -231,7 +231,7 @@ class BacktestRunnerImpl
                 )
 
             // Calculate Sortino ratio using total return
-            val totalReturn = calculateMetric(series, record, ReturnCriterion())
+            val totalReturn = calculateMetric(series, record, GrossReturnCriterion())
             val riskFreeRate = 0.02 // Assume 2% risk-free rate
 
             return if (downsideDeviation == 0.0) 0.0 else (totalReturn - riskFreeRate) / downsideDeviation

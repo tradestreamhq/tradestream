@@ -8,7 +8,7 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
@@ -30,11 +30,11 @@ public final class RsiEmaCrossoverStrategyFactory
 
     // Entry rule: RSI crosses above its EMA AND RSI is not overbought (< 70)
     Rule entryRule =
-        new CrossedUpIndicatorRule(rsi, rsiEma).and(new UnderIndicatorRule(rsi, series.numOf(70)));
+        new CrossedUpIndicatorRule(rsi, rsiEma).and(new UnderIndicatorRule(rsi, series.numFactory().numOf(70)));
 
     // Exit rule: RSI crosses below its EMA AND RSI is not oversold (> 30)
     Rule exitRule =
-        new CrossedDownIndicatorRule(rsi, rsiEma).and(new OverIndicatorRule(rsi, series.numOf(30)));
+        new CrossedDownIndicatorRule(rsi, rsiEma).and(new OverIndicatorRule(rsi, series.numFactory().numOf(30)));
 
     return new BaseStrategy(
         String.format(

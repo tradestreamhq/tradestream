@@ -9,7 +9,7 @@ import com.verlumen.tradestream.ta4j.MomentumIndicator;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
@@ -32,12 +32,12 @@ public final class MomentumSmaCrossoverStrategyFactory
 
     // Entry rule - First check if momentum is positive, then check for crossover
     var entryRule =
-        new OverIndicatorRule(momentumIndicator, series.numOf(0))
+        new OverIndicatorRule(momentumIndicator, series.numFactory().numOf(0))
             .and(new CrossedUpIndicatorRule(momentumIndicator, smaIndicator));
 
     // Exit rule - First check if momentum is negative, then check for crossover
     var exitRule =
-        new UnderIndicatorRule(momentumIndicator, series.numOf(0))
+        new UnderIndicatorRule(momentumIndicator, series.numFactory().numOf(0))
             .and(new CrossedDownIndicatorRule(momentumIndicator, smaIndicator));
 
     String strategyName =

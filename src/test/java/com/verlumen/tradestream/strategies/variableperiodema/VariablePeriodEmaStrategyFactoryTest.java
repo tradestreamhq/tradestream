@@ -12,6 +12,7 @@ import org.junit.runners.JUnit4;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
@@ -33,7 +34,7 @@ public final class VariablePeriodEmaStrategyFactoryTest {
 
   @Test
   public void createStrategy_returnsNonNull() throws Exception {
-    BarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
     for (int i = 0; i < 50; i++) {
       series.addBar(
           new BaseBar(

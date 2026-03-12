@@ -5,15 +5,18 @@ import static com.google.common.truth.Truth.assertThat;
 import com.verlumen.tradestream.strategies.RviParameters;
 import com.verlumen.tradestream.ta4j.RviIndicator;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import org.ta4j.core.num.DecimalNum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
@@ -43,7 +46,7 @@ public class RviStrategyFactoryTest {
     // Standard parameters
     params = RviParameters.newBuilder().setPeriod(RVI_PERIOD).build();
     // Initialize series
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
     // Phase 1: Create bearish/neutral conditions (bars 0-14)
     // This will create negative or near-zero RVI values
@@ -221,14 +224,20 @@ public class RviStrategyFactoryTest {
   /** Helper for creating a Bar with specific OHLC prices. */
   private BaseBar createBar(
       ZonedDateTime time, double open, double high, double low, double close) {
+    Duration duration = Duration.ofMinutes(1);
+    Instant endTime = time.toInstant();
+    Instant beginTime = endTime.minus(duration);
     return new BaseBar(
-        Duration.ofMinutes(1),
-        time,
-        open, // open
-        high, // high
-        low, // low
-        close, // close
-        100.0 // volume
+        duration,
+        beginTime,
+        endTime,
+        DecimalNum.valueOf(open), // open
+        DecimalNum.valueOf(high), // high
+        DecimalNum.valueOf(low), // low
+        DecimalNum.valueOf(close), // close
+        DecimalNum.valueOf(100.0), // volume
+        DecimalNum.valueOf(0), // amount
+        0 // trades
         );
   }
 }

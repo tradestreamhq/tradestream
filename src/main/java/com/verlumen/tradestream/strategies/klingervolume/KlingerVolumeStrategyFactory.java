@@ -5,7 +5,7 @@ import com.verlumen.tradestream.strategies.StrategyFactory;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
@@ -95,23 +95,23 @@ public final class KlingerVolumeStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index < Math.max(shortPeriod, longPeriod)) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       // Calculate trend direction
-      Num trend = numOf(0);
+      Num trend = getBarSeries().numFactory().numOf(0);
       if (index > 0) {
         Num currentClose = closePrice.getValue(index);
         Num previousClose = closePrice.getValue(index - 1);
         if (currentClose.isGreaterThan(previousClose)) {
-          trend = numOf(1); // Upward trend
+          trend = getBarSeries().numFactory().numOf(1); // Upward trend
         } else if (currentClose.isLessThan(previousClose)) {
-          trend = numOf(-1); // Downward trend
+          trend = getBarSeries().numFactory().numOf(-1); // Downward trend
         }
       }
 
       // Calculate daily force
-      Num dailyForce = numOf(0);
+      Num dailyForce = getBarSeries().numFactory().numOf(0);
       if (index > 0) {
         Num high = highPrice.getValue(index);
         Num low = lowPrice.getValue(index);
@@ -123,10 +123,10 @@ public final class KlingerVolumeStrategyFactory
         Num priceChange = close.minus(prevClose);
 
         // Daily force calculation
-        if (trend.isGreaterThan(numOf(0))) {
+        if (trend.isGreaterThan(getBarSeries().numFactory().numOf(0))) {
           dailyForce = vol.multipliedBy(priceChange).dividedBy(range);
-        } else if (trend.isLessThan(numOf(0))) {
-          dailyForce = vol.multipliedBy(numOf(0).minus(priceChange)).dividedBy(range);
+        } else if (trend.isLessThan(getBarSeries().numFactory().numOf(0))) {
+          dailyForce = vol.multipliedBy(getBarSeries().numFactory().numOf(0).minus(priceChange)).dividedBy(range);
         }
       }
 
@@ -142,14 +142,14 @@ public final class KlingerVolumeStrategyFactory
         return value;
       }
 
-      Num multiplier = numOf(2.0 / (period + 1));
+      Num multiplier = getBarSeries().numFactory().numOf(2.0 / (period + 1));
       Num prevEMA = getValue(index - 1);
 
-      return value.multipliedBy(multiplier).plus(prevEMA.multipliedBy(numOf(1).minus(multiplier)));
+      return value.multipliedBy(multiplier).plus(prevEMA.multipliedBy(getBarSeries().numFactory().numOf(1).minus(multiplier)));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return Math.max(shortPeriod, longPeriod);
     }
   }

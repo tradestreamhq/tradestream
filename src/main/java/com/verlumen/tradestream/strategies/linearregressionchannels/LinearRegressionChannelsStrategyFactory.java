@@ -74,7 +74,7 @@ public final class LinearRegressionChannelsStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
 
@@ -88,7 +88,7 @@ public final class LinearRegressionChannelsStrategyFactory
 
     private Num calculateLinearRegression(int index) {
       if (index < period - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       // Calculate linear regression using least squares method
@@ -111,7 +111,7 @@ public final class LinearRegressionChannelsStrategyFactory
 
       // Calculate the value at the current position
       double x = period - 1;
-      return numOf(slope * x + intercept);
+      return getBarSeries().numFactory().numOf(slope * x + intercept);
     }
   }
 
@@ -130,7 +130,7 @@ public final class LinearRegressionChannelsStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index < period - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       // Calculate standard deviation of residuals
@@ -169,11 +169,11 @@ public final class LinearRegressionChannelsStrategyFactory
       // Calculate upper channel
       double x = period - 1;
       double middleLine = slope * x + intercept;
-      return numOf(middleLine + multiplier * stdDev);
+      return getBarSeries().numFactory().numOf(middleLine + multiplier * stdDev);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }
@@ -193,7 +193,7 @@ public final class LinearRegressionChannelsStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index < period - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       // Calculate standard deviation of residuals
@@ -232,11 +232,11 @@ public final class LinearRegressionChannelsStrategyFactory
       // Calculate lower channel
       double x = period - 1;
       double middleLine = slope * x + intercept;
-      return numOf(middleLine - multiplier * stdDev);
+      return getBarSeries().numFactory().numOf(middleLine - multiplier * stdDev);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }

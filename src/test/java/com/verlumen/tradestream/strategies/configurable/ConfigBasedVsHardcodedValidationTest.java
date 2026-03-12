@@ -10,7 +10,9 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeriesBuilder;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.Strategy;
 
 /**
@@ -40,8 +42,7 @@ public class ConfigBasedVsHardcodedValidationTest {
       double close = price;
       long volume = 1000 + (long) (Math.random() * 500);
 
-      testSeries.addBar(
-          java.time.ZonedDateTime.now().plusMinutes(i), open, high, low, close, volume);
+      testSeries.addBar(new BaseBar(java.time.Duration.ofMinutes(1), java.time.ZonedDateTime.now().plusMinutes(i).toInstant().minus(java.time.Duration.ofMinutes(1)), java.time.ZonedDateTime.now().plusMinutes(i).toInstant(), DecimalNum.valueOf(open), DecimalNum.valueOf(high), DecimalNum.valueOf(low), DecimalNum.valueOf(close), DecimalNum.valueOf(volume), DecimalNum.valueOf(0), 0));
     }
   }
 

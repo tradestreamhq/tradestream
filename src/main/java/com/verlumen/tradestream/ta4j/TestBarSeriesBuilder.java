@@ -28,6 +28,7 @@ public final class TestBarSeriesBuilder {
   public static Bar createBar(ZonedDateTime time, double price) {
     return new BaseBar(
         Duration.ofMinutes(1),
+        time.toInstant().minus(Duration.ofMinutes(1)),
         time.toInstant(),
         valueOf(price), // open
         valueOf(price), // high
@@ -44,6 +45,7 @@ public final class TestBarSeriesBuilder {
       ZonedDateTime time, double open, double high, double low, double close, double volume) {
     return new BaseBar(
         Duration.ofMinutes(1),
+        time.toInstant().minus(Duration.ofMinutes(1)),
         time.toInstant(),
         valueOf(open),
         valueOf(high),

@@ -5,16 +5,19 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import org.ta4j.core.num.DecimalNum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
 @RunWith(JUnit4.class)
@@ -42,7 +45,7 @@ public class SmaEmaCrossoverStrategyFactoryTest {
             .build();
 
     // Initialize series
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
     // ---------------------------------------------------------------------
@@ -125,14 +128,20 @@ public class SmaEmaCrossoverStrategyFactoryTest {
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
+    Duration duration = Duration.ofMinutes(1);
+    Instant endTime = time.toInstant();
+    Instant beginTime = endTime.minus(duration);
     return new BaseBar(
-        Duration.ofMinutes(1),
-        time,
-        price, // open
-        price, // high
-        price, // low
-        price, // close
-        100.0 // volume
+        duration,
+        beginTime,
+        endTime,
+        DecimalNum.valueOf(price), // open
+        DecimalNum.valueOf(price), // high
+        DecimalNum.valueOf(price), // low
+        DecimalNum.valueOf(price), // close
+        DecimalNum.valueOf(100.0), // volume
+        DecimalNum.valueOf(0), // amount
+        0 // trades
         );
   }
 }

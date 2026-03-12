@@ -8,7 +8,9 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeriesBuilder;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.Strategy;
 
 /**
@@ -27,14 +29,7 @@ public class ConfigurableStrategyFactoryTest {
     // Add 100 bars of synthetic data
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 10;
-      testSeries.addBar(
-          java.time.ZonedDateTime.now().plusMinutes(i),
-          price - 1, // open
-          price + 2, // high
-          price - 2, // low
-          price, // close
-          1000 + i // volume
-          );
+      testSeries.addBar(new BaseBar(java.time.Duration.ofMinutes(1), java.time.ZonedDateTime.now().plusMinutes(i).toInstant().minus(java.time.Duration.ofMinutes(1)), java.time.ZonedDateTime.now().plusMinutes(i).toInstant(), DecimalNum.valueOf(price - 1), DecimalNum.valueOf(price + 2), DecimalNum.valueOf(price - 2), DecimalNum.valueOf(price), DecimalNum.valueOf(1000 + i), DecimalNum.valueOf(0), 0));
     }
   }
 

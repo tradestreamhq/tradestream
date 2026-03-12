@@ -36,11 +36,11 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
 
     Rule entryRule =
         new CrossedUpIndicatorRule(aroonUp, aroonDown)
-            .and(new UnderIndicatorRule(mfi, series.numOf(params.getOversoldThreshold())));
+            .and(new UnderIndicatorRule(mfi, series.numFactory().numOf(params.getOversoldThreshold())));
 
     Rule exitRule =
         new OverIndicatorRule(aroonUp, aroonDown)
-            .and(new OverIndicatorRule(mfi, series.numOf(params.getOverboughtThreshold())));
+            .and(new OverIndicatorRule(mfi, series.numFactory().numOf(params.getOverboughtThreshold())));
 
     return new BaseStrategy(
         String.format(
@@ -75,7 +75,7 @@ class AroonUpIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < timeFrame - 1) {
-      return numOf(0);
+      return getBarSeries().numFactory().numOf(0);
     }
 
     int highestIndex = index - timeFrame + 1;
@@ -93,11 +93,11 @@ class AroonUpIndicator extends CachedIndicator<Num> {
     // Calculate periods since highest high
     int periodsSinceHigh = index - highestIndex;
     // Aroon Up = ((timeFrame - periods since highest high) / timeFrame) * 100
-    return numOf(timeFrame - periodsSinceHigh).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
+    return getBarSeries().numFactory().numOf(timeFrame - periodsSinceHigh).dividedBy(getBarSeries().numFactory().numOf(timeFrame)).multipliedBy(getBarSeries().numFactory().numOf(100));
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
     return timeFrame;
   }
 
@@ -121,7 +121,7 @@ class AroonDownIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < timeFrame - 1) {
-      return numOf(0);
+      return getBarSeries().numFactory().numOf(0);
     }
 
     int lowestIndex = index - timeFrame + 1;
@@ -139,11 +139,11 @@ class AroonDownIndicator extends CachedIndicator<Num> {
     // Calculate periods since lowest low
     int periodsSinceLow = index - lowestIndex;
     // Aroon Down = ((timeFrame - periods since lowest low) / timeFrame) * 100
-    return numOf(timeFrame - periodsSinceLow).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
+    return getBarSeries().numFactory().numOf(timeFrame - periodsSinceLow).dividedBy(getBarSeries().numFactory().numOf(timeFrame)).multipliedBy(getBarSeries().numFactory().numOf(100));
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
     return timeFrame;
   }
 
@@ -169,11 +169,11 @@ class MFIIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < timeFrame) {
-      return numOf(50); // Default neutral value for insufficient data
+      return getBarSeries().numFactory().numOf(50); // Default neutral value for insufficient data
     }
 
-    Num positiveFlow = numOf(0);
-    Num negativeFlow = numOf(0);
+    Num positiveFlow = getBarSeries().numFactory().numOf(0);
+    Num negativeFlow = getBarSeries().numFactory().numOf(0);
 
     // Calculate money flow for the specified time frame
     for (int i = index - timeFrame + 1; i <= index; i++) {
@@ -193,23 +193,23 @@ class MFIIndicator extends CachedIndicator<Num> {
 
     // Avoid division by zero
     if (negativeFlow.isZero()) {
-      return numOf(100);
+      return getBarSeries().numFactory().numOf(100);
     }
     if (positiveFlow.isZero()) {
-      return numOf(0);
+      return getBarSeries().numFactory().numOf(0);
     }
 
     // Calculate Money Flow Ratio
     Num moneyFlowRatio = positiveFlow.dividedBy(negativeFlow);
 
     // Calculate Money Flow Index
-    Num mfi = numOf(100).minus(numOf(100).dividedBy(numOf(1).plus(moneyFlowRatio)));
+    Num mfi = getBarSeries().numFactory().numOf(100).minus(getBarSeries().numFactory().numOf(100).dividedBy(getBarSeries().numFactory().numOf(1).plus(moneyFlowRatio)));
 
     return mfi;
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
     return timeFrame;
   }
 

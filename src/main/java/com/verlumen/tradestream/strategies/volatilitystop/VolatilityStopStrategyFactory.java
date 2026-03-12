@@ -38,13 +38,13 @@ public final class VolatilityStopStrategyFactory
     protected Num calculate(int index) {
       Num prevClose = previousClose.getValue(index);
       Num atrValue = atr.getValue(index);
-      Num volatilityOffset = atrValue.multipliedBy(numOf(multiplier));
+      Num volatilityOffset = atrValue.multipliedBy(getBarSeries().numFactory().numOf(multiplier));
       return prevClose.minus(volatilityOffset);
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(previousClose.getUnstableBars(), atr.getUnstableBars());
+    public int getCountOfUnstableBars() {
+      return Math.max(previousClose.getCountOfUnstableBars(), atr.getCountOfUnstableBars());
     }
   }
 

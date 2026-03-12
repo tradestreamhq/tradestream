@@ -26,10 +26,10 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
     ChaikinMoneyFlowIndicator cmf = new ChaikinMoneyFlowIndicator(series, params.getPeriod());
 
     // Entry rule: CMF crosses above zero
-    Rule entryRule = new CrossedUpIndicatorRule(cmf, series.numOf(0));
+    Rule entryRule = new CrossedUpIndicatorRule(cmf, series.numFactory().numOf(0));
 
     // Exit rule: CMF crosses below zero
-    Rule exitRule = new CrossedDownIndicatorRule(cmf, series.numOf(0));
+    Rule exitRule = new CrossedDownIndicatorRule(cmf, series.numFactory().numOf(0));
 
     return new BaseStrategy(
         String.format("%s (Period: %d)", "CMF_ZERO_LINE", params.getPeriod()),
@@ -71,11 +71,11 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
     @Override
     protected Num calculate(int index) {
       if (index < period - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
-      Num sumMoneyFlowVolume = numOf(0);
-      Num sumVolume = numOf(0);
+      Num sumMoneyFlowVolume = getBarSeries().numFactory().numOf(0);
+      Num sumVolume = getBarSeries().numFactory().numOf(0);
 
       // Calculate over the specified period
       for (int i = index - period + 1; i <= index; i++) {
@@ -88,7 +88,7 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
         Num highLow = high.minus(low);
         if (highLow.isZero()) {
           // Avoid division by zero - use 0 as multiplier
-          sumMoneyFlowVolume = sumMoneyFlowVolume.plus(numOf(0));
+          sumMoneyFlowVolume = sumMoneyFlowVolume.plus(getBarSeries().numFactory().numOf(0));
         } else {
           Num closeLow = close.minus(low);
           Num highClose = high.minus(close);
@@ -102,13 +102,13 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
 
       // Calculate CMF
       if (sumVolume.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
       return sumMoneyFlowVolume.dividedBy(sumVolume);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }

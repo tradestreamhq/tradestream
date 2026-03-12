@@ -38,7 +38,7 @@ public final class TickVolumeAnalysisStrategyFactoryTest {
     assertThat(strategy.getName()).isEqualTo("TickVolumeAnalysis");
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
-    assertThat(strategy.getUnstableBars()).isEqualTo(10);
+    assertThat(strategy.getCountOfUnstableBars()).isEqualTo(10);
   }
 
   private BarSeries createTestBarSeries() {

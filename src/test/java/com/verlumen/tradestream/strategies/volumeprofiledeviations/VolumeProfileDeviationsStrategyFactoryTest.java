@@ -6,6 +6,7 @@ import com.verlumen.tradestream.strategies.VolumeProfileDeviationsParameters;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class VolumeProfileDeviationsStrategyFactoryTest {
@@ -23,7 +24,7 @@ public final class VolumeProfileDeviationsStrategyFactoryTest {
 
   @Test
   public void createStrategy_returnsValidStrategy() {
-    BarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
     VolumeProfileDeviationsParameters parameters =
         VolumeProfileDeviationsParameters.newBuilder().setPeriod(30).build();
 

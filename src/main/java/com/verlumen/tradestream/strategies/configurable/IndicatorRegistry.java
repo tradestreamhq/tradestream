@@ -5,6 +5,7 @@ import java.util.Map;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.*;
+import org.ta4j.core.indicators.averages.*;
 import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.adx.MinusDIIndicator;
 import org.ta4j.core.indicators.adx.PlusDIIndicator;
@@ -152,7 +153,7 @@ public final class IndicatorRegistry {
           return new BollingerBandsUpperIndicator(
               new BollingerBandsMiddleIndicator(sma),
               stdDev,
-              series.numOf(params.getDouble("multiplier", 2.0)));
+              series.numFactory().numOf(params.getDouble("multiplier", 2.0)));
         });
 
     registry.register(
@@ -169,7 +170,7 @@ public final class IndicatorRegistry {
           return new BollingerBandsLowerIndicator(
               new BollingerBandsMiddleIndicator(sma),
               stdDev,
-              series.numOf(params.getDouble("multiplier", 2.0)));
+              series.numFactory().numOf(params.getDouble("multiplier", 2.0)));
         });
 
     registry.register(
@@ -281,7 +282,7 @@ public final class IndicatorRegistry {
     registry.register(
         "CONSTANT",
         (series, input, params) ->
-            new ConstantIndicator<>(series, series.numOf(params.getDouble("value"))));
+            new ConstantIndicator<>(series, series.numFactory().numOf(params.getDouble("value"))));
 
     return registry;
   }
@@ -325,31 +326,31 @@ public final class IndicatorRegistry {
     @Override
     protected Num calculate(int index) {
       if (index < Math.max(shortPeriod, longPeriod)) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
-      Num shortEma = numOf(0);
-      Num longEma = numOf(0);
+      Num shortEma = getBarSeries().numFactory().numOf(0);
+      Num longEma = getBarSeries().numFactory().numOf(0);
       double shortMult = 2.0 / (shortPeriod + 1);
       double longMult = 2.0 / (longPeriod + 1);
       for (int i = 1; i <= index; i++) {
         Num force = calculateForce(i);
         shortEma =
-            force.multipliedBy(numOf(shortMult)).plus(shortEma.multipliedBy(numOf(1 - shortMult)));
+            force.multipliedBy(getBarSeries().numFactory().numOf(shortMult)).plus(shortEma.multipliedBy(getBarSeries().numFactory().numOf(1 - shortMult)));
         longEma =
-            force.multipliedBy(numOf(longMult)).plus(longEma.multipliedBy(numOf(1 - longMult)));
+            force.multipliedBy(getBarSeries().numFactory().numOf(longMult)).plus(longEma.multipliedBy(getBarSeries().numFactory().numOf(1 - longMult)));
       }
       return shortEma.minus(longEma);
     }
 
     private Num calculateForce(int index) {
       if (index < 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
       Num high = highPrice.getValue(index);
       Num low = lowPrice.getValue(index);
       Num range = high.minus(low);
       if (range.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
       Num close = closePrice.getValue(index);
       Num prevClose = closePrice.getValue(index - 1);
@@ -358,7 +359,7 @@ public final class IndicatorRegistry {
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return Math.max(shortPeriod, longPeriod);
     }
   }
@@ -380,9 +381,9 @@ public final class IndicatorRegistry {
     @Override
     protected Num calculate(int index) {
       if (index < sumPeriod - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
-      Num sum = numOf(0);
+      Num sum = getBarSeries().numFactory().numOf(0);
       for (int i = Math.max(0, index - sumPeriod + 1); i <= index; i++) {
         Num doubleEmaVal = doubleEma.getValue(i);
         if (!doubleEmaVal.isZero()) {
@@ -393,8 +394,8 @@ public final class IndicatorRegistry {
     }
 
     @Override
-    public int getUnstableBars() {
-      return sumPeriod + ema.getUnstableBars() * 2;
+    public int getCountOfUnstableBars() {
+      return sumPeriod + ema.getCountOfUnstableBars() * 2;
     }
   }
 
@@ -411,7 +412,7 @@ public final class IndicatorRegistry {
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }

@@ -37,11 +37,11 @@ public final class StochasticRsiStrategyFactory
 
     // Entry rule: Stochastic RSI crosses above oversold threshold
     Rule entryRule =
-        new OverIndicatorRule(stochasticRsi, series.numOf(params.getOversoldThreshold()));
+        new OverIndicatorRule(stochasticRsi, series.numFactory().numOf(params.getOversoldThreshold()));
 
     // Exit rule: Stochastic RSI crosses below overbought threshold
     Rule exitRule =
-        new UnderIndicatorRule(stochasticRsi, series.numOf(params.getOverboughtThreshold()));
+        new UnderIndicatorRule(stochasticRsi, series.numFactory().numOf(params.getOverboughtThreshold()));
 
     return new BaseStrategy(
         String.format(

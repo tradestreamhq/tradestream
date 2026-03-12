@@ -51,7 +51,7 @@ public final class RegressionChannelStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index < period - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
       double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
       for (int i = 0; i < period; i++) {
@@ -67,11 +67,11 @@ public final class RegressionChannelStrategyFactory
       double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
       double intercept = (sumY - slope * sumX) / n;
       double x = period - 1;
-      return numOf(slope * x + intercept);
+      return getBarSeries().numFactory().numOf(slope * x + intercept);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }

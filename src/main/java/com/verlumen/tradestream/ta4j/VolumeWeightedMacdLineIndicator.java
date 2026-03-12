@@ -2,7 +2,7 @@ package com.verlumen.tradestream.ta4j;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
@@ -33,8 +33,8 @@ public class VolumeWeightedMacdLineIndicator extends CachedIndicator<Num> {
 
   @Override
   protected Num calculate(int index) {
-    if (index < Math.max(shortEma.getUnstableBars(), longEma.getUnstableBars())) {
-      return numOf(0);
+    if (index < Math.max(shortEma.getCountOfUnstableBars(), longEma.getCountOfUnstableBars())) {
+      return getBarSeries().numFactory().zero();
     }
 
     var shortEmaValue = shortEma.getValue(index);
@@ -45,7 +45,7 @@ public class VolumeWeightedMacdLineIndicator extends CachedIndicator<Num> {
   }
 
   @Override
-  public int getUnstableBars() {
-    return Math.max(shortEma.getUnstableBars(), longEma.getUnstableBars());
+  public int getCountOfUnstableBars() {
+    return Math.max(shortEma.getCountOfUnstableBars(), longEma.getCountOfUnstableBars());
   }
 }

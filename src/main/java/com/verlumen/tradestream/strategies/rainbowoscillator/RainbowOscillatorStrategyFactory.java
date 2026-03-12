@@ -9,7 +9,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
@@ -68,7 +68,7 @@ public final class RainbowOscillatorStrategyFactory
     @Override
     protected org.ta4j.core.num.Num calculate(int index) {
       if (parameters.getPeriodsCount() < 2) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       // Get the shortest and longest periods
@@ -84,14 +84,14 @@ public final class RainbowOscillatorStrategyFactory
 
       // Calculate oscillator: (short EMA - long EMA) / long EMA * 100
       if (longEmaValue.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
-      return shortEmaValue.minus(longEmaValue).dividedBy(longEmaValue).multipliedBy(numOf(100));
+      return shortEmaValue.minus(longEmaValue).dividedBy(longEmaValue).multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }
@@ -104,11 +104,11 @@ public final class RainbowOscillatorStrategyFactory
 
     @Override
     protected org.ta4j.core.num.Num calculate(int index) {
-      return numOf(0);
+      return getBarSeries().numFactory().numOf(0);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }

@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
@@ -25,7 +26,7 @@ public class VolatilityStopStrategyFactoryTest {
     factory = new VolatilityStopStrategyFactory();
     params = VolatilityStopParameters.newBuilder().setAtrPeriod(14).setMultiplier(2.0).build();
 
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
     // Create test data

@@ -5,15 +5,18 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.BbandWRParameters;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import org.ta4j.core.num.DecimalNum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.WilliamsRIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
@@ -52,7 +55,7 @@ public class BbandWRStrategyFactoryTest {
             .build();
 
     // Initialize series
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
     // Create sample price data that will trigger entry and exit conditions
@@ -81,8 +84,8 @@ public class BbandWRStrategyFactoryTest {
     smaIndicator = new SMAIndicator(closePrice, BBANDS_PERIOD);
     BollingerBandsMiddleIndicator bbMiddle = new BollingerBandsMiddleIndicator(smaIndicator);
     StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, BBANDS_PERIOD);
-    bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, series.numOf(STD_DEV_MULTIPLIER));
-    bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, series.numOf(STD_DEV_MULTIPLIER));
+    bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, series.numFactory().numOf(STD_DEV_MULTIPLIER));
+    bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, series.numFactory().numOf(STD_DEV_MULTIPLIER));
     williamsR = new WilliamsRIndicator(series, WR_PERIOD);
 
     // Create strategy
@@ -192,14 +195,20 @@ public class BbandWRStrategyFactoryTest {
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
+    Duration duration = Duration.ofMinutes(1);
+    Instant endTime = time.toInstant();
+    Instant beginTime = endTime.minus(duration);
     return new BaseBar(
-        Duration.ofMinutes(1),
-        time,
-        price, // open
-        price, // high
-        price, // low
-        price, // close
-        100.0 // volume
+        duration,
+        beginTime,
+        endTime,
+        DecimalNum.valueOf(price), // open
+        DecimalNum.valueOf(price), // high
+        DecimalNum.valueOf(price), // low
+        DecimalNum.valueOf(price), // close
+        DecimalNum.valueOf(100.0), // volume
+        DecimalNum.valueOf(0), // amount
+        0 // trades
         );
   }
 }

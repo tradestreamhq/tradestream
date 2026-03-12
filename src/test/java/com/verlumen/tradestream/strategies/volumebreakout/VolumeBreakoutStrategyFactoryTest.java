@@ -37,7 +37,7 @@ public final class VolumeBreakoutStrategyFactoryTest {
     assertThat(strategy.getName()).isEqualTo("VOLUME_BREAKOUT");
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
-    assertThat(strategy.getUnstableBars()).isEqualTo(20);
+    assertThat(strategy.getCountOfUnstableBars()).isEqualTo(20);
   }
 
   @Test
@@ -51,7 +51,7 @@ public final class VolumeBreakoutStrategyFactoryTest {
     assertThat(strategy.getName()).isEqualTo("VOLUME_BREAKOUT");
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
-    assertThat(strategy.getUnstableBars()).isEqualTo(20);
+    assertThat(strategy.getCountOfUnstableBars()).isEqualTo(20);
   }
 
   private BarSeries createTestBarSeries() {

@@ -4,8 +4,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.verlumen.tradestream.strategies.LinearRegressionChannelsParameters;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import org.ta4j.core.num.DecimalNum;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -14,6 +16,7 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class LinearRegressionChannelsStrategyFactoryTest {
@@ -27,17 +30,23 @@ public final class LinearRegressionChannelsStrategyFactoryTest {
     List<Bar> bars = new ArrayList<>();
     ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
     for (int i = 0; i < 100; i++) {
+      Duration duration = Duration.ofMinutes(1);
+      Instant endTime = now.plusMinutes(i).toInstant();
+      Instant beginTime = endTime.minus(duration);
       bars.add(
           new BaseBar(
-              Duration.ofMinutes(1),
-              now.plusMinutes(i),
-              100.0 + i * 0.1,
-              100.5 + i * 0.1,
-              99.5 + i * 0.1,
-              100.2 + i * 0.1,
-              1000.0 + i * 10));
+              duration,
+              beginTime,
+              endTime,
+              DecimalNum.valueOf(100.0 + i * 0.1),
+              DecimalNum.valueOf(100.5 + i * 0.1),
+              DecimalNum.valueOf(99.5 + i * 0.1),
+              DecimalNum.valueOf(100.2 + i * 0.1),
+              DecimalNum.valueOf(1000.0 + i * 10),
+              DecimalNum.valueOf(0),
+              0));
     }
-    barSeries = new BaseBarSeries(bars);
+    barSeries = new BaseBarSeriesBuilder().withBars(bars).build();
   }
 
   @Test

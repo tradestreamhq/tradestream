@@ -24,7 +24,7 @@ public final class FramaStrategyFactory implements StrategyFactory<FramaParamete
     Rule entryRule = new CrossedUpIndicatorRule(closePrice, framaIndicator);
     Rule exitRule = new CrossedDownIndicatorRule(closePrice, framaIndicator);
 
-    return new BaseStrategy("FRAMA", entryRule, exitRule, framaIndicator.getUnstableBars());
+    return new BaseStrategy("FRAMA", entryRule, exitRule, framaIndicator.getCountOfUnstableBars());
   }
 
   @Override
@@ -47,7 +47,7 @@ public final class FramaStrategyFactory implements StrategyFactory<FramaParamete
     @Override
     protected Num calculate(int index) {
       if (index < fc) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       // Calculate fractal dimension
@@ -64,7 +64,7 @@ public final class FramaStrategyFactory implements StrategyFactory<FramaParamete
       Num prevFrama = getValue(index - 1);
       Num currentPrice = getBarSeries().getBar(index).getClosePrice();
 
-      return prevFrama.plus(currentPrice.minus(prevFrama).multipliedBy(numOf(adaptiveAlpha)));
+      return prevFrama.plus(currentPrice.minus(prevFrama).multipliedBy(getBarSeries().numFactory().numOf(adaptiveAlpha)));
     }
 
     private double calculateFractalDimension(int index) {
@@ -84,7 +84,7 @@ public final class FramaStrategyFactory implements StrategyFactory<FramaParamete
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return fc;
     }
   }

@@ -373,7 +373,7 @@ public final class RuleRegistry {
         (series, indicators, params) -> {
           double lossPercentage = params.getDouble("percentage");
           ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-          return new TrailingStopLossRule(closePrice, series.numOf(lossPercentage));
+          return new TrailingStopLossRule(closePrice, series.numFactory().numOf(lossPercentage));
         });
 
     return registry;

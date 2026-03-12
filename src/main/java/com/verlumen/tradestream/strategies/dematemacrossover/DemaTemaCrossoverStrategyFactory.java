@@ -10,7 +10,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
@@ -69,11 +69,11 @@ public final class DemaTemaCrossoverStrategyFactory
     protected Num calculate(int index) {
       Num emaValue = ema.getValue(index);
       Num emaOfEmaValue = emaOfEma.getValue(index);
-      return emaValue.multipliedBy(numOf(2)).minus(emaOfEmaValue);
+      return emaValue.multipliedBy(getBarSeries().numFactory().numOf(2)).minus(emaOfEmaValue);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }
@@ -101,13 +101,13 @@ public final class DemaTemaCrossoverStrategyFactory
       Num emaOfEmaOfEmaValue = emaOfEmaOfEma.getValue(index);
 
       return emaValue
-          .multipliedBy(numOf(3))
-          .minus(emaOfEmaValue.multipliedBy(numOf(3)))
+          .multipliedBy(getBarSeries().numFactory().numOf(3))
+          .minus(emaOfEmaValue.multipliedBy(getBarSeries().numFactory().numOf(3)))
           .plus(emaOfEmaOfEmaValue);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }

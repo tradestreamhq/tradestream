@@ -5,11 +5,14 @@ import static org.junit.Assert.assertNotNull;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import org.ta4j.core.num.DecimalNum;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 /** Tests for {@link VolumeWeightedMacdStrategyFactory}. */
@@ -36,19 +39,25 @@ public class VolumeWeightedMacdStrategyFactoryTest {
   }
 
   private BarSeries createTestBarSeries() {
-    var barSeries = new BaseBarSeries();
+    var barSeries = new BaseBarSeriesBuilder().build();
     var now = ZonedDateTime.now();
 
     for (int i = 0; i < 50; i++) {
+      Duration duration = Duration.ofMinutes(1);
+      Instant endTime = now.plusMinutes(i).toInstant();
+      Instant beginTime = endTime.minus(duration);
       var bar =
           new BaseBar(
-              Duration.ofMinutes(1),
-              now.plusMinutes(i),
-              100.0 + i,
-              100.0 + i + 1,
-              100.0 + i - 0.5,
-              100.0 + i + 0.5,
-              1000 + i * 10);
+              duration,
+              beginTime,
+              endTime,
+              DecimalNum.valueOf(100.0 + i),
+              DecimalNum.valueOf(100.0 + i + 1),
+              DecimalNum.valueOf(100.0 + i - 0.5),
+              DecimalNum.valueOf(100.0 + i + 0.5),
+              DecimalNum.valueOf(1000 + i * 10),
+              DecimalNum.valueOf(0),
+              0);
       barSeries.addBar(bar);
     }
 

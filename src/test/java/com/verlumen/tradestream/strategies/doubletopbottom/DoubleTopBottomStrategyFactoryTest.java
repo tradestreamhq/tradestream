@@ -8,12 +8,13 @@ import com.verlumen.tradestream.strategies.DoubleTopBottomParameters;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class DoubleTopBottomStrategyFactoryTest {
 
   private final DoubleTopBottomStrategyFactory factory = new DoubleTopBottomStrategyFactory();
-  private final BarSeries series = new BaseBarSeries();
+  private final BarSeries series = new BaseBarSeriesBuilder().build();
 
   @Test
   public void getDefaultParameters_returnsCorrectParameters() {
