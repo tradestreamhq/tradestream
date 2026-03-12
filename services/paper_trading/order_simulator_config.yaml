@@ -1,0 +1,26 @@
+# Order Execution Simulator Configuration
+#
+# Configure how paper trading orders are simulated, including
+# slippage modeling and exchange fee schedules.
+
+order_simulator:
+  slippage:
+    # Model type: PERCENTAGE or FIXED
+    model: PERCENTAGE
+    # Slippage value (0.001 = 0.1% for percentage, or absolute amount for fixed)
+    value: 0.001
+    # Whether to randomize slippage between 0 and value (true) or use exact value (false)
+    randomize: true
+
+  fees:
+    # Maker fee rate (limit orders that add liquidity)
+    maker_fee_rate: 0.001
+    # Taker fee rate (market orders that remove liquidity)
+    taker_fee_rate: 0.002
+    # Minimum fee per trade
+    min_fee: 0.0
+
+  # Enable partial fills for large orders
+  partial_fill_enabled: false
+  # Minimum fill ratio when partial fills are enabled (0.5 = at least 50%)
+  partial_fill_min_ratio: 0.5

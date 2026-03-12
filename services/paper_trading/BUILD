@@ -38,6 +38,20 @@ py_binary(
     ],
 )
 
+py_library(
+    name = "order_simulator_lib",
+    srcs = ["order_simulator.py"],
+)
+
+py_library(
+    name = "order_simulator_config_lib",
+    srcs = ["order_simulator_config.py"],
+    deps = [
+        ":order_simulator_lib",
+        "//third_party/python:pyyaml",
+    ],
+)
+
 # --- Test Targets ---
 py_test(
     name = "service_test",
@@ -56,6 +70,17 @@ py_test(
         ":postgres_client_lib",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "order_simulator_test",
+    srcs = ["order_simulator_test.py"],
+    deps = [
+        ":order_simulator_lib",
+        ":order_simulator_config_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:pyyaml",
     ],
 )
 
