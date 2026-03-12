@@ -50,9 +50,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         except Exception as e:
             return {"postgres": str(e)}
 
-    app.include_router(
-        create_health_router("orderbook-api", check_deps)
-    )
+    app.include_router(create_health_router("orderbook-api", check_deps))
 
     # --- Current snapshot ---
 
@@ -65,9 +63,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             le=100,
             description="Number of price levels",
         ),
-        exchange: Optional[str] = Query(
-            default=None, description="Filter by exchange"
-        ),
+        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
     ):
         """Get current order book snapshot (top N levels)."""
         query = """
@@ -114,9 +110,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.get("/orderbook/{symbol}/spread", tags=["Order Book"])
     async def get_spread(
         symbol: str,
-        exchange: Optional[str] = Query(
-            default=None, description="Filter by exchange"
-        ),
+        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
     ):
         """Get bid-ask spread, mid price, and spread percentage."""
         query = """
@@ -159,9 +153,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         best_ask = asks[0][0]
         spread = best_ask - best_bid
         mid_price = (best_bid + best_ask) / 2
-        spread_pct = (
-            (spread / mid_price * 100) if mid_price > 0 else 0
-        )
+        spread_pct = (spread / mid_price * 100) if mid_price > 0 else 0
 
         return success_response(
             {
@@ -189,9 +181,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             le=100,
             description="Levels to include",
         ),
-        exchange: Optional[str] = Query(
-            default=None, description="Filter by exchange"
-        ),
+        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
     ):
         """Get bid/ask volume imbalance ratio.
 
@@ -225,11 +215,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         ask_volume = sum(level[1] for level in asks)
         total_volume = bid_volume + ask_volume
 
-        imbalance = (
-            (bid_volume - ask_volume) / total_volume
-            if total_volume > 0
-            else 0
-        )
+        imbalance = (bid_volume - ask_volume) / total_volume if total_volume > 0 else 0
 
         return success_response(
             {
@@ -261,9 +247,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             le=1000,
             description="Max data points",
         ),
-        exchange: Optional[str] = Query(
-            default=None, description="Filter by exchange"
-        ),
+        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
     ):
         """Historical spread/imbalance time series."""
         interval_map = {
@@ -276,8 +260,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         if not pg_interval:
             supported = ", ".join(interval_map.keys())
             return validation_error(
-                f"Invalid interval '{interval}'."
-                f" Supported: {supported}"
+                f"Invalid interval '{interval}'." f" Supported: {supported}"
             )
 
         query = f"""
@@ -322,28 +305,16 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             items.append(
                 {
                     "timestamp": row["bucket"].isoformat(),
-                    "avg_spread": (
-                        float(avg_spread)
-                        if avg_spread
-                        else None
-                    ),
-                    "avg_mid_price": (
-                        float(avg_mid) if avg_mid else None
-                    ),
-                    "avg_spread_percentage": (
-                        float(avg_spct) if avg_spct else None
-                    ),
-                    "avg_imbalance": (
-                        float(avg_imb) if avg_imb else None
-                    ),
+                    "avg_spread": (float(avg_spread) if avg_spread else None),
+                    "avg_mid_price": (float(avg_mid) if avg_mid else None),
+                    "avg_spread_percentage": (float(avg_spct) if avg_spct else None),
+                    "avg_imbalance": (float(avg_imb) if avg_imb else None),
                     "sample_count": row["sample_count"],
                 }
             )
 
         # Return in chronological order
         items.reverse()
-        return collection_response(
-            items, "orderbook_history", limit=limit
-        )
+        return collection_response(items, "orderbook_history", limit=limit)
 
     return app
