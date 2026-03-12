@@ -104,9 +104,7 @@ class WebhookService:
 
     # ── Delivery tracking ────────────────────────────────────────────
 
-    def get_deliveries(
-        self, count: int = 50, status: str | None = None
-    ) -> list[dict]:
+    def get_deliveries(self, count: int = 50, status: str | None = None) -> list[dict]:
         """Return recent delivery records, optionally filtered by status."""
         raw = self.redis.lrange(self.DELIVERIES_KEY, 0, count * 2 - 1)
         results = []

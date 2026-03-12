@@ -8,7 +8,12 @@ import time
 import requests
 from absl import logging
 
-from services.webhook.models import DeliveryRecord, DeliveryStatus, WebhookEvent, WebhookRegistration
+from services.webhook.models import (
+    DeliveryRecord,
+    DeliveryStatus,
+    WebhookEvent,
+    WebhookRegistration,
+)
 
 
 MAX_ATTEMPTS = 3
