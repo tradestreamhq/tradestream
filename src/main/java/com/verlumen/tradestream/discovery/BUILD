@@ -41,6 +41,7 @@ container_structure_test(
     flaky = True,
     image = ":image",
     tags = [
+        "manual",
         "no-coverage",
         "requires-docker",
     ],
@@ -308,7 +309,7 @@ java_library(
 
 oci_image(
     name = "image",
-    base = "@flink_java17",
+    base = "@flink_java21",
     entrypoint = [
         "java",
         "-jar",

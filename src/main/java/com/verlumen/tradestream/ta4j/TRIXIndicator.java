@@ -2,7 +2,7 @@ package com.verlumen.tradestream.ta4j;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
@@ -44,22 +44,25 @@ public class TRIXIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < barCount * 3 - 1) {
-      return numOf(0);
+      return getBarSeries().numFactory().numOf(0);
     }
 
     Num currentValue = ema3.getValue(index);
     Num previousValue = ema3.getValue(index - 1);
 
     if (previousValue.isZero()) {
-      return numOf(0);
+      return getBarSeries().numFactory().numOf(0);
     }
 
     // TRIX = (current - previous) / previous * 100
-    return currentValue.minus(previousValue).dividedBy(previousValue).multipliedBy(numOf(100));
+    return currentValue
+        .minus(previousValue)
+        .dividedBy(previousValue)
+        .multipliedBy(getBarSeries().numFactory().numOf(100));
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
     return barCount * 3;
   }
 }

@@ -9,7 +9,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
@@ -116,24 +116,27 @@ public final class KstOscillatorStrategyFactory
       org.ta4j.core.num.Num weightedSum =
           smoothedRoc1
               .getValue(index)
-              .multipliedBy(numOf(1))
-              .plus(smoothedRoc2.getValue(index).multipliedBy(numOf(2)))
-              .plus(smoothedRoc3.getValue(index).multipliedBy(numOf(3)))
-              .plus(smoothedRoc4.getValue(index).multipliedBy(numOf(4)));
+              .multipliedBy(getBarSeries().numFactory().numOf(1))
+              .plus(smoothedRoc2.getValue(index).multipliedBy(getBarSeries().numFactory().numOf(2)))
+              .plus(smoothedRoc3.getValue(index).multipliedBy(getBarSeries().numFactory().numOf(3)))
+              .plus(
+                  smoothedRoc4.getValue(index).multipliedBy(getBarSeries().numFactory().numOf(4)));
 
       return weightedSum;
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       // Return the maximum period needed for all components
       return Math.max(
           Math.max(
-              Math.max(roc1.getUnstableBars(), roc2.getUnstableBars()),
-              Math.max(roc3.getUnstableBars(), roc4.getUnstableBars())),
+              Math.max(roc1.getCountOfUnstableBars(), roc2.getCountOfUnstableBars()),
+              Math.max(roc3.getCountOfUnstableBars(), roc4.getCountOfUnstableBars())),
           Math.max(
-              Math.max(smoothedRoc1.getUnstableBars(), smoothedRoc2.getUnstableBars()),
-              Math.max(smoothedRoc3.getUnstableBars(), smoothedRoc4.getUnstableBars())));
+              Math.max(
+                  smoothedRoc1.getCountOfUnstableBars(), smoothedRoc2.getCountOfUnstableBars()),
+              Math.max(
+                  smoothedRoc3.getCountOfUnstableBars(), smoothedRoc4.getCountOfUnstableBars())));
     }
   }
 
@@ -155,21 +158,24 @@ public final class KstOscillatorStrategyFactory
     @Override
     protected org.ta4j.core.num.Num calculate(int index) {
       if (index < period) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       org.ta4j.core.num.Num currentPrice = closePrice.getValue(index);
       org.ta4j.core.num.Num pastPrice = closePrice.getValue(index - period);
 
       if (pastPrice.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
-      return currentPrice.minus(pastPrice).dividedBy(pastPrice).multipliedBy(numOf(100));
+      return currentPrice
+          .minus(pastPrice)
+          .dividedBy(pastPrice)
+          .multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }

@@ -7,7 +7,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
@@ -62,17 +62,20 @@ public final class RocMaCrossoverStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index < period) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       Num currentPrice = priceIndicator.getValue(index);
       Num pastPrice = priceIndicator.getValue(index - period);
 
       if (pastPrice.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
-      return currentPrice.minus(pastPrice).dividedBy(pastPrice).multipliedBy(numOf(100));
+      return currentPrice
+          .minus(pastPrice)
+          .dividedBy(pastPrice)
+          .multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override
@@ -81,7 +84,7 @@ public final class RocMaCrossoverStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }

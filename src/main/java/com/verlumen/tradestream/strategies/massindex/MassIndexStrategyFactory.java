@@ -9,8 +9,8 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
@@ -62,7 +62,7 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }
@@ -96,14 +96,14 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
     @Override
     protected org.ta4j.core.num.Num calculate(int index) {
       if (index < sumPeriod - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
       return sumIndicator.getValue(index);
     }
 
     @Override
-    public int getUnstableBars() {
-      return sumPeriod + ema.getUnstableBars() * 2;
+    public int getCountOfUnstableBars() {
+      return sumPeriod + ema.getCountOfUnstableBars() * 2;
     }
   }
 
@@ -125,15 +125,15 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
       org.ta4j.core.num.Num doubleEmaValue = doubleEma.getValue(index);
 
       if (doubleEmaValue.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       return emaValue.dividedBy(doubleEmaValue);
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(ema.getUnstableBars(), doubleEma.getUnstableBars());
+    public int getCountOfUnstableBars() {
+      return Math.max(ema.getCountOfUnstableBars(), doubleEma.getCountOfUnstableBars());
     }
   }
 
@@ -144,7 +144,7 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
 
     public ConstantIndicator(BarSeries barSeries, double value) {
       super(barSeries);
-      this.value = numOf(value);
+      this.value = getBarSeries().numFactory().numOf(value);
     }
 
     @Override
@@ -153,7 +153,7 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }

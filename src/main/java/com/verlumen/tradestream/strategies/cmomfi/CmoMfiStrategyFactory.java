@@ -39,13 +39,13 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
 
     // Entry rules: CMO crosses above 0 and MFI is oversold (below 20)
     var entryRule =
-        new CrossedUpIndicatorRule(cmo, cmo.numOf(0))
-            .and(new UnderIndicatorRule(mfi, mfi.numOf(20)));
+        new CrossedUpIndicatorRule(cmo, cmo.getBarSeries().numFactory().numOf(0))
+            .and(new UnderIndicatorRule(mfi, mfi.getBarSeries().numFactory().numOf(20)));
 
     // Exit rules: CMO crosses below 0 or MFI is overbought (above 80)
     var exitRule =
-        new CrossedDownIndicatorRule(cmo, cmo.numOf(0))
-            .or(new OverIndicatorRule(mfi, mfi.numOf(80)));
+        new CrossedDownIndicatorRule(cmo, cmo.getBarSeries().numFactory().numOf(0))
+            .or(new OverIndicatorRule(mfi, mfi.getBarSeries().numFactory().numOf(80)));
 
     return new org.ta4j.core.BaseStrategy(
         "CmoMfi",
@@ -71,15 +71,15 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
     @Override
     protected Num calculate(int index) {
       if (index < period) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
-      Num sumGains = numOf(0);
-      Num sumLosses = numOf(0);
+      Num sumGains = getBarSeries().numFactory().numOf(0);
+      Num sumLosses = getBarSeries().numFactory().numOf(0);
 
       for (int i = index - period + 1; i <= index; i++) {
         Num change = closePrice.getValue(i).minus(closePrice.getValue(i - 1));
-        if (change.isGreaterThan(numOf(0))) {
+        if (change.isGreaterThan(getBarSeries().numFactory().numOf(0))) {
           sumGains = sumGains.plus(change);
         } else {
           sumLosses = sumLosses.plus(change.abs());
@@ -88,14 +88,17 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
 
       Num total = sumGains.plus(sumLosses);
       if (total.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
-      return sumGains.minus(sumLosses).dividedBy(total).multipliedBy(numOf(100));
+      return sumGains
+          .minus(sumLosses)
+          .dividedBy(total)
+          .multipliedBy(getBarSeries().numFactory().numOf(100));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }
@@ -128,11 +131,11 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
     @Override
     protected Num calculate(int index) {
       if (index < period) {
-        return numOf(50);
+        return getBarSeries().numFactory().numOf(50);
       }
 
-      Num positiveMoneyFlow = numOf(0);
-      Num negativeMoneyFlow = numOf(0);
+      Num positiveMoneyFlow = getBarSeries().numFactory().numOf(0);
+      Num negativeMoneyFlow = getBarSeries().numFactory().numOf(0);
 
       for (int i = index - period + 1; i <= index; i++) {
         Num typicalPrice =
@@ -140,7 +143,7 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
                 .getValue(i)
                 .plus(lowPrice.getValue(i))
                 .plus(closePrice.getValue(i))
-                .dividedBy(numOf(3));
+                .dividedBy(getBarSeries().numFactory().numOf(3));
         Num moneyFlow = typicalPrice.multipliedBy(volume.getValue(i));
 
         if (i > 0) {
@@ -149,7 +152,7 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
                   .getValue(i - 1)
                   .plus(lowPrice.getValue(i - 1))
                   .plus(closePrice.getValue(i - 1))
-                  .dividedBy(numOf(3));
+                  .dividedBy(getBarSeries().numFactory().numOf(3));
 
           if (typicalPrice.isGreaterThan(prevTypicalPrice)) {
             positiveMoneyFlow = positiveMoneyFlow.plus(moneyFlow);
@@ -161,15 +164,22 @@ public final class CmoMfiStrategyFactory implements StrategyFactory<CmoMfiParame
 
       Num totalMoneyFlow = positiveMoneyFlow.plus(negativeMoneyFlow);
       if (totalMoneyFlow.isZero()) {
-        return numOf(50);
+        return getBarSeries().numFactory().numOf(50);
       }
 
       Num moneyRatio = positiveMoneyFlow.dividedBy(negativeMoneyFlow);
-      return numOf(100).minus(numOf(100).dividedBy(numOf(1).plus(moneyRatio)));
+      return getBarSeries()
+          .numFactory()
+          .numOf(100)
+          .minus(
+              getBarSeries()
+                  .numFactory()
+                  .numOf(100)
+                  .dividedBy(getBarSeries().numFactory().numOf(1).plus(moneyRatio)));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }

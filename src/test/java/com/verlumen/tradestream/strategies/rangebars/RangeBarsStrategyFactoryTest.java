@@ -5,6 +5,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.verlumen.tradestream.strategies.RangeBarsParameters;
 import org.junit.Test;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class RangeBarsStrategyFactoryTest {
@@ -19,7 +20,7 @@ public final class RangeBarsStrategyFactoryTest {
 
   @Test
   public void testCreateStrategy() {
-    BaseBarSeries series = new BaseBarSeries();
+    BaseBarSeries series = new BaseBarSeriesBuilder().build();
     RangeBarsParameters params = factory.getDefaultParameters();
     Strategy strategy = factory.createStrategy(series, params);
     assertThat(strategy).isNotNull();

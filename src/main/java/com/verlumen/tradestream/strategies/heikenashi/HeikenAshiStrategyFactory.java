@@ -77,7 +77,7 @@ public final class HeikenAshiStrategyFactory implements StrategyFactory<HeikenAs
         }
         Num prevOpen = series.getBar(index - 1).getOpenPrice();
         Num prevClose = series.getBar(index - 1).getClosePrice();
-        Num open = prevOpen.plus(prevClose).dividedBy(series.numOf(2));
+        Num open = prevOpen.plus(prevClose).dividedBy(series.numFactory().numOf(2));
         Num close =
             series
                 .getBar(index)
@@ -85,12 +85,12 @@ public final class HeikenAshiStrategyFactory implements StrategyFactory<HeikenAs
                 .plus(series.getBar(index).getHighPrice())
                 .plus(series.getBar(index).getLowPrice())
                 .plus(series.getBar(index).getClosePrice())
-                .dividedBy(series.numOf(4));
+                .dividedBy(series.numFactory().numOf(4));
         return isOpen ? open : close;
       }
 
       @Override
-      public int getUnstableBars() {
+      public int getCountOfUnstableBars() {
         return period;
       }
     }

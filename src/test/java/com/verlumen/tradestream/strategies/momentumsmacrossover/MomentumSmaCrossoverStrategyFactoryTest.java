@@ -6,6 +6,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.MomentumSmaCrossoverParameters;
 import com.verlumen.tradestream.ta4j.MomentumIndicator;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,9 +14,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
 public class MomentumSmaCrossoverStrategyFactoryTest {
@@ -42,7 +45,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
             .setSmaPeriod(SMA_PERIOD)
             .build();
 
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     startTime = ZonedDateTime.now();
 
     // Create initial stable period (bars 0-19)
@@ -75,7 +78,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   @Test
   public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma()
       throws InvalidProtocolBufferException {
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
 
     // Initial period with stable prices (15 bars)
     for (int i = 0; i < 15; i++) {
@@ -111,7 +114,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   @Test
   public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma()
       throws InvalidProtocolBufferException {
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
 
     // Initial period with stable prices (15 bars)
     for (int i = 0; i < 15; i++) {
@@ -165,14 +168,20 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
+    Duration duration = Duration.ofMinutes(1);
+    Instant endTime = time.toInstant();
+    Instant beginTime = endTime.minus(duration);
     return new BaseBar(
-        Duration.ofMinutes(1),
-        time,
-        price, // open
-        price, // high
-        price, // low
-        price, // close
-        100.0 // volume
+        duration,
+        beginTime,
+        endTime,
+        DecimalNum.valueOf(price), // open
+        DecimalNum.valueOf(price), // high
+        DecimalNum.valueOf(price), // low
+        DecimalNum.valueOf(price), // close
+        DecimalNum.valueOf(100.0), // volume
+        DecimalNum.valueOf(0), // amount
+        0 // trades
         );
   }
 }

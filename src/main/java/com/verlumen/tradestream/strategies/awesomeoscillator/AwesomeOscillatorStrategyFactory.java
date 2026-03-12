@@ -31,10 +31,10 @@ public class AwesomeOscillatorStrategyFactory
             medianPrice, params.getShortPeriod(), params.getLongPeriod());
 
     // Entry rule: AO crosses above zero
-    Rule entryRule = new CrossedUpIndicatorRule(ao, series.numOf(0));
+    Rule entryRule = new CrossedUpIndicatorRule(ao, series.numFactory().numOf(0));
 
     // Exit rule: AO crosses below zero
-    Rule exitRule = new CrossedDownIndicatorRule(ao, series.numOf(0));
+    Rule exitRule = new CrossedDownIndicatorRule(ao, series.numFactory().numOf(0));
 
     return new BaseStrategy(
         String.format(

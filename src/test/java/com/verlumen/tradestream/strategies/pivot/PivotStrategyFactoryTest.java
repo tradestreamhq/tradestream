@@ -8,7 +8,7 @@ import java.time.ZonedDateTime;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class PivotStrategyFactoryTest {
@@ -23,7 +23,7 @@ public final class PivotStrategyFactoryTest {
 
   @Test
   public void testCreateStrategy() {
-    BarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
     for (int i = 0; i < 30; i++) {
       series.addBar(
           new BaseBar(

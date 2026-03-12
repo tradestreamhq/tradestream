@@ -7,7 +7,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
@@ -36,9 +36,9 @@ public final class ElderRayMAStrategyFactory implements StrategyFactory<ElderRay
     DifferenceIndicator bearPower = new DifferenceIndicator(low, ema);
 
     // Entry: Bull Power crosses up 0 (bullish)
-    Rule entryRule = new CrossedUpIndicatorRule(bullPower, series.numOf(0));
+    Rule entryRule = new CrossedUpIndicatorRule(bullPower, series.numFactory().numOf(0));
     // Exit: Bear Power crosses down 0 (bearish)
-    Rule exitRule = new CrossedDownIndicatorRule(bearPower, series.numOf(0));
+    Rule exitRule = new CrossedDownIndicatorRule(bearPower, series.numFactory().numOf(0));
 
     return new BaseStrategy("ElderRayMA", entryRule, exitRule);
   }
@@ -64,8 +64,8 @@ public final class ElderRayMAStrategyFactory implements StrategyFactory<ElderRay
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(a.getUnstableBars(), b.getUnstableBars());
+    public int getCountOfUnstableBars() {
+      return Math.max(a.getCountOfUnstableBars(), b.getCountOfUnstableBars());
     }
   }
 }

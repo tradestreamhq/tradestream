@@ -5,6 +5,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.verlumen.tradestream.strategies.SarMfiParameters;
 import org.junit.Test;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class SarMfiStrategyFactoryTest {
@@ -22,7 +23,7 @@ public final class SarMfiStrategyFactoryTest {
 
   @Test
   public void testCreateStrategy() {
-    BaseBarSeries series = new BaseBarSeries();
+    BaseBarSeries series = new BaseBarSeriesBuilder().build();
     SarMfiParameters params = factory.getDefaultParameters();
     Strategy strategy = factory.createStrategy(series, params);
     assertThat(strategy).isNotNull();

@@ -38,12 +38,12 @@ public final class AtrTrailingStopStrategyFactory
     protected Num calculate(int index) {
       Num prevClose = previousClose.getValue(index);
       Num atrValue = atr.getValue(index);
-      return prevClose.minus(atrValue.multipliedBy(numOf(multiplier)));
+      return prevClose.minus(atrValue.multipliedBy(getBarSeries().numFactory().numOf(multiplier)));
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(previousClose.getUnstableBars(), atr.getUnstableBars());
+    public int getCountOfUnstableBars() {
+      return Math.max(previousClose.getCountOfUnstableBars(), atr.getCountOfUnstableBars());
     }
   }
 

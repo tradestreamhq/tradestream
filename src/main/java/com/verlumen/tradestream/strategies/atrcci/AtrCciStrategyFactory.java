@@ -27,11 +27,12 @@ public final class AtrCciStrategyFactory implements StrategyFactory<AtrCciParame
 
     // Entry rule: CCI crosses above -100 AND ATR is increasing (indicating rising volatility)
     Rule entryRule =
-        new OverIndicatorRule(cci, series.numOf(-100)).and(new OverIndicatorRule(atr, previousAtr));
+        new OverIndicatorRule(cci, series.numFactory().numOf(-100))
+            .and(new OverIndicatorRule(atr, previousAtr));
 
     // Exit rule: CCI crosses below +100 AND ATR is decreasing (indicating falling volatility)
     Rule exitRule =
-        new UnderIndicatorRule(cci, series.numOf(100))
+        new UnderIndicatorRule(cci, series.numFactory().numOf(100))
             .and(new UnderIndicatorRule(atr, previousAtr));
 
     return new BaseStrategy(

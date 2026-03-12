@@ -32,9 +32,9 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
     ParabolicSarIndicator psar =
         new ParabolicSarIndicator(
             series,
-            series.numOf(params.getAccelerationFactorStart()),
-            series.numOf(params.getAccelerationFactorIncrement()),
-            series.numOf(params.getAccelerationFactorMax()));
+            series.numFactory().numOf(params.getAccelerationFactorStart()),
+            series.numFactory().numOf(params.getAccelerationFactorIncrement()),
+            series.numFactory().numOf(params.getAccelerationFactorMax()));
 
     // Entry rule: Buy when price crosses above Parabolic SAR
     Rule entryRule = new OverIndicatorRule(closePrice, psar);

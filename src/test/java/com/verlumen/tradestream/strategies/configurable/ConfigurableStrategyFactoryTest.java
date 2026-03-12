@@ -8,8 +8,10 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.num.DecimalNum;
 
 /**
  * Tests for ConfigurableStrategyFactory verifying that config-based strategies produce valid Ta4j
@@ -23,18 +25,23 @@ public class ConfigurableStrategyFactoryTest {
   public void setUp() {
     // Create a test bar series with some sample data
     testSeries = new BaseBarSeriesBuilder().withName("test").build();
+    java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
 
     // Add 100 bars of synthetic data
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 10;
       testSeries.addBar(
-          java.time.ZonedDateTime.now().plusMinutes(i),
-          price - 1, // open
-          price + 2, // high
-          price - 2, // low
-          price, // close
-          1000 + i // volume
-          );
+          new BaseBar(
+              java.time.Duration.ofMinutes(1),
+              now.plusMinutes(i).toInstant().minus(java.time.Duration.ofMinutes(1)),
+              now.plusMinutes(i).toInstant(),
+              DecimalNum.valueOf(price - 1),
+              DecimalNum.valueOf(price + 2),
+              DecimalNum.valueOf(price - 2),
+              DecimalNum.valueOf(price),
+              DecimalNum.valueOf(1000 + i),
+              DecimalNum.valueOf(0),
+              0));
     }
   }
 

@@ -28,7 +28,7 @@ public class AdxDmiStrategyFactory implements StrategyFactory<AdxDmiParameters> 
 
     // Entry rule: ADX is above 25 (strong trend) and +DI crosses above -DI
     Rule entryRule =
-        new OverIndicatorRule(adx, series.numOf(25))
+        new OverIndicatorRule(adx, series.numFactory().numOf(25))
             .and(new CrossedUpIndicatorRule(plusDI, minusDI));
 
     // Exit rule: +DI crosses below -DI

@@ -5,7 +5,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.verlumen.tradestream.strategies.VolumeProfileParameters;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class VolumeProfileStrategyFactoryTest {
@@ -22,7 +22,7 @@ public final class VolumeProfileStrategyFactoryTest {
 
   @Test
   public void createStrategy_returnsValidStrategy() {
-    BarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
     VolumeProfileParameters parameters = VolumeProfileParameters.newBuilder().setPeriod(30).build();
 
     Strategy strategy = factory.createStrategy(series, parameters);

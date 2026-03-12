@@ -85,7 +85,7 @@ public final class IchimokuCloudStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index < period - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       Num highestHigh = highPrice.getValue(index - period + 1);
@@ -102,11 +102,11 @@ public final class IchimokuCloudStrategyFactory
         }
       }
 
-      return highestHigh.plus(lowestLow).dividedBy(numOf(2));
+      return highestHigh.plus(lowestLow).dividedBy(getBarSeries().numFactory().numOf(2));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }
@@ -127,7 +127,7 @@ public final class IchimokuCloudStrategyFactory
     @Override
     protected Num calculate(int index) {
       if (index < period - 1) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       Num highestHigh = highPrice.getValue(index - period + 1);
@@ -144,11 +144,11 @@ public final class IchimokuCloudStrategyFactory
         }
       }
 
-      return highestHigh.plus(lowestLow).dividedBy(numOf(2));
+      return highestHigh.plus(lowestLow).dividedBy(getBarSeries().numFactory().numOf(2));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }
@@ -169,17 +169,17 @@ public final class IchimokuCloudStrategyFactory
       // Senkou Span A is shifted 26 periods ahead
       int shiftedIndex = index + 26;
       if (shiftedIndex >= getBarSeries().getBarCount()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       Num tenkanValue = tenkanSen.getValue(shiftedIndex);
       Num kijunValue = kijunSen.getValue(shiftedIndex);
-      return tenkanValue.plus(kijunValue).dividedBy(numOf(2));
+      return tenkanValue.plus(kijunValue).dividedBy(getBarSeries().numFactory().numOf(2));
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(tenkanSen.getUnstableBars(), kijunSen.getUnstableBars()) + 26;
+    public int getCountOfUnstableBars() {
+      return Math.max(tenkanSen.getCountOfUnstableBars(), kijunSen.getCountOfUnstableBars()) + 26;
     }
   }
 
@@ -203,7 +203,7 @@ public final class IchimokuCloudStrategyFactory
       // Senkou Span B is shifted 26 periods ahead
       int shiftedIndex = index + 26;
       if (shiftedIndex < period - 1 || shiftedIndex >= getBarSeries().getBarCount()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       Num highestHigh = highPrice.getValue(shiftedIndex - period + 1);
@@ -220,11 +220,11 @@ public final class IchimokuCloudStrategyFactory
         }
       }
 
-      return highestHigh.plus(lowestLow).dividedBy(numOf(2));
+      return highestHigh.plus(lowestLow).dividedBy(getBarSeries().numFactory().numOf(2));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period + 26;
     }
   }
@@ -249,8 +249,8 @@ public final class IchimokuCloudStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(senkouSpanA.getUnstableBars(), senkouSpanB.getUnstableBars());
+    public int getCountOfUnstableBars() {
+      return Math.max(senkouSpanA.getCountOfUnstableBars(), senkouSpanB.getCountOfUnstableBars());
     }
   }
 }

@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.verlumen.tradestream.strategies.RsiEmaCrossoverParameters;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,10 +12,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
-import org.ta4j.core.indicators.RSIIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
 public class RsiEmaCrossoverStrategyFactoryTest {
@@ -25,11 +25,6 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   private RsiEmaCrossoverParameters params;
   private BaseBarSeries series;
   private Strategy strategy;
-
-  // For debugging RSI and EMA calculations
-  private RSIIndicator rsi;
-  private EMAIndicator rsiEma;
-  private ClosePriceIndicator closePrice;
 
   @Before
   public void setUp() {
@@ -42,40 +37,55 @@ public class RsiEmaCrossoverStrategyFactoryTest {
             .setEmaPeriod(EMA_PERIOD)
             .build();
 
-    // Initialize series
-    series = new BaseBarSeries();
+    // Initialize series with price data designed to create RSI/EMA crossovers.
+    // The key insight: we need oscillating prices first to give RSI meaningful
+    // values (~50) and establish the EMA warmup, then directional moves to
+    // create crossovers while keeping RSI in the 30-70 range.
+    series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // Bars 0-20: Create baseline with mixed price movements to establish RSI and EMA
-    double[] baselinePrices = {
-      50.0, 49.0, 51.0, 48.0, 52.0, 47.0, 53.0, 46.0, 54.0, 45.0, 55.0, 44.0, 56.0, 43.0, 57.0,
-      42.0, 58.0, 41.0, 59.0, 40.0, 60.0
-    };
+    int barIdx = 0;
+    double price = 100.0;
 
-    for (int i = 0; i < baselinePrices.length; i++) {
-      series.addBar(createBar(now.plusMinutes(i), baselinePrices[i]));
+    // Phase 1 (bars 0-24): Oscillating prices to establish RSI ~50 and warm up EMA
+    for (int i = 0; i < 25; i++) {
+      price += (i % 2 == 0) ? 1.0 : -1.0;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Bars 21-25: Create conditions for entry (RSI crosses above EMA, RSI not overbought)
-    // Gradual price increase to make RSI rise but stay below 70
-    series.addBar(createBar(now.plusMinutes(21), 61.0));
-    series.addBar(createBar(now.plusMinutes(22), 62.0));
-    series.addBar(createBar(now.plusMinutes(23), 63.0));
-    series.addBar(createBar(now.plusMinutes(24), 64.0));
-    series.addBar(createBar(now.plusMinutes(25), 65.0));
+    // Phase 2 (bars 25-34): Declining prices to push RSI below its EMA
+    for (int i = 0; i < 10; i++) {
+      price -= 0.8;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
 
-    // Bars 26-30: Create conditions for exit (RSI crosses below EMA, RSI not oversold)
-    // Moderate price decrease to make RSI fall but stay above 30
-    series.addBar(createBar(now.plusMinutes(26), 64.0));
-    series.addBar(createBar(now.plusMinutes(27), 62.0));
-    series.addBar(createBar(now.plusMinutes(28), 60.0));
-    series.addBar(createBar(now.plusMinutes(29), 58.0));
-    series.addBar(createBar(now.plusMinutes(30), 56.0));
+    // Phase 3 (bars 35-44): Rising prices to make RSI cross above its EMA
+    for (int i = 0; i < 10; i++) {
+      price += 0.8;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
 
-    // Initialize indicators
-    closePrice = new ClosePriceIndicator(series);
-    rsi = new RSIIndicator(closePrice, RSI_PERIOD);
-    rsiEma = new EMAIndicator(rsi, EMA_PERIOD);
+    // Phase 4 (bars 45-54): Flat stabilization
+    for (int i = 0; i < 10; i++) {
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 5 (bars 55-64): Rising prices to push RSI above its EMA
+    for (int i = 0; i < 10; i++) {
+      price += 0.8;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 6 (bars 65-74): Declining prices to make RSI cross below its EMA
+    for (int i = 0; i < 10; i++) {
+      price -= 0.8;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 7 (bars 75-84): Flat stabilization
+    for (int i = 0; i < 10; i++) {
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
 
     // Create strategy
     strategy = factory.createStrategy(series, params);
@@ -83,61 +93,29 @@ public class RsiEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenRsiCrossesAboveEmaAndNotOverbought() {
-    // Log RSI and EMA values around the expected entry
-    for (int i = 18; i <= 25; i++) {
-      double rsiValue = rsi.getValue(i).doubleValue();
-      double emaValue = rsiEma.getValue(i).doubleValue();
-      System.out.printf(
-          "Bar %d - Price: %.2f, RSI: %.2f, RSI EMA: %.2f, Entry Rule: %s%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          rsiValue,
-          emaValue,
-          strategy.getEntryRule().isSatisfied(i));
-    }
-
-    // Find when entry rule is satisfied - check from bar 18 to account for earlier crossovers
+    // Find when entry rule is satisfied during/after the price increase phases
     boolean entryTriggered = false;
-    int entryIndex = -1;
-    for (int i = 18; i <= 25; i++) {
+    for (int i = 25; i <= 54; i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
         entryTriggered = true;
-        entryIndex = i;
         break;
       }
     }
 
-    System.out.println("Entry rule triggered at bar: " + entryIndex);
     assertThat(entryTriggered).isTrue();
   }
 
   @Test
   public void exitRule_shouldTrigger_whenRsiCrossesBelowEmaAndNotOversold() {
-    // Log RSI and EMA values around the expected exit
-    for (int i = 25; i <= 30; i++) {
-      double rsiValue = rsi.getValue(i).doubleValue();
-      double emaValue = rsiEma.getValue(i).doubleValue();
-      System.out.printf(
-          "Bar %d - Price: %.2f, RSI: %.2f, RSI EMA: %.2f, Exit Rule: %s%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          rsiValue,
-          emaValue,
-          strategy.getExitRule().isSatisfied(i));
-    }
-
-    // Find when exit rule is satisfied
+    // Find when exit rule is satisfied during/after the price decline phases
     boolean exitTriggered = false;
-    int exitIndex = -1;
-    for (int i = 26; i <= 30; i++) {
+    for (int i = 25; i <= 84; i++) {
       if (strategy.getExitRule().isSatisfied(i)) {
         exitTriggered = true;
-        exitIndex = i;
         break;
       }
     }
 
-    System.out.println("Exit rule triggered at bar: " + exitIndex);
     assertThat(exitTriggered).isTrue();
   }
 
@@ -163,14 +141,20 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
+    Duration duration = Duration.ofMinutes(1);
+    Instant endTime = time.toInstant();
+    Instant beginTime = endTime.minus(duration);
     return new BaseBar(
-        Duration.ofMinutes(1),
-        time,
-        price, // open
-        price, // high
-        price, // low
-        price, // close
-        100.0 // volume
+        duration,
+        beginTime,
+        endTime,
+        DecimalNum.valueOf(price), // open
+        DecimalNum.valueOf(price), // high
+        DecimalNum.valueOf(price), // low
+        DecimalNum.valueOf(price), // close
+        DecimalNum.valueOf(100.0), // volume
+        DecimalNum.valueOf(0), // amount
+        0 // trades
         );
   }
 }

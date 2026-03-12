@@ -6,7 +6,7 @@ import com.verlumen.tradestream.strategies.DoubleTopBottomParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;

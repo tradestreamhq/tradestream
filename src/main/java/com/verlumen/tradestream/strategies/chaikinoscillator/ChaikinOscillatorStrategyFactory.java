@@ -9,7 +9,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
@@ -32,10 +32,10 @@ public class ChaikinOscillatorStrategyFactory
         new ChaikinOscillatorIndicator(series, params.getFastPeriod(), params.getSlowPeriod());
 
     // Entry rule: Chaikin Oscillator crosses above zero
-    Rule entryRule = new CrossedUpIndicatorRule(chaikin, series.numOf(0));
+    Rule entryRule = new CrossedUpIndicatorRule(chaikin, series.numFactory().numOf(0));
 
     // Exit rule: Chaikin Oscillator crosses below zero
-    Rule exitRule = new CrossedDownIndicatorRule(chaikin, series.numOf(0));
+    Rule exitRule = new CrossedDownIndicatorRule(chaikin, series.numFactory().numOf(0));
 
     return new BaseStrategy(
         String.format(
@@ -80,8 +80,8 @@ public class ChaikinOscillatorStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(fastEma.getUnstableBars(), slowEma.getUnstableBars());
+    public int getCountOfUnstableBars() {
+      return Math.max(fastEma.getCountOfUnstableBars(), slowEma.getCountOfUnstableBars());
     }
   }
 
@@ -96,7 +96,7 @@ public class ChaikinOscillatorStrategyFactory
 
     @Override
     protected org.ta4j.core.num.Num calculate(int index) {
-      org.ta4j.core.num.Num adl = numOf(0);
+      org.ta4j.core.num.Num adl = getBarSeries().numFactory().numOf(0);
       for (int i = 0; i <= index; i++) {
         adl = adl.plus(mfv.getValue(i));
       }
@@ -104,7 +104,7 @@ public class ChaikinOscillatorStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0; // ADL doesn't have unstable bars as it's a cumulative sum
     }
   }
@@ -126,7 +126,7 @@ public class ChaikinOscillatorStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0; // No unstable bars as it's just multiplication of current values
     }
   }
@@ -154,7 +154,7 @@ public class ChaikinOscillatorStrategyFactory
 
       // Avoid division by zero
       if (highLow.isZero()) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       org.ta4j.core.num.Num closeLow = closePrice.minus(lowPrice);
@@ -164,7 +164,7 @@ public class ChaikinOscillatorStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0; // No unstable bars as it's just calculation from current bar
     }
   }

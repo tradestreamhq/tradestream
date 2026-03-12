@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +14,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 @RunWith(JUnit4.class)
@@ -28,19 +31,25 @@ public class RuleRegistryTest {
   @Before
   public void setUp() {
     registry = RuleRegistry.defaultRegistry();
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
+      Duration duration = Duration.ofMinutes(1);
+      Instant endTime = now.plusMinutes(i).toInstant();
+      Instant beginTime = endTime.minus(duration);
       series.addBar(
           new BaseBar(
-              Duration.ofMinutes(1),
-              now.plusMinutes(i),
-              price,
-              price + 2,
-              price - 2,
-              price,
-              1000.0));
+              duration,
+              beginTime,
+              endTime,
+              DecimalNum.valueOf(price),
+              DecimalNum.valueOf(price + 2),
+              DecimalNum.valueOf(price - 2),
+              DecimalNum.valueOf(price),
+              DecimalNum.valueOf(1000.0),
+              DecimalNum.valueOf(0),
+              0));
     }
     indicators = new HashMap<>();
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);

@@ -15,7 +15,7 @@ bazel_dep(name = "rules_jvm_external", version = "6.5")
 bazel_dep(name = "rules_kotlin", version = "2.1.3")
 bazel_dep(name = "rules_oci", version = "2.2.6")
 bazel_dep(name = "rules_python", version = "1.4.1")
-bazel_dep(name = "grpc-java", version = "1.75.0")
+bazel_dep(name = "grpc-java", version = "1.78.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
@@ -43,7 +43,7 @@ pip.parse(
 )
 use_repo(pip, "pypi")
 
-JAVA_LANGUAGE_LEVEL = "17"
+JAVA_LANGUAGE_LEVEL = "21"
 
 register_toolchains(
     "@rules_java//toolchains:all",
@@ -94,14 +94,14 @@ maven.install(
         "org.knowm.xchange:xchange-stream-core:5.2.0",
         "org.knowm.xchange:xchange-stream-coinbasepro:5.2.0",
         "org.postgresql:postgresql:42.7.6",
-        "org.ta4j:ta4j-core:0.17",
+        "org.ta4j:ta4j-core:0.22.0",
         "org.yaml:snakeyaml:2.2",
 
         # gRPC Dependencies
-        "io.grpc:grpc-netty-shaded:1.75.0",
-        "io.grpc:grpc-protobuf:1.75.0",
-        "io.grpc:grpc-stub:1.75.0",
-        "io.grpc:grpc-services:1.75.0",
+        "io.grpc:grpc-netty-shaded:1.78.0",
+        "io.grpc:grpc-protobuf:1.78.0",
+        "io.grpc:grpc-stub:1.78.0",
+        "io.grpc:grpc-services:1.78.0",
 
         # Test Dependencies
         "com.google.inject.extensions:guice-testlib:7.0.0",
@@ -134,15 +134,15 @@ oci.pull(
 use_repo(oci, "openjdk_java")
 
 oci.pull(
-    name = "flink_java17",
-    digest = "sha256:e3836db6fbdf5186156cebe9aaa9a8d7a6edfa43450476faa1224fae8d5c4b80",
-    image = "docker.io/library/flink:1.18-java17",
+    name = "flink_java21",
+    digest = "sha256:254ea077607fd77ad9fe54dd73cd97154761d86d826960e0a231eb37f837d02d",
+    image = "docker.io/library/flink:2.2-java21",
     platforms = [
         "linux/amd64",
         "linux/arm64/v8",
     ],
 )
-use_repo(oci, "flink_java17")
+use_repo(oci, "flink_java21")
 
 oci.pull(
     name = "python_3_13_slim",
@@ -164,8 +164,8 @@ oci.pull(
 )
 use_repo(
     oci,
-    "flink_java17_linux_amd64",
-    "flink_java17_linux_arm64_v8",
+    "flink_java21_linux_amd64",
+    "flink_java21_linux_arm64_v8",
     "nginx_alpine",
     "nginx_alpine_linux_amd64",
     "nginx_alpine_linux_arm64_v8",

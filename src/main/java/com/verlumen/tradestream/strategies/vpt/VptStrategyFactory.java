@@ -5,7 +5,7 @@ import com.verlumen.tradestream.strategies.VptParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.VolumeIndicator;
 import org.ta4j.core.num.Num;
@@ -57,7 +57,7 @@ public final class VptStrategyFactory implements StrategyFactory<VptParameters> 
     @Override
     protected Num calculate(int index) {
       if (index == 0) {
-        return numOf(0);
+        return getBarSeries().numFactory().numOf(0);
       }
 
       Num currentClose = closePrice.getValue(index);
@@ -76,7 +76,7 @@ public final class VptStrategyFactory implements StrategyFactory<VptParameters> 
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }

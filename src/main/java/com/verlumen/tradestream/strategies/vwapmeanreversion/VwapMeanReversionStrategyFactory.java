@@ -5,7 +5,7 @@ import com.verlumen.tradestream.strategies.VwapMeanReversionParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.VolumeIndicator;
 import org.ta4j.core.indicators.volume.VWAPIndicator;
@@ -78,12 +78,15 @@ public final class VwapMeanReversionStrategyFactory
       Num vwapValue = vwap.getValue(index);
       Num smaValue = sma.getValue(index);
       Num deviation =
-          vwapValue.minus(smaValue).abs().multipliedBy(vwapValue.numOf(deviationMultiplier));
+          vwapValue
+              .minus(smaValue)
+              .abs()
+              .multipliedBy(getBarSeries().numFactory().numOf(deviationMultiplier));
       return vwapValue.plus(deviation);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }
@@ -107,12 +110,15 @@ public final class VwapMeanReversionStrategyFactory
       Num vwapValue = vwap.getValue(index);
       Num smaValue = sma.getValue(index);
       Num deviation =
-          vwapValue.minus(smaValue).abs().multipliedBy(vwapValue.numOf(deviationMultiplier));
+          vwapValue
+              .minus(smaValue)
+              .abs()
+              .multipliedBy(getBarSeries().numFactory().numOf(deviationMultiplier));
       return vwapValue.minus(deviation);
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return 0;
     }
   }

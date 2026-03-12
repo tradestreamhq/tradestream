@@ -5,7 +5,7 @@ import com.verlumen.tradestream.strategies.VolumeWeightedMacdParameters;
 import com.verlumen.tradestream.ta4j.VolumeWeightedMacdLineIndicator;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;

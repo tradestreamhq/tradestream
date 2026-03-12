@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public final class VwapMeanReversionStrategyFactoryTest {
@@ -79,7 +79,7 @@ public final class VwapMeanReversionStrategyFactoryTest {
   }
 
   private BarSeries createTestBarSeries() {
-    BarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
 
     // Add test data with varying prices and volumes
     for (int i = 0; i < 50; i++) {
@@ -106,7 +106,7 @@ public final class VwapMeanReversionStrategyFactoryTest {
   }
 
   private BarSeries createMinimalBarSeries() {
-    BarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
 
     // Add minimal data - just enough for indicators to work
     for (int i = 0; i < 25; i++) {

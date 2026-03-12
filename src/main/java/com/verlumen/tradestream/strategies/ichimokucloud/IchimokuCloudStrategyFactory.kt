@@ -96,16 +96,16 @@ private class IchimokuLineIndicator(
 ) : CachedIndicator<Num>(highPrice) {
     override fun calculate(index: Int): Num {
         if (index < period - 1) {
-            return numOf(0)
+            return barSeries.numFactory().numOf(0)
         }
 
         val highestHigh = HighestValueIndicator(highPrice, period).getValue(index)
         val lowestLow = LowestValueIndicator(lowPrice, period).getValue(index)
 
-        return highestHigh.plus(lowestLow).dividedBy(numOf(2))
+        return highestHigh.plus(lowestLow).dividedBy(barSeries.numFactory().numOf(2))
     }
 
-    override fun getUnstableBars(): Int = period
+    override fun getCountOfUnstableBars(): Int = period
 }
 
 // Senkou Span A indicator
@@ -116,10 +116,10 @@ private class SenkouSpanAIndicator(
     override fun calculate(index: Int): Num {
         val tenkanValue = tenkanSen.getValue(index)
         val kijunValue = kijunSen.getValue(index)
-        return tenkanValue.plus(kijunValue).dividedBy(numOf(2))
+        return tenkanValue.plus(kijunValue).dividedBy(barSeries.numFactory().numOf(2))
     }
 
-    override fun getUnstableBars(): Int = maxOf(tenkanSen.unstableBars, kijunSen.unstableBars)
+    override fun getCountOfUnstableBars(): Int = maxOf(tenkanSen.countOfUnstableBars, kijunSen.countOfUnstableBars)
 }
 
 // Chikou Span indicator
@@ -132,5 +132,5 @@ private class ChikouSpanIndicator(
         return closePrice.getValue(index)
     }
 
-    override fun getUnstableBars(): Int = period
+    override fun getCountOfUnstableBars(): Int = period
 }

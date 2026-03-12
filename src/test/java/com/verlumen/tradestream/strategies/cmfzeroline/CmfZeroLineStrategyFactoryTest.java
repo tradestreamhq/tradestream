@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 public class CmfZeroLineStrategyFactoryTest {
@@ -19,7 +19,7 @@ public class CmfZeroLineStrategyFactoryTest {
   @Before
   public void setUp() {
     factory = new CmfZeroLineStrategyFactory();
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     for (int i = 0; i < 50; i++) {
       series.addBar(
           new BaseBar(

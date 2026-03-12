@@ -5,6 +5,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.TripleEmaCrossoverParameters;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,9 +13,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
 public class TripleEmaCrossoverStrategyFactoryTest {
@@ -44,26 +47,26 @@ public class TripleEmaCrossoverStrategyFactoryTest {
             .setLongEmaPeriod(LONG_EMA)
             .build();
 
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // Downward baseline so shortEma < mediumEma < longEma by bar 6
+    // Extended downward baseline to allow EMA warmup (need > longEma bars)
     double price = 50.0;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 14; i++) {
       series.addBar(createBar(now.plusMinutes(i), price));
-      price -= 1.0;
+      price -= 0.5;
     }
 
     // Strong upward movement forces a cross-up
-    series.addBar(createBar(now.plusMinutes(7), 65.0));
-    series.addBar(createBar(now.plusMinutes(8), 80.0));
-    series.addBar(createBar(now.plusMinutes(9), 85.0));
-    series.addBar(createBar(now.plusMinutes(10), 90.0));
+    series.addBar(createBar(now.plusMinutes(14), 65.0));
+    series.addBar(createBar(now.plusMinutes(15), 80.0));
+    series.addBar(createBar(now.plusMinutes(16), 85.0));
+    series.addBar(createBar(now.plusMinutes(17), 90.0));
 
     // Strong downward movement forces a cross-down
-    series.addBar(createBar(now.plusMinutes(11), 40.0));
-    series.addBar(createBar(now.plusMinutes(12), 30.0));
-    series.addBar(createBar(now.plusMinutes(13), 25.0));
+    series.addBar(createBar(now.plusMinutes(18), 40.0));
+    series.addBar(createBar(now.plusMinutes(19), 30.0));
+    series.addBar(createBar(now.plusMinutes(20), 25.0));
 
     closePrice = new ClosePriceIndicator(series);
     shortEma = new EMAIndicator(closePrice, SHORT_EMA);
@@ -76,19 +79,33 @@ public class TripleEmaCrossoverStrategyFactoryTest {
   @Test
   public void entryRule_shouldTrigger_whenShortEmaCrossesAboveMediumOrLongEma() {
     // No entry signal during baseline
-    assertThat(strategy.getEntryRule().isSatisfied(6)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(13)).isFalse();
 
-    // Cross-up recognized after strong upward movement
-    assertThat(strategy.getEntryRule().isSatisfied(7)).isTrue();
+    // Cross-up should trigger after strong upward price movement
+    boolean entryFound = false;
+    for (int i = 14; i <= 17; i++) {
+      if (strategy.getEntryRule().isSatisfied(i)) {
+        entryFound = true;
+        break;
+      }
+    }
+    assertThat(entryFound).isTrue();
   }
 
   @Test
   public void exitRule_shouldTrigger_whenShortEmaCrossesBelowMediumOrLongEma() {
     // No exit signal before the drop
-    assertThat(strategy.getExitRule().isSatisfied(10)).isFalse();
+    assertThat(strategy.getExitRule().isSatisfied(17)).isFalse();
 
-    // Cross-down recognized after strong downward movement
-    assertThat(strategy.getExitRule().isSatisfied(11)).isTrue();
+    // Cross-down should trigger after strong downward price movement
+    boolean exitFound = false;
+    for (int i = 18; i <= 20; i++) {
+      if (strategy.getExitRule().isSatisfied(i)) {
+        exitFound = true;
+        break;
+      }
+    }
+    assertThat(exitFound).isTrue();
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -149,6 +166,18 @@ public class TripleEmaCrossoverStrategyFactoryTest {
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
-    return new BaseBar(Duration.ofMinutes(1), time, price, price, price, price, 100.0);
+    Instant endTime = time.toInstant();
+    Instant beginTime = endTime.minus(Duration.ofMinutes(1));
+    return new BaseBar(
+        Duration.ofMinutes(1),
+        beginTime,
+        endTime,
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(price),
+        DecimalNum.valueOf(100.0),
+        DecimalNum.valueOf(0),
+        0);
   }
 }

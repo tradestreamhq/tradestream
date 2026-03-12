@@ -57,11 +57,11 @@ public final class PivotStrategyFactory implements StrategyFactory<PivotParamete
         low = low.min(series.getBar(i).getLowPrice());
         close = series.getBar(i).getClosePrice();
       }
-      return high.plus(low).plus(close).dividedBy(numOf(3));
+      return high.plus(low).plus(close).dividedBy(getBarSeries().numFactory().numOf(3));
     }
 
     @Override
-    public int getUnstableBars() {
+    public int getCountOfUnstableBars() {
       return period;
     }
   }

@@ -36,7 +36,7 @@ public final class VptStrategyFactoryTest {
     assertThat(strategy.getName()).isEqualTo("VPT");
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
-    assertThat(strategy.getUnstableBars()).isEqualTo(15);
+    assertThat(strategy.getCountOfUnstableBars()).isEqualTo(15);
   }
 
   @Test
@@ -50,7 +50,7 @@ public final class VptStrategyFactoryTest {
     assertThat(strategy.getName()).isEqualTo("VPT");
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
-    assertThat(strategy.getUnstableBars()).isEqualTo(20);
+    assertThat(strategy.getCountOfUnstableBars()).isEqualTo(20);
   }
 
   private BarSeries createTestBarSeries() {

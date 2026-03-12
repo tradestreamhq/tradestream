@@ -29,13 +29,13 @@ public final class PreviousValueIndicator extends CachedIndicator<Num> {
   protected Num calculate(int index) {
     int previousIndex = index - n;
     if (previousIndex < 0) {
-      return numOf(0);
+      return getBarSeries().numFactory().numOf(0);
     }
     return indicator.getValue(previousIndex);
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
     return n;
   }
 }

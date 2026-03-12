@@ -9,8 +9,9 @@ import java.time.ZonedDateTime;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.num.DecimalNum;
 
 public final class DemaTemaCrossoverStrategyFactoryTest {
   private final DemaTemaCrossoverStrategyFactory factory = new DemaTemaCrossoverStrategyFactory();
@@ -65,21 +66,23 @@ public final class DemaTemaCrossoverStrategyFactoryTest {
   }
 
   private BarSeries createTestBarSeries() {
-    BarSeries series = new BaseBarSeries();
+    BarSeries series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
     // Add some test data
-    for (int i = 0; i < 100; i++) {
+    for (int i = 1; i <= 100; i++) {
       series.addBar(
-          BaseBar.builder()
-              .endTime(now.plusMinutes(i))
-              .timePeriod(Duration.ofMinutes(1))
-              .openPrice(series.numOf(100.0 + i))
-              .highPrice(series.numOf(105.0 + i))
-              .lowPrice(series.numOf(95.0 + i))
-              .closePrice(series.numOf(102.0 + i))
-              .volume(series.numOf(1000.0))
-              .build());
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i - 1).toInstant(),
+              now.plusMinutes(i).toInstant(),
+              DecimalNum.valueOf(100.0 + i),
+              DecimalNum.valueOf(105.0 + i),
+              DecimalNum.valueOf(95.0 + i),
+              DecimalNum.valueOf(102.0 + i),
+              DecimalNum.valueOf(1000.0),
+              DecimalNum.valueOf(0),
+              0));
     }
 
     return series;

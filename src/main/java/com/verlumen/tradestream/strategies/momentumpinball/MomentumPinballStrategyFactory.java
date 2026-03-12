@@ -48,12 +48,12 @@ public class MomentumPinballStrategyFactory implements StrategyFactory<MomentumP
 
     // Entry rule: Long momentum is positive AND short momentum crosses above zero
     var entryRule =
-        new OverIndicatorRule(longMomentum, barSeries.numOf(0))
+        new OverIndicatorRule(longMomentum, barSeries.numFactory().numOf(0))
             .and(new CrossedUpIndicatorRule(shortMomentum, 0));
 
     // Exit rule: Long momentum is negative AND short momentum crosses below zero
     var exitRule =
-        new UnderIndicatorRule(longMomentum, barSeries.numOf(0))
+        new UnderIndicatorRule(longMomentum, barSeries.numFactory().numOf(0))
             .and(new CrossedDownIndicatorRule(shortMomentum, 0));
 
     return new org.ta4j.core.BaseStrategy(entryRule, exitRule);
