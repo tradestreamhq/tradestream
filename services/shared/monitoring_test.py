@@ -153,8 +153,14 @@ class TestBuildHealthResponse:
         build_health_response("gauge-test", {"db": "ok", "cache": "error"})
         # Verify gauges were set (no exception = success)
         assert SERVICE_UP.labels(service="gauge-test")._value.get() == 0
-        assert DEPENDENCY_UP.labels(service="gauge-test", dependency="db")._value.get() == 1
-        assert DEPENDENCY_UP.labels(service="gauge-test", dependency="cache")._value.get() == 0
+        assert (
+            DEPENDENCY_UP.labels(service="gauge-test", dependency="db")._value.get()
+            == 1
+        )
+        assert (
+            DEPENDENCY_UP.labels(service="gauge-test", dependency="cache")._value.get()
+            == 0
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -332,9 +338,9 @@ class TestMetricDefinitions:
         ).inc()
 
     def test_request_latency_labels(self):
-        REQUEST_LATENCY.labels(
-            service="test", method="GET", endpoint="/test"
-        ).observe(0.1)
+        REQUEST_LATENCY.labels(service="test", method="GET", endpoint="/test").observe(
+            0.1
+        )
 
     def test_messages_processed_labels(self):
         MESSAGES_PROCESSED.labels(service="test", topic="test-topic").inc()
