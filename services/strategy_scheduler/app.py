@@ -73,7 +73,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             item["created_at"] = item["created_at"].isoformat()
         if item.get("updated_at"):
             item["updated_at"] = item["updated_at"].isoformat()
-        return success_response(item, "strategy_schedule", resource_id=item["strategy_id"])
+        return success_response(
+            item, "strategy_schedule", resource_id=item["strategy_id"]
+        )
 
     @router.put("/{strategy_id}/schedule")
     async def put_schedule(strategy_id: str, body: ScheduleCreate):
@@ -127,7 +129,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             item["created_at"] = item["created_at"].isoformat()
         if item.get("updated_at"):
             item["updated_at"] = item["updated_at"].isoformat()
-        return success_response(item, "strategy_schedule", resource_id=item["strategy_id"])
+        return success_response(
+            item, "strategy_schedule", resource_id=item["strategy_id"]
+        )
 
     @router.get("/{strategy_id}/schedule/status")
     async def get_schedule_status(strategy_id: str):

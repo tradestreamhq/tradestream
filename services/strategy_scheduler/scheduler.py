@@ -15,9 +15,7 @@ _REGULAR_END = 21  # 16:00 ET
 _POST_MARKET_END = 1  # 20:00 ET (next day UTC)
 
 _CRON_FIELD_COUNT = 5
-_CRON_PATTERN = re.compile(
-    r"^[\d,\-\*/]+(\s+[\d,\-\*/]+){4}$"
-)
+_CRON_PATTERN = re.compile(r"^[\d,\-\*/]+(\s+[\d,\-\*/]+){4}$")
 
 
 def current_market_phase(now: Optional[datetime] = None) -> MarketPhase:

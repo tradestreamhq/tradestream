@@ -31,9 +31,7 @@ class StrategySchedule(BaseModel):
         None,
         description="Custom cron expression for fine-grained scheduling (minute hour day month weekday)",
     )
-    timezone: str = Field(
-        "UTC", description="Timezone for schedule evaluation"
-    )
+    timezone: str = Field("UTC", description="Timezone for schedule evaluation")
     enabled: bool = Field(True, description="Whether the schedule is active")
 
 
@@ -62,7 +60,9 @@ class ScheduleStatus(BaseModel):
     """Current status of a strategy schedule."""
 
     strategy_id: str
-    should_run: bool = Field(..., description="Whether the strategy should be running now")
+    should_run: bool = Field(
+        ..., description="Whether the strategy should be running now"
+    )
     current_market_phase: MarketPhase
     in_active_hours: bool
     cron_match: bool
