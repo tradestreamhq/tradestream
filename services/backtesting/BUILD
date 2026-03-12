@@ -38,6 +38,31 @@ py_library(
 )
 
 py_library(
+    name = "metrics_lib",
+    srcs = ["metrics.py"],
+)
+
+py_library(
+    name = "data_loader_lib",
+    srcs = ["data_loader.py"],
+    deps = [
+        "//services/market_mcp:influxdb_client_lib",
+        "//third_party/python:pandas",
+    ],
+)
+
+py_library(
+    name = "engine_lib",
+    srcs = ["engine.py"],
+    deps = [
+        ":data_loader_lib",
+        ":metrics_lib",
+        ":vectorbt_runner_lib",
+        "//third_party/python:pandas",
+    ],
+)
+
+py_library(
     name = "backtesting_service_lib",
     srcs = ["backtesting_service.py"],
     deps = [
@@ -97,6 +122,41 @@ py_test(
     deps = [
         ":backtesting_service_lib",
         "//third_party/python:grpcio",
+    ],
+)
+
+py_test(
+    name = "test_metrics",
+    size = "small",
+    srcs = ["tests/test_metrics.py"],
+    deps = [
+        ":metrics_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "test_data_loader",
+    size = "small",
+    srcs = ["tests/test_data_loader.py"],
+    deps = [
+        ":data_loader_lib",
+        "//third_party/python:pandas",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "test_engine",
+    size = "medium",
+    srcs = ["tests/test_engine.py"],
+    deps = [
+        ":engine_lib",
+        ":metrics_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:pytest",
+        "//third_party/python:vectorbt",
     ],
 )
 
