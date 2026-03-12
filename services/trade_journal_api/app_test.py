@@ -96,13 +96,23 @@ class TestCreateEntry:
     def test_create_entry_minimal(self, client):
         tc, conn = client
         conn.fetchrow.return_value = _sample_entry_row(
-            exit_price=None, pnl=None, outcome="OPEN", strategy_name=None,
-            signal_trigger=None, notes="", closed_at=None,
+            exit_price=None,
+            pnl=None,
+            outcome="OPEN",
+            strategy_name=None,
+            signal_trigger=None,
+            notes="",
+            closed_at=None,
         )
 
         resp = tc.post(
             "/entries",
-            json={"instrument": "ETH/USD", "side": "SELL", "entry_price": 3000.0, "size": 10.0},
+            json={
+                "instrument": "ETH/USD",
+                "side": "SELL",
+                "entry_price": 3000.0,
+                "size": 10.0,
+            },
         )
         assert resp.status_code == 200
         body = resp.json()
@@ -112,7 +122,12 @@ class TestCreateEntry:
         tc, _ = client
         resp = tc.post(
             "/entries",
-            json={"instrument": "BTC/USD", "side": "HOLD", "entry_price": 50000.0, "size": 1.0},
+            json={
+                "instrument": "BTC/USD",
+                "side": "HOLD",
+                "entry_price": 50000.0,
+                "size": 1.0,
+            },
         )
         assert resp.status_code == 422
 
@@ -122,8 +137,8 @@ class TestListEntries:
         tc, conn = client
         conn.fetchval.return_value = 1
         conn.fetch.side_effect = [
-            [_sample_entry_row()],          # entries query
-            [FakeRecord(tag="momentum")],   # tags for first entry
+            [_sample_entry_row()],  # entries query
+            [FakeRecord(tag="momentum")],  # tags for first entry
         ]
 
         resp = tc.get("/entries")
@@ -240,8 +255,22 @@ class TestStats:
     def test_stats_by_tag(self, client):
         tc, conn = client
         conn.fetch.return_value = [
-            FakeRecord(tag="momentum", total_trades=10, wins=7, losses=3, avg_pnl=150.0, total_pnl=1500.0),
-            FakeRecord(tag="reversal", total_trades=5, wins=2, losses=3, avg_pnl=-50.0, total_pnl=-250.0),
+            FakeRecord(
+                tag="momentum",
+                total_trades=10,
+                wins=7,
+                losses=3,
+                avg_pnl=150.0,
+                total_pnl=1500.0,
+            ),
+            FakeRecord(
+                tag="reversal",
+                total_trades=5,
+                wins=2,
+                losses=3,
+                avg_pnl=-50.0,
+                total_pnl=-250.0,
+            ),
         ]
 
         resp = tc.get("/stats")

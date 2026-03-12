@@ -41,12 +41,22 @@ class CreateJournalEntry(BaseModel):
     outcome: Optional[str] = Field(
         None, description="WIN, LOSS, or OPEN", pattern="^(WIN|LOSS|OPEN)$"
     )
-    strategy_name: Optional[str] = Field(None, description="Strategy that generated the trade")
-    signal_trigger: Optional[str] = Field(None, description="Signal that triggered the trade")
+    strategy_name: Optional[str] = Field(
+        None, description="Strategy that generated the trade"
+    )
+    signal_trigger: Optional[str] = Field(
+        None, description="Signal that triggered the trade"
+    )
     notes: Optional[str] = Field("", description="User notes")
-    tags: Optional[List[str]] = Field(default_factory=list, description="Tags for the entry")
-    opened_at: Optional[datetime] = Field(None, description="When the position was opened")
-    closed_at: Optional[datetime] = Field(None, description="When the position was closed")
+    tags: Optional[List[str]] = Field(
+        default_factory=list, description="Tags for the entry"
+    )
+    opened_at: Optional[datetime] = Field(
+        None, description="When the position was opened"
+    )
+    closed_at: Optional[datetime] = Field(
+        None, description="When the position was closed"
+    )
 
 
 class UpdateJournalEntry(BaseModel):
@@ -57,7 +67,9 @@ class UpdateJournalEntry(BaseModel):
     outcome: Optional[str] = Field(
         None, description="WIN, LOSS, or OPEN", pattern="^(WIN|LOSS|OPEN)$"
     )
-    closed_at: Optional[datetime] = Field(None, description="When the position was closed")
+    closed_at: Optional[datetime] = Field(
+        None, description="When the position was closed"
+    )
 
 
 # --- Helpers ---
@@ -154,8 +166,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         pagination: PaginationParams = Query(),
         strategy: Optional[str] = Query(None, description="Filter by strategy name"),
         outcome: Optional[str] = Query(None, description="Filter by outcome"),
-        date_from: Optional[datetime] = Query(None, description="Entries opened on or after"),
-        date_to: Optional[datetime] = Query(None, description="Entries opened on or before"),
+        date_from: Optional[datetime] = Query(
+            None, description="Entries opened on or after"
+        ),
+        date_to: Optional[datetime] = Query(
+            None, description="Entries opened on or before"
+        ),
         tag: Optional[str] = Query(None, description="Filter by tag"),
         search: Optional[str] = Query(None, description="Search notes text"),
     ):
@@ -217,8 +233,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     entries.append(entry)
 
             return collection_response(
-                entries, "journal_entry", total=total,
-                limit=pagination.limit, offset=pagination.offset,
+                entries,
+                "journal_entry",
+                total=total,
+                limit=pagination.limit,
+                offset=pagination.offset,
             )
         except Exception:
             logger.exception("Failed to list journal entries")
