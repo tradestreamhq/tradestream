@@ -199,7 +199,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         for row in rows:
             item = dict(row)
             item["id"] = str(item["id"])
-            for f in ("target_weight", "min_weight", "max_weight", "rebalance_threshold"):
+            for f in (
+                "target_weight",
+                "min_weight",
+                "max_weight",
+                "rebalance_threshold",
+            ):
                 item[f] = float(item[f])
             for f in ("created_at", "updated_at"):
                 if item.get(f):
@@ -213,7 +218,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         if body.min_weight > body.max_weight:
             return validation_error("min_weight must be <= max_weight")
         if body.target_weight < body.min_weight or body.target_weight > body.max_weight:
-            return validation_error("target_weight must be between min_weight and max_weight")
+            return validation_error(
+                "target_weight must be between min_weight and max_weight"
+            )
 
         query = """
             INSERT INTO rebalance_allocations
@@ -350,9 +357,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         total_estimated_cost = sum(o["estimated_cost"] for o in orders)
 
         # Persist the rebalance event
-        weights_before = {
-            d["symbol"]: d["current_weight"] for d in drift_items
-        }
+        weights_before = {d["symbol"]: d["current_weight"] for d in drift_items}
         event_id = str(uuid.uuid4())
         event_query = """
             INSERT INTO rebalance_events (id, method, status, weights_before, proposed_orders, estimated_cost)
@@ -416,7 +421,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         for row in rows:
             item = dict(row)
             item["id"] = str(item["id"])
-            item["estimated_cost"] = float(item["estimated_cost"]) if item["estimated_cost"] else 0
+            item["estimated_cost"] = (
+                float(item["estimated_cost"]) if item["estimated_cost"] else 0
+            )
             for f in ("triggered_at", "executed_at"):
                 if item.get(f):
                     item[f] = item[f].isoformat()
@@ -424,8 +431,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             items.append(item)
 
         return collection_response(
-            items, "rebalance_event", total=total,
-            limit=pagination.limit, offset=pagination.offset,
+            items,
+            "rebalance_event",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
     return app

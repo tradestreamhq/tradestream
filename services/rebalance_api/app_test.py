@@ -398,7 +398,9 @@ class TestHistory:
                 status="PROPOSED",
                 weights_before={"BTC/USD": 0.7},
                 weights_after=None,
-                proposed_orders=[{"symbol": "BTC/USD", "side": "SELL", "quantity": 0.3}],
+                proposed_orders=[
+                    {"symbol": "BTC/USD", "side": "SELL", "quantity": 0.3}
+                ],
                 estimated_cost=Decimal("20.0"),
                 triggered_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
                 executed_at=None,
