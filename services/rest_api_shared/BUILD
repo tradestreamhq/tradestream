@@ -32,6 +32,7 @@ py_library(
         "health.py",
     ],
     deps = [
+        "//services/shared:monitoring",
         "//third_party/python:fastapi",
     ],
 )
@@ -54,5 +55,19 @@ py_test(
     deps = [
         ":responses",
         "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "health_test",
+    srcs = ["health_test.py"],
+    deps = [
+        ":health",
+        "//services/shared:monitoring",
+        "//third_party/python:fastapi",
+        "//third_party/python:httpx",
+        "//third_party/python:prometheus_client",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
     ],
 )
