@@ -1,10 +1,10 @@
 common --enable_bzlmod
 
 # Add Java toolchain platform configuration
-build --java_runtime_version=remotejdk_17
-build --java_language_version=17
-build --tool_java_runtime_version=remotejdk_17
-build --tool_java_language_version=17
+build --java_runtime_version=remotejdk_21
+build --java_language_version=21
+build --tool_java_runtime_version=remotejdk_21
+build --tool_java_language_version=21
 
 build --experimental_disk_cache_gc_max_size=32G
 build --experimental_disk_cache_gc_max_age=1d

@@ -43,7 +43,7 @@ pip.parse(
 )
 use_repo(pip, "pypi")
 
-JAVA_LANGUAGE_LEVEL = "17"
+JAVA_LANGUAGE_LEVEL = "21"
 
 register_toolchains(
     "@rules_java//toolchains:all",
@@ -134,15 +134,15 @@ oci.pull(
 use_repo(oci, "openjdk_java")
 
 oci.pull(
-    name = "flink_java17",
-    digest = "sha256:e3836db6fbdf5186156cebe9aaa9a8d7a6edfa43450476faa1224fae8d5c4b80",
-    image = "docker.io/library/flink:1.18-java17",
+    name = "flink_java21",
+    digest = "sha256:254ea077607fd77ad9fe54dd73cd97154761d86d826960e0a231eb37f837d02d",
+    image = "docker.io/library/flink:2.2-java21",
     platforms = [
         "linux/amd64",
         "linux/arm64/v8",
     ],
 )
-use_repo(oci, "flink_java17")
+use_repo(oci, "flink_java21")
 
 oci.pull(
     name = "python_3_13_slim",
@@ -164,8 +164,8 @@ oci.pull(
 )
 use_repo(
     oci,
-    "flink_java17_linux_amd64",
-    "flink_java17_linux_arm64_v8",
+    "flink_java21_linux_amd64",
+    "flink_java21_linux_arm64_v8",
     "nginx_alpine",
     "nginx_alpine_linux_amd64",
     "nginx_alpine_linux_arm64_v8",
