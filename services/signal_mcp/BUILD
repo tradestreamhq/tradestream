@@ -24,11 +24,32 @@ py_library(
 )
 
 py_library(
+    name = "audit_recorder_lib",
+    srcs = ["audit_recorder.py"],
+    deps = [
+        "//third_party/python:absl_py",
+        "//third_party/python:asyncpg",
+    ],
+)
+
+py_library(
+    name = "signal_replayer_lib",
+    srcs = ["signal_replayer.py"],
+    deps = [
+        ":audit_recorder_lib",
+        "//third_party/python:absl_py",
+        "//third_party/python:asyncpg",
+    ],
+)
+
+py_library(
     name = "server_lib",
     srcs = ["server.py"],
     deps = [
+        ":audit_recorder_lib",
         ":postgres_client_lib",
         ":redis_client_lib",
+        ":signal_replayer_lib",
         "//third_party/python:mcp",
     ],
 )
@@ -38,9 +59,11 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [
+        ":audit_recorder_lib",
         ":postgres_client_lib",
         ":redis_client_lib",
         ":server_lib",
+        ":signal_replayer_lib",
         "//services/shared:auth",
         "//third_party/python:absl_py",
         "//third_party/python:mcp",
@@ -63,6 +86,27 @@ py_test(
     deps = [
         ":server_lib",
         "//third_party/python:mcp",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "audit_recorder_test",
+    srcs = ["audit_recorder_test.py"],
+    deps = [
+        ":audit_recorder_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "signal_replayer_test",
+    srcs = ["signal_replayer_test.py"],
+    deps = [
+        ":audit_recorder_lib",
+        ":signal_replayer_lib",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
     ],
