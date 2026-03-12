@@ -27,6 +27,31 @@ py_library(
     ],
 )
 
+py_library(
+    name = "models_lib",
+    srcs = ["models.py"],
+    deps = [
+        "//third_party/python:pydantic",
+    ],
+)
+
+py_library(
+    name = "virtual_portfolio_lib",
+    srcs = ["virtual_portfolio.py"],
+    deps = [
+        ":models_lib",
+    ],
+)
+
+py_library(
+    name = "simulator_lib",
+    srcs = ["simulator.py"],
+    deps = [
+        ":models_lib",
+        ":virtual_portfolio_lib",
+    ],
+)
+
 py_binary(
     name = "app",
     srcs = ["main.py"],
@@ -39,6 +64,16 @@ py_binary(
 )
 
 # --- Test Targets ---
+py_test(
+    name = "simulator_test",
+    srcs = ["simulator_test.py"],
+    deps = [
+        ":models_lib",
+        ":simulator_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
 py_test(
     name = "service_test",
     srcs = ["service_test.py"],
