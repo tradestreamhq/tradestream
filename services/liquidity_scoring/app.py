@@ -12,7 +12,11 @@ import asyncpg
 from fastapi import APIRouter, FastAPI, Query
 from pydantic import BaseModel, Field
 
-from services.liquidity_scoring.models import LiquidityCategory, LiquidityMetrics, LiquidityScore
+from services.liquidity_scoring.models import (
+    LiquidityCategory,
+    LiquidityMetrics,
+    LiquidityScore,
+)
 from services.liquidity_scoring.scorer import compute_score
 from services.rest_api_shared.health import create_health_router
 from services.rest_api_shared.responses import (
@@ -29,10 +33,18 @@ logger = logging.getLogger(__name__)
 
 class LiquidityMetricsInput(BaseModel):
     symbol: str = Field(..., description="Trading pair symbol, e.g. BTC/USD")
-    avg_daily_volume_30d: float = Field(..., ge=0, description="30-day average daily volume in USD")
-    avg_spread_pct: float = Field(..., ge=0, description="Average bid-ask spread as a percentage")
-    order_book_depth_usd: float = Field(..., ge=0, description="Order book depth in USD")
-    trade_frequency_per_hour: float = Field(..., ge=0, description="Average trades per hour")
+    avg_daily_volume_30d: float = Field(
+        ..., ge=0, description="30-day average daily volume in USD"
+    )
+    avg_spread_pct: float = Field(
+        ..., ge=0, description="Average bid-ask spread as a percentage"
+    )
+    order_book_depth_usd: float = Field(
+        ..., ge=0, description="Order book depth in USD"
+    )
+    trade_frequency_per_hour: float = Field(
+        ..., ge=0, description="Average trades per hour"
+    )
 
 
 def create_app(db_pool: asyncpg.Pool) -> FastAPI:
@@ -110,11 +122,15 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             if item.get("scored_at"):
                 item["scored_at"] = item["scored_at"].isoformat()
             items.append(item)
-        return collection_response(items, "liquidity_score", total=total, limit=limit, offset=offset)
+        return collection_response(
+            items, "liquidity_score", total=total, limit=limit, offset=offset
+        )
 
     @app.get("/", tags=["Liquidity"])
     async def list_liquidity_scores(
-        category: Optional[str] = Query(default=None, description="Filter by category: high, medium, low"),
+        category: Optional[str] = Query(
+            default=None, description="Filter by category: high, medium, low"
+        ),
         limit: int = Query(default=50, ge=1, le=200),
         offset: int = Query(default=0, ge=0),
     ):
@@ -133,7 +149,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         params: list = []
         if category:
             if category not in ("high", "medium", "low"):
-                return validation_error(f"Invalid category '{category}'. Must be high, medium, or low.")
+                return validation_error(
+                    f"Invalid category '{category}'. Must be high, medium, or low."
+                )
             where = "WHERE category = $1"
             params.append(category)
 
@@ -152,7 +170,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         async with db_pool.acquire() as conn:
             rows = await conn.fetch(query, *params)
-            total = await conn.fetchval(count_query, *count_params) if count_params else await conn.fetchval(count_query)
+            total = (
+                await conn.fetchval(count_query, *count_params)
+                if count_params
+                else await conn.fetchval(count_query)
+            )
 
         items = []
         for row in rows:
@@ -165,7 +187,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             if item.get("scored_at"):
                 item["scored_at"] = item["scored_at"].isoformat()
             items.append(item)
-        return collection_response(items, "liquidity_score", total=total, limit=limit, offset=offset)
+        return collection_response(
+            items, "liquidity_score", total=total, limit=limit, offset=offset
+        )
 
     @app.post("/score", tags=["Liquidity"])
     async def score_asset(body: LiquidityMetricsInput):

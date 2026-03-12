@@ -7,7 +7,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from services.liquidity_scoring.app import create_app
-from services.liquidity_scoring.models import LiquidityCategory, LiquidityMetrics, LiquidityScore
+from services.liquidity_scoring.models import (
+    LiquidityCategory,
+    LiquidityMetrics,
+    LiquidityScore,
+)
 from services.liquidity_scoring.scorer import (
     _log_normalize,
     _spread_score,

@@ -57,7 +57,9 @@ def _spread_score(spread_pct: float) -> float:
     return round(max(0.0, (log_val + 3.0) / 3.0 * 100.0), 2)
 
 
-def compute_score(metrics: LiquidityMetrics) -> tuple[float, float, float, float, float]:
+def compute_score(
+    metrics: LiquidityMetrics,
+) -> tuple[float, float, float, float, float]:
     """Compute the overall liquidity score and individual components.
 
     Returns:
@@ -67,7 +69,9 @@ def compute_score(metrics: LiquidityMetrics) -> tuple[float, float, float, float
     volume_score = _log_normalize(metrics.avg_daily_volume_30d, REF_VOLUME_USD)
     spread_score_val = _spread_score(metrics.avg_spread_pct)
     depth_score = _log_normalize(metrics.order_book_depth_usd, REF_DEPTH_USD)
-    freq_score = _log_normalize(metrics.trade_frequency_per_hour, REF_FREQUENCY_PER_HOUR)
+    freq_score = _log_normalize(
+        metrics.trade_frequency_per_hour, REF_FREQUENCY_PER_HOUR
+    )
 
     total = (
         volume_score * WEIGHT_VOLUME
