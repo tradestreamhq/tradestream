@@ -110,12 +110,8 @@ class TestConflictDetection:
     def test_opposing_signals_conflict(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"], sharpe=1.5))
         graph.add_strategy(_make_node("s2", ["BTC/USD"], sharpe=0.8))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
+        graph.submit_signal(Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1)))
         conflicts = graph.detect_conflicts()
         assert len(conflicts) == 1
         assert conflicts[0].symbol == "BTC/USD"
@@ -124,76 +120,48 @@ class TestConflictDetection:
     def test_same_direction_no_conflict(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"]))
         graph.add_strategy(_make_node("s2", ["BTC/USD"]))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "BTC/USD", SignalDirection.BUY, _ts(1))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
+        graph.submit_signal(Signal("s2", "BTC/USD", SignalDirection.BUY, _ts(1)))
         assert len(graph.detect_conflicts()) == 0
 
     def test_outside_window_no_conflict(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"]))
         graph.add_strategy(_make_node("s2", ["BTC/USD"]))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(10))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
+        graph.submit_signal(Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(10)))
         # Default window is 5 minutes
         assert len(graph.detect_conflicts()) == 0
 
     def test_custom_window(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"]))
         graph.add_strategy(_make_node("s2", ["BTC/USD"]))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(10))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
+        graph.submit_signal(Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(10)))
         conflicts = graph.detect_conflicts(window=timedelta(minutes=15))
         assert len(conflicts) == 1
 
     def test_hold_signals_ignored(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"]))
         graph.add_strategy(_make_node("s2", ["BTC/USD"]))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.HOLD, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.HOLD, _ts(0)))
+        graph.submit_signal(Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1)))
         assert len(graph.detect_conflicts()) == 0
 
     def test_sharpe_resolution(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"], sharpe=0.5))
         graph.add_strategy(_make_node("s2", ["BTC/USD"], sharpe=2.0))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
+        graph.submit_signal(Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1)))
         conflicts = graph.detect_conflicts()
         assert conflicts[0].winner_strategy_id == "s2"
 
     def test_multiple_symbols(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD", "ETH/USD"], sharpe=1.0))
         graph.add_strategy(_make_node("s2", ["BTC/USD", "ETH/USD"], sharpe=0.5))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1))
-        )
-        graph.submit_signal(
-            Signal("s1", "ETH/USD", SignalDirection.SELL, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s2", "ETH/USD", SignalDirection.BUY, _ts(1))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
+        graph.submit_signal(Signal("s2", "BTC/USD", SignalDirection.SELL, _ts(1)))
+        graph.submit_signal(Signal("s1", "ETH/USD", SignalDirection.SELL, _ts(0)))
+        graph.submit_signal(Signal("s2", "ETH/USD", SignalDirection.BUY, _ts(1)))
         conflicts = graph.detect_conflicts()
         assert len(conflicts) == 2
         symbols = {c.symbol for c in conflicts}
@@ -201,20 +169,14 @@ class TestConflictDetection:
 
     def test_clear_signals(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"]))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
         graph.clear_signals()
         assert len(graph.detect_conflicts()) == 0
 
     def test_same_strategy_no_self_conflict(self, graph):
         graph.add_strategy(_make_node("s1", ["BTC/USD"]))
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0))
-        )
-        graph.submit_signal(
-            Signal("s1", "BTC/USD", SignalDirection.SELL, _ts(1))
-        )
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.BUY, _ts(0)))
+        graph.submit_signal(Signal("s1", "BTC/USD", SignalDirection.SELL, _ts(1)))
         assert len(graph.detect_conflicts()) == 0
 
 

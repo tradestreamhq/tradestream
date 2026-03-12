@@ -96,7 +96,9 @@ def create_app(graph: Optional[StrategyGraph] = None) -> FastAPI:
             sharpe_ratio=body.sharpe_ratio,
         )
         g.add_strategy(node)
-        return success_response(node.to_dict(), "strategy", resource_id=node.strategy_id)
+        return success_response(
+            node.to_dict(), "strategy", resource_id=node.strategy_id
+        )
 
     @app.get("/{strategy_id}", tags=["Strategies"])
     async def get_strategy(strategy_id: str):
@@ -146,9 +148,7 @@ def create_app(graph: Optional[StrategyGraph] = None) -> FastAPI:
             return not_found("Strategy", strategy_id)
         neighbor_ids = g.get_neighbors(strategy_id)
         neighbors = [
-            g.get_strategy(nid).to_dict()
-            for nid in neighbor_ids
-            if g.get_strategy(nid)
+            g.get_strategy(nid).to_dict() for nid in neighbor_ids if g.get_strategy(nid)
         ]
         return collection_response(neighbors, "strategy")
 
@@ -176,7 +176,9 @@ def create_app(graph: Optional[StrategyGraph] = None) -> FastAPI:
 
     @app.get("/conflicts", tags=["Conflicts"])
     async def get_conflicts(
-        window_minutes: int = Query(5, ge=1, le=1440, description="Time window in minutes"),
+        window_minutes: int = Query(
+            5, ge=1, le=1440, description="Time window in minutes"
+        ),
     ):
         """Detect conflicting signals across strategies.
 

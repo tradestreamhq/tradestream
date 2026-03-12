@@ -152,13 +152,9 @@ class StrategyGraph:
                 for sell in sell_signals:
                     if buy.strategy_id == sell.strategy_id:
                         continue
-                    time_diff = abs(
-                        (buy.timestamp - sell.timestamp).total_seconds()
-                    )
+                    time_diff = abs((buy.timestamp - sell.timestamp).total_seconds())
                     if time_diff <= window.total_seconds():
-                        pair_key = tuple(
-                            sorted([buy.strategy_id, sell.strategy_id])
-                        )
+                        pair_key = tuple(sorted([buy.strategy_id, sell.strategy_id]))
                         if pair_key not in paired:
                             paired.add(pair_key)
                             conflicting = [buy, sell]
