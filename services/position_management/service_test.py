@@ -101,7 +101,9 @@ class TestListPositions:
     def test_list_with_filters(self, client, pg_client):
         pg_client.get_positions.return_value = [SAMPLE_POSITION]
 
-        resp = client.get("/positions?symbol=BTC-USD&strategy=MACD_CROSSOVER&status=FILLED")
+        resp = client.get(
+            "/positions?symbol=BTC-USD&strategy=MACD_CROSSOVER&status=FILLED"
+        )
         assert resp.status_code == 200
         pg_client.get_positions.assert_called_with(
             symbol="BTC-USD",

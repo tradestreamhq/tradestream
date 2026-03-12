@@ -193,9 +193,7 @@ def create_app(
 
         try:
             run_async(
-                pg_client.update_market_price(
-                    position_id, float(data["current_price"])
-                )
+                pg_client.update_market_price(position_id, float(data["current_price"]))
             )
             position = run_async(pg_client.get_position(position_id))
             if not position:

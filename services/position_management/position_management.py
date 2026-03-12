@@ -196,8 +196,20 @@ def close_position(
 def classify_asset_class(symbol: str) -> str:
     """Classify a trading symbol into an asset class."""
     crypto_bases = {
-        "BTC", "ETH", "SOL", "ADA", "DOT", "AVAX", "MATIC",
-        "LINK", "UNI", "DOGE", "XRP", "BNB", "LTC", "ATOM",
+        "BTC",
+        "ETH",
+        "SOL",
+        "ADA",
+        "DOT",
+        "AVAX",
+        "MATIC",
+        "LINK",
+        "UNI",
+        "DOGE",
+        "XRP",
+        "BNB",
+        "LTC",
+        "ATOM",
     }
     base = symbol.split("-")[0].split("/")[0].upper()
     if base in crypto_bases:

@@ -193,9 +193,7 @@ class PostgresClient:
                 "status": new_status,
             }
 
-    async def update_market_price(
-        self, position_id: str, current_price: float
-    ) -> None:
+    async def update_market_price(self, position_id: str, current_price: float) -> None:
         """Update the current market price and unrealized P&L for a position."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
@@ -302,9 +300,7 @@ class PostgresClient:
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
 
-        group_col = (
-            "strategy_name" if group_by == "strategy" else "asset_class"
-        )
+        group_col = "strategy_name" if group_by == "strategy" else "asset_class"
 
         query = f"""
         SELECT
