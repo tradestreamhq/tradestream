@@ -113,8 +113,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             if item.get("created_at"):
                 item["created_at"] = item["created_at"].isoformat()
         return collection_response(
-            items, "strategy_spec", total=total,
-            limit=pagination.limit, offset=pagination.offset,
+            items,
+            "strategy_spec",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
     @specs_router.post("", status_code=201)
@@ -259,8 +262,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 item["created_at"] = item["created_at"].isoformat()
             items.append(item)
         return collection_response(
-            items, "strategy_implementation", total=total,
-            limit=pagination.limit, offset=pagination.offset,
+            items,
+            "strategy_implementation",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
     @specs_router.post("/{spec_id}/implementations", status_code=201)
@@ -365,8 +371,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 item["created_at"] = item["created_at"].isoformat()
             items.append(item)
         return collection_response(
-            items, "strategy_implementation", total=total,
-            limit=pagination.limit, offset=pagination.offset,
+            items,
+            "strategy_implementation",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
     @impls_router.get("/{impl_id}")
@@ -387,9 +396,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         item["spec_id"] = str(item["spec_id"])
         if item.get("created_at"):
             item["created_at"] = item["created_at"].isoformat()
-        return success_response(
-            item, "strategy_implementation", resource_id=item["id"]
-        )
+        return success_response(item, "strategy_implementation", resource_id=item["id"])
 
     @impls_router.delete("/{impl_id}", status_code=204)
     async def deactivate_implementation(impl_id: str):

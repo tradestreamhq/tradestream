@@ -186,9 +186,7 @@ def create_server(api_base_url: str) -> Server:
                     f"/implementations/{impl_id}/evaluate",
                     json_body={
                         "instrument": arguments["instrument"],
-                        "start_date": (
-                            date.today() - timedelta(days=days)
-                        ).isoformat(),
+                        "start_date": (date.today() - timedelta(days=days)).isoformat(),
                         "end_date": date.today().isoformat(),
                     },
                 )

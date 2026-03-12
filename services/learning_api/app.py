@@ -141,8 +141,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             items.append(item)
 
         return collection_response(
-            items, "decision", total=total,
-            limit=pagination.limit, offset=pagination.offset,
+            items,
+            "decision",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
     @decisions_router.post("", status_code=201)

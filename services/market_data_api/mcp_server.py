@@ -109,9 +109,7 @@ def create_server(api_base_url: str) -> Server:
                 return wrapper._text(result)
 
             elif name == "get_price":
-                result = wrapper._get(
-                    f"/instruments/{arguments['symbol']}/price"
-                )
+                result = wrapper._get(f"/instruments/{arguments['symbol']}/price")
                 return wrapper._text(result)
 
             elif name == "get_orderbook":
