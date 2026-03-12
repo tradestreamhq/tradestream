@@ -200,9 +200,7 @@ class TestSignalDeduplication:
         return create_server(postgres_client, redis_client)
 
     @pytest.mark.asyncio
-    async def test_recent_signals_returns_existing(
-        self, server, postgres_client
-    ):
+    async def test_recent_signals_returns_existing(self, server, postgres_client):
         """get_recent_signals should return previously emitted signals."""
         postgres_client.get_recent_signals.return_value = [
             {
@@ -411,9 +409,7 @@ class TestNotificationPipeline:
 
         signal = self._signal_from_redis()
 
-        record = history.record_delivery(
-            signal["signal_id"], "telegram", True, signal
-        )
+        record = history.record_delivery(signal["signal_id"], "telegram", True, signal)
         assert record.status == "delivered"
         assert record.channel == "telegram"
 
@@ -478,9 +474,7 @@ class TestEndToEndSignalFlow:
         return create_server(postgres_client, redis_client)
 
     @pytest.mark.asyncio
-    async def test_full_signal_lifecycle(
-        self, server, postgres_client, redis_client
-    ):
+    async def test_full_signal_lifecycle(self, server, postgres_client, redis_client):
         """Test: emit signal → capture Redis data → filter → deliver → record history.
 
         Simulates the full pipeline without real infrastructure.
@@ -504,12 +498,8 @@ class TestEndToEndSignalFlow:
         mock_history_redis = _make_mock_redis_for_history()
         history = NotificationHistory(mock_history_redis)
 
-        history.record_delivery(
-            signal_data["signal_id"], "telegram", True, signal_data
-        )
-        history.record_delivery(
-            signal_data["signal_id"], "discord", True, signal_data
-        )
+        history.record_delivery(signal_data["signal_id"], "telegram", True, signal_data)
+        history.record_delivery(signal_data["signal_id"], "discord", True, signal_data)
 
         stats = history.get_stats()
         assert stats["total"] == 2
