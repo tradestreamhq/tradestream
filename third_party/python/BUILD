@@ -226,6 +226,14 @@ py_library(
 )
 
 py_library(
+    name = "scipy",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("scipy"),
+    ],
+)
+
+py_library(
     name = "alembic",
     visibility = ["//visibility:public"],
     deps = [
