@@ -25,16 +25,14 @@ public class IndicatorRegistryTest {
     registry = IndicatorRegistry.defaultRegistry();
 
     testSeries = new BaseBarSeriesBuilder().withName("test").build();
+    java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 10;
       testSeries.addBar(
           new BaseBar(
               java.time.Duration.ofMinutes(1),
-              java.time.ZonedDateTime.now()
-                  .plusMinutes(i)
-                  .toInstant()
-                  .minus(java.time.Duration.ofMinutes(1)),
-              java.time.ZonedDateTime.now().plusMinutes(i).toInstant(),
+              now.plusMinutes(i).toInstant().minus(java.time.Duration.ofMinutes(1)),
+              now.plusMinutes(i).toInstant(),
               DecimalNum.valueOf(price - 1),
               DecimalNum.valueOf(price + 2),
               DecimalNum.valueOf(price - 2),

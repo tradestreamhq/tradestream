@@ -28,6 +28,7 @@ public class ConfigBasedVsHardcodedValidationTest {
   public void setUp() {
     // Create a test bar series with synthetic data that will generate entry/exit signals
     testSeries = new BaseBarSeriesBuilder().withName("validation-test").build();
+    java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
 
     // Generate data with clear trends to trigger crossover signals
     // Pattern: gradual increase, then gradual decrease, repeat
@@ -45,11 +46,8 @@ public class ConfigBasedVsHardcodedValidationTest {
       testSeries.addBar(
           new BaseBar(
               java.time.Duration.ofMinutes(1),
-              java.time.ZonedDateTime.now()
-                  .plusMinutes(i)
-                  .toInstant()
-                  .minus(java.time.Duration.ofMinutes(1)),
-              java.time.ZonedDateTime.now().plusMinutes(i).toInstant(),
+              now.plusMinutes(i).toInstant().minus(java.time.Duration.ofMinutes(1)),
+              now.plusMinutes(i).toInstant(),
               DecimalNum.valueOf(open),
               DecimalNum.valueOf(high),
               DecimalNum.valueOf(low),

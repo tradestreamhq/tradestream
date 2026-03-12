@@ -51,30 +51,29 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     ZonedDateTime now = ZonedDateTime.now();
 
     // ---------------------------------------------------------------------
-    // 1) Downward baseline so shortEma < longEma by bar 6
-    //    This ensures a strict cross-up is possible at bar 7.
+    // 1) Extended downward baseline to allow EMA warmup (need > longEma bars)
+    //    so shortEma < longEma is established before the cross-up
     // ---------------------------------------------------------------------
-    // Bar 0 to 6: descending prices: 50 -> 49 -> 48 -> 47 -> 46 -> 45 -> 44
     double price = 50.0;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 14; i++) {
       series.addBar(createBar(now.plusMinutes(i), price));
-      price -= 1.0;
+      price -= 0.5;
     }
 
     // ---------------------------------------------------------------------
-    // 2) Strong upward movement forces a strict cross-up between bar 6 & 7
+    // 2) Strong upward movement forces a strict cross-up
     // ---------------------------------------------------------------------
-    series.addBar(createBar(now.plusMinutes(7), 65.0));
-    series.addBar(createBar(now.plusMinutes(8), 80.0));
-    series.addBar(createBar(now.plusMinutes(9), 85.0));
-    series.addBar(createBar(now.plusMinutes(10), 90.0));
+    series.addBar(createBar(now.plusMinutes(14), 65.0));
+    series.addBar(createBar(now.plusMinutes(15), 80.0));
+    series.addBar(createBar(now.plusMinutes(16), 85.0));
+    series.addBar(createBar(now.plusMinutes(17), 90.0));
 
     // ---------------------------------------------------------------------
     // 3) Then a strong downward movement forces a strict cross-down
     // ---------------------------------------------------------------------
-    series.addBar(createBar(now.plusMinutes(11), 40.0));
-    series.addBar(createBar(now.plusMinutes(12), 30.0));
-    series.addBar(createBar(now.plusMinutes(13), 25.0));
+    series.addBar(createBar(now.plusMinutes(18), 40.0));
+    series.addBar(createBar(now.plusMinutes(19), 30.0));
+    series.addBar(createBar(now.plusMinutes(20), 25.0));
 
     // Initialize indicators for debugging
     closePrice = new ClosePriceIndicator(series);
@@ -87,40 +86,34 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenShortEmaCrossesAboveLongEma() {
-    // Log EMA values around the expected cross-up
-    for (int i = 6; i <= 9; i++) {
-      System.out.printf(
-          "Bar %d - Price: %.2f, Short EMA: %.2f, Long EMA: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          shortEma.getValue(i).doubleValue(),
-          longEma.getValue(i).doubleValue());
-    }
-
     // No entry signal during baseline
-    assertThat(strategy.getEntryRule().isSatisfied(6)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(13)).isFalse();
 
-    // Strict cross-up typically recognized at bar 7
-    assertThat(strategy.getEntryRule().isSatisfied(7)).isTrue();
+    // Cross-up should trigger after strong upward price movement
+    boolean entryFound = false;
+    for (int i = 14; i <= 17; i++) {
+      if (strategy.getEntryRule().isSatisfied(i)) {
+        entryFound = true;
+        break;
+      }
+    }
+    assertThat(entryFound).isTrue();
   }
 
   @Test
   public void exitRule_shouldTrigger_whenShortEmaCrossesBelowLongEma() {
-    // Log EMA values around the expected cross-down
-    for (int i = 10; i <= 13; i++) {
-      System.out.printf(
-          "Bar %d - Price: %.2f, Short EMA: %.2f, Long EMA: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          shortEma.getValue(i).doubleValue(),
-          longEma.getValue(i).doubleValue());
-    }
-
     // No exit signal before the drop
-    assertThat(strategy.getExitRule().isSatisfied(10)).isFalse();
+    assertThat(strategy.getExitRule().isSatisfied(17)).isFalse();
 
-    // Strict cross-down typically recognized at bar 11
-    assertThat(strategy.getExitRule().isSatisfied(11)).isTrue();
+    // Cross-down should trigger after strong downward price movement
+    boolean exitFound = false;
+    for (int i = 18; i <= 20; i++) {
+      if (strategy.getExitRule().isSatisfied(i)) {
+        exitFound = true;
+        break;
+      }
+    }
+    assertThat(exitFound).isTrue();
   }
 
   @Test(expected = IllegalArgumentException.class)

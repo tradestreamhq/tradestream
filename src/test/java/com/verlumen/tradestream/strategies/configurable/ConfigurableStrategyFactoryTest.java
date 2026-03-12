@@ -25,6 +25,7 @@ public class ConfigurableStrategyFactoryTest {
   public void setUp() {
     // Create a test bar series with some sample data
     testSeries = new BaseBarSeriesBuilder().withName("test").build();
+    java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
 
     // Add 100 bars of synthetic data
     for (int i = 0; i < 100; i++) {
@@ -32,11 +33,8 @@ public class ConfigurableStrategyFactoryTest {
       testSeries.addBar(
           new BaseBar(
               java.time.Duration.ofMinutes(1),
-              java.time.ZonedDateTime.now()
-                  .plusMinutes(i)
-                  .toInstant()
-                  .minus(java.time.Duration.ofMinutes(1)),
-              java.time.ZonedDateTime.now().plusMinutes(i).toInstant(),
+              now.plusMinutes(i).toInstant().minus(java.time.Duration.ofMinutes(1)),
+              now.plusMinutes(i).toInstant(),
               DecimalNum.valueOf(price - 1),
               DecimalNum.valueOf(price + 2),
               DecimalNum.valueOf(price - 2),
