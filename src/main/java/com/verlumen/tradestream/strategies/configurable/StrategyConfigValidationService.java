@@ -60,7 +60,8 @@ public final class StrategyConfigValidationService {
         StrategyConfig config = strategy.get();
         results.addAll(validate(config));
       } catch (Exception e) {
-        results.add(ValidationResult.error(strategy.name(), "Failed to load config: " + e.getMessage()));
+        results.add(
+            ValidationResult.error(strategy.name(), "Failed to load config: " + e.getMessage()));
       }
     }
     return results;
@@ -122,7 +123,8 @@ public final class StrategyConfigValidationService {
       }
 
       if (param.getType() == null) {
-        results.add(ValidationResult.error(name, "Parameter '" + param.getName() + "' has no type"));
+        results.add(
+            ValidationResult.error(name, "Parameter '" + param.getName() + "' has no type"));
       }
 
       if (param.getMin() != null && param.getMax() != null) {
@@ -201,7 +203,8 @@ public final class StrategyConfigValidationService {
       }
 
       if (indicator.getType() == null || indicator.getType().isEmpty()) {
-        results.add(ValidationResult.error(name, "Indicator '" + indicator.getId() + "' has no type"));
+        results.add(
+            ValidationResult.error(name, "Indicator '" + indicator.getId() + "' has no type"));
       } else if (!indicatorRegistry.hasIndicator(indicator.getType())) {
         results.add(
             ValidationResult.error(
@@ -269,7 +272,8 @@ public final class StrategyConfigValidationService {
 
       if (!ruleRegistry.hasRule(condition.getType())) {
         results.add(
-            ValidationResult.error(name, "Unknown " + conditionType + " condition type: " + condition.getType()));
+            ValidationResult.error(
+                name, "Unknown " + conditionType + " condition type: " + condition.getType()));
       }
 
       if (condition.getIndicator() != null
