@@ -1,0 +1,5 @@
+[
+  {"id": 100001, "price": "50100.00", "qty": "0.5", "time": 1640995200100, "isBuyerMaker": false, "symbol": "BTC/USD"},
+  {"id": 100002, "price": "50150.00", "qty": "1.2", "time": 1640995200200, "isBuyerMaker": true, "symbol": "BTC/USD"},
+  {"id": 100003, "price": "50200.00", "qty": "0.8", "time": 1640995200300, "isBuyerMaker": false, "symbol": "BTC/USD"}
+]
