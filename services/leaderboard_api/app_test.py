@@ -51,7 +51,9 @@ def client():
 class TestCompositeScore:
     def test_all_zeros(self):
         score = compute_composite_score(0, 0, 0, 0, 0)
-        assert score == pytest.approx(0.2, abs=0.01)  # only max_drawdown contributes (1.0 * 0.20)
+        assert score == pytest.approx(
+            0.2, abs=0.01
+        )  # only max_drawdown contributes (1.0 * 0.20)
 
     def test_strong_strategy(self):
         score = compute_composite_score(

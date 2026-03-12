@@ -104,7 +104,9 @@ def compute_composite_score(
     return round(score, 6)
 
 
-def _period_start(period: TimePeriod, now: Optional[datetime] = None) -> Optional[datetime]:
+def _period_start(
+    period: TimePeriod, now: Optional[datetime] = None
+) -> Optional[datetime]:
     """Return the start datetime for a given time period filter."""
     from datetime import timedelta
 
@@ -154,9 +156,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     async def get_leaderboard(
         pagination: PaginationParams = Depends(),
         period: TimePeriod = Query(TimePeriod.ALL, description="Time period filter"),
-        sort_by: SortField = Query(
-            SortField.COMPOSITE, description="Field to sort by"
-        ),
+        sort_by: SortField = Query(SortField.COMPOSITE, description="Field to sort by"),
         environment: Optional[str] = Query(
             None,
             description="Filter by environment (BACKTEST, PAPER, LIVE)",
