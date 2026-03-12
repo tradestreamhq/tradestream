@@ -270,9 +270,7 @@ class TestCheckPortfolioRisk:
             {"symbol": "BTC-USD", "value": 1000, "risk": 50},
             {"symbol": "ETH-USD", "value": 1000, "risk": 50},
         ]
-        result = check_portfolio_risk(
-            "SOL-USD", 1000, 50, 100000, positions, config
-        )
+        result = check_portfolio_risk("SOL-USD", 1000, 50, 100000, positions, config)
         assert result.allowed is False
         assert any("Max open positions" in v for v in result.violations)
 
@@ -281,9 +279,7 @@ class TestCheckPortfolioRisk:
         positions = [
             {"symbol": "BTC-USD", "value": 5000, "risk": 4000},
         ]
-        result = check_portfolio_risk(
-            "ETH-USD", 2000, 2000, 100000, positions, config
-        )
+        result = check_portfolio_risk("ETH-USD", 2000, 2000, 100000, positions, config)
         assert result.allowed is False
         assert any("heat" in v.lower() for v in result.violations)
 
@@ -293,9 +289,7 @@ class TestCheckPortfolioRisk:
         positions = [
             {"symbol": "BTC-USD", "value": 10000, "risk": 7000},
         ]
-        result = check_portfolio_risk(
-            "ETH-USD", 2000, 1500, 100000, positions, config
-        )
+        result = check_portfolio_risk("ETH-USD", 2000, 1500, 100000, positions, config)
         assert result.allowed is True
         assert any("approaching" in w.lower() for w in result.warnings)
 
@@ -304,9 +298,7 @@ class TestCheckPortfolioRisk:
         positions = [
             {"symbol": "BTC-USD", "value": 5000, "risk": 100, "unrealized_pnl": -6000},
         ]
-        result = check_portfolio_risk(
-            "ETH-USD", 1000, 50, 100000, positions, config
-        )
+        result = check_portfolio_risk("ETH-USD", 1000, 50, 100000, positions, config)
         assert result.allowed is False
         assert any("drawdown" in v.lower() for v in result.violations)
 
@@ -318,7 +310,12 @@ class TestCheckPortfolioRisk:
             {"symbol": "ETH-USD", "value": 10000, "risk": 300},
         ]
         result = check_portfolio_risk(
-            "SOL-USD", 5000, 100, 100000, positions, config,
+            "SOL-USD",
+            5000,
+            100,
+            100000,
+            positions,
+            config,
             sector_map=sector_map,
         )
         assert result.allowed is False
@@ -332,7 +329,12 @@ class TestCheckPortfolioRisk:
         ]
         # 30000 + 3000 = 33000 / 100000 = 33% (>80% of 40%)
         result = check_portfolio_risk(
-            "ETH-USD", 3000, 100, 100000, positions, config,
+            "ETH-USD",
+            3000,
+            100,
+            100000,
+            positions,
+            config,
             sector_map=sector_map,
         )
         assert result.allowed is True
@@ -348,7 +350,12 @@ class TestCheckPortfolioRisk:
         ]
         # Correlated value = 10000 (proposed) + 20000 (BTC) = 30000 -> 30%
         result = check_portfolio_risk(
-            "ETH-USD", 10000, 200, 100000, positions, config,
+            "ETH-USD",
+            10000,
+            200,
+            100000,
+            positions,
+            config,
             correlation_matrix=corr_matrix,
         )
         assert result.allowed is False
@@ -363,7 +370,12 @@ class TestCheckPortfolioRisk:
             {"symbol": "BTC-USD", "value": 20000, "risk": 500},
         ]
         result = check_portfolio_risk(
-            "SOL-USD", 10000, 200, 100000, positions, config,
+            "SOL-USD",
+            10000,
+            200,
+            100000,
+            positions,
+            config,
             correlation_matrix=corr_matrix,
         )
         assert result.allowed is True
@@ -379,7 +391,12 @@ class TestCheckPortfolioRisk:
             {"symbol": "BTC-USD", "value": 20000, "risk": 500},
         ]
         result = check_portfolio_risk(
-            "ETH-USD", 10000, 200, 100000, positions, config,
+            "ETH-USD",
+            10000,
+            200,
+            100000,
+            positions,
+            config,
             correlation_matrix=corr_matrix,
         )
         assert result.allowed is False
@@ -397,9 +414,7 @@ class TestCheckPortfolioRisk:
         positions = [
             {"symbol": "BTC-USD", "value": 5000, "risk": 900},
         ]
-        result = check_portfolio_risk(
-            "ETH-USD", 5000, 200, 100000, positions, config
-        )
+        result = check_portfolio_risk("ETH-USD", 5000, 200, 100000, positions, config)
         assert result.allowed is False
         assert len(result.violations) >= 2
 

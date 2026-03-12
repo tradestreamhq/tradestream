@@ -187,8 +187,10 @@ def calculate_position_size(
     # Risk-based sizing: risk_budget / risk_per_unit
     if stop_loss.risk_per_unit > 0:
         # The per-trade risk budget is the portfolio heat budget spread evenly
-        risk_budget = portfolio_equity * config.max_portfolio_heat / max(
-            config.max_open_positions, 1
+        risk_budget = (
+            portfolio_equity
+            * config.max_portfolio_heat
+            / max(config.max_open_positions, 1)
         )
         size_by_risk = risk_budget / stop_loss.risk_per_unit
         if size_by_risk < size_by_value:
