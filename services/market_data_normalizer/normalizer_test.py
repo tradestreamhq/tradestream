@@ -66,7 +66,9 @@ class TestBinanceNormalizer:
         assert tick.last_price == 67124.00
         assert tick.volume_24h == 12345.678
         assert tick.vwap == 66890.12
-        assert "2024" in tick.timestamp or "2025" in tick.timestamp or tick.timestamp  # epoch parsed
+        assert (
+            "2024" in tick.timestamp or "2025" in tick.timestamp or tick.timestamp
+        )  # epoch parsed
 
     def test_missing_fields(self, caplog):
         raw = {"s": "ETHUSD", "E": 1710000000000}
@@ -210,7 +212,9 @@ class TestValidation:
         assert any("bid" in e and "ask" in e for e in errors)
 
     def test_missing_symbol(self):
-        tick = NormalizedTick(symbol="", exchange="binance", timestamp="2026-03-10T14:30:00Z")
+        tick = NormalizedTick(
+            symbol="", exchange="binance", timestamp="2026-03-10T14:30:00Z"
+        )
         errors = validate(tick)
         assert any("symbol is empty" in e for e in errors)
 
