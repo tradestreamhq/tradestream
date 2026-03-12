@@ -183,9 +183,7 @@ class ParseOrderBookToProtoTest(absltest.TestCase):
 
     @flagsaver.flagsaver(orderbook_top_n=10)
     def test_orderbook_bid_values(self):
-        proto = main_module._parse_orderbook_to_proto(
-            "t1", "m1", SAMPLE_ORDERBOOK
-        )
+        proto = main_module._parse_orderbook_to_proto("t1", "m1", SAMPLE_ORDERBOOK)
         self.assertAlmostEqual(proto.bids[0].price, 0.60)
         self.assertAlmostEqual(proto.bids[0].size, 100.0)
         self.assertAlmostEqual(proto.bids[1].price, 0.58)
@@ -193,9 +191,7 @@ class ParseOrderBookToProtoTest(absltest.TestCase):
 
     @flagsaver.flagsaver(orderbook_top_n=10)
     def test_orderbook_ask_values(self):
-        proto = main_module._parse_orderbook_to_proto(
-            "t1", "m1", SAMPLE_ORDERBOOK
-        )
+        proto = main_module._parse_orderbook_to_proto("t1", "m1", SAMPLE_ORDERBOOK)
         self.assertAlmostEqual(proto.asks[0].price, 0.65)
         self.assertAlmostEqual(proto.asks[0].size, 150.0)
         self.assertAlmostEqual(proto.asks[1].price, 0.67)
@@ -372,9 +368,7 @@ class IngestOrderBooksTest(absltest.TestCase):
         mock_api = mock.MagicMock()
         mock_api.get_order_book.return_value = SAMPLE_ORDERBOOK
 
-        count = main_module._ingest_orderbooks(
-            mock_api, [market], kafka_producer=None
-        )
+        count = main_module._ingest_orderbooks(mock_api, [market], kafka_producer=None)
 
         self.assertEqual(count, 1)
         mock_api.get_order_book.assert_called_once_with("valid_token")
@@ -403,9 +397,7 @@ class IngestOrderBooksTest(absltest.TestCase):
         market = dict(SAMPLE_MARKET, tokens=[])
         mock_api = mock.MagicMock()
 
-        count = main_module._ingest_orderbooks(
-            mock_api, [market], kafka_producer=None
-        )
+        count = main_module._ingest_orderbooks(mock_api, [market], kafka_producer=None)
 
         self.assertEqual(count, 0)
         mock_api.get_order_book.assert_not_called()
@@ -433,15 +425,9 @@ class RunFunctionTest(absltest.TestCase):
         polymarket_api_url="https://test.polymarket.com",
         api_request_timeout=5,
     )
-    @mock.patch(
-        "services.polymarket_ingestor.main._ingest_orderbooks", return_value=2
-    )
-    @mock.patch(
-        "services.polymarket_ingestor.main._ingest_markets", return_value=1
-    )
-    @mock.patch(
-        "services.polymarket_ingestor.main.PolymarketApiClient"
-    )
+    @mock.patch("services.polymarket_ingestor.main._ingest_orderbooks", return_value=2)
+    @mock.patch("services.polymarket_ingestor.main._ingest_markets", return_value=1)
+    @mock.patch("services.polymarket_ingestor.main.PolymarketApiClient")
     def test_dry_run_does_not_create_kafka_producer(
         self, mock_api_cls, mock_ingest_markets, mock_ingest_orderbooks
     ):
@@ -455,7 +441,11 @@ class RunFunctionTest(absltest.TestCase):
         mock_ingest_markets.assert_called_once()
         call_args = mock_ingest_markets.call_args
         # Second positional arg or kafka_producer kwarg should be None
-        kafka_arg = call_args[0][1] if len(call_args[0]) > 1 else call_args[1].get("kafka_producer")
+        kafka_arg = (
+            call_args[0][1]
+            if len(call_args[0]) > 1
+            else call_args[1].get("kafka_producer")
+        )
         self.assertIsNone(kafka_arg)
 
     @flagsaver.flagsaver(
@@ -464,9 +454,7 @@ class RunFunctionTest(absltest.TestCase):
         polymarket_api_url="https://test.polymarket.com",
         api_request_timeout=5,
     )
-    @mock.patch(
-        "services.polymarket_ingestor.main.PolymarketApiClient"
-    )
+    @mock.patch("services.polymarket_ingestor.main.PolymarketApiClient")
     def test_run_closes_api_client(self, mock_api_cls):
         mock_api_instance = mock.MagicMock()
         mock_api_instance.get_all_active_markets.return_value = []
@@ -482,9 +470,7 @@ class RunFunctionTest(absltest.TestCase):
         polymarket_api_url="https://test.polymarket.com",
         api_request_timeout=5,
     )
-    @mock.patch(
-        "services.polymarket_ingestor.main.PolymarketApiClient"
-    )
+    @mock.patch("services.polymarket_ingestor.main.PolymarketApiClient")
     def test_run_closes_api_client_on_error(self, mock_api_cls):
         mock_api_instance = mock.MagicMock()
         mock_api_instance.get_all_active_markets.side_effect = RuntimeError("boom")
@@ -501,14 +487,18 @@ class RunFunctionTest(absltest.TestCase):
         polymarket_api_url="https://test.polymarket.com",
         api_request_timeout=5,
     )
-    @mock.patch(
-        "services.polymarket_ingestor.main.PolymarketApiClient"
-    )
+    @mock.patch("services.polymarket_ingestor.main.PolymarketApiClient")
     def test_run_filters_active_markets_for_orderbooks(self, mock_api_cls):
         """Only active, non-closed markets are passed to orderbook ingestion."""
-        active_market = dict(SAMPLE_MARKET, condition_id="active1", active=True, closed=False)
-        closed_market = dict(SAMPLE_MARKET, condition_id="closed1", active=True, closed=True)
-        inactive_market = dict(SAMPLE_MARKET, condition_id="inactive1", active=False, closed=False)
+        active_market = dict(
+            SAMPLE_MARKET, condition_id="active1", active=True, closed=False
+        )
+        closed_market = dict(
+            SAMPLE_MARKET, condition_id="closed1", active=True, closed=True
+        )
+        inactive_market = dict(
+            SAMPLE_MARKET, condition_id="inactive1", active=False, closed=False
+        )
 
         mock_api_instance = mock.MagicMock()
         # First call for _ingest_markets, second call for orderbooks

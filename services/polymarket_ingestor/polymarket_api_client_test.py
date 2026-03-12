@@ -131,8 +131,8 @@ class PolymarketApiClientTest(absltest.TestCase):
 
     @mock.patch("requests.Session.get")
     def test_get_markets_raises_on_http_error(self, mock_get):
-        self.mock_response.raise_for_status.side_effect = (
-            requests.exceptions.HTTPError("404")
+        self.mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "404"
         )
         mock_get.return_value = self.mock_response
 
@@ -141,8 +141,8 @@ class PolymarketApiClientTest(absltest.TestCase):
 
     @mock.patch("requests.Session.get")
     def test_get_market_raises_on_http_error(self, mock_get):
-        self.mock_response.raise_for_status.side_effect = (
-            requests.exceptions.HTTPError("500")
+        self.mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "500"
         )
         mock_get.return_value = self.mock_response
 
@@ -151,8 +151,8 @@ class PolymarketApiClientTest(absltest.TestCase):
 
     @mock.patch("requests.Session.get")
     def test_get_order_book_raises_on_http_error(self, mock_get):
-        self.mock_response.raise_for_status.side_effect = (
-            requests.exceptions.HTTPError("503")
+        self.mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "503"
         )
         mock_get.return_value = self.mock_response
 
@@ -196,8 +196,14 @@ class PolymarketApiClientTest(absltest.TestCase):
     @mock.patch("requests.Session.get")
     def test_get_all_active_markets_accumulates_from_multiple_pages(self, mock_get):
         """Ensures markets from all pages are combined into a single list."""
-        page1 = {"data": [{"condition_id": f"m{i}"} for i in range(3)], "next_cursor": "c2"}
-        page2 = {"data": [{"condition_id": f"m{i}"} for i in range(3, 5)], "next_cursor": "LTE="}
+        page1 = {
+            "data": [{"condition_id": f"m{i}"} for i in range(3)],
+            "next_cursor": "c2",
+        }
+        page2 = {
+            "data": [{"condition_id": f"m{i}"} for i in range(3, 5)],
+            "next_cursor": "LTE=",
+        }
         self.mock_response.json.side_effect = [page1, page2]
         mock_get.return_value = self.mock_response
 
