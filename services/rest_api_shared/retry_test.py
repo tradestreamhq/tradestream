@@ -37,9 +37,7 @@ class TestRetryWithBackoff:
     async def test_retries_transient_error(self):
         fn = AsyncMock(side_effect=[ConnectionError("fail"), "ok"])
         with patch("services.rest_api_shared.retry.asyncio.sleep"):
-            result = await retry_with_backoff(
-                fn, max_attempts=3, operation_name="test"
-            )
+            result = await retry_with_backoff(fn, max_attempts=3, operation_name="test")
         assert result == "ok"
         assert fn.call_count == 2
 
@@ -55,9 +53,7 @@ class TestRetryWithBackoff:
         fn = AsyncMock(side_effect=ConnectionError("fail"))
         with patch("services.rest_api_shared.retry.asyncio.sleep"):
             with pytest.raises(ConnectionError, match="fail"):
-                await retry_with_backoff(
-                    fn, max_attempts=3, operation_name="test"
-                )
+                await retry_with_backoff(fn, max_attempts=3, operation_name="test")
         assert fn.call_count == 3
 
     @pytest.mark.asyncio
@@ -65,9 +61,7 @@ class TestRetryWithBackoff:
         fn = AsyncMock(side_effect=TimeoutError("slow"))
         with patch("services.rest_api_shared.retry.asyncio.sleep"):
             with pytest.raises(TimeoutError):
-                await retry_with_backoff(
-                    fn, max_attempts=5, operation_name="test"
-                )
+                await retry_with_backoff(fn, max_attempts=5, operation_name="test")
         assert fn.call_count == 5
 
     @pytest.mark.asyncio
@@ -75,22 +69,20 @@ class TestRetryWithBackoff:
         async def fn(a, b, key=None):
             return (a, b, key)
 
-        result = await retry_with_backoff(
-            fn, "x", "y", key="z", operation_name="test"
-        )
+        result = await retry_with_backoff(fn, "x", "y", key="z", operation_name="test")
         assert result == ("x", "y", "z")
 
     @pytest.mark.asyncio
     async def test_backoff_delay_increases(self):
-        fn = AsyncMock(
-            side_effect=[ConnectionError(), ConnectionError(), "ok"]
-        )
+        fn = AsyncMock(side_effect=[ConnectionError(), ConnectionError(), "ok"])
         sleep_calls = []
 
         async def mock_sleep(delay):
             sleep_calls.append(delay)
 
-        with patch("services.rest_api_shared.retry.asyncio.sleep", side_effect=mock_sleep):
+        with patch(
+            "services.rest_api_shared.retry.asyncio.sleep", side_effect=mock_sleep
+        ):
             await retry_with_backoff(
                 fn,
                 max_attempts=3,
@@ -113,7 +105,9 @@ class TestRetryWithBackoff:
         async def mock_sleep(delay):
             sleep_calls.append(delay)
 
-        with patch("services.rest_api_shared.retry.asyncio.sleep", side_effect=mock_sleep):
+        with patch(
+            "services.rest_api_shared.retry.asyncio.sleep", side_effect=mock_sleep
+        ):
             await retry_with_backoff(
                 fn,
                 max_attempts=4,

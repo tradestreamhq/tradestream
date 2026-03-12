@@ -13,9 +13,7 @@ from services.rest_api_shared.circuit_breaker import (
 
 @pytest.fixture
 def breaker():
-    return CircuitBreaker(
-        "test-service", failure_threshold=3, recovery_timeout=1.0
-    )
+    return CircuitBreaker("test-service", failure_threshold=3, recovery_timeout=1.0)
 
 
 class TestCircuitBreakerClosed:

@@ -30,7 +30,9 @@ def is_transient(
     try:
         import asyncpg
 
-        if isinstance(exc, (asyncpg.ConnectionDoesNotExistError, asyncpg.InterfaceError)):
+        if isinstance(
+            exc, (asyncpg.ConnectionDoesNotExistError, asyncpg.InterfaceError)
+        ):
             return True
     except ImportError:
         pass
@@ -85,9 +87,7 @@ async def retry_with_backoff(
             last_exc = exc
 
             if not is_transient(exc, transient_types):
-                logger.error(
-                    "%s: permanent error (no retry): %s", operation_name, exc
-                )
+                logger.error("%s: permanent error (no retry): %s", operation_name, exc)
                 raise
 
             if attempt == max_attempts:
