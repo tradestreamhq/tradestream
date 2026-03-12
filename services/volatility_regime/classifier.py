@@ -37,7 +37,9 @@ def classify_regime(annualized_vol: float) -> VolatilityRegime:
         return VolatilityRegime.MEDIUM
 
 
-def compute_realized_volatility(daily_closes: list[float], window: int) -> Optional[float]:
+def compute_realized_volatility(
+    daily_closes: list[float], window: int
+) -> Optional[float]:
     """Compute annualized realized volatility from daily close prices.
 
     Args:
@@ -51,7 +53,7 @@ def compute_realized_volatility(daily_closes: list[float], window: int) -> Optio
         return None
 
     # Use the most recent `window + 1` prices to get `window` returns
-    prices = daily_closes[-(window + 1):]
+    prices = daily_closes[-(window + 1) :]
     log_returns = [
         math.log(prices[i] / prices[i - 1])
         for i in range(1, len(prices))
@@ -108,7 +110,9 @@ class VolatilityRegimeClassifier:
             if symbol not in self._transitions:
                 self._transitions[symbol] = []
             self._transitions[symbol].insert(0, transition)
-            self._transitions[symbol] = self._transitions[symbol][:self._max_transitions]
+            self._transitions[symbol] = self._transitions[symbol][
+                : self._max_transitions
+            ]
             self._current_regimes[symbol] = regime
 
         return RegimeClassification(

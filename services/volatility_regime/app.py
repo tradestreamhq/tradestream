@@ -20,7 +20,9 @@ from services.volatility_regime.classifier import VolatilityRegimeClassifier
 logger = logging.getLogger(__name__)
 
 
-def create_app(influxdb_client, classifier: Optional[VolatilityRegimeClassifier] = None) -> FastAPI:
+def create_app(
+    influxdb_client, classifier: Optional[VolatilityRegimeClassifier] = None
+) -> FastAPI:
     """Create the Volatility Regime API FastAPI application.
 
     Args:

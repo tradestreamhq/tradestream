@@ -126,7 +126,9 @@ class TestVolatilityRegimeClassifier:
         # Each symbol has its own transitions
         btc = classifier.classify("BTC/USD", prices)
         eth = classifier.classify("ETH/USD", prices)
-        assert btc.recent_transitions != eth.recent_transitions or True  # independent tracking
+        assert (
+            btc.recent_transitions != eth.recent_transitions or True
+        )  # independent tracking
 
     def test_max_transitions_cap(self):
         classifier = VolatilityRegimeClassifier(max_transitions=3)
