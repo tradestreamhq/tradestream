@@ -237,8 +237,7 @@ class TestVersioningIntegration:
 
         # Verify deactivation was called
         execute_calls = [
-            c for c in conn.execute.call_args_list
-            if "is_active = FALSE" in str(c)
+            c for c in conn.execute.call_args_list if "is_active = FALSE" in str(c)
         ]
         assert len(execute_calls) == 1
 

@@ -581,7 +581,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             merged_params = dict(current["parameters"])
             if body.parameters is not None:
                 merged_params.update(body.parameters)
-            new_desc = body.description if body.description is not None else current["description"]
+            new_desc = (
+                body.description
+                if body.description is not None
+                else current["description"]
+            )
 
             # Get next version
             max_ver = await conn.fetchval(
