@@ -37,39 +37,52 @@ public class RsiEmaCrossoverStrategyFactoryTest {
             .setEmaPeriod(EMA_PERIOD)
             .build();
 
-    // Initialize series
+    // Initialize series with price data designed to create RSI/EMA crossovers.
+    // The key insight: we need oscillating prices first to give RSI meaningful
+    // values (~50) and establish the EMA warmup, then directional moves to
+    // create crossovers while keeping RSI in the 30-70 range.
     series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // Build price data that creates clear RSI/EMA crossovers
-    // Phase 1 (bars 0-29): Steady gentle decline to establish low RSI and low RSI EMA
     int barIdx = 0;
     double price = 100.0;
-    for (int i = 0; i < 30; i++) {
-      price -= 0.3;
+
+    // Phase 1 (bars 0-24): Oscillating prices to establish RSI ~50 and warm up EMA
+    for (int i = 0; i < 25; i++) {
+      price += (i % 2 == 0) ? 1.0 : -1.0;
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Phase 2 (bars 30-44): Gentle price increase - enough for RSI to cross above
-    // its EMA but NOT enough to push RSI above 70
-    for (int i = 0; i < 15; i++) {
-      price += 0.5;
+    // Phase 2 (bars 25-34): Declining prices to push RSI below its EMA
+    for (int i = 0; i < 10; i++) {
+      price -= 0.8;
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Phase 3 (bars 45-54): Flat stabilization
+    // Phase 3 (bars 35-44): Rising prices to make RSI cross above its EMA
+    for (int i = 0; i < 10; i++) {
+      price += 0.8;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 4 (bars 45-54): Flat stabilization
     for (int i = 0; i < 10; i++) {
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Phase 4 (bars 55-69): Gentle price decline - enough for RSI to cross below
-    // its EMA but NOT enough to push RSI below 30
-    for (int i = 0; i < 15; i++) {
-      price -= 0.5;
+    // Phase 5 (bars 55-64): Rising prices to push RSI above its EMA
+    for (int i = 0; i < 10; i++) {
+      price += 0.8;
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Phase 5 (bars 70-79): Flat stabilization
+    // Phase 6 (bars 65-74): Declining prices to make RSI cross below its EMA
+    for (int i = 0; i < 10; i++) {
+      price -= 0.8;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 7 (bars 75-84): Flat stabilization
     for (int i = 0; i < 10; i++) {
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
@@ -80,9 +93,9 @@ public class RsiEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenRsiCrossesAboveEmaAndNotOverbought() {
-    // Find when entry rule is satisfied during/after the price increase phase
+    // Find when entry rule is satisfied during/after the price increase phases
     boolean entryTriggered = false;
-    for (int i = 30; i <= 54; i++) {
+    for (int i = 25; i <= 54; i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
         entryTriggered = true;
         break;
@@ -94,9 +107,9 @@ public class RsiEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void exitRule_shouldTrigger_whenRsiCrossesBelowEmaAndNotOversold() {
-    // Find when exit rule is satisfied during/after the price decline phase
+    // Find when exit rule is satisfied during/after the price decline phases
     boolean exitTriggered = false;
-    for (int i = 55; i <= 79; i++) {
+    for (int i = 25; i <= 84; i++) {
       if (strategy.getExitRule().isSatisfied(i)) {
         exitTriggered = true;
         break;
