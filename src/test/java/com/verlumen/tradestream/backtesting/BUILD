@@ -105,3 +105,22 @@ java_test(
         "//third_party/java:truth",
     ],
 )
+
+kt_jvm_test(
+    name = "StrategyComparatorImplTest",
+    srcs = ["StrategyComparatorImplTest.kt"],
+    test_class = "com.verlumen.tradestream.backtesting.StrategyComparatorImplTest",
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/backtesting:strategy_comparator",
+        "//src/main/java/com/verlumen/tradestream/backtesting:strategy_comparator_impl",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
+        "//third_party/java:junit",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/java:truth",
+    ],
+)

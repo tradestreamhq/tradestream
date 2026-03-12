@@ -169,3 +169,70 @@ message WalkForwardResult {
   // Return degradation: 1 - (OOS Return / IS Return)
   double return_degradation = 11;
 }
+
+// =========================
+//    Strategy Comparison
+// =========================
+
+// Metric used for ranking strategies
+enum RankingMetric {
+  RANKING_METRIC_UNSPECIFIED = 0;
+  STRATEGY_SCORE = 1;
+  SHARPE_RATIO = 2;
+  CUMULATIVE_RETURN = 3;
+  MAX_DRAWDOWN = 4;
+  WIN_RATE = 5;
+  PROFIT_FACTOR = 6;
+  SORTINO_RATIO = 7;
+}
+
+// Request to compare multiple strategies on the same market data
+message StrategyComparisonRequest {
+  // Market data to backtest all strategies against
+  repeated marketdata.Candle candles = 1;
+
+  // Strategies to compare
+  repeated strategies.Strategy strategies = 2;
+
+  // Metric to rank strategies by (default: STRATEGY_SCORE)
+  RankingMetric ranking_metric = 3;
+}
+
+// Result for a single strategy within a comparison
+message StrategyComparisonEntry {
+  // The strategy that was backtested
+  strategies.Strategy strategy = 1;
+
+  // Backtest results for this strategy
+  BacktestResult result = 2;
+
+  // Rank based on the selected ranking metric (1 = best)
+  int32 rank = 3;
+}
+
+// Pairwise correlation between two strategies' returns
+message ReturnCorrelation {
+  // First strategy name
+  string strategy_a = 1;
+
+  // Second strategy name
+  string strategy_b = 2;
+
+  // Pearson correlation coefficient between returns (-1.0 to 1.0)
+  double correlation = 3;
+}
+
+// Full comparison result
+message StrategyComparisonResult {
+  // Individual strategy results, ordered by rank
+  repeated StrategyComparisonEntry entries = 1;
+
+  // Metric used for ranking
+  RankingMetric ranking_metric = 2;
+
+  // Pairwise return correlations between strategies
+  repeated ReturnCorrelation correlations = 3;
+
+  // Number of strategies compared
+  int32 strategy_count = 4;
+}

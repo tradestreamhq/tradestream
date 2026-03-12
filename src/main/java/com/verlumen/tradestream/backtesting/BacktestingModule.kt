@@ -10,5 +10,8 @@ class BacktestingModule : AbstractModule() {
         // Walk-forward validation components
         bind(WalkForwardRunner::class.java)
         bind(StrategyValidator::class.java).toInstance(StrategyValidator())
+
+        // Strategy comparison
+        bind(StrategyComparator::class.java).to(StrategyComparatorImpl::class.java)
     }
 }
