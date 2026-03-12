@@ -107,9 +107,7 @@ class TestStrategyOptimizer(unittest.TestCase):
         self.assertEqual(result.top_results[1].metrics.sharpe_ratio, 3.0)
 
     def test_parameters_passed_to_runner(self):
-        self.mock_runner.run_batch.return_value = [
-            BacktestMetrics() for _ in range(4)
-        ]
+        self.mock_runner.run_batch.return_value = [BacktestMetrics() for _ in range(4)]
 
         optimizer = StrategyOptimizer(runner=self.mock_runner)
         optimizer.optimize(
@@ -129,9 +127,7 @@ class TestStrategyOptimizer(unittest.TestCase):
         self.assertIn({"shortEmaPeriod": 10, "longEmaPeriod": 50}, param_sets)
 
     def test_progress_callback(self):
-        self.mock_runner.run_batch.return_value = [
-            BacktestMetrics() for _ in range(3)
-        ]
+        self.mock_runner.run_batch.return_value = [BacktestMetrics() for _ in range(3)]
 
         progress_calls = []
         optimizer = StrategyOptimizer(runner=self.mock_runner)
@@ -167,9 +163,7 @@ class TestStrategyOptimizer(unittest.TestCase):
             BacktestMetrics(max_drawdown=0.9),
         ]
 
-        optimizer = StrategyOptimizer(
-            runner=self.mock_runner, max_drawdown_limit=0.5
-        )
+        optimizer = StrategyOptimizer(runner=self.mock_runner, max_drawdown_limit=0.5)
         result = optimizer.optimize(
             ohlcv=self.sample_ohlcv,
             strategy_name="SMA_RSI",

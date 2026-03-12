@@ -100,13 +100,9 @@ class StrategyOptimizer:
     ) -> List[ParameterSetResult]:
         """Filter by drawdown constraint and sort by rank_key descending."""
         filtered = [
-            r
-            for r in results
-            if r.metrics.max_drawdown <= self._max_drawdown_limit
+            r for r in results if r.metrics.max_drawdown <= self._max_drawdown_limit
         ]
 
-        filtered.sort(
-            key=lambda r: getattr(r.metrics, self._rank_key), reverse=True
-        )
+        filtered.sort(key=lambda r: getattr(r.metrics, self._rank_key), reverse=True)
 
         return filtered
