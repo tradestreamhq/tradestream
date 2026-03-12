@@ -13,14 +13,13 @@ import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
-import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
@@ -28,7 +27,7 @@ public class FramaConfigTest {
   private StrategyConfig config;
   private ConfigurableStrategyFactory factory;
   private ConfigurableParamConfig paramConfig;
-  private BaseBarSeries series;
+  private BarSeries series;
 
   @Before
   public void setUp() throws Exception {
@@ -36,19 +35,16 @@ public class FramaConfigTest {
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
 
-    series = new BaseBarSeries();
+    series = new BaseBarSeriesBuilder().withName("frama-test").build();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
-      series.addBar(
-          new BaseBar(
-              Duration.ofMinutes(1),
-              now.plusMinutes(i),
-              price,
-              price + 2,
-              price - 2,
-              price,
-              1000.0));
+      double high = price + 2;
+      double low = price - 2;
+      double open = price - 0.5;
+      double close = price;
+      long volume = 1000;
+      series.addBar(now.plusMinutes(i), open, high, low, close, volume);
     }
   }
 
