@@ -291,9 +291,7 @@ class ExecutionSimulator:
             else 0.0
         )
         fill_rate = (
-            self._filled_orders / self._total_orders
-            if self._total_orders > 0
-            else 0.0
+            self._filled_orders / self._total_orders if self._total_orders > 0 else 0.0
         )
         avg_fill_time = (
             self._total_fill_time_ms / self._total_fills

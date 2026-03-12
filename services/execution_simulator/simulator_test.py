@@ -264,9 +264,7 @@ class TestExecutionStatistics:
         """Statistics should reflect executed market orders."""
         sim = ExecutionSimulator(
             config=SimulatorConfig(
-                order_book=OrderBookConfig(
-                    depth_base=1000.0, depth_multiplier=1.0
-                ),
+                order_book=OrderBookConfig(depth_base=1000.0, depth_multiplier=1.0),
             ),
             rng=random.Random(SEED),
         )
