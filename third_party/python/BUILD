@@ -232,3 +232,11 @@ py_library(
         requirement("alembic"),
     ],
 )
+
+py_library(
+    name = "cryptography",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("cryptography"),
+    ],
+)
