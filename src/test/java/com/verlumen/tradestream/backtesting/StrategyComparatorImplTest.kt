@@ -6,11 +6,11 @@ import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategySpecs
-import java.time.ZonedDateTime
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.time.ZonedDateTime
 
 @RunWith(JUnit4::class)
 class StrategyComparatorImplTest {
@@ -253,7 +253,14 @@ class StrategyComparatorImplTest {
         var basePrice = 100.0
         // Create enough bars for strategies to generate signals
         for (i in 0 until 35) {
-            basePrice += if (i < 10) 0.5 else if (i < 20) -3.0 else 2.0
+            basePrice +=
+                if (i < 10) {
+                    0.5
+                } else if (i < 20) {
+                    -3.0
+                } else {
+                    2.0
+                }
             basePrice = maxOf(basePrice, 50.0)
             result.add(createCandle(startTime.plusMinutes(i.toLong()), basePrice))
         }
