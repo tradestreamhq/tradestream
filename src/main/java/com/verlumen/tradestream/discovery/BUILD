@@ -41,7 +41,7 @@ container_structure_test(
     flaky = True,
     image = ":image",
     tags = [
-        "local",
+        "manual",
         "no-coverage",
         "requires-docker",
     ],
