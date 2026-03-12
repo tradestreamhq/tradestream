@@ -5,10 +5,7 @@ computes rebalancing trades, and optionally executes them via
 the paper trading system.
 """
 
-import asyncio
-import json
-import time
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import asyncpg
 from absl import flags, logging
@@ -21,7 +18,6 @@ from services.portfolio_rebalancing.rebalancer import (
     RebalanceTrade,
     TradeSide,
     compute_rebalance_trades,
-    format_rebalance_report,
 )
 
 FLAGS = flags.FLAGS
@@ -48,12 +44,14 @@ class RebalancingService:
         for row in rows:
             qty = float(row["quantity"])
             price = float(row["avg_entry_price"])
-            holdings.append(CurrentHolding(
-                symbol=row["symbol"],
-                quantity=qty,
-                current_price=price,
-                market_value=qty * price,
-            ))
+            holdings.append(
+                CurrentHolding(
+                    symbol=row["symbol"],
+                    quantity=qty,
+                    current_price=price,
+                    market_value=qty * price,
+                )
+            )
         return holdings
 
     async def get_available_cash(self, initial_capital: float = 10000.0) -> float:
@@ -153,9 +151,7 @@ class RebalancingService:
         # Ensure all target symbols have prices
         for t in targets:
             if t.symbol not in current_prices:
-                logging.warning(
-                    "No price for target symbol %s, skipping", t.symbol
-                )
+                logging.warning("No price for target symbol %s, skipping", t.symbol)
 
         report = compute_rebalance_trades(
             targets=targets,

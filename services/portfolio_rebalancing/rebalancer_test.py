@@ -115,7 +115,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints()
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=5000.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=5000.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -139,7 +142,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints()
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=0.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=0.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -161,7 +167,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints()
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=0.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=0.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -180,7 +189,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints(drift_threshold_pct=0.02)
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=0.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=0.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -197,10 +209,15 @@ class TestComputeRebalanceTrades:
             CurrentHolding("ETH-USD", 0.02, 2500.0, 50.0),
         ]
         prices = {"BTC-USD": 50000.0, "ETH-USD": 2500.0}
-        constraints = self._make_constraints(min_trade_value=100.0, drift_threshold_pct=0.01)
+        constraints = self._make_constraints(
+            min_trade_value=100.0, drift_threshold_pct=0.01
+        )
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=0.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=0.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -215,7 +232,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints(max_trade_pct=0.1)
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=10000.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=10000.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -231,7 +251,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints(max_trade_pct=1.0)
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=100.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=100.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -252,7 +275,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints(max_trade_pct=1.0)
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=0.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=0.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -269,7 +295,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints(max_trade_pct=1.0)
 
         report = compute_rebalance_trades(
-            targets, [], cash=10000.0, current_prices=prices,
+            targets,
+            [],
+            cash=10000.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -281,7 +310,10 @@ class TestComputeRebalanceTrades:
         prices = {"BTC-USD": 50000.0}
 
         report = compute_rebalance_trades(
-            targets, [], cash=0.0, current_prices=prices,
+            targets,
+            [],
+            cash=0.0,
+            current_prices=prices,
         )
 
         assert report.total_equity == 0.0
@@ -296,7 +328,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints(max_trade_pct=1.0)
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=5000.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=5000.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -309,7 +344,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints()
 
         report = compute_rebalance_trades(
-            targets, [], cash=10000.0, current_prices={},
+            targets,
+            [],
+            cash=10000.0,
+            current_prices={},
             constraints=constraints,
         )
 
@@ -322,7 +360,10 @@ class TestComputeRebalanceTrades:
         constraints = self._make_constraints(max_slippage_pct=0.01, max_trade_pct=1.0)
 
         report = compute_rebalance_trades(
-            targets, [], cash=1000.0, current_prices=prices,
+            targets,
+            [],
+            cash=1000.0,
+            current_prices=prices,
             constraints=constraints,
         )
 
@@ -335,7 +376,10 @@ class TestComputeRebalanceTrades:
         prices = {"BTC-USD": 50000.0}
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=500.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=500.0,
+            current_prices=prices,
         )
 
         assert report.total_equity == 1000.0
@@ -357,11 +401,16 @@ class TestFormatRebalanceReport:
         ]
         prices = {"BTC-USD": 50000.0, "ETH-USD": 2500.0}
         constraints = RebalanceConstraints(
-            min_trade_value=1.0, drift_threshold_pct=0.01, max_trade_pct=1.0,
+            min_trade_value=1.0,
+            drift_threshold_pct=0.01,
+            max_trade_pct=1.0,
         )
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=5000.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=5000.0,
+            current_prices=prices,
             constraints=constraints,
         )
         text = format_rebalance_report(report)
@@ -379,7 +428,10 @@ class TestFormatRebalanceReport:
         constraints = RebalanceConstraints(drift_threshold_pct=0.01)
 
         report = compute_rebalance_trades(
-            targets, holdings, cash=5000.0, current_prices=prices,
+            targets,
+            holdings,
+            cash=5000.0,
+            current_prices=prices,
             constraints=constraints,
         )
         text = format_rebalance_report(report)

@@ -99,9 +99,7 @@ def main(argv):
                         constraints=constraints,
                         dry_run=FLAGS.dry_run,
                     )
-                    logging.info(
-                        "Rebalance complete: %d trades", len(report.trades)
-                    )
+                    logging.info("Rebalance complete: %d trades", len(report.trades))
                     schedule.mark_run()
 
                 wait = min(schedule.seconds_until_next(), 60.0)

@@ -171,19 +171,23 @@ def compute_rebalance_trades(
 
         # Skip if drift is below threshold
         if abs(symbol_drift) < constraints.drift_threshold_pct:
-            skipped.append({
-                "symbol": symbol,
-                "reason": "drift below threshold",
-                "drift": round(symbol_drift, 6),
-            })
+            skipped.append(
+                {
+                    "symbol": symbol,
+                    "reason": "drift below threshold",
+                    "drift": round(symbol_drift, 6),
+                }
+            )
             continue
 
         price = current_prices.get(symbol)
         if price is None or price <= 0:
-            skipped.append({
-                "symbol": symbol,
-                "reason": "no valid price available",
-            })
+            skipped.append(
+                {
+                    "symbol": symbol,
+                    "reason": "no valid price available",
+                }
+            )
             continue
 
         # Desired dollar change
@@ -205,11 +209,13 @@ def compute_rebalance_trades(
 
         # Skip trades below minimum size
         if trade_value < constraints.min_trade_value:
-            skipped.append({
-                "symbol": symbol,
-                "reason": "below minimum trade size",
-                "trade_value": round(trade_value, 2),
-            })
+            skipped.append(
+                {
+                    "symbol": symbol,
+                    "reason": "below minimum trade size",
+                    "trade_value": round(trade_value, 2),
+                }
+            )
             continue
 
         if clamped_value > 0:
@@ -221,26 +227,30 @@ def compute_rebalance_trades(
                 # Reduce to what we can afford
                 affordable_value = estimated_cash / (1 + constraints.max_slippage_pct)
                 if affordable_value < constraints.min_trade_value:
-                    skipped.append({
-                        "symbol": symbol,
-                        "reason": "insufficient cash",
-                        "needed": round(total_cost, 2),
-                        "available": round(estimated_cash, 2),
-                    })
+                    skipped.append(
+                        {
+                            "symbol": symbol,
+                            "reason": "insufficient cash",
+                            "needed": round(total_cost, 2),
+                            "available": round(estimated_cash, 2),
+                        }
+                    )
                     continue
                 quantity = affordable_value / price
                 trade_value = quantity * price
                 slippage_cost = trade_value * constraints.max_slippage_pct
                 total_cost = trade_value + slippage_cost
 
-            trades.append(RebalanceTrade(
-                symbol=symbol,
-                side=TradeSide.BUY,
-                quantity=round(quantity, 8),
-                estimated_price=price,
-                estimated_value=round(trade_value, 2),
-                reason=f"under-allocated by {abs(symbol_drift)*100:.1f}%",
-            ))
+            trades.append(
+                RebalanceTrade(
+                    symbol=symbol,
+                    side=TradeSide.BUY,
+                    quantity=round(quantity, 8),
+                    estimated_price=price,
+                    estimated_value=round(trade_value, 2),
+                    reason=f"under-allocated by {abs(symbol_drift)*100:.1f}%",
+                )
+            )
             estimated_cash -= total_cost
 
         else:
@@ -250,29 +260,35 @@ def compute_rebalance_trades(
 
             sell_qty = min(quantity, available_qty)
             if sell_qty <= 0:
-                skipped.append({
-                    "symbol": symbol,
-                    "reason": "no position to sell",
-                })
+                skipped.append(
+                    {
+                        "symbol": symbol,
+                        "reason": "no position to sell",
+                    }
+                )
                 continue
 
             sell_value = sell_qty * price
             if sell_value < constraints.min_trade_value and sell_qty < available_qty:
-                skipped.append({
-                    "symbol": symbol,
-                    "reason": "below minimum trade size",
-                    "trade_value": round(sell_value, 2),
-                })
+                skipped.append(
+                    {
+                        "symbol": symbol,
+                        "reason": "below minimum trade size",
+                        "trade_value": round(sell_value, 2),
+                    }
+                )
                 continue
 
-            trades.append(RebalanceTrade(
-                symbol=symbol,
-                side=TradeSide.SELL,
-                quantity=round(sell_qty, 8),
-                estimated_price=price,
-                estimated_value=round(sell_value, 2),
-                reason=f"over-allocated by {abs(symbol_drift)*100:.1f}%",
-            ))
+            trades.append(
+                RebalanceTrade(
+                    symbol=symbol,
+                    side=TradeSide.SELL,
+                    quantity=round(sell_qty, 8),
+                    estimated_price=price,
+                    estimated_value=round(sell_value, 2),
+                    reason=f"over-allocated by {abs(symbol_drift)*100:.1f}%",
+                )
+            )
             net_proceeds = sell_value * (1 - constraints.max_slippage_pct)
             estimated_cash += net_proceeds
 
@@ -300,7 +316,10 @@ def format_rebalance_report(report: RebalanceReport) -> str:
     ]
 
     all_symbols = sorted(
-        set(list(report.target_allocation.keys()) + list(report.current_allocation.keys()))
+        set(
+            list(report.target_allocation.keys())
+            + list(report.current_allocation.keys())
+        )
     )
     for symbol in all_symbols:
         target = report.target_allocation.get(symbol, 0.0) * 100
@@ -308,7 +327,8 @@ def format_rebalance_report(report: RebalanceReport) -> str:
         drift_val = report.drift.get(symbol, 0.0) * 100
         sign = "+" if drift_val >= 0 else ""
         lines.append(
-            f"  {symbol}: target={target:.1f}% current={current:.1f}% drift={sign}{drift_val:.1f}%"
+            f"  {symbol}: target={target:.1f}% current={current:.1f}%"
+            f" drift={sign}{drift_val:.1f}%"
         )
 
     lines.append("")
@@ -319,7 +339,8 @@ def format_rebalance_report(report: RebalanceReport) -> str:
         for t in report.trades:
             lines.append(
                 f"  {t.side.value} {t.quantity:.8f} {t.symbol} "
-                f"@ ~${t.estimated_price:,.2f} (${t.estimated_value:,.2f}) — {t.reason}"
+                f"@ ~${t.estimated_price:,.2f} (${t.estimated_value:,.2f})"
+                f" — {t.reason}"
             )
 
     if report.skipped:
@@ -329,6 +350,8 @@ def format_rebalance_report(report: RebalanceReport) -> str:
             lines.append(f"  {s['symbol']}: {s['reason']}")
 
     lines.append("")
-    lines.append(f"Cash: ${report.cash_before:,.2f} -> ~${report.cash_after_estimate:,.2f}")
+    lines.append(
+        f"Cash: ${report.cash_before:,.2f} -> ~${report.cash_after_estimate:,.2f}"
+    )
 
     return "\n".join(lines)
