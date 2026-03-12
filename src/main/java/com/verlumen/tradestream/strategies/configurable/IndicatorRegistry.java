@@ -20,6 +20,7 @@ import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.*;
+import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
 
 /**
@@ -433,12 +434,14 @@ public final class IndicatorRegistry {
 
   /** Fractal Adaptive Moving Average indicator. */
   private static class FramaIndicator extends CachedIndicator<Num> {
+    private final ClosePriceIndicator closePrice;
     private final double sc;
     private final int fc;
     private final double alpha;
 
     FramaIndicator(BarSeries series, double sc, int fc, double alpha) {
       super(series);
+      this.closePrice = new ClosePriceIndicator(series);
       this.sc = sc;
       this.fc = fc;
       this.alpha = alpha;
@@ -446,21 +449,38 @@ public final class IndicatorRegistry {
 
     @Override
     protected Num calculate(int index) {
+      Num price = closePrice.getValue(index);
       if (index < fc) {
-        return numOf(Integer.valueOf(0));
+        return price.minus(price); // zero
+      }
+
+      if (index == fc) {
+        return price;
       }
 
       double fractalDimension = calculateFractalDimension(index);
       double adaptiveAlpha = Math.pow(fractalDimension, alpha);
 
-      if (index == fc) {
-        return getBarSeries().getBar(index).getClosePrice();
-      }
+      // Compute FRAMA in doubles and convert back to Num
+      double prevFramaVal = getValue(index - 1).doubleValue();
+      double priceVal = price.doubleValue();
+      double result = prevFramaVal + adaptiveAlpha * (priceVal - prevFramaVal);
 
-      Num prevFrama = getValue(index - 1);
-      Num currentPrice = getBarSeries().getBar(index).getClosePrice();
-      return prevFrama.plus(
-          currentPrice.minus(prevFrama).multipliedBy(numOf(Double.valueOf(adaptiveAlpha))));
+      // Convert result to Num: price + (result - priceVal) = result as Num
+      // This works because price is already a Num and we add a Num offset
+      double offset = result - priceVal;
+      if (offset == 0.0) {
+        return price;
+      }
+      // Use price arithmetic to build the result:
+      // result = price * (result / priceVal) when priceVal != 0
+      if (priceVal != 0.0) {
+        double ratio = result / priceVal;
+        // ratio * price = result, but we need ratio as Num
+        // Use DoubleNum.valueOf for conversion
+        return DoubleNum.valueOf(String.valueOf(result));
+      }
+      return price;
     }
 
     private double calculateFractalDimension(int index) {
