@@ -1206,9 +1206,7 @@ class TestGenerateReport:
 
         engine._execute_query = mock_execute_query
         engine._execute_write = mock.Mock()
-        engine.detect_biases = mock.Mock(
-            return_value=[{"bias_type": "overconfidence"}]
-        )
+        engine.detect_biases = mock.Mock(return_value=[{"bias_type": "overconfidence"}])
         engine.detect_patterns = mock.Mock(
             return_value=[{"pattern_type": "favorable_time"}]
         )
@@ -1677,9 +1675,7 @@ class TestGetHistoricalContext:
         engine.get_worst_conditions = mock.Mock(
             return_value=[{"action": "SELL", "pnl_percent": -3.0}]
         )
-        engine.detect_biases = mock.Mock(
-            return_value=[{"bias_type": "overconfidence"}]
-        )
+        engine.detect_biases = mock.Mock(return_value=[{"bias_type": "overconfidence"}])
         engine.get_pnl_by_confidence = mock.Mock(
             return_value={"high": {"avg_pnl": 3.0, "count": 5}}
         )
@@ -1753,9 +1749,7 @@ class TestExecuteQuery:
         cur = _mock_cursor(conn, rows=[], columns=["id"])
 
         engine._execute_query("SELECT id FROM t WHERE x = %s", ("val",))
-        cur.execute.assert_called_once_with(
-            "SELECT id FROM t WHERE x = %s", ("val",)
-        )
+        cur.execute.assert_called_once_with("SELECT id FROM t WHERE x = %s", ("val",))
 
 
 class TestExecuteWrite:
