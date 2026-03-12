@@ -5,6 +5,7 @@ Provides CRUD endpoints for strategy specs and implementations,
 plus action endpoints for evaluation and signal generation.
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -12,6 +13,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, FastAPI, Query
 from pydantic import BaseModel, Field
 
+from services.rest_api_shared.circuit_breaker import CircuitBreaker
+from services.rest_api_shared.error_middleware import install_error_handlers
 from services.rest_api_shared.health import create_health_router
 from services.rest_api_shared.pagination import PaginationParams
 from services.rest_api_shared.responses import (
@@ -22,6 +25,7 @@ from services.rest_api_shared.responses import (
     success_response,
     validation_error,
 )
+from services.rest_api_shared.retry import retry_with_backoff
 from services.shared.auth import fastapi_auth_middleware
 
 logger = logging.getLogger(__name__)
@@ -67,14 +71,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         root_path="/api/v1/strategies",
     )
     fastapi_auth_middleware(app)
+    install_error_handlers(app)
+
+    db_circuit = CircuitBreaker("postgres", failure_threshold=5, recovery_timeout=30.0)
 
     async def check_deps():
         try:
             async with db_pool.acquire() as conn:
                 await conn.fetchval("SELECT 1")
-            return {"postgres": "ok"}
+            return {"postgres": "ok", "circuit_breaker": db_circuit.state.value}
         except Exception as e:
-            return {"postgres": str(e)}
+            return {"postgres": str(e), "circuit_breaker": db_circuit.state.value}
 
     app.include_router(create_health_router("strategy-api", check_deps))
 
@@ -101,11 +108,21 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             SELECT COUNT(*) FROM strategy_specs
             WHERE ($1::text IS NULL OR source = $1)
         """
-        async with db_pool.acquire() as conn:
-            rows = await conn.fetch(
-                query, category, pagination.limit, pagination.offset
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch(
+                    query, category, pagination.limit, pagination.offset
+                )
+                total = await conn.fetchval(count_query, category)
+            return rows, total
+
+        try:
+            rows, total = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="strategy.list_specs"
             )
-            total = await conn.fetchval(count_query, category)
+        except Exception:
+            return server_error("Failed to retrieve strategy specs")
 
         items = [dict(row) for row in rows]
         for item in items:
@@ -122,8 +139,6 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @specs_router.post("", status_code=201)
     async def create_spec(body: StrategySpecCreate):
-        import json
-
         query = """
             INSERT INTO strategy_specs
                 (name, indicators, entry_conditions, exit_conditions,
@@ -131,9 +146,10 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             VALUES ($1, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb, $6, 'LLM_GENERATED')
             RETURNING id, name, created_at
         """
-        try:
+
+        async def _fetch():
             async with db_pool.acquire() as conn:
-                row = await conn.fetchrow(
+                return await conn.fetchrow(
                     query,
                     body.name,
                     json.dumps(body.indicators),
@@ -142,11 +158,16 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     json.dumps(body.parameters),
                     body.description,
                 )
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="strategy.create_spec"
+            )
         except asyncpg.UniqueViolationError:
             return conflict(f"Spec with name '{body.name}' already exists")
         except Exception as e:
             logger.error("Failed to create spec: %s", e)
-            return server_error(str(e))
+            return server_error("Failed to create strategy spec")
 
         return success_response(
             data={
@@ -170,8 +191,18 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             FROM strategy_specs
             WHERE id = $1::uuid
         """
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(query, spec_id)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(query, spec_id)
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="strategy.get_spec"
+            )
+        except Exception:
+            return server_error("Failed to retrieve strategy spec")
+
         if not row:
             return not_found("Spec", spec_id)
         item = dict(row)
@@ -182,8 +213,6 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @specs_router.put("/{spec_id}")
     async def update_spec(spec_id: str, body: StrategySpecUpdate):
-        import json
-
         updates = {}
         if body.indicators is not None:
             updates["indicators"] = json.dumps(body.indicators)
@@ -213,8 +242,18 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             RETURNING id, name, indicators, entry_conditions, exit_conditions,
                       parameters, description, source, created_at
         """
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(query, *params)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(query, *params)
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="strategy.update_spec"
+            )
+        except Exception:
+            return server_error("Failed to update strategy spec")
+
         if not row:
             return not_found("Spec", spec_id)
         item = dict(row)
@@ -225,9 +264,20 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @specs_router.delete("/{spec_id}", status_code=204)
     async def delete_spec(spec_id: str):
-        query = "DELETE FROM strategy_specs WHERE id = $1::uuid RETURNING id"
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(query, spec_id)
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(
+                    "DELETE FROM strategy_specs WHERE id = $1::uuid RETURNING id",
+                    spec_id,
+                )
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="strategy.delete_spec"
+            )
+        except Exception:
+            return server_error("Failed to delete strategy spec")
+
         if not row:
             return not_found("Spec", spec_id)
         return None
@@ -249,9 +299,23 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         count_query = """
             SELECT COUNT(*) FROM strategy_implementations WHERE spec_id = $1::uuid
         """
-        async with db_pool.acquire() as conn:
-            rows = await conn.fetch(query, spec_id, pagination.limit, pagination.offset)
-            total = await conn.fetchval(count_query, spec_id)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch(
+                    query, spec_id, pagination.limit, pagination.offset
+                )
+                total = await conn.fetchval(count_query, spec_id)
+            return rows, total
+
+        try:
+            rows, total = await db_circuit.call(
+                retry_with_backoff,
+                _fetch,
+                operation_name="strategy.list_spec_implementations",
+            )
+        except Exception:
+            return server_error("Failed to retrieve implementations")
 
         items = []
         for row in rows:
@@ -271,24 +335,33 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @specs_router.post("/{spec_id}/implementations", status_code=201)
     async def create_implementation(spec_id: str):
-        import json
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                spec = await conn.fetchrow(
+                    "SELECT id FROM strategy_specs WHERE id = $1::uuid", spec_id
+                )
+                if not spec:
+                    return None
+                return await conn.fetchrow(
+                    """
+                    INSERT INTO strategy_implementations (spec_id, parameters, status, optimization_method)
+                    VALUES ($1::uuid, '{}'::jsonb, 'PENDING', 'LLM')
+                    RETURNING id, spec_id, status, optimization_method, created_at
+                    """,
+                    spec_id,
+                )
 
-        # Check spec exists
-        async with db_pool.acquire() as conn:
-            spec = await conn.fetchrow(
-                "SELECT id FROM strategy_specs WHERE id = $1::uuid", spec_id
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff,
+                _fetch,
+                operation_name="strategy.create_implementation",
             )
-            if not spec:
-                return not_found("Spec", spec_id)
+        except Exception:
+            return server_error("Failed to create implementation")
 
-            row = await conn.fetchrow(
-                """
-                INSERT INTO strategy_implementations (spec_id, parameters, status, optimization_method)
-                VALUES ($1::uuid, '{}'::jsonb, 'PENDING', 'LLM')
-                RETURNING id, spec_id, status, optimization_method, created_at
-                """,
-                spec_id,
-            )
+        if not row:
+            return not_found("Spec", spec_id)
         item = dict(row)
         item["id"] = str(item["id"])
         item["spec_id"] = str(item["spec_id"])
@@ -358,9 +431,20 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             SELECT COUNT(*) FROM strategy_implementations si WHERE {where}
         """
 
-        async with db_pool.acquire() as conn:
-            rows = await conn.fetch(query, *params)
-            total = await conn.fetchval(count_query, *params[:-2])
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch(query, *params)
+                total = await conn.fetchval(count_query, *params[:-2])
+            return rows, total
+
+        try:
+            rows, total = await db_circuit.call(
+                retry_with_backoff,
+                _fetch,
+                operation_name="strategy.list_implementations",
+            )
+        except Exception:
+            return server_error("Failed to retrieve implementations")
 
         items = []
         for row in rows:
@@ -387,8 +471,20 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             FROM strategy_implementations si
             WHERE si.id = $1::uuid
         """
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(query, impl_id)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(query, impl_id)
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff,
+                _fetch,
+                operation_name="strategy.get_implementation",
+            )
+        except Exception:
+            return server_error("Failed to retrieve implementation")
+
         if not row:
             return not_found("Implementation", impl_id)
         item = dict(row)
@@ -400,22 +496,47 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @impls_router.delete("/{impl_id}", status_code=204)
     async def deactivate_implementation(impl_id: str):
-        query = """
-            UPDATE strategy_implementations SET status = 'INACTIVE'
-            WHERE id = $1::uuid RETURNING id
-        """
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(query, impl_id)
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(
+                    """
+                    UPDATE strategy_implementations SET status = 'INACTIVE'
+                    WHERE id = $1::uuid RETURNING id
+                    """,
+                    impl_id,
+                )
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff,
+                _fetch,
+                operation_name="strategy.deactivate_implementation",
+            )
+        except Exception:
+            return server_error("Failed to deactivate implementation")
+
         if not row:
             return not_found("Implementation", impl_id)
         return None
 
     @impls_router.post("/{impl_id}/evaluate")
     async def evaluate_implementation(impl_id: str, body: EvaluateRequest):
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT id FROM strategy_implementations WHERE id = $1::uuid", impl_id
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(
+                    "SELECT id FROM strategy_implementations WHERE id = $1::uuid",
+                    impl_id,
+                )
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff,
+                _fetch,
+                operation_name="strategy.evaluate_implementation",
             )
+        except Exception:
+            return server_error("Failed to evaluate implementation")
+
         if not row:
             return not_found("Implementation", impl_id)
         # Return a placeholder; actual backtesting is done by the backtesting service
@@ -435,25 +556,34 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         impl_id: str,
         instrument: str = Query(..., description="Trading instrument"),
     ):
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT id FROM strategy_implementations WHERE id = $1::uuid", impl_id
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                impl_row = await conn.fetchrow(
+                    "SELECT id FROM strategy_implementations WHERE id = $1::uuid",
+                    impl_id,
+                )
+                if not impl_row:
+                    return None, None
+                signal_row = await conn.fetchrow(
+                    """
+                    SELECT signal_id, symbol, action, confidence, created_at
+                    FROM signals
+                    WHERE symbol = $1
+                    ORDER BY created_at DESC LIMIT 1
+                    """,
+                    instrument,
+                )
+            return impl_row, signal_row
+
+        try:
+            impl_row, signal_row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="strategy.get_signal"
             )
-        if not row:
+        except Exception:
+            return server_error("Failed to retrieve signal")
+
+        if not impl_row:
             return not_found("Implementation", impl_id)
-        # Signal generation is handled by the signal_generator_agent;
-        # this endpoint returns latest cached signal if available
-        signal_row = None
-        async with db_pool.acquire() as conn:
-            signal_row = await conn.fetchrow(
-                """
-                SELECT signal_id, symbol, action, confidence, created_at
-                FROM signals
-                WHERE symbol = $1
-                ORDER BY created_at DESC LIMIT 1
-                """,
-                instrument,
-            )
         if not signal_row:
             return not_found("Signal", f"{impl_id}/{instrument}")
         item = dict(signal_row)

@@ -13,6 +13,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, FastAPI, Query
 from pydantic import BaseModel, Field
 
+from services.rest_api_shared.circuit_breaker import CircuitBreaker
+from services.rest_api_shared.error_middleware import install_error_handlers
 from services.rest_api_shared.health import create_health_router
 from services.rest_api_shared.pagination import PaginationParams
 from services.rest_api_shared.responses import (
@@ -22,6 +24,7 @@ from services.rest_api_shared.responses import (
     success_response,
     validation_error,
 )
+from services.rest_api_shared.retry import retry_with_backoff
 from services.shared.auth import fastapi_auth_middleware
 
 logger = logging.getLogger(__name__)
@@ -69,14 +72,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         root_path="/api/v1/learning",
     )
     fastapi_auth_middleware(app)
+    install_error_handlers(app)
+
+    db_circuit = CircuitBreaker("postgres", failure_threshold=5, recovery_timeout=30.0)
 
     async def check_deps():
         try:
             async with db_pool.acquire() as conn:
                 await conn.fetchval("SELECT 1")
-            return {"postgres": "ok"}
+            return {"postgres": "ok", "circuit_breaker": db_circuit.state.value}
         except Exception as e:
-            return {"postgres": str(e)}
+            return {"postgres": str(e), "circuit_breaker": db_circuit.state.value}
 
     app.include_router(create_health_router("learning-api", check_deps))
 
@@ -128,9 +134,18 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         """
         count_query = f"SELECT COUNT(*) FROM agent_decisions ad WHERE {where}"
 
-        async with db_pool.acquire() as conn:
-            rows = await conn.fetch(query, *params)
-            total = await conn.fetchval(count_query, *params[:-2])
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch(query, *params)
+                total = await conn.fetchval(count_query, *params[:-2])
+            return rows, total
+
+        try:
+            rows, total = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="learning.list_decisions"
+            )
+        except Exception:
+            return server_error("Failed to retrieve decisions")
 
         items = []
         for row in rows:
@@ -157,9 +172,10 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING id, created_at
         """
-        try:
+
+        async def _fetch():
             async with db_pool.acquire() as conn:
-                row = await conn.fetchrow(
+                return await conn.fetchrow(
                     query,
                     body.signal_id,
                     body.agent_name,
@@ -172,9 +188,14 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     body.latency_ms,
                     body.tokens_used,
                 )
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="learning.create_decision"
+            )
         except Exception as e:
             logger.error("Failed to create decision: %s", e)
-            return server_error(str(e))
+            return server_error("Failed to create decision")
 
         return success_response(
             data={
@@ -199,8 +220,18 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             FROM agent_decisions
             WHERE id = $1::uuid
         """
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(query, decision_id)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(query, decision_id)
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="learning.get_decision"
+            )
+        except Exception:
+            return server_error("Failed to retrieve decision")
+
         if not row:
             return not_found("Decision", decision_id)
         item = dict(row)
@@ -217,10 +248,20 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             WHERE id = $1::uuid
             RETURNING id
         """
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(
-                query, decision_id, body.success, body.error_message
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(
+                    query, decision_id, body.success, body.error_message
+                )
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="learning.record_outcome"
             )
+        except Exception:
+            return server_error("Failed to record outcome")
+
         if not row:
             return not_found("Decision", decision_id)
         return success_response(
@@ -247,8 +288,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             GROUP BY agent_name, tier
             ORDER BY count DESC
         """
-        async with db_pool.acquire() as conn:
-            rows = await conn.fetch(query)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetch(query)
+
+        try:
+            rows = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="learning.get_patterns"
+            )
+        except Exception:
+            return server_error("Failed to retrieve patterns")
 
         items = [dict(row) for row in rows]
         for item in items:
@@ -293,8 +343,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             FROM agent_decisions ad
             WHERE {where}
         """
-        async with db_pool.acquire() as conn:
-            row = await conn.fetchrow(query, *params)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetchrow(query, *params)
+
+        try:
+            row = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="learning.get_performance"
+            )
+        except Exception:
+            return server_error("Failed to retrieve performance metrics")
 
         metrics = dict(row)
         if metrics.get("avg_score") is not None:
@@ -318,8 +377,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             ORDER BY ABS(s.price - $2) ASC
             LIMIT 10
         """
-        async with db_pool.acquire() as conn:
-            rows = await conn.fetch(query, body.instrument, body.price)
+
+        async def _fetch():
+            async with db_pool.acquire() as conn:
+                return await conn.fetch(query, body.instrument, body.price)
+
+        try:
+            rows = await db_circuit.call(
+                retry_with_backoff, _fetch, operation_name="learning.find_similar"
+            )
+        except Exception:
+            return server_error("Failed to find similar situations")
 
         items = []
         for row in rows:
