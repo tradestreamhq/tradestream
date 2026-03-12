@@ -303,7 +303,10 @@ class TestComputeBalance:
 
     def test_balance_with_negative_realized_pnl(self):
         balance = compute_balance(
-            [], realized_pnl_today=-100.0, total_realized_pnl=-500.0, initial_capital=10000.0
+            [],
+            realized_pnl_today=-100.0,
+            total_realized_pnl=-500.0,
+            initial_capital=10000.0,
         )
         assert balance.total_equity == 9500.0
         assert balance.realized_pnl_today == -100.0
@@ -372,7 +375,9 @@ class TestComputeRiskMetrics:
         assert risk.num_open_positions == 0
 
     def test_risk_single_position(self):
-        positions = [_make_position(symbol="BTC-USD", quantity=0.1, current_price=50000.0)]
+        positions = [
+            _make_position(symbol="BTC-USD", quantity=0.1, current_price=50000.0)
+        ]
         risk = compute_risk_metrics(positions, total_equity=10000.0)
         assert risk.num_open_positions == 1
         assert risk.portfolio_heat == 50.0  # 5000/10000 * 100
@@ -699,7 +704,13 @@ class TestValidateDecision:
     def test_exceeds_portfolio_heat(self):
         state = _make_state(heat=45.0)
         result = validate_decision(
-            "BUY", "BTC-USD", 0.01, 50000.0, state, max_position_pct=1.0, max_portfolio_heat=0.49
+            "BUY",
+            "BTC-USD",
+            0.01,
+            50000.0,
+            state,
+            max_position_pct=1.0,
+            max_portfolio_heat=0.49,
         )
         assert result["valid"] is False
         assert any("heat" in e.lower() for e in result["errors"])
@@ -715,7 +726,13 @@ class TestValidateDecision:
         """SELL orders should not trigger the portfolio heat check."""
         state = _make_state(heat=49.0)
         result = validate_decision(
-            "SELL", "BTC-USD", 1.0, 50000.0, state, max_position_pct=1.0, max_portfolio_heat=0.50
+            "SELL",
+            "BTC-USD",
+            1.0,
+            50000.0,
+            state,
+            max_position_pct=1.0,
+            max_portfolio_heat=0.50,
         )
         assert result["valid"] is True
 
@@ -738,14 +755,26 @@ class TestValidateDecision:
         """A BUY that exactly equals buying power should pass."""
         state = _make_state(equity=10000.0, buying_power=5000.0)
         result = validate_decision(
-            "BUY", "BTC-USD", 0.1, 50000.0, state, max_position_pct=1.0, max_portfolio_heat=1.0
+            "BUY",
+            "BTC-USD",
+            0.1,
+            50000.0,
+            state,
+            max_position_pct=1.0,
+            max_portfolio_heat=1.0,
         )
         assert result["valid"] is True
 
     def test_trade_just_over_buying_power(self):
         state = _make_state(equity=10000.0, buying_power=4999.99)
         result = validate_decision(
-            "BUY", "BTC-USD", 0.1, 50000.0, state, max_position_pct=1.0, max_portfolio_heat=1.0
+            "BUY",
+            "BTC-USD",
+            0.1,
+            50000.0,
+            state,
+            max_position_pct=1.0,
+            max_portfolio_heat=1.0,
         )
         assert result["valid"] is False
 
@@ -754,7 +783,13 @@ class TestValidateDecision:
         state = _make_state(equity=10000.0, buying_power=10000.0)
         # 0.002 * 50000 = 100 / 10000 = 0.01 = 1%, which is at the 1% limit
         result = validate_decision(
-            "BUY", "BTC-USD", 0.002, 50000.0, state, max_position_pct=0.01, max_portfolio_heat=1.0
+            "BUY",
+            "BTC-USD",
+            0.002,
+            50000.0,
+            state,
+            max_position_pct=0.01,
+            max_portfolio_heat=1.0,
         )
         assert result["valid"] is True
 
@@ -763,7 +798,13 @@ class TestValidateDecision:
         state = _make_state(equity=10000.0, buying_power=10000.0, heat=0.0)
         # qty*price/equity = 500/10000 = 0.05 => heat becomes 0.0 + 0.05 = 0.05
         result = validate_decision(
-            "BUY", "BTC-USD", 0.01, 50000.0, state, max_position_pct=1.0, max_portfolio_heat=0.05
+            "BUY",
+            "BTC-USD",
+            0.01,
+            50000.0,
+            state,
+            max_position_pct=1.0,
+            max_portfolio_heat=0.05,
         )
         assert result["valid"] is True
 
@@ -809,7 +850,10 @@ class TestPortfolioStatePipeline:
         assert positions[2].unrealized_pnl == 100.0
 
         balance = compute_balance(
-            positions, realized_pnl_today=50.0, total_realized_pnl=200.0, initial_capital=10000.0
+            positions,
+            realized_pnl_today=50.0,
+            total_realized_pnl=200.0,
+            initial_capital=10000.0,
         )
         # equity = 10000 + 200 + 300 = 10500
         assert balance.total_equity == 10500.0
@@ -844,7 +888,13 @@ class TestPortfolioStatePipeline:
 
         # Small trade should pass
         result = validate_decision(
-            "BUY", "ETH-USD", 0.01, 2000.0, state, max_position_pct=0.10, max_portfolio_heat=0.80
+            "BUY",
+            "ETH-USD",
+            0.01,
+            2000.0,
+            state,
+            max_position_pct=0.10,
+            max_portfolio_heat=0.80,
         )
         assert result["valid"] is True
 
@@ -857,7 +907,10 @@ class TestPortfolioStatePipeline:
     def test_portfolio_recovery_after_losses(self):
         """Simulate a portfolio that has realized losses but no open positions."""
         balance = compute_balance(
-            [], realized_pnl_today=-500.0, total_realized_pnl=-2000.0, initial_capital=10000.0
+            [],
+            realized_pnl_today=-500.0,
+            total_realized_pnl=-2000.0,
+            initial_capital=10000.0,
         )
         assert balance.total_equity == 8000.0
         assert balance.buying_power == 8000.0
@@ -870,6 +923,12 @@ class TestPortfolioStatePipeline:
 
         # Should still be able to open new small positions
         result = validate_decision(
-            "BUY", "BTC-USD", 0.001, 50000.0, state, max_position_pct=0.01, max_portfolio_heat=0.50
+            "BUY",
+            "BTC-USD",
+            0.001,
+            50000.0,
+            state,
+            max_position_pct=0.01,
+            max_portfolio_heat=0.50,
         )
         assert result["valid"] is True

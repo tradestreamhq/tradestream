@@ -49,8 +49,14 @@ def client(app):
     return app.test_client()
 
 
-def _setup_mock_data(pg_client, positions=None, trades=None, closed=None,
-                     realized_today=0.0, total_realized=0.0):
+def _setup_mock_data(
+    pg_client,
+    positions=None,
+    trades=None,
+    closed=None,
+    realized_today=0.0,
+    total_realized=0.0,
+):
     """Helper to set up common mock return values."""
     pg_client.get_positions.return_value = positions or []
     pg_client.get_open_trades.return_value = trades or []
@@ -163,7 +169,9 @@ class TestStateEndpoint:
         assert data["risk_metrics"]["num_open_positions"] == 0
 
     @patch("services.portfolio_state.service._fetch_current_prices")
-    def test_get_state_includes_all_balance_fields(self, mock_prices, client, pg_client):
+    def test_get_state_includes_all_balance_fields(
+        self, mock_prices, client, pg_client
+    ):
         _setup_mock_data(pg_client)
         mock_prices.return_value = {}
 
@@ -171,8 +179,12 @@ class TestStateEndpoint:
         data = resp.get_json()
         balance = data["balance"]
         for field in [
-            "total_equity", "available_cash", "buying_power",
-            "margin_used", "margin_available", "unrealized_pnl",
+            "total_equity",
+            "available_cash",
+            "buying_power",
+            "margin_used",
+            "margin_available",
+            "unrealized_pnl",
             "realized_pnl_today",
         ]:
             assert field in balance, f"Missing balance field: {field}"
@@ -186,23 +198,34 @@ class TestStateEndpoint:
         data = resp.get_json()
         risk = data["risk_metrics"]
         for field in [
-            "portfolio_heat", "max_position_pct", "max_position_symbol",
-            "num_open_positions", "sector_exposure", "daily_drawdown",
+            "portfolio_heat",
+            "max_position_pct",
+            "max_position_symbol",
+            "num_open_positions",
+            "sector_exposure",
+            "daily_drawdown",
         ]:
             assert field in risk, f"Missing risk field: {field}"
 
     @patch("services.portfolio_state.service._fetch_current_prices")
     def test_get_state_position_fields(self, mock_prices, client, pg_client):
         _setup_mock_data(
-            pg_client, positions=SAMPLE_POSITIONS, trades=SAMPLE_TRADES,
+            pg_client,
+            positions=SAMPLE_POSITIONS,
+            trades=SAMPLE_TRADES,
         )
         mock_prices.return_value = {"BTC-USD": 43800.0, "ETH-USD": 2250.0}
 
         resp = client.get("/portfolio/state")
         pos = resp.get_json()["positions"][0]
         for field in [
-            "symbol", "side", "quantity", "entry_price",
-            "current_price", "unrealized_pnl", "unrealized_pnl_percent",
+            "symbol",
+            "side",
+            "quantity",
+            "entry_price",
+            "current_price",
+            "unrealized_pnl",
+            "unrealized_pnl_percent",
             "opened_at",
         ]:
             assert field in pos, f"Missing position field: {field}"
@@ -210,7 +233,8 @@ class TestStateEndpoint:
     @patch("services.portfolio_state.service._fetch_current_prices")
     def test_get_state_returns_recent_trades(self, mock_prices, client, pg_client):
         _setup_mock_data(
-            pg_client, closed=SAMPLE_CLOSED,
+            pg_client,
+            closed=SAMPLE_CLOSED,
         )
         mock_prices.return_value = {}
 
@@ -222,7 +246,9 @@ class TestStateEndpoint:
     @patch("services.portfolio_state.service._fetch_current_prices")
     def test_get_state_with_realized_pnl(self, mock_prices, client, pg_client):
         _setup_mock_data(
-            pg_client, realized_today=100.0, total_realized=500.0,
+            pg_client,
+            realized_today=100.0,
+            total_realized=500.0,
         )
         mock_prices.return_value = {}
 
@@ -567,7 +593,9 @@ class TestStateTransitions:
 
         # Add a position
         _setup_mock_data(
-            pg_client, positions=SAMPLE_POSITIONS[:1], trades=SAMPLE_TRADES[:1],
+            pg_client,
+            positions=SAMPLE_POSITIONS[:1],
+            trades=SAMPLE_TRADES[:1],
         )
         mock_prices.return_value = {"BTC-USD": 43800.0}
 
@@ -582,7 +610,9 @@ class TestStateTransitions:
         """State should reflect positions being closed (removed)."""
         # Start with positions
         _setup_mock_data(
-            pg_client, positions=SAMPLE_POSITIONS, trades=SAMPLE_TRADES,
+            pg_client,
+            positions=SAMPLE_POSITIONS,
+            trades=SAMPLE_TRADES,
         )
         mock_prices.return_value = {"BTC-USD": 43800.0, "ETH-USD": 2250.0}
 
@@ -591,7 +621,10 @@ class TestStateTransitions:
 
         # Close all positions (empty portfolio, realized PnL from closed trades)
         _setup_mock_data(
-            pg_client, closed=SAMPLE_CLOSED, realized_today=17.5, total_realized=17.5,
+            pg_client,
+            closed=SAMPLE_CLOSED,
+            realized_today=17.5,
+            total_realized=17.5,
         )
         mock_prices.return_value = {}
 
@@ -605,7 +638,9 @@ class TestStateTransitions:
     def test_state_reflects_price_changes(self, mock_prices, client, pg_client):
         """Same positions with different prices should produce different state."""
         _setup_mock_data(
-            pg_client, positions=SAMPLE_POSITIONS[:1], trades=SAMPLE_TRADES[:1],
+            pg_client,
+            positions=SAMPLE_POSITIONS[:1],
+            trades=SAMPLE_TRADES[:1],
         )
 
         # Price up
@@ -626,7 +661,9 @@ class TestStateTransitions:
     def test_context_and_state_are_consistent(self, mock_prices, client, pg_client):
         """Context string should reflect the same data as the state endpoint."""
         _setup_mock_data(
-            pg_client, positions=SAMPLE_POSITIONS, trades=SAMPLE_TRADES,
+            pg_client,
+            positions=SAMPLE_POSITIONS,
+            trades=SAMPLE_TRADES,
         )
         mock_prices.return_value = {"BTC-USD": 43800.0, "ETH-USD": 2250.0}
 
@@ -649,7 +686,9 @@ class TestStateTransitions:
         """Validation should use the current portfolio state for checks."""
         # With positions using up margin, buying power is reduced
         _setup_mock_data(
-            pg_client, positions=SAMPLE_POSITIONS, trades=SAMPLE_TRADES,
+            pg_client,
+            positions=SAMPLE_POSITIONS,
+            trades=SAMPLE_TRADES,
         )
         mock_prices.return_value = {"BTC-USD": 43800.0, "ETH-USD": 2250.0}
 
