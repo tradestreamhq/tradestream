@@ -94,9 +94,7 @@ class TestRunBacktest:
         assert "avg_holding_period_bars" in attrs
         assert "trades" in attrs
 
-    def test_run_backtest_with_custom_commission(
-        self, client, sample_candles
-    ):
+    def test_run_backtest_with_custom_commission(self, client, sample_candles):
         body = {
             "strategy_name": "DOUBLE_EMA_CROSSOVER",
             "strategy_params": {

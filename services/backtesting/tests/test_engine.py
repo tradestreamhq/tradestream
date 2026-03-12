@@ -86,14 +86,10 @@ class TestCommissionModel:
 
 
 class TestBacktestEngine:
-    def test_basic_backtest_returns_summary(
-        self, sample_ohlcv, simple_signals
-    ):
+    def test_basic_backtest_returns_summary(self, sample_ohlcv, simple_signals):
         entries, exits = simple_signals
         engine = BacktestEngine()
-        result = engine.run(
-            sample_ohlcv, entries, exits, strategy_name="test"
-        )
+        result = engine.run(sample_ohlcv, entries, exits, strategy_name="test")
 
         assert isinstance(result, BacktestSummary)
         assert result.strategy_name == "test"
@@ -115,9 +111,7 @@ class TestBacktestEngine:
 
         # No commission
         config_no_comm = BacktestConfig(
-            commission=CommissionModel(
-                flat_fee=0, percentage=0, min_commission=0
-            )
+            commission=CommissionModel(flat_fee=0, percentage=0, min_commission=0)
         )
         result_no_comm = BacktestEngine(config_no_comm).run(
             sample_ohlcv, entries, exits
@@ -159,9 +153,7 @@ class TestBacktestEngine:
         assert result.number_of_trades == 1
         # The trade should have been closed at the last bar
         trade = result.trades[0]
-        assert trade["exit_price"] == pytest.approx(
-            sample_ohlcv["close"].iloc[-1]
-        )
+        assert trade["exit_price"] == pytest.approx(sample_ohlcv["close"].iloc[-1])
 
     def test_date_range_filtering(self, sample_ohlcv):
         """Only data within the configured date range should be used."""
@@ -192,9 +184,7 @@ class TestBacktestEngine:
         """Sum of trade PnLs should approximately equal total PnL."""
         entries, exits = simple_signals
         config = BacktestConfig(
-            commission=CommissionModel(
-                flat_fee=0, percentage=0, min_commission=0
-            )
+            commission=CommissionModel(flat_fee=0, percentage=0, min_commission=0)
         )
         engine = BacktestEngine(config)
         result = engine.run(sample_ohlcv, entries, exits)
@@ -218,9 +208,7 @@ class TestBacktestEngine:
         exits.iloc[250] = True
 
         config = BacktestConfig(
-            commission=CommissionModel(
-                flat_fee=0, percentage=0, min_commission=0
-            )
+            commission=CommissionModel(flat_fee=0, percentage=0, min_commission=0)
         )
         engine = BacktestEngine(config)
         result = engine.run(sample_ohlcv, entries, exits)
@@ -258,12 +246,12 @@ class TestBacktestEngine:
         """Using half position size should use less capital per trade."""
         entries, exits = simple_signals
 
-        full_result = BacktestEngine(
-            BacktestConfig(position_size_pct=1.0)
-        ).run(sample_ohlcv, entries, exits)
-        half_result = BacktestEngine(
-            BacktestConfig(position_size_pct=0.5)
-        ).run(sample_ohlcv, entries, exits)
+        full_result = BacktestEngine(BacktestConfig(position_size_pct=1.0)).run(
+            sample_ohlcv, entries, exits
+        )
+        half_result = BacktestEngine(BacktestConfig(position_size_pct=0.5)).run(
+            sample_ohlcv, entries, exits
+        )
 
         # Half-size trades should have smaller absolute PnL
         full_pnl = abs(full_result.trades[0]["pnl"])
@@ -333,9 +321,7 @@ class TestBacktestEngineEdgeCases:
         )
         df.index = pd.date_range(start="2020-01-01", periods=2, freq="1min")
 
-        config = BacktestConfig(
-            start_date="2025-01-01"
-        )  # No data in range
+        config = BacktestConfig(start_date="2025-01-01")  # No data in range
         engine = BacktestEngine(config)
 
         entries = pd.Series([True, False], index=df.index)
@@ -365,9 +351,7 @@ class TestBacktestEngineEdgeCases:
         exits.iloc[3] = True
 
         config = BacktestConfig(
-            commission=CommissionModel(
-                flat_fee=0, percentage=0, min_commission=0
-            )
+            commission=CommissionModel(flat_fee=0, percentage=0, min_commission=0)
         )
         engine = BacktestEngine(config)
         result = engine.run(df, entries, exits)
@@ -409,9 +393,7 @@ class TestSharpeRatio:
 
     def test_negative_returns_negative_sharpe(self):
         np.random.seed(42)
-        returns = (
-            np.random.randn(1000) * 0.01 - 0.01
-        )  # strong negative drift
+        returns = np.random.randn(1000) * 0.01 - 0.01  # strong negative drift
         sharpe = BacktestEngine._calc_sharpe(returns, 252)
         assert sharpe < 0
 

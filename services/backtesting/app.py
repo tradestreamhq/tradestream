@@ -31,9 +31,7 @@ logger = logging.getLogger(__name__)
 
 class CommissionConfig(BaseModel):
     flat_fee: float = Field(0.0, description="Flat fee per trade")
-    percentage: float = Field(
-        0.001, description="Percentage commission (0.001 = 0.1%)"
-    )
+    percentage: float = Field(0.001, description="Percentage commission (0.001 = 0.1%)")
     min_commission: float = Field(0.0, description="Minimum commission per trade")
 
 
@@ -105,9 +103,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             missing = required_cols - set(ohlcv.columns)
             return validation_error(f"Missing columns: {missing}")
 
-        ohlcv.index = pd.date_range(
-            start="2020-01-01", periods=len(ohlcv), freq="1min"
-        )
+        ohlcv.index = pd.date_range(start="2020-01-01", periods=len(ohlcv), freq="1min")
 
         # Generate signals using the existing VectorBT runner
         runner = VectorBTRunner()
@@ -122,9 +118,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         commission = CommissionModel(
             flat_fee=body.commission.flat_fee if body.commission else 0.0,
             percentage=body.commission.percentage if body.commission else 0.001,
-            min_commission=(
-                body.commission.min_commission if body.commission else 0.0
-            ),
+            min_commission=(body.commission.min_commission if body.commission else 0.0),
         )
         config = BacktestConfig(
             start_date=body.start_date,
@@ -188,9 +182,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 )
         except Exception as e:
             logger.error("Failed to store backtest result: %s", e)
-            return server_error(
-                f"Backtest ran successfully but storage failed: {e}"
-            )
+            return server_error(f"Backtest ran successfully but storage failed: {e}")
 
         result = summary.to_dict()
         # Omit equity_curve from response to keep payload small
@@ -215,9 +207,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         order_by: Optional[str] = Query(
             "created_at",
             description="Sort field",
-            pattern=(
-                "^(created_at|total_return|sharpe_ratio|number_of_trades)$"
-            ),
+            pattern=("^(created_at|total_return|sharpe_ratio|number_of_trades)$"),
         ),
     ):
         """List stored backtest results with optional filters."""
@@ -278,9 +268,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         items = []
         for row in rows:
             item = dict(row)
-            if item.get("created_at") and hasattr(
-                item["created_at"], "isoformat"
-            ):
+            if item.get("created_at") and hasattr(item["created_at"], "isoformat"):
                 item["created_at"] = item["created_at"].isoformat()
             items.append(item)
 
@@ -318,13 +306,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             return not_found("Backtest", backtest_id)
 
         item = dict(row)
-        if item.get("created_at") and hasattr(
-            item["created_at"], "isoformat"
-        ):
+        if item.get("created_at") and hasattr(item["created_at"], "isoformat"):
             item["created_at"] = item["created_at"].isoformat()
-        return success_response(
-            item, "backtest_result", resource_id=backtest_id
-        )
+        return success_response(item, "backtest_result", resource_id=backtest_id)
 
     @router.delete("/{backtest_id}", status_code=204)
     async def delete_backtest(backtest_id: str):
