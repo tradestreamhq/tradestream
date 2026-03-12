@@ -232,3 +232,11 @@ py_library(
         requirement("alembic"),
     ],
 )
+
+py_library(
+    name = "prometheus_client",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("prometheus-client"),
+    ],
+)

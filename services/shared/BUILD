@@ -128,3 +128,28 @@ py_test(
         "//third_party/python:pytest",
     ],
 )
+
+py_library(
+    name = "monitoring",
+    srcs = [
+        "__init__.py",
+        "monitoring.py",
+    ],
+    deps = [
+        "//third_party/python:prometheus_client",
+    ],
+)
+
+py_test(
+    name = "monitoring_test",
+    srcs = ["monitoring_test.py"],
+    deps = [
+        ":monitoring",
+        "//third_party/python:fastapi",
+        "//third_party/python:flask",
+        "//third_party/python:httpx",
+        "//third_party/python:prometheus_client",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
