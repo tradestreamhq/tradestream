@@ -60,7 +60,9 @@ def create_app() -> FastAPI:
             return validation_error("Each strategy must have at least 2 return periods")
 
         if req.objective == "target_return" and req.target_return is None:
-            return validation_error("target_return is required when objective is 'target_return'")
+            return validation_error(
+                "target_return is required when objective is 'target_return'"
+            )
 
         if req.min_weight > req.max_weight:
             return validation_error("min_weight must be <= max_weight")
@@ -76,18 +78,28 @@ def create_app() -> FastAPI:
 
             if req.objective == "max_sharpe":
                 result = optimize_max_sharpe(
-                    strategy_ids, returns_matrix, req.risk_free_rate,
-                    req.min_weight, req.max_weight,
+                    strategy_ids,
+                    returns_matrix,
+                    req.risk_free_rate,
+                    req.min_weight,
+                    req.max_weight,
                 )
             elif req.objective == "min_variance":
                 result = optimize_min_variance(
-                    strategy_ids, returns_matrix, req.risk_free_rate,
-                    req.min_weight, req.max_weight,
+                    strategy_ids,
+                    returns_matrix,
+                    req.risk_free_rate,
+                    req.min_weight,
+                    req.max_weight,
                 )
             else:
                 result = optimize_target_return(
-                    strategy_ids, returns_matrix, req.target_return,
-                    req.risk_free_rate, req.min_weight, req.max_weight,
+                    strategy_ids,
+                    returns_matrix,
+                    req.target_return,
+                    req.risk_free_rate,
+                    req.min_weight,
+                    req.max_weight,
                 )
 
             return success_response(result.model_dump(), "optimization_result")
@@ -115,8 +127,11 @@ def create_app() -> FastAPI:
         try:
             strategy_ids, returns_matrix = _to_returns_matrix(req.strategies)
             frontier = compute_efficient_frontier(
-                strategy_ids, returns_matrix, req.risk_free_rate,
-                req.min_weight, req.max_weight,
+                strategy_ids,
+                returns_matrix,
+                req.risk_free_rate,
+                req.min_weight,
+                req.max_weight,
             )
             return success_response(frontier.model_dump(), "efficient_frontier")
 

@@ -48,7 +48,10 @@ def _build_constraints_and_bounds(
 
     if target_return is not None and mean_returns is not None:
         constraints.append(
-            {"type": "eq", "fun": lambda w, mu=mean_returns, tr=target_return: w @ mu - tr}
+            {
+                "type": "eq",
+                "fun": lambda w, mu=mean_returns, tr=target_return: w @ mu - tr,
+            }
         )
 
     return constraints, bounds
@@ -74,7 +77,9 @@ def optimize_max_sharpe(
     constraints, bounds = _build_constraints_and_bounds(n, min_weight, max_weight)
     x0 = np.full(n, 1.0 / n)
 
-    result = minimize(neg_sharpe, x0, method="SLSQP", bounds=bounds, constraints=constraints)
+    result = minimize(
+        neg_sharpe, x0, method="SLSQP", bounds=bounds, constraints=constraints
+    )
     weights = result.x
     ret, vol, sharpe = _portfolio_stats(weights, mean_ret, cov, risk_free_rate)
 
@@ -104,7 +109,9 @@ def optimize_min_variance(
     constraints, bounds = _build_constraints_and_bounds(n, min_weight, max_weight)
     x0 = np.full(n, 1.0 / n)
 
-    result = minimize(variance, x0, method="SLSQP", bounds=bounds, constraints=constraints)
+    result = minimize(
+        variance, x0, method="SLSQP", bounds=bounds, constraints=constraints
+    )
     weights = result.x
     ret, vol, sharpe = _portfolio_stats(weights, mean_ret, cov, risk_free_rate)
 
@@ -137,7 +144,9 @@ def optimize_target_return(
     )
     x0 = np.full(n, 1.0 / n)
 
-    result = minimize(variance, x0, method="SLSQP", bounds=bounds, constraints=constraints)
+    result = minimize(
+        variance, x0, method="SLSQP", bounds=bounds, constraints=constraints
+    )
     weights = result.x
     ret, vol, sharpe = _portfolio_stats(weights, mean_ret, cov, risk_free_rate)
 
@@ -190,8 +199,12 @@ def compute_efficient_frontier(
     for target in target_returns:
         try:
             result = optimize_target_return(
-                strategy_ids, returns_matrix, float(target),
-                risk_free_rate, min_weight, max_weight,
+                strategy_ids,
+                returns_matrix,
+                float(target),
+                risk_free_rate,
+                min_weight,
+                max_weight,
             )
             point = EfficientFrontierPoint(
                 expected_return=result.expected_return,
