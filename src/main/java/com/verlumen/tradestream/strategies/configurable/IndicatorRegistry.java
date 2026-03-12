@@ -20,6 +20,7 @@ import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.*;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 /**
@@ -447,7 +448,7 @@ public final class IndicatorRegistry {
     @Override
     protected Num calculate(int index) {
       if (index < fc) {
-        return getBarSeries().numOf(0);
+        return DecimalNum.valueOf(0);
       }
 
       double fractalDimension = calculateFractalDimension(index);
@@ -460,7 +461,7 @@ public final class IndicatorRegistry {
       Num prevFrama = getValue(index - 1);
       Num currentPrice = getBarSeries().getBar(index).getClosePrice();
       return prevFrama.plus(
-          currentPrice.minus(prevFrama).multipliedBy(getBarSeries().numOf(adaptiveAlpha)));
+          currentPrice.minus(prevFrama).multipliedBy(DecimalNum.valueOf(adaptiveAlpha)));
     }
 
     private double calculateFractalDimension(int index) {
