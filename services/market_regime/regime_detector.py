@@ -116,11 +116,7 @@ class RegimeDetector:
             current_price, sma_20, sma_50, sma_200, atr_pct, drawdown, realized_vol
         )
 
-        ts = (
-            timestamps[-1]
-            if timestamps
-            else datetime.now(timezone.utc)
-        )
+        ts = timestamps[-1] if timestamps else datetime.now(timezone.utc)
         classification = RegimeClassification(
             regime=regime,
             confidence=confidence,
@@ -132,9 +128,7 @@ class RegimeDetector:
         self._record(symbol, classification)
         return classification
 
-    def get_history(
-        self, symbol: str, days: int = 90
-    ) -> List[RegimeClassification]:
+    def get_history(self, symbol: str, days: int = 90) -> List[RegimeClassification]:
         return list(self._history.get(symbol, []))[-days:]
 
     def get_transitions(self, symbol: Optional[str] = None) -> List[RegimeTransition]:

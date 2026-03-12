@@ -25,7 +25,9 @@ from services.shared.auth import fastapi_auth_middleware
 logger = logging.getLogger(__name__)
 
 
-def create_app(influxdb_client, regime_detector: Optional[RegimeDetector] = None) -> FastAPI:
+def create_app(
+    influxdb_client, regime_detector: Optional[RegimeDetector] = None
+) -> FastAPI:
     """Create the Market Regime API FastAPI application.
 
     Args:
@@ -60,9 +62,7 @@ def create_app(influxdb_client, regime_detector: Optional[RegimeDetector] = None
         symbol: str = Query("BTC/USD", description="Symbol to classify"),
     ):
         """Get current market regime classification for a symbol."""
-        candles = influxdb_client.get_candles(
-            symbol=symbol, timeframe="1d", limit=300
-        )
+        candles = influxdb_client.get_candles(symbol=symbol, timeframe="1d", limit=300)
         if not candles:
             return not_found("Candle data", symbol)
 
@@ -73,9 +73,7 @@ def create_app(influxdb_client, regime_detector: Optional[RegimeDetector] = None
         for c in candles:
             ts = c.get("time")
             if isinstance(ts, str):
-                timestamps.append(
-                    datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                )
+                timestamps.append(datetime.fromisoformat(ts.replace("Z", "+00:00")))
             elif isinstance(ts, datetime):
                 timestamps.append(ts)
             else:

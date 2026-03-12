@@ -130,7 +130,9 @@ class TestRegimeDetectorTrendingUp:
     def test_detects_trending_up(self):
         detector = RegimeDetector()
         closes, highs, lows = _trending_up_series()
-        result = detector.classify("BTC/USD", closes, highs, lows, _make_timestamps(300))
+        result = detector.classify(
+            "BTC/USD", closes, highs, lows, _make_timestamps(300)
+        )
         assert result is not None
         assert result.regime == Regime.TRENDING_UP
         assert result.confidence >= 0.5
@@ -148,7 +150,9 @@ class TestRegimeDetectorTrendingDown:
     def test_detects_trending_down(self):
         detector = RegimeDetector()
         closes, highs, lows = _trending_down_series()
-        result = detector.classify("ETH/USD", closes, highs, lows, _make_timestamps(300))
+        result = detector.classify(
+            "ETH/USD", closes, highs, lows, _make_timestamps(300)
+        )
         assert result is not None
         assert result.regime == Regime.TRENDING_DOWN
         assert result.confidence >= 0.5
@@ -165,7 +169,9 @@ class TestRegimeDetectorRangeBound:
     def test_detects_range_bound(self):
         detector = RegimeDetector()
         closes, highs, lows = _range_bound_series()
-        result = detector.classify("ADA/USD", closes, highs, lows, _make_timestamps(300))
+        result = detector.classify(
+            "ADA/USD", closes, highs, lows, _make_timestamps(300)
+        )
         assert result is not None
         assert result.regime == Regime.RANGE_BOUND
 
@@ -174,7 +180,9 @@ class TestRegimeDetectorHighVolatility:
     def test_detects_high_volatility(self):
         detector = RegimeDetector()
         closes, highs, lows = _high_volatility_series()
-        result = detector.classify("SOL/USD", closes, highs, lows, _make_timestamps(300))
+        result = detector.classify(
+            "SOL/USD", closes, highs, lows, _make_timestamps(300)
+        )
         assert result is not None
         assert result.regime == Regime.HIGH_VOLATILITY
         assert result.indicators["atr_percentile"] >= 80.0
@@ -184,7 +192,9 @@ class TestRegimeDetectorLowVolatility:
     def test_detects_low_volatility(self):
         detector = RegimeDetector()
         closes, highs, lows = _low_volatility_series()
-        result = detector.classify("USDT/USD", closes, highs, lows, _make_timestamps(300))
+        result = detector.classify(
+            "USDT/USD", closes, highs, lows, _make_timestamps(300)
+        )
         assert result is not None
         assert result.regime == Regime.LOW_VOLATILITY
         assert result.indicators["atr_percentile"] <= 20.0
@@ -194,7 +204,9 @@ class TestRegimeDetectorCrisis:
     def test_detects_crisis(self):
         detector = RegimeDetector()
         closes, highs, lows = _crisis_series()
-        result = detector.classify("LUNA/USD", closes, highs, lows, _make_timestamps(300))
+        result = detector.classify(
+            "LUNA/USD", closes, highs, lows, _make_timestamps(300)
+        )
         assert result is not None
         assert result.regime == Regime.CRISIS
         assert result.confidence >= 0.5
