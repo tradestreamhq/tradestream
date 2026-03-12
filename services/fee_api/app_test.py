@@ -173,16 +173,12 @@ class TestCalculateFeeRouter:
             "maker_rate": 0.001,
             "taker_rate": 0.002,
         }
-        amount, rate = calculate_fee(
-            Decimal("1"), Decimal("50000"), True, schedule
-        )
+        amount, rate = calculate_fee(Decimal("1"), Decimal("50000"), True, schedule)
         assert amount == Decimal("50")
 
     def test_routes_to_flat(self):
         schedule = {"fee_model": "FLAT", "flat_fee": 10.0}
-        amount, rate = calculate_fee(
-            Decimal("1"), Decimal("50000"), True, schedule
-        )
+        amount, rate = calculate_fee(Decimal("1"), Decimal("50000"), True, schedule)
         assert amount == Decimal("10.0")
 
     def test_routes_to_tiered(self):

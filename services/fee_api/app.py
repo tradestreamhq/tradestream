@@ -65,7 +65,9 @@ def calculate_tiered_fee(
     for tier in tiers:
         min_vol = Decimal(str(tier["min_volume"]))
         max_vol = tier.get("max_volume")
-        if monthly_volume >= min_vol and (max_vol is None or monthly_volume < Decimal(str(max_vol))):
+        if monthly_volume >= min_vol and (
+            max_vol is None or monthly_volume < Decimal(str(max_vol))
+        ):
             rate = Decimal(str(tier["rate"]))
             break
 
@@ -304,7 +306,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         grand_total = Decimal("0")
         for row in rows:
             item = dict(row)
-            item["strategy_id"] = str(item["strategy_id"]) if item["strategy_id"] else None
+            item["strategy_id"] = (
+                str(item["strategy_id"]) if item["strategy_id"] else None
+            )
             item["trade_count"] = int(item["trade_count"])
             item["total_fees"] = float(item["total_fees"])
             item["avg_fee_rate"] = float(item["avg_fee_rate"])
