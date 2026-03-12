@@ -121,3 +121,45 @@ java_library(
         "//third_party/java:protobuf_java",
     ],
 )
+
+java_library(
+    name = "historical_data_loader",
+    srcs = ["HistoricalDataLoader.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
+    name = "csv_historical_data_loader",
+    srcs = ["CsvHistoricalDataLoader.java"],
+    deps = [
+        ":historical_data_loader",
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java_util",
+    ],
+)
+
+java_library(
+    name = "backtest_report",
+    srcs = ["BacktestReport.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+    ],
+)
+
+java_library(
+    name = "backtesting_framework",
+    srcs = ["BacktestingFramework.java"],
+    deps = [
+        ":backtest_report",
+        ":backtest_runner",
+        ":historical_data_loader",
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
+        "//third_party/java:protobuf_java",
+    ],
+)
