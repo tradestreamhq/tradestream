@@ -203,9 +203,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @rules_router.get("")
     async def list_rules(
         pagination: PaginationParams = Depends(),
-        strategy_id: Optional[str] = Query(
-            None, description="Filter by strategy ID"
-        ),
+        strategy_id: Optional[str] = Query(None, description="Filter by strategy ID"),
         alert_type: Optional[AlertType] = Query(
             None, description="Filter by alert type"
         ),
@@ -337,9 +335,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         alert_type: Optional[AlertType] = Query(
             None, description="Filter by alert type"
         ),
-        strategy_id: Optional[str] = Query(
-            None, description="Filter by strategy ID"
-        ),
+        strategy_id: Optional[str] = Query(None, description="Filter by strategy ID"),
         status: Optional[AlertStatus] = Query(
             None, description="Filter by alert status"
         ),

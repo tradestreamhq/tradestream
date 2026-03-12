@@ -12,8 +12,10 @@ down_revision = "001"
 branch_labels = None
 depends_on = None
 
+
 def upgrade() -> None:
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS alert_rules (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             name VARCHAR(255) NOT NULL,
@@ -55,7 +57,8 @@ def upgrade() -> None:
         CREATE INDEX IF NOT EXISTS idx_alerts_alert_type ON alerts(alert_type);
         CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);
         CREATE INDEX IF NOT EXISTS idx_alerts_created_at ON alerts(created_at DESC);
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

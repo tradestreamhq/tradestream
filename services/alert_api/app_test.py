@@ -315,9 +315,7 @@ class TestAlertRuleEndpoints:
     def test_update_rule_not_found(self, client):
         tc, conn = client
         conn.fetchrow.return_value = None
-        resp = tc.patch(
-            f"/rules/{uuid.uuid4()}", json={"enabled": False}
-        )
+        resp = tc.patch(f"/rules/{uuid.uuid4()}", json={"enabled": False})
         assert resp.status_code == 404
 
     def test_update_rule_empty_body(self, client):
