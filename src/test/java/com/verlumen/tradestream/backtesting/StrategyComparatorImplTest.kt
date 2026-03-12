@@ -278,7 +278,7 @@ class StrategyComparatorImplTest {
             .setHigh(price * 1.01)
             .setLow(price * 0.99)
             .setClose(price)
-            .setVolume(100)
+            .setVolume(100.0)
             .setCurrencyPair("BTC/USD")
             .build()
 
