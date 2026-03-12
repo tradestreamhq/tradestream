@@ -1,0 +1,6 @@
+schemaVersion: "2.0.0"
+
+metadataTest:
+  user: "nobody"
+  workdir: "/services/alert_router"
+  entrypoint: ["/services/alert_router/app"]
