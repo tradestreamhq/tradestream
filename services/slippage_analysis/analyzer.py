@@ -93,18 +93,24 @@ async def fetch_slippage_records(
         slippage = compute_slippage_bps(expected, fill, side_val)
         filled_at = r["filled_at"]
 
-        records.append({
-            "trade_id": str(r["trade_id"]),
-            "symbol": r["symbol"],
-            "side": side_val,
-            "expected_price": expected,
-            "fill_price": fill,
-            "order_size": size,
-            "slippage_bps": round(slippage, 2),
-            "filled_at": filled_at.isoformat() if hasattr(filled_at, "isoformat") else str(filled_at),
-            "hour_of_day": filled_at.hour if hasattr(filled_at, "hour") else 0,
-            "size_bucket": classify_size_bucket(size, expected),
-        })
+        records.append(
+            {
+                "trade_id": str(r["trade_id"]),
+                "symbol": r["symbol"],
+                "side": side_val,
+                "expected_price": expected,
+                "fill_price": fill,
+                "order_size": size,
+                "slippage_bps": round(slippage, 2),
+                "filled_at": (
+                    filled_at.isoformat()
+                    if hasattr(filled_at, "isoformat")
+                    else str(filled_at)
+                ),
+                "hour_of_day": filled_at.hour if hasattr(filled_at, "hour") else 0,
+                "size_bucket": classify_size_bucket(size, expected),
+            }
+        )
     return records
 
 
@@ -184,13 +190,17 @@ def compute_by_symbol(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     result = []
     for symbol, group in sorted(groups.items()):
         slippages = [r["slippage_bps"] for r in group]
-        cost = sum(abs(r["fill_price"] - r["expected_price"]) * r["order_size"] for r in group)
-        result.append({
-            "symbol": symbol,
-            "trade_count": len(group),
-            "avg_slippage_bps": round(sum(slippages) / len(slippages), 2),
-            "total_slippage_cost": round(cost, 2),
-        })
+        cost = sum(
+            abs(r["fill_price"] - r["expected_price"]) * r["order_size"] for r in group
+        )
+        result.append(
+            {
+                "symbol": symbol,
+                "trade_count": len(group),
+                "avg_slippage_bps": round(sum(slippages) / len(slippages), 2),
+                "total_slippage_cost": round(cost, 2),
+            }
+        )
     return result
 
 
@@ -203,11 +213,13 @@ def compute_by_hour(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     result = []
     for hour in sorted(groups.keys()):
         slippages = groups[hour]
-        result.append({
-            "hour": hour,
-            "trade_count": len(slippages),
-            "avg_slippage_bps": round(sum(slippages) / len(slippages), 2),
-        })
+        result.append(
+            {
+                "hour": hour,
+                "trade_count": len(slippages),
+                "avg_slippage_bps": round(sum(slippages) / len(slippages), 2),
+            }
+        )
     return result
 
 
@@ -221,11 +233,13 @@ def compute_by_size_bucket(records: List[Dict[str, Any]]) -> List[Dict[str, Any]
     for bucket in ["small", "medium", "large"]:
         if bucket in groups:
             slippages = groups[bucket]
-            result.append({
-                "bucket": bucket,
-                "trade_count": len(slippages),
-                "avg_slippage_bps": round(sum(slippages) / len(slippages), 2),
-            })
+            result.append(
+                {
+                    "bucket": bucket,
+                    "trade_count": len(slippages),
+                    "avg_slippage_bps": round(sum(slippages) / len(slippages), 2),
+                }
+            )
     return result
 
 
@@ -243,16 +257,18 @@ def detect_adverse_patterns(records: List[Dict[str, Any]]) -> List[Dict[str, Any
         avg_all = sum(r["slippage_bps"] for r in records) / len(records)
         if avg_open > avg_all + ADVERSE_SLIPPAGE_THRESHOLD and len(open_trades) >= 3:
             severity = "high" if avg_open > avg_all * 2 else "medium"
-            patterns.append({
-                "pattern_type": "market_open_slippage",
-                "description": (
-                    f"Avg slippage at market open ({avg_open:.1f} bps) is significantly "
-                    f"higher than overall avg ({avg_all:.1f} bps)"
-                ),
-                "severity": severity,
-                "affected_trades": len(open_trades),
-                "avg_slippage_bps": round(avg_open, 2),
-            })
+            patterns.append(
+                {
+                    "pattern_type": "market_open_slippage",
+                    "description": (
+                        f"Avg slippage at market open ({avg_open:.1f} bps) is significantly "
+                        f"higher than overall avg ({avg_all:.1f} bps)"
+                    ),
+                    "severity": severity,
+                    "affected_trades": len(open_trades),
+                    "avg_slippage_bps": round(avg_open, 2),
+                }
+            )
 
     # Pattern 2: Large orders get worse fills
     large_trades = [r for r in records if r["size_bucket"] == "large"]
@@ -260,18 +276,23 @@ def detect_adverse_patterns(records: List[Dict[str, Any]]) -> List[Dict[str, Any
     if large_trades and small_trades:
         avg_large = sum(r["slippage_bps"] for r in large_trades) / len(large_trades)
         avg_small = sum(r["slippage_bps"] for r in small_trades) / len(small_trades)
-        if avg_large > avg_small + ADVERSE_SLIPPAGE_THRESHOLD and len(large_trades) >= 3:
+        if (
+            avg_large > avg_small + ADVERSE_SLIPPAGE_THRESHOLD
+            and len(large_trades) >= 3
+        ):
             severity = "high" if avg_large > avg_small * 2 else "medium"
-            patterns.append({
-                "pattern_type": "size_impact",
-                "description": (
-                    f"Large orders avg {avg_large:.1f} bps slippage vs "
-                    f"{avg_small:.1f} bps for small orders"
-                ),
-                "severity": severity,
-                "affected_trades": len(large_trades),
-                "avg_slippage_bps": round(avg_large, 2),
-            })
+            patterns.append(
+                {
+                    "pattern_type": "size_impact",
+                    "description": (
+                        f"Large orders avg {avg_large:.1f} bps slippage vs "
+                        f"{avg_small:.1f} bps for small orders"
+                    ),
+                    "severity": severity,
+                    "affected_trades": len(large_trades),
+                    "avg_slippage_bps": round(avg_large, 2),
+                }
+            )
 
     # Pattern 3: Symbol with consistently high slippage
     by_symbol = compute_by_symbol(records)
@@ -281,16 +302,18 @@ def detect_adverse_patterns(records: List[Dict[str, Any]]) -> List[Dict[str, Any
             sym["avg_slippage_bps"] > avg_all + ADVERSE_SLIPPAGE_THRESHOLD
             and sym["trade_count"] >= 3
         ):
-            patterns.append({
-                "pattern_type": "symbol_adverse",
-                "description": (
-                    f"{sym['symbol']} has avg slippage of {sym['avg_slippage_bps']:.1f} bps, "
-                    f"well above overall avg of {avg_all:.1f} bps"
-                ),
-                "severity": "medium",
-                "affected_trades": sym["trade_count"],
-                "avg_slippage_bps": sym["avg_slippage_bps"],
-            })
+            patterns.append(
+                {
+                    "pattern_type": "symbol_adverse",
+                    "description": (
+                        f"{sym['symbol']} has avg slippage of {sym['avg_slippage_bps']:.1f} bps, "
+                        f"well above overall avg of {avg_all:.1f} bps"
+                    ),
+                    "severity": "medium",
+                    "affected_trades": sym["trade_count"],
+                    "avg_slippage_bps": sym["avg_slippage_bps"],
+                }
+            )
 
     return patterns
 

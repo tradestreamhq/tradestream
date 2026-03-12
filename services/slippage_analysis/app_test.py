@@ -151,25 +151,29 @@ class TestDetectAdversePatterns:
         # Create trades: 5 at market open with high slippage, 5 off-hours with low
         records = []
         for i in range(5):
-            records.append({
-                "slippage_bps": 30.0,
-                "hour_of_day": 9,
-                "size_bucket": "medium",
-                "symbol": "BTC/USD",
-                "expected_price": 100.0,
-                "fill_price": 100.30,
-                "order_size": 10.0,
-            })
+            records.append(
+                {
+                    "slippage_bps": 30.0,
+                    "hour_of_day": 9,
+                    "size_bucket": "medium",
+                    "symbol": "BTC/USD",
+                    "expected_price": 100.0,
+                    "fill_price": 100.30,
+                    "order_size": 10.0,
+                }
+            )
         for i in range(5):
-            records.append({
-                "slippage_bps": 2.0,
-                "hour_of_day": 14,
-                "size_bucket": "medium",
-                "symbol": "BTC/USD",
-                "expected_price": 100.0,
-                "fill_price": 100.02,
-                "order_size": 10.0,
-            })
+            records.append(
+                {
+                    "slippage_bps": 2.0,
+                    "hour_of_day": 14,
+                    "size_bucket": "medium",
+                    "symbol": "BTC/USD",
+                    "expected_price": 100.0,
+                    "fill_price": 100.02,
+                    "order_size": 10.0,
+                }
+            )
 
         patterns = detect_adverse_patterns(records)
         types = [p["pattern_type"] for p in patterns]
@@ -178,25 +182,29 @@ class TestDetectAdversePatterns:
     def test_size_impact_pattern(self):
         records = []
         for i in range(5):
-            records.append({
-                "slippage_bps": 25.0,
-                "hour_of_day": 14,
-                "size_bucket": "large",
-                "symbol": "BTC/USD",
-                "expected_price": 100.0,
-                "fill_price": 100.25,
-                "order_size": 200.0,
-            })
+            records.append(
+                {
+                    "slippage_bps": 25.0,
+                    "hour_of_day": 14,
+                    "size_bucket": "large",
+                    "symbol": "BTC/USD",
+                    "expected_price": 100.0,
+                    "fill_price": 100.25,
+                    "order_size": 200.0,
+                }
+            )
         for i in range(5):
-            records.append({
-                "slippage_bps": 2.0,
-                "hour_of_day": 14,
-                "size_bucket": "small",
-                "symbol": "BTC/USD",
-                "expected_price": 100.0,
-                "fill_price": 100.02,
-                "order_size": 1.0,
-            })
+            records.append(
+                {
+                    "slippage_bps": 2.0,
+                    "hour_of_day": 14,
+                    "size_bucket": "small",
+                    "symbol": "BTC/USD",
+                    "expected_price": 100.0,
+                    "fill_price": 100.02,
+                    "order_size": 1.0,
+                }
+            )
 
         patterns = detect_adverse_patterns(records)
         types = [p["pattern_type"] for p in patterns]
@@ -295,7 +303,9 @@ class TestSlippageTrades:
         conn.fetch.return_value = []
         conn.fetchval.return_value = 0
 
-        resp = tc.get("/trades?symbol=ETH/USD&side=BUY&start_date=2026-01-01&end_date=2026-12-31")
+        resp = tc.get(
+            "/trades?symbol=ETH/USD&side=BUY&start_date=2026-01-01&end_date=2026-12-31"
+        )
         assert resp.status_code == 200
 
 

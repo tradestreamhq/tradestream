@@ -17,14 +17,20 @@ class SlippageRecord(BaseModel):
     slippage_bps: float = Field(..., description="Slippage in basis points")
     filled_at: str = Field(..., description="ISO 8601 fill timestamp")
     hour_of_day: int = Field(..., ge=0, le=23, description="Hour when trade was filled")
-    size_bucket: str = Field(..., description="Order size category: small, medium, large")
+    size_bucket: str = Field(
+        ..., description="Order size category: small, medium, large"
+    )
 
 
 class SlippageSummary(BaseModel):
     total_trades: int = Field(..., description="Number of trades analyzed")
     avg_slippage_bps: float = Field(..., description="Average slippage in basis points")
-    median_slippage_bps: float = Field(..., description="Median slippage in basis points")
-    worst_slippage_bps: float = Field(..., description="Worst single-trade slippage in bps")
+    median_slippage_bps: float = Field(
+        ..., description="Median slippage in basis points"
+    )
+    worst_slippage_bps: float = Field(
+        ..., description="Worst single-trade slippage in bps"
+    )
     total_slippage_cost: float = Field(
         ..., description="Total dollar cost of slippage across all trades"
     )
@@ -54,7 +60,9 @@ class AdversePattern(BaseModel):
     description: str = Field(..., description="Human-readable description")
     severity: str = Field(..., description="low, medium, or high")
     affected_trades: int = Field(..., description="Number of trades affected")
-    avg_slippage_bps: float = Field(..., description="Average slippage for affected trades")
+    avg_slippage_bps: float = Field(
+        ..., description="Average slippage for affected trades"
+    )
 
 
 class SlippageReport(BaseModel):
