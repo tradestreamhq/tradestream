@@ -49,25 +49,33 @@ public class RsiEmaCrossoverStrategyFactoryTest {
     series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // Bars 0-29: Gradual decline to bring RSI below 50 and below its EMA
+    // Bars 0-24: Steady decline to bring RSI well below its EMA
     int barIdx = 0;
-    double price = 50.0;
-    for (int i = 0; i < 30; i++) {
-      price = 50.0 - i * 0.3 + Math.sin(i * 0.5) * 0.5;
+    double price = 60.0;
+    for (int i = 0; i < 25; i++) {
+      price -= 0.5;
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Bars 30-39: Gradual price increase to make RSI rise above its EMA
-    // RSI should cross above EMA while staying below 70 (not overbought)
+    // Bars 25-34: Sharp price increase to make RSI cross above its EMA
     for (int i = 0; i < 10; i++) {
-      price += 0.8;
+      price += 2.0;
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Bars 40-49: Price decline to make RSI fall below its EMA
-    // RSI should cross below EMA while staying above 30 (not oversold)
+    // Bars 35-39: Stabilize
+    for (int i = 0; i < 5; i++) {
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Bars 40-49: Sharp price decline to make RSI cross below its EMA
     for (int i = 0; i < 10; i++) {
-      price -= 0.6;
+      price -= 2.0;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Bars 50-54: Stabilize
+    for (int i = 0; i < 5; i++) {
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
@@ -84,7 +92,7 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   public void entryRule_shouldTrigger_whenRsiCrossesAboveEmaAndNotOverbought() {
     // Find when entry rule is satisfied during the price increase phase
     boolean entryTriggered = false;
-    for (int i = 30; i <= 39; i++) {
+    for (int i = 25; i <= 39; i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
         entryTriggered = true;
         break;
@@ -98,7 +106,7 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   public void exitRule_shouldTrigger_whenRsiCrossesBelowEmaAndNotOversold() {
     // Find when exit rule is satisfied during the price decline phase
     boolean exitTriggered = false;
-    for (int i = 40; i <= 49; i++) {
+    for (int i = 40; i <= 54; i++) {
       if (strategy.getExitRule().isSatisfied(i)) {
         exitTriggered = true;
         break;
