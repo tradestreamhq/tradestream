@@ -102,7 +102,9 @@ class TestComputeHealthStatus:
     def test_errors_above_unhealthy_threshold(self):
         now = datetime.now(timezone.utc)
         last = now - timedelta(seconds=10)
-        assert compute_health_status(last, ERROR_RATE_UNHEALTHY + 50, now) == "unhealthy"
+        assert (
+            compute_health_status(last, ERROR_RATE_UNHEALTHY + 50, now) == "unhealthy"
+        )
 
     def test_offline_takes_priority_over_errors(self):
         """Even with high errors, if heartbeat is stale → offline."""

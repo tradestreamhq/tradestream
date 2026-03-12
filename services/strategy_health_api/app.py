@@ -38,7 +38,9 @@ class HeartbeatRequest(BaseModel):
     error_count: Optional[int] = Field(0, description="Errors since last heartbeat")
     warning_count: Optional[int] = Field(0, description="Warnings since last heartbeat")
     error_message: Optional[str] = Field(None, description="Latest error message")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Extra operational data")
+    metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Extra operational data"
+    )
 
 
 def compute_health_status(
@@ -123,7 +125,9 @@ def create_app(
                     strategy_id,
                 )
                 total_errors = (existing["error_count"] if existing else 0) + new_errors
-                status = compute_health_status(now, total_errors, now, heartbeat_timeout)
+                status = compute_health_status(
+                    now, total_errors, now, heartbeat_timeout
+                )
 
                 row = await conn.fetchrow(
                     upsert,
@@ -226,7 +230,9 @@ def create_app(
             WHERE strategy_id = $1::uuid
         """
         async with db_pool.acquire() as conn:
-            rows = await conn.fetch(query, strategy_id, pagination.limit, pagination.offset)
+            rows = await conn.fetch(
+                query, strategy_id, pagination.limit, pagination.offset
+            )
             total = await conn.fetchval(count_query, strategy_id)
 
         if not rows and total == 0:
