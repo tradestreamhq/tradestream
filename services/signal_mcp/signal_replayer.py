@@ -148,9 +148,7 @@ class SignalReplayer:
 
         results = []
         for event in events:
-            result = await self._replay_single_event(
-                event, replay_group_id, processor
-            )
+            result = await self._replay_single_event(event, replay_group_id, processor)
             results.append(result)
 
         # Record replay completion
@@ -232,9 +230,7 @@ class SignalReplayer:
                         "total_events": params.get("total_events", 0),
                         "match_rate": params.get("match_rate", 0.0),
                         "created_at": (
-                            row["created_at"].isoformat()
-                            if row["created_at"]
-                            else None
+                            row["created_at"].isoformat() if row["created_at"] else None
                         ),
                     }
                 )

@@ -82,8 +82,20 @@ class TestReplaySummary:
         assert d["match_rate"] == 0.0
 
     def test_to_dict_with_results(self):
-        event1 = {"id": "e1", "action": "BUY", "confidence": 0.8, "symbol": "BTC/USD", "created_at": "2026-03-12T10:00:00"}
-        event2 = {"id": "e2", "action": "SELL", "confidence": 0.7, "symbol": "BTC/USD", "created_at": "2026-03-12T11:00:00"}
+        event1 = {
+            "id": "e1",
+            "action": "BUY",
+            "confidence": 0.8,
+            "symbol": "BTC/USD",
+            "created_at": "2026-03-12T10:00:00",
+        }
+        event2 = {
+            "id": "e2",
+            "action": "SELL",
+            "confidence": 0.7,
+            "symbol": "BTC/USD",
+            "created_at": "2026-03-12T11:00:00",
+        }
 
         results = [
             ReplayResult(event1, "r1", "BUY", 0.8, True),
@@ -155,7 +167,9 @@ class TestSignalReplayer:
                 "action": "BUY",
                 "confidence": 0.85,
                 "reasoning": "Momentum",
-                "strategy_breakdown": [{"strategy_type": "MACD", "signal": "BUY", "confidence": 0.9}],
+                "strategy_breakdown": [
+                    {"strategy_type": "MACD", "signal": "BUY", "confidence": 0.9}
+                ],
                 "market_state": None,
                 "model_used": "gpt-4",
                 "tool_calls": None,
@@ -328,9 +342,7 @@ class TestSignalReplayer:
         mock_row.__getitem__ = lambda self, key: {
             "replay_group_id": "group-1",
             "symbol": "BTC/USD",
-            "agent_parameters": json.dumps(
-                {"total_events": 10, "match_rate": 90.0}
-            ),
+            "agent_parameters": json.dumps({"total_events": 10, "match_rate": 90.0}),
             "created_at": datetime(2026, 3, 12, 10, 0, 0),
         }[key]
 

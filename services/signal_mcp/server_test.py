@@ -38,9 +38,13 @@ class TestSignalMcpServer:
         return create_server(postgres_client, redis_client)
 
     @pytest.fixture
-    def full_server(self, postgres_client, redis_client, audit_recorder, signal_replayer):
+    def full_server(
+        self, postgres_client, redis_client, audit_recorder, signal_replayer
+    ):
         """Create a signal MCP server instance with audit and replay."""
-        return create_server(postgres_client, redis_client, audit_recorder, signal_replayer)
+        return create_server(
+            postgres_client, redis_client, audit_recorder, signal_replayer
+        )
 
     @pytest.mark.asyncio
     async def test_list_tools(self, full_server):
@@ -63,7 +67,9 @@ class TestSignalMcpServer:
         assert "get_replay_result" in tool_names
 
     @pytest.mark.asyncio
-    async def test_emit_signal(self, full_server, postgres_client, redis_client, audit_recorder):
+    async def test_emit_signal(
+        self, full_server, postgres_client, redis_client, audit_recorder
+    ):
         """Test emit_signal tool records to audit trail."""
         postgres_client.insert_signal.return_value = "test-signal-uuid"
 
@@ -114,7 +120,9 @@ class TestSignalMcpServer:
         assert response["signal_id"] == "test-signal-uuid"
 
     @pytest.mark.asyncio
-    async def test_emit_signal_without_audit(self, server, postgres_client, redis_client):
+    async def test_emit_signal_without_audit(
+        self, server, postgres_client, redis_client
+    ):
         """Test emit_signal works without audit recorder."""
         postgres_client.insert_signal.return_value = "test-signal-uuid"
 

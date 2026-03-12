@@ -212,9 +212,7 @@ class AuditRecorder:
                 original_event_id,
             )
             event_id = str(row["id"])
-            logging.info(
-                "Audit log: %s event %s for %s", event_type, event_id, symbol
-            )
+            logging.info("Audit log: %s event %s for %s", event_type, event_id, symbol)
             return event_id
 
     @staticmethod
@@ -244,9 +242,7 @@ class AuditRecorder:
                 json.loads(row["tool_calls"]) if row["tool_calls"] else None
             ),
             "agent_parameters": (
-                json.loads(row["agent_parameters"])
-                if row["agent_parameters"]
-                else None
+                json.loads(row["agent_parameters"]) if row["agent_parameters"] else None
             ),
             "replay_group_id": (
                 str(row["replay_group_id"]) if row["replay_group_id"] else None
