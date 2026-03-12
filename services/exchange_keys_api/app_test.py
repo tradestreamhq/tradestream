@@ -224,7 +224,9 @@ class TestTestKey:
             import ccxt
 
             mock_exchange = mock_ccxt.binance.return_value
-            mock_exchange.fetch_balance.side_effect = ccxt.AuthenticationError("bad key")
+            mock_exchange.fetch_balance.side_effect = ccxt.AuthenticationError(
+                "bad key"
+            )
 
             resp = tc.post(f"/keys/{key_id}/test")
             assert resp.status_code == 200

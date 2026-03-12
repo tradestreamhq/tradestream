@@ -10,7 +10,9 @@ from services.exchange_keys_api.encryption import decrypt, encrypt, mask
 
 @pytest.fixture(autouse=True)
 def _set_encryption_secret():
-    with patch.dict(os.environ, {"EXCHANGE_KEY_ENCRYPTION_SECRET": "test-secret-key-12345"}):
+    with patch.dict(
+        os.environ, {"EXCHANGE_KEY_ENCRYPTION_SECRET": "test-secret-key-12345"}
+    ):
         yield
 
 

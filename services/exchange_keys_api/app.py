@@ -31,7 +31,9 @@ logger = logging.getLogger(__name__)
 
 
 class CreateExchangeKey(BaseModel):
-    exchange_name: str = Field(..., description="Exchange identifier (e.g. binance, kraken)")
+    exchange_name: str = Field(
+        ..., description="Exchange identifier (e.g. binance, kraken)"
+    )
     api_key: str = Field(..., description="API key")
     api_secret: str = Field(..., description="API secret")
     label: Optional[str] = Field(None, description="Human-readable label")
@@ -146,7 +148,10 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     body.permissions,
                 )
             return success_response(
-                _row_to_dict(row), "exchange_key", resource_id=str(key_id), status_code=201
+                _row_to_dict(row),
+                "exchange_key",
+                resource_id=str(key_id),
+                status_code=201,
             )
         except Exception as e:
             logger.exception("Failed to create exchange key")
@@ -228,7 +233,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         sets.append("updated_at = NOW()")
         params.append(uid)
-        query = f"UPDATE exchange_keys SET {', '.join(sets)} WHERE id = ${idx} RETURNING *"
+        query = (
+            f"UPDATE exchange_keys SET {', '.join(sets)} WHERE id = ${idx} RETURNING *"
+        )
 
         async with db_pool.acquire() as conn:
             row = await conn.fetchrow(query, *params)
@@ -297,11 +304,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 )
 
             return success_response(
-                {"valid": True, "exchange": exchange_name}, "key_test", resource_id=key_id
+                {"valid": True, "exchange": exchange_name},
+                "key_test",
+                resource_id=key_id,
             )
         except ccxt.AuthenticationError:
             return success_response(
-                {"valid": False, "error": "Authentication failed", "exchange": exchange_name},
+                {
+                    "valid": False,
+                    "error": "Authentication failed",
+                    "exchange": exchange_name,
+                },
                 "key_test",
                 resource_id=key_id,
             )
@@ -343,9 +356,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             )
             exchange.fetch_balance()
         except Exception as e:
-            return validation_error(
-                f"New credentials failed verification: {e}"
-            )
+            return validation_error(f"New credentials failed verification: {e}")
 
         # Credentials work — encrypt and store
         encrypted_key = encrypt(body.api_key)
