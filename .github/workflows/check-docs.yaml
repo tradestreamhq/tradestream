@@ -1,0 +1,28 @@
+name: Check Generated Docs
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/main/resources/strategies/**'
+      - 'services/*/app.py'
+      - 'services/*/main.py'
+      - 'tools/docgen/**'
+      - 'docs/generated/**'
+
+jobs:
+  check-docs:
+    name: Verify docs are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Check generated docs
+        run: python -m tools.docgen.generate --check
