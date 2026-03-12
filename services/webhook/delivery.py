@@ -32,9 +32,7 @@ def compute_signature(secret: str, timestamp: str, payload: str) -> str:
     ).hexdigest()
 
 
-def verify_signature(
-    secret: str, timestamp: str, payload: str, signature: str
-) -> bool:
+def verify_signature(secret: str, timestamp: str, payload: str, signature: str) -> bool:
     """Verify an incoming webhook signature."""
     expected = compute_signature(secret, timestamp, payload)
     return hmac.compare_digest(expected, signature)
