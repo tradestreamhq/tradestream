@@ -1,0 +1,5 @@
+schemaVersion: "2.0.0"
+metadataTest:
+  user: "nobody"
+  workdir: "/services/strategy_monitor_mcp"
+  entrypoint: ["/services/strategy_monitor_mcp/app"]
