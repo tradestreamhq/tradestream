@@ -112,9 +112,7 @@ class TestEvolvable:
 
     @pytest.mark.asyncio
     async def test_create_spec(self, evolvable):
-        spec_id = await evolvable.create_spec(
-            {"id": "spec-3", "name": "breakout"}
-        )
+        spec_id = await evolvable.create_spec({"id": "spec-3", "name": "breakout"})
         assert spec_id == "spec-3"
         assert len(evolvable.specs) == 3
 
@@ -132,9 +130,7 @@ class TestEvolvable:
 
     @pytest.mark.asyncio
     async def test_create_implementation(self, evolvable):
-        impl_id = await evolvable.create_implementation(
-            "spec-1", {"period": 21}
-        )
+        impl_id = await evolvable.create_implementation("spec-1", {"period": 21})
         assert impl_id is not None
         assert len(await evolvable.get_implementations("spec-1")) == 2
 

@@ -72,7 +72,10 @@ async def main_async() -> None:
         await pg_client.connect()
         mcp_server = StrategyMonitorMcpServer(pg_client)
         server = mcp_server.server
-        logging.info("Starting strategy-monitor MCP server with %s transport", FLAGS.mcp_transport)
+        logging.info(
+            "Starting strategy-monitor MCP server with %s transport",
+            FLAGS.mcp_transport,
+        )
 
         if FLAGS.mcp_transport == "stdio":
             from mcp.server.stdio import stdio_server

@@ -63,9 +63,7 @@ class PostgresClient:
     ) -> dict[str, Any]:
         """Fetch strategies with optional filtering and pagination."""
         query_parts = ["SELECT * FROM strategy_implementations WHERE 1=1"]
-        count_parts = [
-            "SELECT COUNT(*) FROM strategy_implementations WHERE 1=1"
-        ]
+        count_parts = ["SELECT COUNT(*) FROM strategy_implementations WHERE 1=1"]
         params: list[Any] = []
         idx = 1
 
@@ -107,9 +105,7 @@ class PostgresClient:
             "offset": offset,
         }
 
-    async def get_strategy_by_id(
-        self, strategy_id: str
-    ) -> dict[str, Any] | None:
+    async def get_strategy_by_id(self, strategy_id: str) -> dict[str, Any] | None:
         """Fetch a single strategy by ID."""
         async with self._pool.acquire() as conn:
             row = await conn.fetchrow(
@@ -123,9 +119,7 @@ class PostgresClient:
     async def get_metrics(self) -> dict[str, Any]:
         """Fetch aggregated strategy metrics."""
         async with self._pool.acquire() as conn:
-            total = await conn.fetchval(
-                "SELECT COUNT(*) FROM strategy_implementations"
-            )
+            total = await conn.fetchval("SELECT COUNT(*) FROM strategy_implementations")
             avg_score = await conn.fetchval(
                 "SELECT AVG(current_score) FROM strategy_implementations"
             )

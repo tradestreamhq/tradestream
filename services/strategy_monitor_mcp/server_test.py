@@ -104,9 +104,7 @@ class TestHandleTool:
     async def test_get_strategy_by_id_not_found(self, server, mock_pg):
         mock_pg.get_strategy_by_id.return_value = None
         with pytest.raises(KeyError, match="Strategy not found"):
-            await server.handle_tool(
-                "get_strategy_by_id", {"strategy_id": "missing"}
-            )
+            await server.handle_tool("get_strategy_by_id", {"strategy_id": "missing"})
 
     @pytest.mark.asyncio
     async def test_get_metrics(self, server, mock_pg):
