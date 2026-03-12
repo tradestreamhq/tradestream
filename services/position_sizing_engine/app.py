@@ -58,7 +58,9 @@ class SizingRequestBody(BaseModel):
     )
     atr: Optional[float] = Field(None, gt=0.0, description="ATR value")
     atr_multiplier: float = Field(2.0, gt=0.0, description="ATR multiplier")
-    num_positions: int = Field(10, gt=0, description="Target positions for equal weight")
+    num_positions: int = Field(
+        10, gt=0, description="Target positions for equal weight"
+    )
     kelly_fraction: float = Field(
         0.5, gt=0.0, le=1.0, description="Fraction of full Kelly"
     )
