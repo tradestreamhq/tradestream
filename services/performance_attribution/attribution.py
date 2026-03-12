@@ -57,9 +57,7 @@ def compute_daily_returns(trades: List[Dict]) -> List[float]:
         if closed is None:
             continue
         day_key = (
-            closed.date().isoformat()
-            if hasattr(closed, "date")
-            else str(closed)[:10]
+            closed.date().isoformat() if hasattr(closed, "date") else str(closed)[:10]
         )
         daily[day_key] += float(t["pnl"])
 
