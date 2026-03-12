@@ -5,6 +5,7 @@ Provides endpoints for Level 2 order book snapshots, spread data,
 bid/ask imbalance, and historical spread/imbalance time series.
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -22,6 +23,13 @@ from services.rest_api_shared.responses import (
 from services.shared.auth import fastapi_auth_middleware
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_levels(raw):
+    """Parse bids/asks from JSON string or native list."""
+    if isinstance(raw, str):
+        return json.loads(raw)
+    return raw
 
 
 def create_app(db_pool: asyncpg.Pool) -> FastAPI:
@@ -42,19 +50,29 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         except Exception as e:
             return {"postgres": str(e)}
 
-    app.include_router(create_health_router("orderbook-api", check_deps))
+    app.include_router(
+        create_health_router("orderbook-api", check_deps)
+    )
 
     # --- Current snapshot ---
 
     @app.get("/orderbook/{symbol}", tags=["Order Book"])
     async def get_orderbook(
         symbol: str,
-        depth: int = Query(default=10, ge=1, le=100, description="Number of price levels"),
-        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
+        depth: int = Query(
+            default=10,
+            ge=1,
+            le=100,
+            description="Number of price levels",
+        ),
+        exchange: Optional[str] = Query(
+            default=None, description="Filter by exchange"
+        ),
     ):
-        """Get current order book snapshot for a symbol (top N levels)."""
+        """Get current order book snapshot (top N levels)."""
         query = """
-            SELECT id, symbol, exchange, bids, asks, timestamp, sequence_number
+            SELECT id, symbol, exchange, bids, asks,
+                   timestamp, sequence_number
             FROM orderbook_snapshots
             WHERE symbol = $1
         """
@@ -70,10 +88,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         if not row:
             return not_found("Order book", symbol)
 
-        import json
-
-        bids = json.loads(row["bids"]) if isinstance(row["bids"], str) else row["bids"]
-        asks = json.loads(row["asks"]) if isinstance(row["asks"], str) else row["asks"]
+        bids = _parse_levels(row["bids"])
+        asks = _parse_levels(row["asks"])
 
         # Trim to requested depth
         bids = bids[:depth]
@@ -98,9 +114,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.get("/orderbook/{symbol}/spread", tags=["Order Book"])
     async def get_spread(
         symbol: str,
-        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
+        exchange: Optional[str] = Query(
+            default=None, description="Filter by exchange"
+        ),
     ):
-        """Get current bid-ask spread, mid price, and spread percentage."""
+        """Get bid-ask spread, mid price, and spread percentage."""
         query = """
             SELECT symbol, exchange, bids, asks, timestamp
             FROM orderbook_snapshots
@@ -118,10 +136,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         if not row:
             return not_found("Order book", symbol)
 
-        import json
-
-        bids = json.loads(row["bids"]) if isinstance(row["bids"], str) else row["bids"]
-        asks = json.loads(row["asks"]) if isinstance(row["asks"], str) else row["asks"]
+        bids = _parse_levels(row["bids"])
+        asks = _parse_levels(row["asks"])
 
         if not bids or not asks:
             return success_response(
@@ -143,7 +159,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         best_ask = asks[0][0]
         spread = best_ask - best_bid
         mid_price = (best_bid + best_ask) / 2
-        spread_pct = (spread / mid_price * 100) if mid_price > 0 else 0
+        spread_pct = (
+            (spread / mid_price * 100) if mid_price > 0 else 0
+        )
 
         return success_response(
             {
@@ -165,12 +183,19 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.get("/orderbook/{symbol}/imbalance", tags=["Order Book"])
     async def get_imbalance(
         symbol: str,
-        depth: int = Query(default=10, ge=1, le=100, description="Levels to include"),
-        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
+        depth: int = Query(
+            default=10,
+            ge=1,
+            le=100,
+            description="Levels to include",
+        ),
+        exchange: Optional[str] = Query(
+            default=None, description="Filter by exchange"
+        ),
     ):
         """Get bid/ask volume imbalance ratio.
 
-        Imbalance = (bid_volume - ask_volume) / (bid_volume + ask_volume).
+        Imbalance = (bid_vol - ask_vol) / (bid_vol + ask_vol).
         Range: -1 (all ask) to +1 (all bid). 0 = balanced.
         """
         query = """
@@ -190,10 +215,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         if not row:
             return not_found("Order book", symbol)
 
-        import json
-
-        bids = json.loads(row["bids"]) if isinstance(row["bids"], str) else row["bids"]
-        asks = json.loads(row["asks"]) if isinstance(row["asks"], str) else row["asks"]
+        bids = _parse_levels(row["bids"])
+        asks = _parse_levels(row["asks"])
 
         bids = bids[:depth]
         asks = asks[:depth]
@@ -202,7 +225,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         ask_volume = sum(level[1] for level in asks)
         total_volume = bid_volume + ask_volume
 
-        imbalance = (bid_volume - ask_volume) / total_volume if total_volume > 0 else 0
+        imbalance = (
+            (bid_volume - ask_volume) / total_volume
+            if total_volume > 0
+            else 0
+        )
 
         return success_response(
             {
@@ -224,11 +251,21 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.get("/orderbook/{symbol}/history", tags=["Order Book"])
     async def get_history(
         symbol: str,
-        interval: str = Query(default="1m", description="Aggregation interval: 1m, 5m, 15m, 1h"),
-        limit: int = Query(default=60, ge=1, le=1000, description="Max data points"),
-        exchange: Optional[str] = Query(default=None, description="Filter by exchange"),
+        interval: str = Query(
+            default="1m",
+            description="Aggregation interval: 1m, 5m, 15m, 1h",
+        ),
+        limit: int = Query(
+            default=60,
+            ge=1,
+            le=1000,
+            description="Max data points",
+        ),
+        exchange: Optional[str] = Query(
+            default=None, description="Filter by exchange"
+        ),
     ):
-        """Historical spread and imbalance time series from periodic snapshots."""
+        """Historical spread/imbalance time series."""
         interval_map = {
             "1m": "1 minute",
             "5m": "5 minutes",
@@ -237,19 +274,25 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         }
         pg_interval = interval_map.get(interval)
         if not pg_interval:
+            supported = ", ".join(interval_map.keys())
             return validation_error(
-                f"Invalid interval '{interval}'. Supported: {', '.join(interval_map.keys())}"
+                f"Invalid interval '{interval}'."
+                f" Supported: {supported}"
             )
 
         query = f"""
             SELECT
-                date_trunc('minute', timestamp) -
-                    (EXTRACT(MINUTE FROM timestamp)::int %
-                     EXTRACT(MINUTE FROM INTERVAL '{pg_interval}')::int) * INTERVAL '1 minute'
-                    AS bucket,
+                date_trunc('minute', timestamp)
+                - (
+                    EXTRACT(MINUTE FROM timestamp)::int
+                    % EXTRACT(
+                        MINUTE FROM INTERVAL '{pg_interval}'
+                    )::int
+                ) * INTERVAL '1 minute' AS bucket,
                 AVG(spread) AS avg_spread,
                 AVG(mid_price) AS avg_mid_price,
-                AVG(spread_percentage) AS avg_spread_percentage,
+                AVG(spread_percentage)
+                    AS avg_spread_percentage,
                 AVG(imbalance) AS avg_imbalance,
                 COUNT(*) AS sample_count
             FROM orderbook_history
@@ -272,25 +315,35 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         items = []
         for row in rows:
+            avg_spread = row["avg_spread"]
+            avg_mid = row["avg_mid_price"]
+            avg_spct = row["avg_spread_percentage"]
+            avg_imb = row["avg_imbalance"]
             items.append(
                 {
                     "timestamp": row["bucket"].isoformat(),
-                    "avg_spread": float(row["avg_spread"]) if row["avg_spread"] else None,
-                    "avg_mid_price": float(row["avg_mid_price"])
-                    if row["avg_mid_price"]
-                    else None,
-                    "avg_spread_percentage": float(row["avg_spread_percentage"])
-                    if row["avg_spread_percentage"]
-                    else None,
-                    "avg_imbalance": float(row["avg_imbalance"])
-                    if row["avg_imbalance"]
-                    else None,
+                    "avg_spread": (
+                        float(avg_spread)
+                        if avg_spread
+                        else None
+                    ),
+                    "avg_mid_price": (
+                        float(avg_mid) if avg_mid else None
+                    ),
+                    "avg_spread_percentage": (
+                        float(avg_spct) if avg_spct else None
+                    ),
+                    "avg_imbalance": (
+                        float(avg_imb) if avg_imb else None
+                    ),
                     "sample_count": row["sample_count"],
                 }
             )
 
         # Return in chronological order
         items.reverse()
-        return collection_response(items, "orderbook_history", limit=limit)
+        return collection_response(
+            items, "orderbook_history", limit=limit
+        )
 
     return app
