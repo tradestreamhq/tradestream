@@ -1,0 +1,22 @@
+# Risk Management Configuration
+# See RiskConfig in risk_management.py for field descriptions.
+
+position_limits:
+  max_position_pct: 0.05 # Max 5% of portfolio per position
+  # max_position_value: 50000   # Uncomment to set absolute dollar cap
+
+stop_loss:
+  type: atr # atr | percentage | trailing
+  atr_multiplier: 2.0 # Stop at N × ATR from entry
+  percentage: 0.02 # 2% fixed stop (used when type=percentage)
+  trailing_pct: 0.03 # 3% trailing stop (used when type=trailing)
+
+portfolio_limits:
+  max_portfolio_heat: 0.20 # Max 20% of capital at risk across all positions
+  max_drawdown_threshold: 0.10 # Halt new trades if drawdown exceeds 10%
+  max_open_positions: 10
+  max_sector_exposure_pct: 0.40 # Max 40% in any single sector
+  max_correlated_exposure_pct: 0.30 # Max 30% in highly correlated assets
+
+correlation:
+  threshold: 0.70 # Assets with correlation >= this are grouped
