@@ -96,6 +96,26 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "strategy_comparator",
+    srcs = ["StrategyComparator.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_comparator_impl",
+    srcs = ["StrategyComparatorImpl.kt"],
+    deps = [
+        ":backtest_runner",
+        ":strategy_comparator",
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.kt"],
     deps = [
@@ -103,6 +123,8 @@ kt_jvm_library(
         ":backtest_request_factory_impl",
         ":backtest_runner",
         ":backtest_runner_impl",
+        ":strategy_comparator",
+        ":strategy_comparator_impl",
         ":strategy_validator",
         ":walk_forward_runner",
         "//third_party/java:guava",
