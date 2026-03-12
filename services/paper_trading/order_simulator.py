@@ -329,9 +329,7 @@ class OrderSimulator:
             "total_realized_pnl": round(total_realized, 8),
             "total_fees": round(total_fees, 8),
             "net_pnl": round(total_realized - total_fees, 8),
-            "positions": {
-                sym: pos.to_dict() for sym, pos in self._positions.items()
-            },
+            "positions": {sym: pos.to_dict() for sym, pos in self._positions.items()},
         }
 
     def reset(self) -> None:
