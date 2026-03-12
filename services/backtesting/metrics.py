@@ -93,12 +93,8 @@ def calculate_metrics(
     win_rate = len(winners) / len(trades) if trades else 0.0
     pf = _profit_factor(trades)
 
-    avg_win = (
-        sum(t.return_pct for t in winners) / len(winners) if winners else 0.0
-    )
-    avg_loss = (
-        sum(t.return_pct for t in losers) / len(losers) if losers else 0.0
-    )
+    avg_win = sum(t.return_pct for t in winners) / len(winners) if winners else 0.0
+    avg_loss = sum(t.return_pct for t in losers) / len(losers) if losers else 0.0
     avg_duration = sum(t.duration for t in trades) / len(trades)
 
     max_consec_wins, max_consec_losses = _max_consecutive(trades)

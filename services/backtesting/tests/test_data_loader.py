@@ -54,9 +54,30 @@ class TestCandlesToDataframe:
 
     def test_sorted_by_timestamp(self):
         candles = [
-            {"timestamp": "2024-01-01T00:02:00+00:00", "open": 3, "high": 3, "low": 3, "close": 3, "volume": 100},
-            {"timestamp": "2024-01-01T00:00:00+00:00", "open": 1, "high": 1, "low": 1, "close": 1, "volume": 100},
-            {"timestamp": "2024-01-01T00:01:00+00:00", "open": 2, "high": 2, "low": 2, "close": 2, "volume": 100},
+            {
+                "timestamp": "2024-01-01T00:02:00+00:00",
+                "open": 3,
+                "high": 3,
+                "low": 3,
+                "close": 3,
+                "volume": 100,
+            },
+            {
+                "timestamp": "2024-01-01T00:00:00+00:00",
+                "open": 1,
+                "high": 1,
+                "low": 1,
+                "close": 1,
+                "volume": 100,
+            },
+            {
+                "timestamp": "2024-01-01T00:01:00+00:00",
+                "open": 2,
+                "high": 2,
+                "low": 2,
+                "close": 2,
+                "volume": 100,
+            },
         ]
         df = BacktestDataLoader._candles_to_dataframe(candles)
         assert df["close"].tolist() == [1.0, 2.0, 3.0]
@@ -64,14 +85,16 @@ class TestCandlesToDataframe:
 
 class TestFromDataframe:
     def test_valid_dataframe(self):
-        df = pd.DataFrame({
-            "open": [100.0],
-            "high": [102.0],
-            "low": [99.0],
-            "close": [101.0],
-            "volume": [1000.0],
-            "extra_col": ["ignored"],
-        })
+        df = pd.DataFrame(
+            {
+                "open": [100.0],
+                "high": [102.0],
+                "low": [99.0],
+                "close": [101.0],
+                "volume": [1000.0],
+                "extra_col": ["ignored"],
+            }
+        )
         result = BacktestDataLoader.from_dataframe(df)
         assert list(result.columns) == ["open", "high", "low", "close", "volume"]
         assert "extra_col" not in result.columns

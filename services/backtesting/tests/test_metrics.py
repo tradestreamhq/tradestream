@@ -19,9 +19,27 @@ from services.backtesting.metrics import (
 def winning_trades():
     """Create a list of winning trades."""
     return [
-        Trade(entry_price=100, exit_price=110, entry_index=0, exit_index=10, symbol="BTC/USD"),
-        Trade(entry_price=110, exit_price=120, entry_index=20, exit_index=30, symbol="BTC/USD"),
-        Trade(entry_price=120, exit_price=135, entry_index=40, exit_index=55, symbol="BTC/USD"),
+        Trade(
+            entry_price=100,
+            exit_price=110,
+            entry_index=0,
+            exit_index=10,
+            symbol="BTC/USD",
+        ),
+        Trade(
+            entry_price=110,
+            exit_price=120,
+            entry_index=20,
+            exit_index=30,
+            symbol="BTC/USD",
+        ),
+        Trade(
+            entry_price=120,
+            exit_price=135,
+            entry_index=40,
+            exit_index=55,
+            symbol="BTC/USD",
+        ),
     ]
 
 
@@ -29,11 +47,41 @@ def winning_trades():
 def mixed_trades():
     """Create a list of mixed winning/losing trades."""
     return [
-        Trade(entry_price=100, exit_price=110, entry_index=0, exit_index=10, symbol="BTC/USD"),
-        Trade(entry_price=110, exit_price=105, entry_index=20, exit_index=25, symbol="BTC/USD"),
-        Trade(entry_price=105, exit_price=115, entry_index=30, exit_index=40, symbol="BTC/USD"),
-        Trade(entry_price=115, exit_price=108, entry_index=50, exit_index=55, symbol="BTC/USD"),
-        Trade(entry_price=108, exit_price=120, entry_index=60, exit_index=75, symbol="BTC/USD"),
+        Trade(
+            entry_price=100,
+            exit_price=110,
+            entry_index=0,
+            exit_index=10,
+            symbol="BTC/USD",
+        ),
+        Trade(
+            entry_price=110,
+            exit_price=105,
+            entry_index=20,
+            exit_index=25,
+            symbol="BTC/USD",
+        ),
+        Trade(
+            entry_price=105,
+            exit_price=115,
+            entry_index=30,
+            exit_index=40,
+            symbol="BTC/USD",
+        ),
+        Trade(
+            entry_price=115,
+            exit_price=108,
+            entry_index=50,
+            exit_index=55,
+            symbol="BTC/USD",
+        ),
+        Trade(
+            entry_price=108,
+            exit_price=120,
+            entry_index=60,
+            exit_index=75,
+            symbol="BTC/USD",
+        ),
     ]
 
 
@@ -41,30 +89,56 @@ def mixed_trades():
 def multi_symbol_trades():
     """Trades across multiple symbols."""
     return [
-        Trade(entry_price=100, exit_price=110, entry_index=0, exit_index=10, symbol="BTC/USD"),
-        Trade(entry_price=50, exit_price=55, entry_index=0, exit_index=10, symbol="ETH/USD"),
-        Trade(entry_price=110, exit_price=105, entry_index=20, exit_index=30, symbol="BTC/USD"),
+        Trade(
+            entry_price=100,
+            exit_price=110,
+            entry_index=0,
+            exit_index=10,
+            symbol="BTC/USD",
+        ),
+        Trade(
+            entry_price=50,
+            exit_price=55,
+            entry_index=0,
+            exit_index=10,
+            symbol="ETH/USD",
+        ),
+        Trade(
+            entry_price=110,
+            exit_price=105,
+            entry_index=20,
+            exit_index=30,
+            symbol="BTC/USD",
+        ),
     ]
 
 
 class TestTrade:
     def test_long_trade_pnl(self):
-        t = Trade(entry_price=100, exit_price=110, entry_index=0, exit_index=5, symbol="X")
+        t = Trade(
+            entry_price=100, exit_price=110, entry_index=0, exit_index=5, symbol="X"
+        )
         assert t.pnl == 10
         assert t.return_pct == pytest.approx(0.1)
         assert t.is_winner is True
         assert t.duration == 5
 
     def test_losing_trade(self):
-        t = Trade(entry_price=100, exit_price=95, entry_index=0, exit_index=3, symbol="X")
+        t = Trade(
+            entry_price=100, exit_price=95, entry_index=0, exit_index=3, symbol="X"
+        )
         assert t.pnl == -5
         assert t.return_pct == pytest.approx(-0.05)
         assert t.is_winner is False
 
     def test_short_trade_pnl(self):
         t = Trade(
-            entry_price=100, exit_price=90, entry_index=0, exit_index=5,
-            symbol="X", direction="short",
+            entry_price=100,
+            exit_price=90,
+            entry_index=0,
+            exit_index=5,
+            symbol="X",
+            direction="short",
         )
         assert t.pnl == 10
         assert t.is_winner is True
@@ -135,8 +209,12 @@ class TestProfitFactor:
 
     def test_all_losers(self):
         losers = [
-            Trade(entry_price=100, exit_price=95, entry_index=0, exit_index=5, symbol="X"),
-            Trade(entry_price=95, exit_price=90, entry_index=10, exit_index=15, symbol="X"),
+            Trade(
+                entry_price=100, exit_price=95, entry_index=0, exit_index=5, symbol="X"
+            ),
+            Trade(
+                entry_price=95, exit_price=90, entry_index=10, exit_index=15, symbol="X"
+            ),
         ]
         assert _profit_factor(losers) == 0.0
 
@@ -180,11 +258,37 @@ class TestCalculateMetrics:
 
     def test_consecutive_streaks(self):
         trades = [
-            Trade(entry_price=100, exit_price=110, entry_index=0, exit_index=5, symbol="X"),
-            Trade(entry_price=110, exit_price=120, entry_index=10, exit_index=15, symbol="X"),
-            Trade(entry_price=120, exit_price=130, entry_index=20, exit_index=25, symbol="X"),
-            Trade(entry_price=130, exit_price=125, entry_index=30, exit_index=35, symbol="X"),
-            Trade(entry_price=125, exit_price=120, entry_index=40, exit_index=45, symbol="X"),
+            Trade(
+                entry_price=100, exit_price=110, entry_index=0, exit_index=5, symbol="X"
+            ),
+            Trade(
+                entry_price=110,
+                exit_price=120,
+                entry_index=10,
+                exit_index=15,
+                symbol="X",
+            ),
+            Trade(
+                entry_price=120,
+                exit_price=130,
+                entry_index=20,
+                exit_index=25,
+                symbol="X",
+            ),
+            Trade(
+                entry_price=130,
+                exit_price=125,
+                entry_index=30,
+                exit_index=35,
+                symbol="X",
+            ),
+            Trade(
+                entry_price=125,
+                exit_price=120,
+                entry_index=40,
+                exit_index=45,
+                symbol="X",
+            ),
         ]
         result = calculate_metrics(trades)
         assert result.max_consecutive_wins == 3

@@ -115,9 +115,7 @@ class BacktestDataLoader:
     def _candles_to_dataframe(candles: List[dict]) -> pd.DataFrame:
         """Convert a list of candle dicts to an OHLCV DataFrame."""
         if not candles:
-            return pd.DataFrame(
-                columns=["open", "high", "low", "close", "volume"]
-            )
+            return pd.DataFrame(columns=["open", "high", "low", "close", "volume"])
 
         df = pd.DataFrame(candles)
         df["timestamp"] = pd.to_datetime(df["timestamp"])

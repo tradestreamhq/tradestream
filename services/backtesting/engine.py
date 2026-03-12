@@ -104,9 +104,7 @@ class BacktestEngine:
         symbol_results = {}
 
         for symbol, ohlcv in symbol_data.items():
-            logger.info(
-                "Running backtest for %s (%d bars)", symbol, len(ohlcv)
-            )
+            logger.info("Running backtest for %s (%d bars)", symbol, len(ohlcv))
             result = self._run_symbol(symbol, ohlcv, config)
             symbol_results[symbol] = result
 
@@ -187,9 +185,7 @@ class BacktestEngine:
         )
 
         # Calculate equity curve
-        equity_curve = self._build_equity_curve(
-            trades, config.initial_capital
-        )
+        equity_curve = self._build_equity_curve(trades, config.initial_capital)
 
         # Calculate metrics
         metrics = calculate_metrics(trades)
@@ -244,9 +240,7 @@ class BacktestEngine:
         return trades
 
     @staticmethod
-    def _build_equity_curve(
-        trades: List[Trade], initial_capital: float
-    ) -> List[float]:
+    def _build_equity_curve(trades: List[Trade], initial_capital: float) -> List[float]:
         """Build an equity curve from a list of trades."""
         equity = [initial_capital]
         current = initial_capital
