@@ -58,6 +58,14 @@ java_library(
 )
 
 java_library(
+    name = "test_bar_series_builder",
+    srcs = ["TestBarSeriesBuilder.java"],
+    deps = [
+        "//third_party/java:ta4j_core",
+    ],
+)
+
+java_library(
     name = "ta4j_module",
     srcs = ["Ta4jModule.java"],
     deps = [

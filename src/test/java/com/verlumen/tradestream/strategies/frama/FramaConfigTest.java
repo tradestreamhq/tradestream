@@ -10,6 +10,7 @@ import com.verlumen.tradestream.strategies.configurable.ConfigurableParamConfig;
 import com.verlumen.tradestream.strategies.configurable.ConfigurableStrategyFactory;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
+import com.verlumen.tradestream.ta4j.TestBarSeriesBuilder;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
@@ -19,7 +20,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
@@ -35,16 +35,13 @@ public class FramaConfigTest {
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
 
-    series = new BaseBarSeriesBuilder().withName("frama-test").build();
+    series = TestBarSeriesBuilder.createBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
-      double high = price + 2;
-      double low = price - 2;
-      double open = price - 0.5;
-      double close = price;
-      long volume = 1000;
-      series.addBar(now.plusMinutes(i), open, high, low, close, volume);
+      series.addBar(
+          TestBarSeriesBuilder.createBar(
+              now.plusMinutes(i), price - 0.5, price + 2, price - 2, price, 1000));
     }
   }
 

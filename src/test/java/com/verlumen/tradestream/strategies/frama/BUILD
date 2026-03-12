@@ -8,6 +8,7 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/strategies/configurable",
+        "//src/main/java/com/verlumen/tradestream/ta4j:test_bar_series_builder",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:junit",
