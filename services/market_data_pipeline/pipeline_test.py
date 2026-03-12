@@ -51,8 +51,14 @@ class TestOHLCV(unittest.TestCase):
 
     def test_frozen(self):
         ohlcv = OHLCV(
-            timestamp_ms=1, symbol="X", exchange="e",
-            open=1, high=2, low=0.5, close=1.5, volume=10,
+            timestamp_ms=1,
+            symbol="X",
+            exchange="e",
+            open=1,
+            high=2,
+            low=0.5,
+            close=1.5,
+            volume=10,
         )
         with self.assertRaises(AttributeError):
             ohlcv.open = 999
@@ -100,8 +106,21 @@ class TestBinanceAdapter(unittest.TestCase):
         self.assertEqual(self.adapter.exchange_name, "binance")
 
     def test_normalize_ohlcv_list_format(self):
-        raw = [1640995200000, "50000.0", "51000.0", "49000.0", "50500.0", "100.5",
-               1640995259999, "5050250.0", 1500, "55.2", "2787600.0", "0", "BTC/USD"]
+        raw = [
+            1640995200000,
+            "50000.0",
+            "51000.0",
+            "49000.0",
+            "50500.0",
+            "100.5",
+            1640995259999,
+            "5050250.0",
+            1500,
+            "55.2",
+            "2787600.0",
+            "0",
+            "BTC/USD",
+        ]
         result = self.adapter.normalize_ohlcv(raw)
         self.assertEqual(result.timestamp_ms, 1640995200000)
         self.assertEqual(result.open, 50000.0)
@@ -167,8 +186,15 @@ class TestBinanceAdapter(unittest.TestCase):
 
     def test_normalize_ohlcv_batch_skips_invalid(self):
         records = [
-            {"timestamp": 1640995200000, "symbol": "X", "open": "1", "high": "2",
-             "low": "0.5", "close": "1.5", "volume": "10"},
+            {
+                "timestamp": 1640995200000,
+                "symbol": "X",
+                "open": "1",
+                "high": "2",
+                "low": "0.5",
+                "close": "1.5",
+                "volume": "10",
+            },
             {"bad_key": "missing fields"},
         ]
         results = self.adapter.normalize_ohlcv_batch(records)
@@ -189,7 +215,7 @@ class TestCoinbaseAdapter(unittest.TestCase):
         self.assertEqual(result.timestamp_ms, 1640995200000)  # Converted from s to ms
         self.assertEqual(result.open, 50100.0)  # Index 3
         self.assertEqual(result.high, 51100.0)  # Index 2
-        self.assertEqual(result.low, 49100.0)   # Index 1
+        self.assertEqual(result.low, 49100.0)  # Index 1
         self.assertEqual(result.close, 50600.0)  # Index 4
         self.assertEqual(result.volume, 78.3)
         self.assertEqual(result.exchange, "coinbase")
@@ -312,9 +338,15 @@ class TestOHLCVValidator(unittest.TestCase):
 
     def test_spike_detection(self):
         self.validator.validate(self._make_ohlcv(close=100.0))
-        result = self.validator.validate(self._make_ohlcv(
-            timestamp_ms=1640995260000, open=200.0, high=210.0, low=190.0, close=205.0
-        ))
+        result = self.validator.validate(
+            self._make_ohlcv(
+                timestamp_ms=1640995260000,
+                open=200.0,
+                high=210.0,
+                low=190.0,
+                close=205.0,
+            )
+        )
         self.assertTrue(result.is_valid)
         self.assertTrue(any("spike" in w for w in result.warnings))
 
@@ -436,10 +468,24 @@ class TestFileReplaySource(unittest.TestCase):
     def test_replay_ndjson_format(self):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             for record in [
-                {"timestamp": 1000000, "symbol": "X", "open": "1", "high": "2",
-                 "low": "0.5", "close": "1.5", "volume": "10"},
-                {"timestamp": 2000000, "symbol": "X", "open": "1.5", "high": "2.5",
-                 "low": "1.0", "close": "2.0", "volume": "15"},
+                {
+                    "timestamp": 1000000,
+                    "symbol": "X",
+                    "open": "1",
+                    "high": "2",
+                    "low": "0.5",
+                    "close": "1.5",
+                    "volume": "10",
+                },
+                {
+                    "timestamp": 2000000,
+                    "symbol": "X",
+                    "open": "1.5",
+                    "high": "2.5",
+                    "low": "1.0",
+                    "close": "2.0",
+                    "volume": "15",
+                },
             ]:
                 f.write(json.dumps(record) + "\n")
             f.flush()
@@ -480,7 +526,15 @@ class TestCrossExchangeNormalization(unittest.TestCase):
         coinbase = CoinbaseAdapter()
 
         # Same candle at the same time, different raw formats
-        binance_raw = [1640995200000, "50000", "51000", "49000", "50500", "100", "BTC/USD"]
+        binance_raw = [
+            1640995200000,
+            "50000",
+            "51000",
+            "49000",
+            "50500",
+            "100",
+            "BTC/USD",
+        ]
         coinbase_raw = [1640995200, 49000, 51000, 50000, 50500, 100, "BTC-USD"]
 
         b = binance.normalize_ohlcv(binance_raw)

@@ -46,9 +46,7 @@ class FileReplaySource:
             normalized = self._trade_validator.validate_batch(normalized)
         return sorted(normalized, key=lambda r: r.timestamp_ms)
 
-    def replay_ohlcv_iter(
-        self, file_path: Union[str, Path]
-    ) -> Iterator[OHLCV]:
+    def replay_ohlcv_iter(self, file_path: Union[str, Path]) -> Iterator[OHLCV]:
         """Iterate over OHLCV records one at a time (memory-efficient)."""
         for record in self.replay_ohlcv(file_path):
             yield record

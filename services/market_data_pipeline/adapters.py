@@ -151,7 +151,9 @@ class CoinbaseAdapter(ExchangeAdapter):
         if isinstance(raw, (list, tuple)):
             timestamp_s = raw[0]
             # Coinbase uses seconds; convert to ms
-            timestamp_ms = int(timestamp_s) * 1000 if timestamp_s < 1e12 else int(timestamp_s)
+            timestamp_ms = (
+                int(timestamp_s) * 1000 if timestamp_s < 1e12 else int(timestamp_s)
+            )
             return OHLCV(
                 timestamp_ms=timestamp_ms,
                 symbol=raw[-1] if isinstance(raw[-1], str) else "",
