@@ -34,7 +34,11 @@ class ParameterSpace:
     def grid_values(self) -> List[float]:
         """Generate all grid values for this parameter."""
         if self.step is None:
-            step = 1 if self.param_type == "INTEGER" else (self.max_value - self.min_value) / 10
+            step = (
+                1
+                if self.param_type == "INTEGER"
+                else (self.max_value - self.min_value) / 10
+            )
         else:
             step = self.step
 
@@ -298,13 +302,21 @@ class ParameterOptimizer:
             # Optimize on training data
             if search_method == "grid":
                 train_results = self.grid_search(
-                    train_data, strategy_name, param_spaces,
-                    metric=metric, top_n=1, strategy_spec=strategy_spec,
+                    train_data,
+                    strategy_name,
+                    param_spaces,
+                    metric=metric,
+                    top_n=1,
+                    strategy_spec=strategy_spec,
                 )
             else:
                 train_results = self.random_search(
-                    train_data, strategy_name, param_spaces,
-                    n_iterations=n_iterations, metric=metric, top_n=1,
+                    train_data,
+                    strategy_name,
+                    param_spaces,
+                    n_iterations=n_iterations,
+                    metric=metric,
+                    top_n=1,
                     strategy_spec=strategy_spec,
                 )
 

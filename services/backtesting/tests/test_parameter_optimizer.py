@@ -50,10 +50,30 @@ def optimizer():
 def sma_rsi_spaces():
     """Parameter spaces for SMA_RSI strategy."""
     return [
-        ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=10, max_value=30, step=10),
-        ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21, step=7),
-        ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=80.0, step=10.0),
-        ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=20.0, max_value=30.0, step=10.0),
+        ParameterSpace(
+            name="movingAveragePeriod",
+            param_type="INTEGER",
+            min_value=10,
+            max_value=30,
+            step=10,
+        ),
+        ParameterSpace(
+            name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21, step=7
+        ),
+        ParameterSpace(
+            name="overboughtThreshold",
+            param_type="DOUBLE",
+            min_value=70.0,
+            max_value=80.0,
+            step=10.0,
+        ),
+        ParameterSpace(
+            name="oversoldThreshold",
+            param_type="DOUBLE",
+            min_value=20.0,
+            max_value=30.0,
+            step=10.0,
+        ),
     ]
 
 
@@ -61,35 +81,53 @@ class TestParameterSpace:
     """Tests for ParameterSpace."""
 
     def test_integer_grid_values(self):
-        space = ParameterSpace(name="period", param_type="INTEGER", min_value=10, max_value=14, step=2)
+        space = ParameterSpace(
+            name="period", param_type="INTEGER", min_value=10, max_value=14, step=2
+        )
         assert space.grid_values == [10, 12, 14]
 
     def test_double_grid_values(self):
-        space = ParameterSpace(name="threshold", param_type="DOUBLE", min_value=0.0, max_value=1.0, step=0.5)
+        space = ParameterSpace(
+            name="threshold",
+            param_type="DOUBLE",
+            min_value=0.0,
+            max_value=1.0,
+            step=0.5,
+        )
         assert space.grid_values == [0.0, 0.5, 1.0]
 
     def test_default_integer_step(self):
-        space = ParameterSpace(name="period", param_type="INTEGER", min_value=10, max_value=12)
+        space = ParameterSpace(
+            name="period", param_type="INTEGER", min_value=10, max_value=12
+        )
         assert space.grid_values == [10, 11, 12]
 
     def test_default_double_step(self):
-        space = ParameterSpace(name="threshold", param_type="DOUBLE", min_value=0.0, max_value=1.0)
+        space = ParameterSpace(
+            name="threshold", param_type="DOUBLE", min_value=0.0, max_value=1.0
+        )
         # Default step = (1.0 - 0.0) / 10 = 0.1
         assert len(space.grid_values) == 11
 
     def test_grid_size(self):
-        space = ParameterSpace(name="period", param_type="INTEGER", min_value=10, max_value=14, step=2)
+        space = ParameterSpace(
+            name="period", param_type="INTEGER", min_value=10, max_value=14, step=2
+        )
         assert space.grid_size == 3
 
     def test_sample_integer(self):
-        space = ParameterSpace(name="period", param_type="INTEGER", min_value=10, max_value=20)
+        space = ParameterSpace(
+            name="period", param_type="INTEGER", min_value=10, max_value=20
+        )
         for _ in range(50):
             val = space.sample()
             assert isinstance(val, int)
             assert 10 <= val <= 20
 
     def test_sample_double(self):
-        space = ParameterSpace(name="threshold", param_type="DOUBLE", min_value=0.0, max_value=1.0)
+        space = ParameterSpace(
+            name="threshold", param_type="DOUBLE", min_value=0.0, max_value=1.0
+        )
         for _ in range(50):
             val = space.sample()
             assert isinstance(val, float)
@@ -101,8 +139,12 @@ class TestParameterOptimizerHelpers:
 
     def test_total_grid_size(self):
         spaces = [
-            ParameterSpace(name="a", param_type="INTEGER", min_value=1, max_value=3, step=1),
-            ParameterSpace(name="b", param_type="INTEGER", min_value=1, max_value=2, step=1),
+            ParameterSpace(
+                name="a", param_type="INTEGER", min_value=1, max_value=3, step=1
+            ),
+            ParameterSpace(
+                name="b", param_type="INTEGER", min_value=1, max_value=2, step=1
+            ),
         ]
         assert ParameterOptimizer.total_grid_size(spaces) == 6  # 3 * 2
 
@@ -112,8 +154,20 @@ class TestParameterOptimizerHelpers:
     def test_spaces_from_yaml(self):
         spec = {
             "parameters": [
-                {"name": "period", "type": "INTEGER", "min": 10, "max": 50, "defaultValue": 20},
-                {"name": "threshold", "type": "DOUBLE", "min": 0.5, "max": 1.0, "defaultValue": 0.7},
+                {
+                    "name": "period",
+                    "type": "INTEGER",
+                    "min": 10,
+                    "max": 50,
+                    "defaultValue": 20,
+                },
+                {
+                    "name": "threshold",
+                    "type": "DOUBLE",
+                    "min": 0.5,
+                    "max": 1.0,
+                    "defaultValue": 0.7,
+                },
                 {"name": "noRange", "type": "INTEGER", "defaultValue": 5},  # No min/max
             ]
         }
@@ -149,7 +203,9 @@ class TestParameterOptimizerHelpers:
                 sample_ohlcv, "SMA_RSI", sma_rsi_spaces, metric="invalid_metric"
             )
 
-    def test_unknown_metric_raises_random(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_unknown_metric_raises_random(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         with pytest.raises(ValueError, match="Unknown metric"):
             optimizer.random_search(
                 sample_ohlcv, "SMA_RSI", sma_rsi_spaces, metric="invalid_metric"
@@ -166,14 +222,18 @@ class TestGridSearch:
         assert len(results) > 0
         assert len(results) <= 5
 
-    def test_grid_search_results_are_ranked(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_grid_search_results_are_ranked(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         results = optimizer.grid_search(
             sample_ohlcv, "SMA_RSI", sma_rsi_spaces, metric="sharpe_ratio", top_n=5
         )
         for i, r in enumerate(results):
             assert r.rank == i + 1
 
-    def test_grid_search_results_sorted_descending(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_grid_search_results_sorted_descending(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         results = optimizer.grid_search(
             sample_ohlcv, "SMA_RSI", sma_rsi_spaces, metric="sharpe_ratio", top_n=10
         )
@@ -183,32 +243,60 @@ class TestGridSearch:
     def test_grid_search_all_combinations_evaluated(self, sample_ohlcv, optimizer):
         """With small spaces, grid search should evaluate all combos."""
         spaces = [
-            ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=15, max_value=25, step=10),
-            ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=14, max_value=14, step=1),
-            ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=70.0, step=1.0),
-            ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=30.0, max_value=30.0, step=1.0),
+            ParameterSpace(
+                name="movingAveragePeriod",
+                param_type="INTEGER",
+                min_value=15,
+                max_value=25,
+                step=10,
+            ),
+            ParameterSpace(
+                name="rsiPeriod",
+                param_type="INTEGER",
+                min_value=14,
+                max_value=14,
+                step=1,
+            ),
+            ParameterSpace(
+                name="overboughtThreshold",
+                param_type="DOUBLE",
+                min_value=70.0,
+                max_value=70.0,
+                step=1.0,
+            ),
+            ParameterSpace(
+                name="oversoldThreshold",
+                param_type="DOUBLE",
+                min_value=30.0,
+                max_value=30.0,
+                step=1.0,
+            ),
         ]
         total = ParameterOptimizer.total_grid_size(spaces)
-        results = optimizer.grid_search(
-            sample_ohlcv, "SMA_RSI", spaces, top_n=100
-        )
+        results = optimizer.grid_search(sample_ohlcv, "SMA_RSI", spaces, top_n=100)
         assert len(results) == total
 
-    def test_grid_search_with_different_metrics(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_grid_search_with_different_metrics(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         for metric in ["sharpe_ratio", "cumulative_return", "win_rate"]:
             results = optimizer.grid_search(
                 sample_ohlcv, "SMA_RSI", sma_rsi_spaces, metric=metric, top_n=3
             )
             assert len(results) > 0
 
-    def test_grid_search_result_has_parameters(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_grid_search_result_has_parameters(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         results = optimizer.grid_search(
             sample_ohlcv, "SMA_RSI", sma_rsi_spaces, top_n=1
         )
         assert "movingAveragePeriod" in results[0].parameters
         assert "rsiPeriod" in results[0].parameters
 
-    def test_grid_search_result_has_metrics(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_grid_search_result_has_metrics(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         results = optimizer.grid_search(
             sample_ohlcv, "SMA_RSI", sma_rsi_spaces, top_n=1
         )
@@ -221,57 +309,117 @@ class TestGridSearch:
 class TestRandomSearch:
     """Tests for random search optimization."""
 
-    def test_random_search_returns_results(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_random_search_returns_results(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         results = optimizer.random_search(
-            sample_ohlcv, "SMA_RSI", sma_rsi_spaces,
-            n_iterations=10, top_n=5,
+            sample_ohlcv,
+            "SMA_RSI",
+            sma_rsi_spaces,
+            n_iterations=10,
+            top_n=5,
         )
         assert len(results) > 0
         assert len(results) <= 5
 
-    def test_random_search_reproducible_with_seed(self, sample_ohlcv, optimizer, sma_rsi_spaces):
+    def test_random_search_reproducible_with_seed(
+        self, sample_ohlcv, optimizer, sma_rsi_spaces
+    ):
         results1 = optimizer.random_search(
-            sample_ohlcv, "SMA_RSI", sma_rsi_spaces,
-            n_iterations=5, seed=42, top_n=3,
+            sample_ohlcv,
+            "SMA_RSI",
+            sma_rsi_spaces,
+            n_iterations=5,
+            seed=42,
+            top_n=3,
         )
         results2 = optimizer.random_search(
-            sample_ohlcv, "SMA_RSI", sma_rsi_spaces,
-            n_iterations=5, seed=42, top_n=3,
+            sample_ohlcv,
+            "SMA_RSI",
+            sma_rsi_spaces,
+            n_iterations=5,
+            seed=42,
+            top_n=3,
         )
         for r1, r2 in zip(results1, results2):
             assert r1.parameters == r2.parameters
 
     def test_random_search_respects_n_iterations(self, sample_ohlcv, optimizer):
         spaces = [
-            ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=10, max_value=50),
-            ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21),
-            ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=85.0),
-            ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=15.0, max_value=30.0),
+            ParameterSpace(
+                name="movingAveragePeriod",
+                param_type="INTEGER",
+                min_value=10,
+                max_value=50,
+            ),
+            ParameterSpace(
+                name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21
+            ),
+            ParameterSpace(
+                name="overboughtThreshold",
+                param_type="DOUBLE",
+                min_value=70.0,
+                max_value=85.0,
+            ),
+            ParameterSpace(
+                name="oversoldThreshold",
+                param_type="DOUBLE",
+                min_value=15.0,
+                max_value=30.0,
+            ),
         ]
         results = optimizer.random_search(
-            sample_ohlcv, "SMA_RSI", spaces,
-            n_iterations=7, top_n=100,
+            sample_ohlcv,
+            "SMA_RSI",
+            spaces,
+            n_iterations=7,
+            top_n=100,
         )
         assert len(results) == 7
 
     def test_random_search_sorted(self, sample_ohlcv, optimizer, sma_rsi_spaces):
         results = optimizer.random_search(
-            sample_ohlcv, "SMA_RSI", sma_rsi_spaces,
-            n_iterations=10, metric="sharpe_ratio", top_n=10,
+            sample_ohlcv,
+            "SMA_RSI",
+            sma_rsi_spaces,
+            n_iterations=10,
+            metric="sharpe_ratio",
+            top_n=10,
         )
         sharpes = [r.metrics.sharpe_ratio for r in results]
         assert sharpes == sorted(sharpes, reverse=True)
 
     def test_random_search_parameters_in_range(self, sample_ohlcv, optimizer):
         spaces = [
-            ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=10, max_value=50),
-            ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21),
-            ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=85.0),
-            ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=15.0, max_value=30.0),
+            ParameterSpace(
+                name="movingAveragePeriod",
+                param_type="INTEGER",
+                min_value=10,
+                max_value=50,
+            ),
+            ParameterSpace(
+                name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21
+            ),
+            ParameterSpace(
+                name="overboughtThreshold",
+                param_type="DOUBLE",
+                min_value=70.0,
+                max_value=85.0,
+            ),
+            ParameterSpace(
+                name="oversoldThreshold",
+                param_type="DOUBLE",
+                min_value=15.0,
+                max_value=30.0,
+            ),
         ]
         results = optimizer.random_search(
-            sample_ohlcv, "SMA_RSI", spaces,
-            n_iterations=20, top_n=20, seed=99,
+            sample_ohlcv,
+            "SMA_RSI",
+            spaces,
+            n_iterations=20,
+            top_n=20,
+            seed=99,
         )
         for r in results:
             assert 10 <= r.parameters["movingAveragePeriod"] <= 50
@@ -285,28 +433,83 @@ class TestWalkForwardValidation:
 
     def test_walk_forward_returns_results(self, sample_ohlcv, optimizer):
         spaces = [
-            ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=15, max_value=25, step=10),
-            ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=14, max_value=14, step=1),
-            ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=70.0, step=1.0),
-            ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=30.0, max_value=30.0, step=1.0),
+            ParameterSpace(
+                name="movingAveragePeriod",
+                param_type="INTEGER",
+                min_value=15,
+                max_value=25,
+                step=10,
+            ),
+            ParameterSpace(
+                name="rsiPeriod",
+                param_type="INTEGER",
+                min_value=14,
+                max_value=14,
+                step=1,
+            ),
+            ParameterSpace(
+                name="overboughtThreshold",
+                param_type="DOUBLE",
+                min_value=70.0,
+                max_value=70.0,
+                step=1.0,
+            ),
+            ParameterSpace(
+                name="oversoldThreshold",
+                param_type="DOUBLE",
+                min_value=30.0,
+                max_value=30.0,
+                step=1.0,
+            ),
         ]
         results = optimizer.walk_forward_validate(
-            sample_ohlcv, "SMA_RSI", spaces,
-            train_bars=400, test_bars=200,
-            search_method="grid", metric="sharpe_ratio",
+            sample_ohlcv,
+            "SMA_RSI",
+            spaces,
+            train_bars=400,
+            test_bars=200,
+            search_method="grid",
+            metric="sharpe_ratio",
         )
         assert len(results) > 0
 
     def test_walk_forward_has_train_and_test_metrics(self, sample_ohlcv, optimizer):
         spaces = [
-            ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=20, max_value=20, step=1),
-            ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=14, max_value=14, step=1),
-            ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=70.0, step=1.0),
-            ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=30.0, max_value=30.0, step=1.0),
+            ParameterSpace(
+                name="movingAveragePeriod",
+                param_type="INTEGER",
+                min_value=20,
+                max_value=20,
+                step=1,
+            ),
+            ParameterSpace(
+                name="rsiPeriod",
+                param_type="INTEGER",
+                min_value=14,
+                max_value=14,
+                step=1,
+            ),
+            ParameterSpace(
+                name="overboughtThreshold",
+                param_type="DOUBLE",
+                min_value=70.0,
+                max_value=70.0,
+                step=1.0,
+            ),
+            ParameterSpace(
+                name="oversoldThreshold",
+                param_type="DOUBLE",
+                min_value=30.0,
+                max_value=30.0,
+                step=1.0,
+            ),
         ]
         results = optimizer.walk_forward_validate(
-            sample_ohlcv, "SMA_RSI", spaces,
-            train_bars=400, test_bars=200,
+            sample_ohlcv,
+            "SMA_RSI",
+            spaces,
+            train_bars=400,
+            test_bars=200,
             search_method="grid",
         )
         for r in results:
@@ -318,28 +521,76 @@ class TestWalkForwardValidation:
 
     def test_walk_forward_insufficient_data(self, sample_ohlcv, optimizer):
         spaces = [
-            ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=20, max_value=20, step=1),
-            ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=14, max_value=14, step=1),
-            ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=70.0, step=1.0),
-            ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=30.0, max_value=30.0, step=1.0),
+            ParameterSpace(
+                name="movingAveragePeriod",
+                param_type="INTEGER",
+                min_value=20,
+                max_value=20,
+                step=1,
+            ),
+            ParameterSpace(
+                name="rsiPeriod",
+                param_type="INTEGER",
+                min_value=14,
+                max_value=14,
+                step=1,
+            ),
+            ParameterSpace(
+                name="overboughtThreshold",
+                param_type="DOUBLE",
+                min_value=70.0,
+                max_value=70.0,
+                step=1.0,
+            ),
+            ParameterSpace(
+                name="oversoldThreshold",
+                param_type="DOUBLE",
+                min_value=30.0,
+                max_value=30.0,
+                step=1.0,
+            ),
         ]
         with pytest.raises(ValueError, match="Not enough data"):
             optimizer.walk_forward_validate(
-                sample_ohlcv, "SMA_RSI", spaces,
-                train_bars=5000, test_bars=5000,
+                sample_ohlcv,
+                "SMA_RSI",
+                spaces,
+                train_bars=5000,
+                test_bars=5000,
             )
 
     def test_walk_forward_random_search(self, sample_ohlcv, optimizer):
         spaces = [
-            ParameterSpace(name="movingAveragePeriod", param_type="INTEGER", min_value=10, max_value=30),
-            ParameterSpace(name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21),
-            ParameterSpace(name="overboughtThreshold", param_type="DOUBLE", min_value=70.0, max_value=80.0),
-            ParameterSpace(name="oversoldThreshold", param_type="DOUBLE", min_value=20.0, max_value=30.0),
+            ParameterSpace(
+                name="movingAveragePeriod",
+                param_type="INTEGER",
+                min_value=10,
+                max_value=30,
+            ),
+            ParameterSpace(
+                name="rsiPeriod", param_type="INTEGER", min_value=7, max_value=21
+            ),
+            ParameterSpace(
+                name="overboughtThreshold",
+                param_type="DOUBLE",
+                min_value=70.0,
+                max_value=80.0,
+            ),
+            ParameterSpace(
+                name="oversoldThreshold",
+                param_type="DOUBLE",
+                min_value=20.0,
+                max_value=30.0,
+            ),
         ]
         results = optimizer.walk_forward_validate(
-            sample_ohlcv, "SMA_RSI", spaces,
-            train_bars=400, test_bars=200,
-            search_method="random", n_iterations=5,
+            sample_ohlcv,
+            "SMA_RSI",
+            spaces,
+            train_bars=400,
+            test_bars=200,
+            search_method="random",
+            n_iterations=5,
         )
         assert len(results) > 0
 
@@ -353,21 +604,63 @@ class TestYamlStrategyOptimization:
             "name": "SMA_RSI",
             "indicators": [
                 {"id": "close", "type": "CLOSE"},
-                {"id": "sma", "type": "SMA", "input": "close", "params": {"period": "${movingAveragePeriod}"}},
-                {"id": "rsi", "type": "RSI", "input": "close", "params": {"period": "${rsiPeriod}"}},
+                {
+                    "id": "sma",
+                    "type": "SMA",
+                    "input": "close",
+                    "params": {"period": "${movingAveragePeriod}"},
+                },
+                {
+                    "id": "rsi",
+                    "type": "RSI",
+                    "input": "close",
+                    "params": {"period": "${rsiPeriod}"},
+                },
             ],
             "entryConditions": [
                 {"type": "OVER", "indicator": "close", "params": {"other": "sma"}},
-                {"type": "UNDER", "indicator": "rsi", "params": {"value": "${oversoldThreshold}"}},
+                {
+                    "type": "UNDER",
+                    "indicator": "rsi",
+                    "params": {"value": "${oversoldThreshold}"},
+                },
             ],
             "exitConditions": [
-                {"type": "OVER", "indicator": "rsi", "params": {"value": "${overboughtThreshold}"}},
+                {
+                    "type": "OVER",
+                    "indicator": "rsi",
+                    "params": {"value": "${overboughtThreshold}"},
+                },
             ],
             "parameters": [
-                {"name": "movingAveragePeriod", "type": "INTEGER", "min": 10, "max": 30, "defaultValue": 20},
-                {"name": "rsiPeriod", "type": "INTEGER", "min": 7, "max": 21, "defaultValue": 14},
-                {"name": "overboughtThreshold", "type": "DOUBLE", "min": 70.0, "max": 80.0, "defaultValue": 70.0},
-                {"name": "oversoldThreshold", "type": "DOUBLE", "min": 20.0, "max": 30.0, "defaultValue": 30.0},
+                {
+                    "name": "movingAveragePeriod",
+                    "type": "INTEGER",
+                    "min": 10,
+                    "max": 30,
+                    "defaultValue": 20,
+                },
+                {
+                    "name": "rsiPeriod",
+                    "type": "INTEGER",
+                    "min": 7,
+                    "max": 21,
+                    "defaultValue": 14,
+                },
+                {
+                    "name": "overboughtThreshold",
+                    "type": "DOUBLE",
+                    "min": 70.0,
+                    "max": 80.0,
+                    "defaultValue": 70.0,
+                },
+                {
+                    "name": "oversoldThreshold",
+                    "type": "DOUBLE",
+                    "min": 20.0,
+                    "max": 30.0,
+                    "defaultValue": 30.0,
+                },
             ],
         }
 
@@ -381,8 +674,11 @@ class TestYamlStrategyOptimization:
                 s.step = max(0.1, (s.max_value - s.min_value))
 
         results = optimizer.grid_search(
-            sample_ohlcv, "SMA_RSI", spaces,
-            strategy_spec=sma_rsi_spec, top_n=3,
+            sample_ohlcv,
+            "SMA_RSI",
+            spaces,
+            strategy_spec=sma_rsi_spec,
+            top_n=3,
         )
         assert len(results) > 0
         assert results[0].metrics.sharpe_ratio >= results[-1].metrics.sharpe_ratio
@@ -390,7 +686,11 @@ class TestYamlStrategyOptimization:
     def test_random_search_with_yaml_spec(self, sample_ohlcv, optimizer, sma_rsi_spec):
         spaces = ParameterOptimizer.spaces_from_yaml(sma_rsi_spec)
         results = optimizer.random_search(
-            sample_ohlcv, "SMA_RSI", spaces,
-            n_iterations=5, strategy_spec=sma_rsi_spec, top_n=3,
+            sample_ohlcv,
+            "SMA_RSI",
+            spaces,
+            n_iterations=5,
+            strategy_spec=sma_rsi_spec,
+            top_n=3,
         )
         assert len(results) > 0
