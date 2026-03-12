@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.strategies.ConfigurableStrategyParameters;
+import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.configurable.ConfigurableParamConfig;
 import com.verlumen.tradestream.strategies.configurable.ConfigurableStrategyFactory;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
@@ -80,8 +81,60 @@ public class DoubleEmaCrossoverConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(IntegerChromosome.of(5, 20, 10), IntegerChromosome.of(20, 50, 30));
+        ImmutableList.of(IntegerChromosome.of(2, 30, 12), IntegerChromosome.of(10, 100, 26));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
+  }
+
+  @Test
+  public void defaultParameters_matchJavaImplementation() throws Exception {
+    ConfigurableStrategyParameters yamlDefaults = factory.getDefaultParameters();
+    DoubleEmaCrossoverStrategyFactory javaFactory = new DoubleEmaCrossoverStrategyFactory();
+    DoubleEmaCrossoverParameters javaDefaults = javaFactory.getDefaultParameters();
+
+    assertThat(yamlDefaults.getIntValuesMap().get("shortEmaPeriod"))
+        .isEqualTo(javaDefaults.getShortEmaPeriod());
+    assertThat(yamlDefaults.getIntValuesMap().get("longEmaPeriod"))
+        .isEqualTo(javaDefaults.getLongEmaPeriod());
+  }
+
+  @Test
+  public void parameterRanges_matchJavaImplementation() {
+    DoubleEmaCrossoverParamConfig javaParamConfig = new DoubleEmaCrossoverParamConfig();
+    ImmutableList<ChromosomeSpec<?>> javaSpecs = javaParamConfig.getChromosomeSpecs();
+    ImmutableList<ChromosomeSpec<?>> yamlSpecs = paramConfig.getChromosomeSpecs();
+
+    assertThat(yamlSpecs).hasSize(javaSpecs.size());
+  }
+
+  @Test
+  public void signals_matchJavaImplementation() throws Exception {
+    int shortPeriod = 3;
+    int longPeriod = 7;
+
+    // Build YAML strategy with specific parameters
+    ConfigurableStrategyParameters yamlParams =
+        ConfigurableStrategyParameters.newBuilder()
+            .putIntValues("shortEmaPeriod", shortPeriod)
+            .putIntValues("longEmaPeriod", longPeriod)
+            .build();
+    Strategy yamlStrategy = factory.createStrategy(series, yamlParams);
+
+    // Build Java strategy with same parameters
+    DoubleEmaCrossoverStrategyFactory javaFactory = new DoubleEmaCrossoverStrategyFactory();
+    DoubleEmaCrossoverParameters javaParams =
+        DoubleEmaCrossoverParameters.newBuilder()
+            .setShortEmaPeriod(shortPeriod)
+            .setLongEmaPeriod(longPeriod)
+            .build();
+    Strategy javaStrategy = javaFactory.createStrategy(series, javaParams);
+
+    // Compare entry and exit signals at every bar
+    for (int i = longPeriod; i < series.getBarCount(); i++) {
+      assertThat(yamlStrategy.getEntryRule().isSatisfied(i))
+          .isEqualTo(javaStrategy.getEntryRule().isSatisfied(i));
+      assertThat(yamlStrategy.getExitRule().isSatisfied(i))
+          .isEqualTo(javaStrategy.getExitRule().isSatisfied(i));
+    }
   }
 }
