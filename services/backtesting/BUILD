@@ -148,6 +148,7 @@ py_test(
         ":engine_lib",
         ":vectorbt_runner_lib",
         "//third_party/python:fastapi",
+        "//third_party/python:httpx",
         "//third_party/python:numpy",
         "//third_party/python:pytest",
     ],
