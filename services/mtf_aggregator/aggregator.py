@@ -34,9 +34,7 @@ class MultiTimeframeAggregator:
         timeframe_weights: Optional[Dict[Timeframe, float]] = None,
         alignment_bonus: float = 0.20,
     ):
-        self.timeframe_weights = dict(
-            timeframe_weights or DEFAULT_TIMEFRAME_WEIGHTS
-        )
+        self.timeframe_weights = dict(timeframe_weights or DEFAULT_TIMEFRAME_WEIGHTS)
         self.alignment_bonus = alignment_bonus
 
     def aggregate(self, signals: List[TimeframeSignal]) -> AggregationResult:
@@ -69,9 +67,7 @@ class MultiTimeframeAggregator:
 
         # Compute weighted conviction
         active_tfs = list(best_by_tf.keys())
-        total_weight = sum(
-            self.timeframe_weights.get(tf, 0.0) for tf in active_tfs
-        )
+        total_weight = sum(self.timeframe_weights.get(tf, 0.0) for tf in active_tfs)
 
         if total_weight == 0.0:
             return AggregationResult(
@@ -85,8 +81,7 @@ class MultiTimeframeAggregator:
 
         # Normalize weights to sum to 1.0 among active timeframes
         normalized_weights = {
-            tf: self.timeframe_weights.get(tf, 0.0) / total_weight
-            for tf in active_tfs
+            tf: self.timeframe_weights.get(tf, 0.0) / total_weight for tf in active_tfs
         }
 
         # Raw weighted score: each signal contributes direction * confidence * weight

@@ -49,12 +49,25 @@ class TestModels:
             direction=SignalDirection.BUY,
             timeframe_count=3,
         )
-        assert AggregationResult(conviction_score=0.80, **base).conviction_tier == "STRONG"
-        assert AggregationResult(conviction_score=0.55, **base).conviction_tier == "MODERATE"
-        assert AggregationResult(conviction_score=0.30, **base).conviction_tier == "WEAK"
-        assert AggregationResult(conviction_score=0.10, **base).conviction_tier == "NEUTRAL"
+        assert (
+            AggregationResult(conviction_score=0.80, **base).conviction_tier == "STRONG"
+        )
+        assert (
+            AggregationResult(conviction_score=0.55, **base).conviction_tier
+            == "MODERATE"
+        )
+        assert (
+            AggregationResult(conviction_score=0.30, **base).conviction_tier == "WEAK"
+        )
+        assert (
+            AggregationResult(conviction_score=0.10, **base).conviction_tier
+            == "NEUTRAL"
+        )
         # Negative scores use absolute value for tier
-        assert AggregationResult(conviction_score=-0.80, **base).conviction_tier == "STRONG"
+        assert (
+            AggregationResult(conviction_score=-0.80, **base).conviction_tier
+            == "STRONG"
+        )
 
     def test_default_weights_sum_to_one(self):
         total = sum(DEFAULT_TIMEFRAME_WEIGHTS.values())
@@ -237,9 +250,7 @@ class TestMultiTimeframeAggregator:
         assert result.timeframe_details["5m"]["direction"] == "BUY"
         assert result.timeframe_details["1d"]["direction"] == "SELL"
         # Weights should be normalized for active timeframes only
-        weight_sum = sum(
-            d["weight"] for d in result.timeframe_details.values()
-        )
+        weight_sum = sum(d["weight"] for d in result.timeframe_details.values())
         assert weight_sum == pytest.approx(1.0, abs=0.01)
 
     # --- Custom weights ---
