@@ -244,9 +244,7 @@ class TestGenerateRecommendations:
             "B": {"A": 0.85, "B": 1.0, "C": 0.2},
             "C": {"A": 0.1, "B": 0.2, "C": 1.0},
         }
-        clusters = [
-            CorrelationCluster(assets=["A", "B"], avg_intra_correlation=0.85)
-        ]
+        clusters = [CorrelationCluster(assets=["A", "B"], avg_intra_correlation=0.85)]
         recs = generate_recommendations(
             matrix,
             clusters=clusters,
@@ -371,9 +369,7 @@ class TestRunCorrelationAnalysis:
             "B": rng.normal(0, 0.02, 120),
             "C": rng.normal(0, 0.02, 120),
         }
-        result = run_correlation_analysis(
-            returns, portfolio_symbols=["A", "B", "C"]
-        )
+        result = run_correlation_analysis(returns, portfolio_symbols=["A", "B", "C"])
 
         assert len(result.clusters) == 0
         assert len(result.alerts) == 0

@@ -151,9 +151,7 @@ def compute_correlation_matrix(
                     if std_a == 0 or std_b == 0:
                         matrix[sym_a][sym_b] = 0.0
                     else:
-                        matrix[sym_a][sym_b] = float(
-                            np.corrcoef(r_a, r_b)[0, 1]
-                        )
+                        matrix[sym_a][sym_b] = float(np.corrcoef(r_a, r_b)[0, 1])
 
     return matrix
 
@@ -273,9 +271,7 @@ def identify_correlated_clusters(
         pair_corrs = []
         for i, a in enumerate(members):
             for b in members[i + 1 :]:
-                pair_corrs.append(
-                    correlation_matrix.get(a, {}).get(b, 0.0)
-                )
+                pair_corrs.append(correlation_matrix.get(a, {}).get(b, 0.0))
 
         avg_corr = float(np.mean(pair_corrs)) if pair_corrs else 0.0
         clusters.append(
