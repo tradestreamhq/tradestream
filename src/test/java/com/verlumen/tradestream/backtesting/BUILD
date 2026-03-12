@@ -105,3 +105,27 @@ java_test(
         "//third_party/java:truth",
     ],
 )
+
+java_test(
+    name = "BacktestingFrameworkTest",
+    srcs = ["BacktestingFrameworkTest.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_report",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_framework",
+        "//src/main/java/com/verlumen/tradestream/backtesting:historical_data_loader",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
+        "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/java:truth",
+    ],
+)
