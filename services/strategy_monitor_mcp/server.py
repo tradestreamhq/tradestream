@@ -108,13 +108,9 @@ class StrategyMonitorMcpServer(McpServerBase):
             )
 
         if name == "get_strategy_by_id":
-            result = await self._pg.get_strategy_by_id(
-                arguments["strategy_id"]
-            )
+            result = await self._pg.get_strategy_by_id(arguments["strategy_id"])
             if result is None:
-                raise KeyError(
-                    f"Strategy not found: {arguments['strategy_id']}"
-                )
+                raise KeyError(f"Strategy not found: {arguments['strategy_id']}")
             return result
 
         if name == "get_metrics":

@@ -88,9 +88,7 @@ class Evolvable(ABC, Generic[Spec, Impl]):
     # --- Spec Layer ---
 
     @abstractmethod
-    async def get_top_specs(
-        self, limit: int = 10, **filters: Any
-    ) -> list[Spec]:
+    async def get_top_specs(self, limit: int = 10, **filters: Any) -> list[Spec]:
         """Get top-performing specs ranked by aggregate performance."""
 
     @abstractmethod
@@ -124,16 +122,12 @@ class Evolvable(ABC, Generic[Spec, Impl]):
     # --- Performance Layer ---
 
     @abstractmethod
-    async def get_performance(
-        self, impl_id: str
-    ) -> dict[str, Any]:
+    async def get_performance(self, impl_id: str) -> dict[str, Any]:
         """Get performance metrics for an implementation."""
 
     # --- Evolution Layer ---
 
-    async def get_few_shot_examples(
-        self, limit: int = 5
-    ) -> list[dict[str, Any]]:
+    async def get_few_shot_examples(self, limit: int = 5) -> list[dict[str, Any]]:
         """Get top performers formatted as few-shot examples for LLM generation.
 
         Default implementation fetches top specs with their best implementations

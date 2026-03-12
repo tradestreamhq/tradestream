@@ -96,9 +96,7 @@ class McpServerBase(ABC):
             ]
 
         @self._server.call_tool()
-        async def call_tool(
-            name: str, arguments: dict[str, Any]
-        ) -> list[TextContent]:
+        async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             start = time.monotonic()
             try:
                 result = await self.handle_tool(name, arguments)
@@ -111,15 +109,11 @@ class McpServerBase(ABC):
                     },
                 }
                 return [
-                    TextContent(
-                        type="text", text=json.dumps(response, default=str)
-                    )
+                    TextContent(type="text", text=json.dumps(response, default=str))
                 ]
             except Exception as e:
                 latency_ms = round((time.monotonic() - start) * 1000, 1)
-                logger.error(
-                    "Tool %s failed on %s: %s", name, self._server_name, e
-                )
+                logger.error("Tool %s failed on %s: %s", name, self._server_name, e)
                 error_response = {
                     "error": {
                         "code": _error_code(e),

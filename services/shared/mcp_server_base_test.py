@@ -69,9 +69,7 @@ class TestToolDefinitions:
 
 class TestCallTool:
     @pytest.mark.asyncio
-    async def test_successful_call_includes_data_and_metadata(
-        self, fake_server
-    ):
+    async def test_successful_call_includes_data_and_metadata(self, fake_server):
         # Access the registered call_tool handler via the server internals
         result = await fake_server.handle_tool("test_tool", {"arg1": "val"})
         assert result == {"status": "ok"}
