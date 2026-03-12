@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/position_management"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Position Management binary exists"
+    path: "/services/position_management/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
