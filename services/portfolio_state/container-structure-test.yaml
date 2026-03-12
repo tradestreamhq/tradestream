@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/portfolio_state"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Portfolio State binary exists"
+    path: "/services/portfolio_state/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
