@@ -14,9 +14,6 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.RSIIndicator;
-import org.ta4j.core.indicators.averages.EMAIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.DecimalNum;
 
 @RunWith(JUnit4.class)
@@ -28,11 +25,6 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   private RsiEmaCrossoverParameters params;
   private BaseBarSeries series;
   private Strategy strategy;
-
-  // For debugging RSI and EMA calculations
-  private RSIIndicator rsi;
-  private EMAIndicator rsiEma;
-  private ClosePriceIndicator closePrice;
 
   @Before
   public void setUp() {
@@ -49,40 +41,38 @@ public class RsiEmaCrossoverStrategyFactoryTest {
     series = new BaseBarSeriesBuilder().build();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // Bars 0-24: Steady decline to bring RSI well below its EMA
+    // Build price data that creates clear RSI/EMA crossovers
+    // Phase 1 (bars 0-29): Steady gentle decline to establish low RSI and low RSI EMA
     int barIdx = 0;
-    double price = 60.0;
-    for (int i = 0; i < 25; i++) {
+    double price = 100.0;
+    for (int i = 0; i < 30; i++) {
+      price -= 0.3;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 2 (bars 30-44): Gentle price increase - enough for RSI to cross above
+    // its EMA but NOT enough to push RSI above 70
+    for (int i = 0; i < 15; i++) {
+      price += 0.5;
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 3 (bars 45-54): Flat stabilization
+    for (int i = 0; i < 10; i++) {
+      series.addBar(createBar(now.plusMinutes(barIdx++), price));
+    }
+
+    // Phase 4 (bars 55-69): Gentle price decline - enough for RSI to cross below
+    // its EMA but NOT enough to push RSI below 30
+    for (int i = 0; i < 15; i++) {
       price -= 0.5;
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
 
-    // Bars 25-34: Sharp price increase to make RSI cross above its EMA
+    // Phase 5 (bars 70-79): Flat stabilization
     for (int i = 0; i < 10; i++) {
-      price += 2.0;
       series.addBar(createBar(now.plusMinutes(barIdx++), price));
     }
-
-    // Bars 35-39: Stabilize
-    for (int i = 0; i < 5; i++) {
-      series.addBar(createBar(now.plusMinutes(barIdx++), price));
-    }
-
-    // Bars 40-49: Sharp price decline to make RSI cross below its EMA
-    for (int i = 0; i < 10; i++) {
-      price -= 2.0;
-      series.addBar(createBar(now.plusMinutes(barIdx++), price));
-    }
-
-    // Bars 50-54: Stabilize
-    for (int i = 0; i < 5; i++) {
-      series.addBar(createBar(now.plusMinutes(barIdx++), price));
-    }
-
-    // Initialize indicators
-    closePrice = new ClosePriceIndicator(series);
-    rsi = new RSIIndicator(closePrice, RSI_PERIOD);
-    rsiEma = new EMAIndicator(rsi, EMA_PERIOD);
 
     // Create strategy
     strategy = factory.createStrategy(series, params);
@@ -90,19 +80,9 @@ public class RsiEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenRsiCrossesAboveEmaAndNotOverbought() {
-    // Log RSI values to diagnose
-    for (int i = 20; i <= 39; i++) {
-      System.out.printf(
-          "Bar %d - RSI: %.2f, RSI EMA: %.2f, Entry: %s%n",
-          i,
-          rsi.getValue(i).doubleValue(),
-          rsiEma.getValue(i).doubleValue(),
-          strategy.getEntryRule().isSatisfied(i));
-    }
-
-    // Find when entry rule is satisfied during the price increase phase
+    // Find when entry rule is satisfied during/after the price increase phase
     boolean entryTriggered = false;
-    for (int i = 25; i <= 39; i++) {
+    for (int i = 30; i <= 54; i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
         entryTriggered = true;
         break;
@@ -114,9 +94,9 @@ public class RsiEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void exitRule_shouldTrigger_whenRsiCrossesBelowEmaAndNotOversold() {
-    // Find when exit rule is satisfied during the price decline phase
+    // Find when exit rule is satisfied during/after the price decline phase
     boolean exitTriggered = false;
-    for (int i = 40; i <= 54; i++) {
+    for (int i = 55; i <= 79; i++) {
       if (strategy.getExitRule().isSatisfied(i)) {
         exitTriggered = true;
         break;
