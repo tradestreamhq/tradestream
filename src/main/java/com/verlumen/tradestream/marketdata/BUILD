@@ -28,6 +28,7 @@ java_library(
         ":timeframe",
         "//protos:marketdata_java_proto",
         "//third_party/java:guava",
+        "//third_party/java:protobuf_java",
     ],
 )
 
