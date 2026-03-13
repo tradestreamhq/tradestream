@@ -35,9 +35,7 @@ VALID_ENTITY_TYPES = frozenset({"strategies", "pairs", "templates"})
 
 class WatchlistCreate(BaseModel):
     name: str = Field(..., description="Unique watchlist name")
-    pairs: List[str] = Field(
-        default_factory=list, description="Trading pair symbols"
-    )
+    pairs: List[str] = Field(default_factory=list, description="Trading pair symbols")
     alert_conditions: Optional[Dict[str, Any]] = Field(
         None, description="Optional alert trigger conditions"
     )
@@ -120,7 +118,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     query,
                     body.name,
                     json.dumps(body.pairs),
-                    json.dumps(body.alert_conditions) if body.alert_conditions else None,
+                    (
+                        json.dumps(body.alert_conditions)
+                        if body.alert_conditions
+                        else None
+                    ),
                 )
         except asyncpg.UniqueViolationError:
             return conflict(f"Watchlist with name '{body.name}' already exists")
@@ -139,7 +141,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         )
 
     @watchlists_router.get("/widget")
-    async def watchlist_widget(watchlist_id: str = Query(..., description="Watchlist ID")):
+    async def watchlist_widget(
+        watchlist_id: str = Query(..., description="Watchlist ID")
+    ):
         """Dashboard widget: returns watchlist pairs with current prices and 24h changes."""
         wl_query = """
             SELECT id, name, pairs FROM watchlists WHERE id = $1::uuid
@@ -152,11 +156,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         pairs = row["pairs"] if row["pairs"] else []
         widget_items = []
         for pair in pairs:
-            widget_items.append({
-                "pair": pair,
-                "current_price": None,
-                "change_24h": None,
-            })
+            widget_items.append(
+                {
+                    "pair": pair,
+                    "current_price": None,
+                    "change_24h": None,
+                }
+            )
 
         return success_response(
             {
@@ -258,7 +264,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             item = {
                 "id": str(row["id"]),
                 "entity_id": row["entity_id"],
-                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                "created_at": (
+                    row["created_at"].isoformat() if row["created_at"] else None
+                ),
             }
             grouped.setdefault(et, []).append(item)
 
@@ -280,9 +288,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             async with db_pool.acquire() as conn:
                 row = await conn.fetchrow(query, entity_type, entity_id)
         except asyncpg.UniqueViolationError:
-            return conflict(
-                f"Favorite for {entity_type}/{entity_id} already exists"
-            )
+            return conflict(f"Favorite for {entity_type}/{entity_id} already exists")
         except Exception as e:
             logger.error("Failed to add favorite: %s", e)
             return server_error(str(e))
