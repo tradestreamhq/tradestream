@@ -34,9 +34,7 @@ class WebhookDispatcher:
             results.append(result)
         return results
 
-    async def send_test(
-        self, webhook_id: uuid.UUID
-    ) -> Dict[str, Any]:
+    async def send_test(self, webhook_id: uuid.UUID) -> Dict[str, Any]:
         """Send a test payload to a specific webhook."""
         async with self.db_pool.acquire() as conn:
             row = await conn.fetchrow(
@@ -125,9 +123,7 @@ class WebhookDispatcher:
                 "status_code": response_code,
             }
         except Exception as e:
-            logging.error(
-                "Webhook delivery to %s failed after retries: %s", url, e
-            )
+            logging.error("Webhook delivery to %s failed after retries: %s", url, e)
             return {
                 "webhook_id": str(webhook_id),
                 "success": False,
@@ -185,11 +181,7 @@ def _send_with_retries(url: str, payload: str, headers: dict) -> int:
     """Send HTTP POST with retries on server errors."""
     resp = requests.post(url, data=payload, headers=headers, timeout=10)
     if resp.status_code >= 500:
-        raise requests.RequestException(
-            f"Server error {resp.status_code}: {resp.text}"
-        )
+        raise requests.RequestException(f"Server error {resp.status_code}: {resp.text}")
     if resp.status_code >= 300:
-        raise requests.RequestException(
-            f"Client error {resp.status_code}: {resp.text}"
-        )
+        raise requests.RequestException(f"Client error {resp.status_code}: {resp.text}")
     return resp.status_code
