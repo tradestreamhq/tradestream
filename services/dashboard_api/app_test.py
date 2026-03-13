@@ -46,9 +46,7 @@ class TestOverview:
     def test_get_overview(self, client):
         tc, conn = client
         conn.fetchrow.side_effect = [
-            FakeRecord(
-                portfolio_value=100000.0, total_unrealized_pnl=5000.0
-            ),
+            FakeRecord(portfolio_value=100000.0, total_unrealized_pnl=5000.0),
             FakeRecord(
                 total_realized_pnl=12000.0,
                 pnl_today=500.0,
@@ -73,9 +71,7 @@ class TestOverview:
     def test_overview_cached(self, client):
         tc, conn = client
         conn.fetchrow.side_effect = [
-            FakeRecord(
-                portfolio_value=100000.0, total_unrealized_pnl=5000.0
-            ),
+            FakeRecord(portfolio_value=100000.0, total_unrealized_pnl=5000.0),
             FakeRecord(
                 total_realized_pnl=12000.0,
                 pnl_today=500.0,
