@@ -3,8 +3,10 @@ Strategy Derivation REST API — RMM Level 2.
 
 Provides CRUD endpoints for strategy specs and implementations,
 plus action endpoints for evaluation and signal generation.
+Includes a built-in strategy template library.
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -23,6 +25,7 @@ from services.rest_api_shared.responses import (
     validation_error,
 )
 from services.shared.auth import fastapi_auth_middleware
+from services.strategy_api.templates import default_registry
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +56,15 @@ class EvaluateRequest(BaseModel):
     instrument: str = Field(..., description="Trading instrument symbol")
     start_date: str = Field(..., description="Backtest start date (ISO format)")
     end_date: str = Field(..., description="Backtest end date (ISO format)")
+
+
+class CreateFromTemplate(BaseModel):
+    template_id: str = Field(..., description="Template identifier")
+    name: str = Field(..., description="Name for the new strategy")
+    parameters: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Parameter overrides (defaults used if omitted)",
+    )
 
 
 # --- Application Factory ---
@@ -122,8 +134,6 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @specs_router.post("", status_code=201)
     async def create_spec(body: StrategySpecCreate):
-        import json
-
         query = """
             INSERT INTO strategy_specs
                 (name, indicators, entry_conditions, exit_conditions,
@@ -182,8 +192,6 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @specs_router.put("/{spec_id}")
     async def update_spec(spec_id: str, body: StrategySpecUpdate):
-        import json
-
         updates = {}
         if body.indicators is not None:
             updates["indicators"] = json.dumps(body.indicators)
@@ -271,8 +279,6 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @specs_router.post("/{spec_id}/implementations", status_code=201)
     async def create_implementation(spec_id: str):
-        import json
-
         # Check spec exists
         async with db_pool.acquire() as conn:
             spec = await conn.fetchrow(
@@ -462,6 +468,92 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             item["created_at"] = item["created_at"].isoformat()
         return success_response(item, "signal")
 
+    # --- Template endpoints ---
+
+    templates_router = APIRouter(prefix="/templates", tags=["Templates"])
+
+    @templates_router.get("")
+    async def list_templates():
+        templates = default_registry.list_all()
+        items = [t.to_summary() for t in templates]
+        return collection_response(
+            items,
+            "strategy_template",
+            total=len(items),
+            limit=len(items),
+            offset=0,
+        )
+
+    @templates_router.get("/{template_id}")
+    async def get_template(template_id: str):
+        template = default_registry.get(template_id)
+        if not template:
+            return not_found("Template", template_id)
+        return success_response(
+            template.to_detail(),
+            "strategy_template",
+            resource_id=template.id,
+        )
+
+    from_template_router = APIRouter(tags=["Templates"])
+
+    @from_template_router.post("/from-template", status_code=201)
+    async def create_from_template(body: CreateFromTemplate):
+        template = default_registry.get(body.template_id)
+        if not template:
+            return not_found("Template", body.template_id)
+
+        errors = template.validate_params(body.parameters)
+        if errors:
+            return validation_error(
+                "Invalid template parameters",
+                details=[{"field": e} for e in errors],
+            )
+
+        merged = template.merge_params(body.parameters)
+
+        query = """
+            INSERT INTO strategy_specs
+                (name, indicators, entry_conditions, exit_conditions,
+                 parameters, description, source)
+            VALUES ($1, $2::jsonb, $3::jsonb, $4::jsonb, $5::jsonb, $6, 'TEMPLATE')
+            RETURNING id, name, created_at
+        """
+        indicators = {p.name: merged[p.name] for p in template.parameters}
+        entry_conditions = {"signal": "BUY"}
+        exit_conditions = {"signal": "SELL"}
+        try:
+            async with db_pool.acquire() as conn:
+                row = await conn.fetchrow(
+                    query,
+                    body.name,
+                    json.dumps(indicators),
+                    json.dumps(entry_conditions),
+                    json.dumps(exit_conditions),
+                    json.dumps(merged),
+                    f"{template.name} (from template '{template.id}')",
+                )
+        except asyncpg.UniqueViolationError:
+            return conflict(f"Strategy with name '{body.name}' already exists")
+        except Exception as e:
+            logger.error("Failed to create strategy from template: %s", e)
+            return server_error(str(e))
+
+        return success_response(
+            data={
+                "name": body.name,
+                "template_id": template.id,
+                "template_name": template.name,
+                "parameters": merged,
+                "description": f"{template.name} (from template '{template.id}')",
+            },
+            resource_type="strategy_spec",
+            resource_id=str(row["id"]),
+            status_code=201,
+        )
+
     app.include_router(specs_router)
     app.include_router(impls_router)
+    app.include_router(templates_router)
+    app.include_router(from_template_router)
     return app
