@@ -226,9 +226,7 @@ class TestCreateApiKey:
 
     def test_create_key_empty_permissions(self, client):
         tc, conn = client
-        resp = tc.post(
-            "", json={"name": "empty-perms", "permissions": []}
-        )
+        resp = tc.post("", json={"name": "empty-perms", "permissions": []})
         assert resp.status_code == 422
 
     def test_create_key_invalid_environment(self, client):
@@ -420,9 +418,7 @@ class TestApiKeyAuthMiddleware:
         ]
 
         tc = self._make_middleware_app(conn)
-        resp = tc.get(
-            "/test", headers={"X-API-Key": "ts_live_wrong_key_value_here"}
-        )
+        resp = tc.get("/test", headers={"X-API-Key": "ts_live_wrong_key_value_here"})
         assert resp.status_code == 401
 
     def test_expired_key_returns_401(self):
@@ -477,7 +473,5 @@ class TestApiKeyAuthMiddleware:
         conn.fetch.return_value = []  # no keys in DB
 
         tc = self._make_middleware_app(conn)
-        resp = tc.get(
-            "/test", headers={"X-API-Key": "ts_live_some_random_key_value"}
-        )
+        resp = tc.get("/test", headers={"X-API-Key": "ts_live_some_random_key_value"})
         assert resp.status_code == 401
