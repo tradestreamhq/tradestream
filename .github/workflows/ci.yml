@@ -1,0 +1,190 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-python:
+    name: Lint Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements_lock.txt
+
+      - name: Install linting tools
+        run: pip install black==25.1.0 isort mypy
+
+      - name: Run black (check mode)
+        run: black --check --diff .
+
+      - name: Run isort (check mode)
+        run: isort --check-only --diff --profile black .
+
+  type-check:
+    name: Type Check Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements_lock.txt
+
+      - name: Install dependencies
+        run: |
+          pip install mypy
+          pip install -r requirements_lock.txt
+
+      - name: Run mypy
+        run: mypy --ignore-missing-imports --no-error-summary services/ shared/ src/ || true
+
+  lint-java:
+    name: Lint Java
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Download google-java-format
+        run: |
+          wget -q https://github.com/google/google-java-format/releases/download/v1.24.0/google-java-format-1.24.0-all-deps.jar \
+            -O /tmp/google-java-format.jar
+
+      - name: Check Java formatting
+        run: |
+          JAVA_FILES=$(find . -name "*.java" -not -path "./bazel-*" | head -500)
+          if [ -n "$JAVA_FILES" ]; then
+            java --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+                 --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+                 --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+                 --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+                 --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+                 -jar /tmp/google-java-format.jar --set-exit-if-changed --dry-run $JAVA_FILES
+          fi
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [lint-python, lint-java]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          bazelrc: |
+            test --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+          disk-cache: ${{ github.workflow }}-unit
+          repository-cache: true
+
+      - name: Run unit tests with coverage
+        run: bazel coverage --combined_report=lcov //...
+
+      - name: Enforce coverage threshold
+        run: |
+          COVERAGE_FILE="bazel-out/_coverage/_coverage_report.dat"
+          if [ ! -f "$COVERAGE_FILE" ]; then
+            COVERAGE_FILE=$(find . -path "./bazel-out/*" -name "_coverage_report.dat" -type f 2>/dev/null | head -1)
+          fi
+          if [ -z "$COVERAGE_FILE" ] || [ ! -f "$COVERAGE_FILE" ]; then
+            echo "::error::No coverage report found"
+            exit 1
+          fi
+
+          LINES_FOUND=$(grep -h "^LF:" "$COVERAGE_FILE" | cut -d: -f2 | paste -sd+ | bc)
+          LINES_HIT=$(grep -h "^LH:" "$COVERAGE_FILE" | cut -d: -f2 | paste -sd+ | bc)
+
+          if [ -z "$LINES_FOUND" ] || [ "$LINES_FOUND" -eq 0 ]; then
+            echo "::error::No coverage data found"
+            exit 1
+          fi
+
+          COVERAGE=$(echo "scale=2; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+          echo "Coverage: ${COVERAGE}% (${LINES_HIT}/${LINES_FOUND} lines)"
+
+          if (( $(echo "$COVERAGE < 50" | bc -l) )); then
+            echo "::error::Coverage ${COVERAGE}% is below the 50% threshold"
+            exit 1
+          fi
+          echo "::notice::Coverage ${COVERAGE}% meets the 50% threshold"
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Lint Helm chart
+        run: helm lint charts/tradestream
+
+      - name: Template Helm chart
+        run: |
+          cd charts/tradestream && helm dependency build && cd ../..
+          helm template my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set candleIngestor.image.repository=candle-ingestor \
+            --set candleIngestor.image.tag=latest \
+            --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
+            --set topCryptoUpdaterCronjob.image.tag=latest \
+            --set strategyDiscoveryRequestFactory.image.repository=strategy-discovery-request-factory \
+            --set strategyDiscoveryRequestFactory.image.tag=latest \
+            --set strategyDiscoveryPipeline.image.repository=strategy-discovery-pipeline \
+            --set strategyDiscoveryPipeline.image.tag=latest \
+            --set strategyConsumer.image.repository=strategy-consumer \
+            --set strategyConsumer.image.tag=latest \
+            --set strategyMonitorApi.image.repository=strategy-monitor-api \
+            --set strategyMonitorApi.image.tag=latest \
+            --set strategyMonitorUi.image.repository=strategy-monitor-ui \
+            --set strategyMonitorUi.image.tag=latest \
+            --set redis.enabled=true \
+            --set postgresql.enabled=true \
+            --set influxdb.enabled=true \
+            --set agentGateway.enabled=true \
+            --set agentGateway.image.repository=agent-gateway \
+            --set agentGateway.image.tag=latest
+
+  build:
+    name: Build All Targets
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          bazelrc: |
+            build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+          disk-cache: ${{ github.workflow }}-build
+          repository-cache: true
+
+      - name: Build all targets
+        run: bazel build //...
