@@ -229,9 +229,7 @@ def _normalize_equity_curves(rows) -> Dict[str, List[Dict[str, Any]]]:
                 "points": [],
             }
         total_return = (
-            float(row["total_return"])
-            if row["total_return"] is not None
-            else 0.0
+            float(row["total_return"]) if row["total_return"] is not None else 0.0
         )
         curves[impl_id]["points"].append(
             {
