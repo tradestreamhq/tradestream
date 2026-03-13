@@ -1,8 +1,8 @@
 """
 Trade Journal REST API — RMM Level 2.
 
-Provides CRUD endpoints for trade journal entries with tagging,
-full-text search, and aggregate statistics by tag.
+Provides CRUD endpoints for trade journal entries with emotion tracking,
+ratings, lessons learned, and analytics (stats, streaks, calendar heatmap).
 """
 
 import logging
@@ -27,49 +27,39 @@ from services.shared.auth import fastapi_auth_middleware
 
 logger = logging.getLogger(__name__)
 
+VALID_EMOTIONS = {"confident", "fearful", "neutral", "greedy"}
+
 
 # --- Request DTOs ---
 
 
 class CreateJournalEntry(BaseModel):
-    instrument: str = Field(..., description="Trading instrument symbol")
-    side: str = Field(..., description="BUY or SELL", pattern="^(BUY|SELL)$")
-    entry_price: float = Field(..., gt=0, description="Entry price")
-    exit_price: Optional[float] = Field(None, gt=0, description="Exit price")
-    size: float = Field(..., gt=0, description="Position size")
-    pnl: Optional[float] = Field(None, description="Realized P&L")
-    outcome: Optional[str] = Field(
-        None, description="WIN, LOSS, or OPEN", pattern="^(WIN|LOSS|OPEN)$"
+    trade_id: Optional[UUID] = Field(None, description="Link to a paper_trades row")
+    entry_notes: Optional[str] = Field("", description="Notes at entry time")
+    exit_notes: Optional[str] = Field("", description="Notes at exit time")
+    emotion_tag: Optional[str] = Field(
+        None,
+        description="Emotion during trade: confident, fearful, neutral, greedy",
+        pattern="^(confident|fearful|neutral|greedy)$",
     )
-    strategy_name: Optional[str] = Field(
-        None, description="Strategy that generated the trade"
-    )
-    signal_trigger: Optional[str] = Field(
-        None, description="Signal that triggered the trade"
-    )
-    notes: Optional[str] = Field("", description="User notes")
+    lesson_learned: Optional[str] = Field("", description="Lesson from this trade")
+    rating: Optional[int] = Field(None, ge=1, le=5, description="Self-rating 1-5")
     tags: Optional[List[str]] = Field(
-        default_factory=list, description="Tags for the entry"
-    )
-    opened_at: Optional[datetime] = Field(
-        None, description="When the position was opened"
-    )
-    closed_at: Optional[datetime] = Field(
-        None, description="When the position was closed"
+        default_factory=list, description="Arbitrary tags"
     )
 
 
 class UpdateJournalEntry(BaseModel):
-    notes: Optional[str] = Field(None, description="Updated notes")
+    entry_notes: Optional[str] = Field(None, description="Update entry notes")
+    exit_notes: Optional[str] = Field(None, description="Update exit notes")
+    emotion_tag: Optional[str] = Field(
+        None,
+        description="Update emotion tag",
+        pattern="^(confident|fearful|neutral|greedy)$",
+    )
+    lesson_learned: Optional[str] = Field(None, description="Update lesson")
+    rating: Optional[int] = Field(None, ge=1, le=5, description="Update rating")
     tags: Optional[List[str]] = Field(None, description="Replace tags")
-    exit_price: Optional[float] = Field(None, gt=0, description="Exit price")
-    pnl: Optional[float] = Field(None, description="Realized P&L")
-    outcome: Optional[str] = Field(
-        None, description="WIN, LOSS, or OPEN", pattern="^(WIN|LOSS|OPEN)$"
-    )
-    closed_at: Optional[datetime] = Field(
-        None, description="When the position was closed"
-    )
 
 
 # --- Helpers ---
@@ -78,13 +68,10 @@ class UpdateJournalEntry(BaseModel):
 def _row_to_dict(row: dict) -> Dict[str, Any]:
     """Convert a database row to a JSON-serializable dict."""
     item = dict(row)
-    for key in ("id", "entry_id"):
+    for key in ("id", "trade_id"):
         if key in item and item[key] is not None:
             item[key] = str(item[key])
-    for key in ("entry_price", "exit_price", "size", "pnl"):
-        if key in item and item[key] is not None:
-            item[key] = float(item[key])
-    for key in ("opened_at", "closed_at", "created_at", "updated_at"):
+    for key in ("created_at", "updated_at"):
         if key in item and item[key] is not None:
             item[key] = item[key].isoformat()
     return item
@@ -117,39 +104,31 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @app.post("/entries", tags=["Journal"])
     async def create_entry(body: CreateJournalEntry):
-        """Create a new journal entry (auto-called on position open/close)."""
+        """Create a journal entry for a trade."""
         try:
             async with db_pool.acquire() as conn:
                 row = await conn.fetchrow(
                     """
-                    INSERT INTO journal_entries
-                        (instrument, side, entry_price, exit_price, size, pnl,
-                         outcome, strategy_name, signal_trigger, notes, opened_at, closed_at)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                            COALESCE($11, now()), $12)
+                    INSERT INTO trade_journal
+                        (trade_id, entry_notes, exit_notes, emotion_tag,
+                         lesson_learned, rating)
+                    VALUES ($1, $2, $3, $4, $5, $6)
                     RETURNING *
                     """,
-                    body.instrument,
-                    body.side,
-                    body.entry_price,
-                    body.exit_price,
-                    body.size,
-                    body.pnl,
-                    body.outcome or "OPEN",
-                    body.strategy_name,
-                    body.signal_trigger,
-                    body.notes or "",
-                    body.opened_at,
-                    body.closed_at,
+                    body.trade_id,
+                    body.entry_notes or "",
+                    body.exit_notes or "",
+                    body.emotion_tag,
+                    body.lesson_learned or "",
+                    body.rating,
                 )
                 entry = _row_to_dict(row)
                 entry_id = entry["id"]
 
-                # Insert tags
                 tags = body.tags or []
                 if tags:
                     await conn.executemany(
-                        "INSERT INTO journal_tags (entry_id, tag) VALUES ($1, $2)",
+                        "INSERT INTO journal_tags (journal_id, tag) VALUES ($1, $2)",
                         [(row["id"], t) for t in tags],
                     )
                 entry["tags"] = tags
@@ -164,56 +143,53 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.get("/entries", tags=["Journal"])
     async def list_entries(
         pagination: PaginationParams = Query(),
-        strategy: Optional[str] = Query(None, description="Filter by strategy name"),
-        outcome: Optional[str] = Query(None, description="Filter by outcome"),
-        date_from: Optional[datetime] = Query(
-            None, description="Entries opened on or after"
-        ),
-        date_to: Optional[datetime] = Query(
-            None, description="Entries opened on or before"
+        emotion: Optional[str] = Query(None, description="Filter by emotion_tag"),
+        rating: Optional[int] = Query(
+            None, ge=1, le=5, description="Filter by rating"
         ),
         tag: Optional[str] = Query(None, description="Filter by tag"),
-        search: Optional[str] = Query(None, description="Search notes text"),
+        date_from: Optional[datetime] = Query(
+            None, description="Entries created on or after"
+        ),
+        date_to: Optional[datetime] = Query(
+            None, description="Entries created on or before"
+        ),
     ):
         """List journal entries with optional filters."""
         conditions = []
         params: list = []
         idx = 1
 
-        if strategy:
-            conditions.append(f"je.strategy_name = ${idx}")
-            params.append(strategy)
+        if emotion:
+            conditions.append(f"tj.emotion_tag = ${idx}")
+            params.append(emotion)
             idx += 1
-        if outcome:
-            conditions.append(f"je.outcome = ${idx}")
-            params.append(outcome)
+        if rating is not None:
+            conditions.append(f"tj.rating = ${idx}")
+            params.append(rating)
             idx += 1
         if date_from:
-            conditions.append(f"je.opened_at >= ${idx}")
+            conditions.append(f"tj.created_at >= ${idx}")
             params.append(date_from)
             idx += 1
         if date_to:
-            conditions.append(f"je.opened_at <= ${idx}")
+            conditions.append(f"tj.created_at <= ${idx}")
             params.append(date_to)
             idx += 1
         if tag:
             conditions.append(
-                f"EXISTS (SELECT 1 FROM journal_tags jt WHERE jt.entry_id = je.id AND jt.tag = ${idx})"
+                f"EXISTS (SELECT 1 FROM journal_tags jt WHERE jt.journal_id = tj.id AND jt.tag = ${idx})"
             )
             params.append(tag)
-            idx += 1
-        if search:
-            conditions.append(f"je.notes ILIKE ${idx}")
-            params.append(f"%{search}%")
             idx += 1
 
         where = "WHERE " + " AND ".join(conditions) if conditions else ""
 
-        count_query = f"SELECT COUNT(*) FROM journal_entries je {where}"
+        count_query = f"SELECT COUNT(*) FROM trade_journal tj {where}"
         data_query = f"""
-            SELECT je.* FROM journal_entries je
+            SELECT tj.* FROM trade_journal tj
             {where}
-            ORDER BY je.opened_at DESC
+            ORDER BY tj.created_at DESC
             LIMIT ${idx} OFFSET ${idx + 1}
         """
         params.extend([pagination.limit, pagination.offset])
@@ -227,7 +203,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 for row in rows:
                     entry = _row_to_dict(row)
                     tag_rows = await conn.fetch(
-                        "SELECT tag FROM journal_tags WHERE entry_id = $1", row["id"]
+                        "SELECT tag FROM journal_tags WHERE journal_id = $1",
+                        row["id"],
                     )
                     entry["tags"] = [r["tag"] for r in tag_rows]
                     entries.append(entry)
@@ -251,29 +228,31 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         try:
             async with db_pool.acquire() as conn:
                 row = await conn.fetchrow(
-                    "SELECT * FROM journal_entries WHERE id = $1", entry_id
+                    "SELECT * FROM trade_journal WHERE id = $1", entry_id
                 )
                 if not row:
                     return not_found("JournalEntry", str(entry_id))
                 entry = _row_to_dict(row)
                 tag_rows = await conn.fetch(
-                    "SELECT tag FROM journal_tags WHERE entry_id = $1", entry_id
+                    "SELECT tag FROM journal_tags WHERE journal_id = $1", entry_id
                 )
                 entry["tags"] = [r["tag"] for r in tag_rows]
-            return success_response(entry, "journal_entry", resource_id=str(entry_id))
+            return success_response(
+                entry, "journal_entry", resource_id=str(entry_id)
+            )
         except Exception:
             logger.exception("Failed to get journal entry")
             return server_error("Failed to get journal entry")
 
-    # --- Update (add notes/tags) ---
+    # --- Update ---
 
-    @app.patch("/entries/{entry_id}", tags=["Journal"])
+    @app.put("/entries/{entry_id}", tags=["Journal"])
     async def update_entry(entry_id: UUID, body: UpdateJournalEntry):
-        """Update a journal entry — add notes, tags, or close with exit price/P&L."""
+        """Update a journal entry."""
         try:
             async with db_pool.acquire() as conn:
                 existing = await conn.fetchrow(
-                    "SELECT id FROM journal_entries WHERE id = $1", entry_id
+                    "SELECT id FROM trade_journal WHERE id = $1", entry_id
                 )
                 if not existing:
                     return not_found("JournalEntry", str(entry_id))
@@ -282,7 +261,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 params: list = []
                 idx = 1
 
-                for field in ("notes", "exit_price", "pnl", "outcome", "closed_at"):
+                for field in (
+                    "entry_notes",
+                    "exit_notes",
+                    "emotion_tag",
+                    "lesson_learned",
+                    "rating",
+                ):
                     val = getattr(body, field, None)
                     if val is not None:
                         set_clauses.append(f"{field} = ${idx}")
@@ -291,7 +276,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
                 params.append(entry_id)
                 update_query = f"""
-                    UPDATE journal_entries
+                    UPDATE trade_journal
                     SET {', '.join(set_clauses)}
                     WHERE id = ${idx}
                     RETURNING *
@@ -299,64 +284,275 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 row = await conn.fetchrow(update_query, *params)
                 entry = _row_to_dict(row)
 
-                # Replace tags if provided
                 if body.tags is not None:
                     await conn.execute(
-                        "DELETE FROM journal_tags WHERE entry_id = $1", entry_id
+                        "DELETE FROM journal_tags WHERE journal_id = $1", entry_id
                     )
                     if body.tags:
                         await conn.executemany(
-                            "INSERT INTO journal_tags (entry_id, tag) VALUES ($1, $2)",
+                            "INSERT INTO journal_tags (journal_id, tag) VALUES ($1, $2)",
                             [(entry_id, t) for t in body.tags],
                         )
                     entry["tags"] = body.tags
                 else:
                     tag_rows = await conn.fetch(
-                        "SELECT tag FROM journal_tags WHERE entry_id = $1", entry_id
+                        "SELECT tag FROM journal_tags WHERE journal_id = $1",
+                        entry_id,
                     )
                     entry["tags"] = [r["tag"] for r in tag_rows]
 
-            return success_response(entry, "journal_entry", resource_id=str(entry_id))
+            return success_response(
+                entry, "journal_entry", resource_id=str(entry_id)
+            )
         except Exception:
             logger.exception("Failed to update journal entry")
             return server_error("Failed to update journal entry")
 
-    # --- Stats by tag ---
+    # --- Stats: win rate by emotion, avg PnL by rating, common mistakes ---
 
-    @app.get("/stats", tags=["Journal"])
+    @app.get("/stats", tags=["Analytics"])
     async def get_stats():
-        """Aggregate stats grouped by tag: win rate, avg P&L."""
-        query = """
+        """Analytics: win rate by emotion, avg PnL by rating, most common mistakes."""
+        emotion_query = """
+            SELECT
+                tj.emotion_tag,
+                COUNT(*)::int AS total_trades,
+                SUM(CASE WHEN pt.pnl > 0 THEN 1 ELSE 0 END)::int AS wins,
+                SUM(CASE WHEN pt.pnl <= 0 THEN 1 ELSE 0 END)::int AS losses,
+                ROUND(AVG(pt.pnl)::numeric, 4) AS avg_pnl,
+                ROUND(SUM(pt.pnl)::numeric, 4) AS total_pnl
+            FROM trade_journal tj
+            JOIN paper_trades pt ON pt.id = tj.trade_id
+            WHERE tj.emotion_tag IS NOT NULL
+              AND pt.status = 'CLOSED'
+            GROUP BY tj.emotion_tag
+            ORDER BY total_trades DESC
+        """
+        rating_query = """
+            SELECT
+                tj.rating,
+                COUNT(*)::int AS total_trades,
+                ROUND(AVG(pt.pnl)::numeric, 4) AS avg_pnl,
+                ROUND(SUM(pt.pnl)::numeric, 4) AS total_pnl
+            FROM trade_journal tj
+            JOIN paper_trades pt ON pt.id = tj.trade_id
+            WHERE tj.rating IS NOT NULL
+              AND pt.status = 'CLOSED'
+            GROUP BY tj.rating
+            ORDER BY tj.rating
+        """
+        mistakes_query = """
             SELECT
                 jt.tag,
-                COUNT(*)::int                                                AS total_trades,
-                SUM(CASE WHEN je.outcome = 'WIN' THEN 1 ELSE 0 END)::int   AS wins,
-                SUM(CASE WHEN je.outcome = 'LOSS' THEN 1 ELSE 0 END)::int  AS losses,
-                ROUND(AVG(je.pnl)::numeric, 4)                              AS avg_pnl,
-                ROUND(SUM(je.pnl)::numeric, 4)                              AS total_pnl
+                COUNT(*)::int AS occurrences,
+                ROUND(AVG(pt.pnl)::numeric, 4) AS avg_pnl
             FROM journal_tags jt
-            JOIN journal_entries je ON je.id = jt.entry_id
-            WHERE je.outcome IN ('WIN', 'LOSS')
+            JOIN trade_journal tj ON tj.id = jt.journal_id
+            JOIN paper_trades pt ON pt.id = tj.trade_id
+            WHERE pt.pnl < 0 AND pt.status = 'CLOSED'
             GROUP BY jt.tag
-            ORDER BY total_trades DESC
+            ORDER BY occurrences DESC
+            LIMIT 10
+        """
+        try:
+            async with db_pool.acquire() as conn:
+                emotion_rows = await conn.fetch(emotion_query)
+                rating_rows = await conn.fetch(rating_query)
+                mistake_rows = await conn.fetch(mistakes_query)
+
+            win_rate_by_emotion = []
+            for row in emotion_rows:
+                item = dict(row)
+                total = item["total_trades"]
+                item["win_rate"] = (
+                    round(item["wins"] / total, 4) if total > 0 else 0
+                )
+                for key in ("avg_pnl", "total_pnl"):
+                    if item[key] is not None:
+                        item[key] = float(item[key])
+                win_rate_by_emotion.append(item)
+
+            avg_pnl_by_rating = []
+            for row in rating_rows:
+                item = dict(row)
+                for key in ("avg_pnl", "total_pnl"):
+                    if item[key] is not None:
+                        item[key] = float(item[key])
+                avg_pnl_by_rating.append(item)
+
+            common_mistakes = []
+            for row in mistake_rows:
+                item = dict(row)
+                if item["avg_pnl"] is not None:
+                    item["avg_pnl"] = float(item["avg_pnl"])
+                common_mistakes.append(item)
+
+            return success_response(
+                {
+                    "win_rate_by_emotion": win_rate_by_emotion,
+                    "avg_pnl_by_rating": avg_pnl_by_rating,
+                    "common_mistakes": common_mistakes,
+                },
+                "journal_stats",
+            )
+        except Exception:
+            logger.exception("Failed to get journal stats")
+            return server_error("Failed to get journal stats")
+
+    # --- Streaks: winning/losing streaks with context ---
+
+    @app.get("/streaks", tags=["Analytics"])
+    async def get_streaks():
+        """Get winning/losing streaks with context."""
+        query = """
+            SELECT
+                pt.id AS trade_id,
+                pt.symbol,
+                pt.pnl,
+                pt.closed_at,
+                tj.emotion_tag,
+                tj.rating
+            FROM paper_trades pt
+            LEFT JOIN trade_journal tj ON tj.trade_id = pt.id
+            WHERE pt.status = 'CLOSED'
+            ORDER BY pt.closed_at ASC
         """
         try:
             async with db_pool.acquire() as conn:
                 rows = await conn.fetch(query)
 
-            stats = []
+            trades = []
             for row in rows:
                 item = dict(row)
-                total = item["total_trades"]
-                item["win_rate"] = round(item["wins"] / total, 4) if total > 0 else 0
-                for key in ("avg_pnl", "total_pnl"):
-                    if item[key] is not None:
-                        item[key] = float(item[key])
-                stats.append(item)
+                if item.get("trade_id"):
+                    item["trade_id"] = str(item["trade_id"])
+                if item.get("pnl") is not None:
+                    item["pnl"] = float(item["pnl"])
+                if item.get("closed_at"):
+                    item["closed_at"] = item["closed_at"].isoformat()
+                trades.append(item)
 
-            return collection_response(stats, "journal_stats")
+            empty_streak = {"type": "none", "length": 0, "trades": []}
+            if not trades:
+                return success_response(
+                    {
+                        "current_streak": empty_streak,
+                        "longest_winning_streak": {"length": 0, "trades": []},
+                        "longest_losing_streak": {"length": 0, "trades": []},
+                    },
+                    "journal_streaks",
+                )
+
+            streaks = []
+            current_type = None
+            current_trades: list = []
+
+            for trade in trades:
+                pnl = trade.get("pnl", 0) or 0
+                trade_type = "winning" if pnl > 0 else "losing"
+
+                if trade_type == current_type:
+                    current_trades.append(trade)
+                else:
+                    if current_trades:
+                        streaks.append(
+                            {
+                                "type": current_type,
+                                "length": len(current_trades),
+                                "trades": current_trades,
+                            }
+                        )
+                    current_type = trade_type
+                    current_trades = [trade]
+
+            if current_trades:
+                streaks.append(
+                    {
+                        "type": current_type,
+                        "length": len(current_trades),
+                        "trades": current_trades,
+                    }
+                )
+
+            current_streak = streaks[-1] if streaks else empty_streak
+
+            winning_streaks = [s for s in streaks if s["type"] == "winning"]
+            losing_streaks = [s for s in streaks if s["type"] == "losing"]
+
+            longest_win = (
+                max(winning_streaks, key=lambda s: s["length"])
+                if winning_streaks
+                else {"length": 0, "trades": []}
+            )
+            longest_loss = (
+                max(losing_streaks, key=lambda s: s["length"])
+                if losing_streaks
+                else {"length": 0, "trades": []}
+            )
+
+            return success_response(
+                {
+                    "current_streak": current_streak,
+                    "longest_winning_streak": longest_win,
+                    "longest_losing_streak": longest_loss,
+                },
+                "journal_streaks",
+            )
         except Exception:
-            logger.exception("Failed to get journal stats")
-            return server_error("Failed to get journal stats")
+            logger.exception("Failed to get streaks")
+            return server_error("Failed to get streaks")
+
+    # --- Calendar: PnL by day heatmap data ---
+
+    @app.get("/calendar", tags=["Analytics"])
+    async def get_calendar(
+        date_from: Optional[datetime] = Query(None, description="Start date"),
+        date_to: Optional[datetime] = Query(None, description="End date"),
+    ):
+        """Calendar heatmap data — PnL aggregated by day."""
+        conditions = ["pt.status = 'CLOSED'", "pt.closed_at IS NOT NULL"]
+        params: list = []
+        idx = 1
+
+        if date_from:
+            conditions.append(f"pt.closed_at >= ${idx}")
+            params.append(date_from)
+            idx += 1
+        if date_to:
+            conditions.append(f"pt.closed_at <= ${idx}")
+            params.append(date_to)
+            idx += 1
+
+        where = "WHERE " + " AND ".join(conditions)
+
+        query = f"""
+            SELECT
+                DATE(pt.closed_at) AS date,
+                COUNT(*)::int AS trade_count,
+                SUM(CASE WHEN pt.pnl > 0 THEN 1 ELSE 0 END)::int AS wins,
+                SUM(CASE WHEN pt.pnl <= 0 THEN 1 ELSE 0 END)::int AS losses,
+                ROUND(SUM(pt.pnl)::numeric, 4) AS daily_pnl
+            FROM paper_trades pt
+            {where}
+            GROUP BY DATE(pt.closed_at)
+            ORDER BY date
+        """
+        try:
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch(query, *params)
+
+            days = []
+            for row in rows:
+                item = dict(row)
+                if item.get("date"):
+                    item["date"] = item["date"].isoformat()
+                if item.get("daily_pnl") is not None:
+                    item["daily_pnl"] = float(item["daily_pnl"])
+                days.append(item)
+
+            return collection_response(days, "calendar_day")
+        except Exception:
+            logger.exception("Failed to get calendar data")
+            return server_error("Failed to get calendar data")
 
     return app
