@@ -103,9 +103,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     body.caption,
                 )
             except asyncpg.UniqueViolationError:
-                return conflict(
-                    f"Strategy '{strategy_id}' is already shared"
-                )
+                return conflict(f"Strategy '{strategy_id}' is already shared")
             except Exception as e:
                 logger.error("Failed to share strategy: %s", e)
                 return server_error(str(e))
@@ -340,7 +338,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     str(existing["id"]),
                 )
                 return success_response(
-                    {"follower_id": body.follower_id, "followed_id": user_id, "following": False},
+                    {
+                        "follower_id": body.follower_id,
+                        "followed_id": user_id,
+                        "following": False,
+                    },
                     "follow_toggle",
                 )
             else:
@@ -354,7 +356,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     user_id,
                 )
                 return success_response(
-                    {"follower_id": body.follower_id, "followed_id": user_id, "following": True},
+                    {
+                        "follower_id": body.follower_id,
+                        "followed_id": user_id,
+                        "following": True,
+                    },
                     "follow_toggle",
                 )
 
@@ -384,9 +390,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             )
         """
         async with db_pool.acquire() as conn:
-            rows = await conn.fetch(
-                query, user_id, pagination.limit, pagination.offset
-            )
+            rows = await conn.fetch(query, user_id, pagination.limit, pagination.offset)
             total = await conn.fetchval(count_query, user_id)
 
         items = []
