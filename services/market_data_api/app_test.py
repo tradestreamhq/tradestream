@@ -94,3 +94,76 @@ class TestInstruments:
         assert resp.status_code == 200
         body = resp.json()
         assert body["data"]["attributes"]["symbol"] == "BTC/USD"
+
+
+class TestCandleEndpoints:
+    def test_get_candles_by_pair(self, client):
+        tc, influxdb, redis = client
+        influxdb.get_candles.return_value = [
+            {
+                "time": "2026-01-01T00:00:00Z",
+                "open": 60000.0,
+                "high": 61000.0,
+                "low": 59000.0,
+                "close": 60500.0,
+                "volume": 100.0,
+            }
+        ]
+
+        resp = tc.get("/candles/BTC%2FUSD?timeframe=1h")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body["data"]) == 1
+
+    def test_get_candles_by_pair_default_timeframe(self, client):
+        tc, influxdb, redis = client
+        influxdb.get_candles.return_value = []
+
+        resp = tc.get("/candles/BTC%2FUSD")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["data"] == []
+
+    def test_get_candles_by_pair_empty(self, client):
+        tc, influxdb, redis = client
+        influxdb.get_candles.return_value = []
+
+        resp = tc.get("/candles/ETH%2FUSD?timeframe=5m")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["data"] == []
+
+    def test_get_latest_candles(self, client):
+        tc, influxdb, redis = client
+        influxdb.get_candles.return_value = [
+            {
+                "time": "2026-01-01T00:05:00Z",
+                "open": 60500.0,
+                "high": 61000.0,
+                "low": 60000.0,
+                "close": 60800.0,
+                "volume": 50.0,
+            },
+            {
+                "time": "2026-01-01T00:00:00Z",
+                "open": 60000.0,
+                "high": 60500.0,
+                "low": 59500.0,
+                "close": 60500.0,
+                "volume": 80.0,
+            },
+        ]
+
+        resp = tc.get("/candles/BTC%2FUSD/latest?timeframe=5m&count=2")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body["data"]) == 2
+
+    def test_get_latest_candles_empty(self, client):
+        tc, influxdb, redis = client
+        influxdb.get_candles.return_value = []
+
+        resp = tc.get("/candles/BTC%2FUSD/latest?timeframe=1h&count=5")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["data"] == []
