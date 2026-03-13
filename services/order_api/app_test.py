@@ -133,7 +133,9 @@ class TestPlaceOrder:
 
     def test_place_stop_order(self, client):
         tc, conn = client
-        conn.fetchrow.return_value = _sample_order(order_type="STOP", stop_price=48000.0)
+        conn.fetchrow.return_value = _sample_order(
+            order_type="STOP", stop_price=48000.0
+        )
 
         resp = tc.post(
             "",
@@ -418,9 +420,7 @@ class TestCancelOrder:
 
     def test_cancel_filled_order(self, client):
         tc, conn = client
-        conn.fetchrow.return_value = FakeRecord(
-            id=uuid.UUID(ORDER_ID), status="FILLED"
-        )
+        conn.fetchrow.return_value = FakeRecord(id=uuid.UUID(ORDER_ID), status="FILLED")
 
         resp = tc.delete(f"/{ORDER_ID}")
         assert resp.status_code == 409

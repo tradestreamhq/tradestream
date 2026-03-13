@@ -65,8 +65,12 @@ class PlaceOrderRequest(BaseModel):
     side: OrderSide = Field(..., description="BUY or SELL")
     order_type: OrderType = Field(..., description="MARKET, LIMIT, or STOP")
     quantity: float = Field(..., gt=0, description="Order quantity")
-    price: Optional[float] = Field(None, gt=0, description="Limit price (required for LIMIT orders)")
-    stop_price: Optional[float] = Field(None, gt=0, description="Stop price (required for STOP orders)")
+    price: Optional[float] = Field(
+        None, gt=0, description="Limit price (required for LIMIT orders)"
+    )
+    stop_price: Optional[float] = Field(
+        None, gt=0, description="Stop price (required for STOP orders)"
+    )
 
 
 class ModifyOrderRequest(BaseModel):
@@ -161,7 +165,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             return server_error("Failed to place order")
 
         order = _serialize_order(row)
-        return success_response(order, "order", resource_id=order["id"], status_code=201)
+        return success_response(
+            order, "order", resource_id=order["id"], status_code=201
+        )
 
     # --- List Orders ---
 
@@ -171,8 +177,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         status: Optional[OrderStatus] = Query(None, description="Filter by status"),
         symbol: Optional[str] = Query(None, description="Filter by symbol"),
         side: Optional[OrderSide] = Query(None, description="Filter by side"),
-        start_date: Optional[str] = Query(None, description="Filter from date (ISO format)"),
-        end_date: Optional[str] = Query(None, description="Filter to date (ISO format)"),
+        start_date: Optional[str] = Query(
+            None, description="Filter from date (ISO format)"
+        ),
+        end_date: Optional[str] = Query(
+            None, description="Filter to date (ISO format)"
+        ),
     ):
         """List orders with optional filters."""
         conditions = []
@@ -221,7 +231,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             return server_error("Failed to list orders")
 
         items = [_serialize_order(row) for row in rows]
-        return collection_response(items, "order", total=total, limit=pagination.limit, offset=pagination.offset)
+        return collection_response(
+            items,
+            "order",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
+        )
 
     # --- Get Order Detail ---
 
@@ -291,7 +307,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     async def modify_order(order_id: str, body: ModifyOrderRequest):
         """Modify a pending or open order (price and/or quantity)."""
         if body.price is None and body.quantity is None:
-            return validation_error("At least one of price or quantity must be provided")
+            return validation_error(
+                "At least one of price or quantity must be provided"
+            )
 
         try:
             async with db_pool.acquire() as conn:
