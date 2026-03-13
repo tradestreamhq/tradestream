@@ -62,7 +62,8 @@ class CreateFromTemplate(BaseModel):
     template_id: str = Field(..., description="Template identifier")
     name: str = Field(..., description="Name for the new strategy")
     parameters: Dict[str, Any] = Field(
-        default_factory=dict, description="Parameter overrides (defaults used if omitted)"
+        default_factory=dict,
+        description="Parameter overrides (defaults used if omitted)",
     )
 
 
