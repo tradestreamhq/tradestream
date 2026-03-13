@@ -2,7 +2,10 @@
 
 import pytest
 
-from services.strategy_yaml_validator.migrate import scaffold_strategy_yaml, _to_snake_case
+from services.strategy_yaml_validator.migrate import (
+    scaffold_strategy_yaml,
+    _to_snake_case,
+)
 from services.strategy_yaml_validator.validator import StrategyYamlValidator
 
 
@@ -44,6 +47,7 @@ class TestScaffoldStrategyYaml:
 
     def test_scaffold_is_valid_yaml(self):
         import yaml
+
         result = scaffold_strategy_yaml("TestStrategy")
         parsed = yaml.safe_load(result)
         assert isinstance(parsed, dict)

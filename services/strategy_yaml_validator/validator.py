@@ -86,28 +86,36 @@ class StrategyYamlValidator:
             line = None
             if hasattr(e, "problem_mark") and e.problem_mark is not None:
                 line = e.problem_mark.line + 1
-            errors.append(ValidationError(
-                message=f"YAML parse error: {e}",
-                line=line,
-            ))
+            errors.append(
+                ValidationError(
+                    message=f"YAML parse error: {e}",
+                    line=line,
+                )
+            )
             return ValidationResult.failure(errors)
 
         if not isinstance(strategy, dict):
-            errors.append(ValidationError(
-                message="YAML must parse to a mapping, not a list or scalar",
-            ))
+            errors.append(
+                ValidationError(
+                    message="YAML must parse to a mapping, not a list or scalar",
+                )
+            )
             return ValidationResult.failure(errors)
 
         # Step 2: JSON Schema validation
         validator = jsonschema.Draft202012Validator(self.schema)
-        for error in sorted(validator.iter_errors(strategy), key=lambda e: list(e.path)):
+        for error in sorted(
+            validator.iter_errors(strategy), key=lambda e: list(e.path)
+        ):
             path_str = ".".join(str(p) for p in error.absolute_path)
             line = _find_line_number(yaml_content, list(error.absolute_path))
-            errors.append(ValidationError(
-                message=error.message,
-                path=path_str,
-                line=line,
-            ))
+            errors.append(
+                ValidationError(
+                    message=error.message,
+                    path=path_str,
+                    line=line,
+                )
+            )
 
         # Step 3: Cross-field consistency checks
         errors.extend(self._check_cross_field(strategy, yaml_content))
@@ -139,22 +147,26 @@ class StrategyYamlValidator:
                 ind_ref = cond.get("indicator")
                 if ind_ref and ind_ref not in indicator_ids:
                     line = _find_line_number(yaml_content, [section])
-                    errors.append(ValidationError(
-                        message=f"references undefined indicator '{ind_ref}'",
-                        path=f"{section}.{idx}.indicator",
-                        line=line,
-                    ))
+                    errors.append(
+                        ValidationError(
+                            message=f"references undefined indicator '{ind_ref}'",
+                            path=f"{section}.{idx}.indicator",
+                            line=line,
+                        )
+                    )
 
                 # Check crosses references in params
                 params = cond.get("params", {})
                 if isinstance(params, dict):
                     crosses = params.get("crosses")
                     if crosses and crosses not in indicator_ids:
-                        errors.append(ValidationError(
-                            message=f"'crosses' references undefined indicator '{crosses}'",
-                            path=f"{section}.{idx}.params.crosses",
-                            line=_find_line_number(yaml_content, [section]),
-                        ))
+                        errors.append(
+                            ValidationError(
+                                message=f"'crosses' references undefined indicator '{crosses}'",
+                                path=f"{section}.{idx}.params.crosses",
+                                line=_find_line_number(yaml_content, [section]),
+                            )
+                        )
 
         # Check parameter references in indicator params
         param_names: set[str] = set()
@@ -169,11 +181,15 @@ class StrategyYamlValidator:
                     if isinstance(value, str) and re.fullmatch(r"\$\{\w+\}", value):
                         param_ref = value[2:-1]
                         if param_ref not in param_names:
-                            errors.append(ValidationError(
-                                message=f"references undefined parameter '{param_ref}'",
-                                path=f"indicators.{idx}.params.{key}",
-                                line=_find_line_number(yaml_content, ["indicators"]),
-                            ))
+                            errors.append(
+                                ValidationError(
+                                    message=f"references undefined parameter '{param_ref}'",
+                                    path=f"indicators.{idx}.params.{key}",
+                                    line=_find_line_number(
+                                        yaml_content, ["indicators"]
+                                    ),
+                                )
+                            )
 
         # Check risk_params consistency
         risk = strategy.get("risk_params", {})
@@ -185,10 +201,12 @@ class StrategyYamlValidator:
                 and take_profit is not None
                 and take_profit <= stop_loss
             ):
-                errors.append(ValidationError(
-                    message="take_profit_pct should be greater than stop_loss_pct",
-                    path="risk_params",
-                    line=_find_line_number(yaml_content, ["risk_params"]),
-                ))
+                errors.append(
+                    ValidationError(
+                        message="take_profit_pct should be greater than stop_loss_pct",
+                        path="risk_params",
+                        line=_find_line_number(yaml_content, ["risk_params"]),
+                    )
+                )
 
         return errors
