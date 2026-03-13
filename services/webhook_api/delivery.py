@@ -28,9 +28,7 @@ RETRY_DELAYS_SECONDS = [10, 60, 300]
 
 def sign_payload(payload_bytes: bytes, secret: str) -> str:
     """Compute HMAC-SHA256 signature for *payload_bytes* using *secret*."""
-    return hmac.new(
-        secret.encode("utf-8"), payload_bytes, hashlib.sha256
-    ).hexdigest()
+    return hmac.new(secret.encode("utf-8"), payload_bytes, hashlib.sha256).hexdigest()
 
 
 def build_delivery_headers(signature: str, event_type: str, delivery_id: str) -> dict:

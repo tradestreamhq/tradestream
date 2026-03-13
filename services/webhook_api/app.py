@@ -104,7 +104,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         if item.get("created_at"):
             item["created_at"] = item["created_at"].isoformat()
         item["events"] = list(item["events"])
-        return success_response(item, "webhook", resource_id=item["id"], status_code=201)
+        return success_response(
+            item, "webhook", resource_id=item["id"], status_code=201
+        )
 
     # ------------------------------------------------------------------
     # GET / — list all webhooks
