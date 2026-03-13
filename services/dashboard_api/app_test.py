@@ -46,8 +46,15 @@ class TestOverview:
     def test_get_overview(self, client):
         tc, conn = client
         conn.fetchrow.side_effect = [
-            FakeRecord(portfolio_value=100000.0, total_unrealized_pnl=5000.0),
-            FakeRecord(total_realized_pnl=12000.0, pnl_today=500.0, pnl_week=2000.0, pnl_month=8000.0),
+            FakeRecord(
+                portfolio_value=100000.0, total_unrealized_pnl=5000.0
+            ),
+            FakeRecord(
+                total_realized_pnl=12000.0,
+                pnl_today=500.0,
+                pnl_week=2000.0,
+                pnl_month=8000.0,
+            ),
             FakeRecord(active_strategies=5),
             FakeRecord(open_positions=3),
             FakeRecord(pending_alerts=2),
@@ -66,8 +73,15 @@ class TestOverview:
     def test_overview_cached(self, client):
         tc, conn = client
         conn.fetchrow.side_effect = [
-            FakeRecord(portfolio_value=100000.0, total_unrealized_pnl=5000.0),
-            FakeRecord(total_realized_pnl=12000.0, pnl_today=500.0, pnl_week=2000.0, pnl_month=8000.0),
+            FakeRecord(
+                portfolio_value=100000.0, total_unrealized_pnl=5000.0
+            ),
+            FakeRecord(
+                total_realized_pnl=12000.0,
+                pnl_today=500.0,
+                pnl_week=2000.0,
+                pnl_month=8000.0,
+            ),
             FakeRecord(active_strategies=5),
             FakeRecord(open_positions=3),
             FakeRecord(pending_alerts=2),
@@ -135,8 +149,14 @@ class TestTopStrategies:
             ],
             # Sparkline query
             [
-                FakeRecord(day=datetime(2026, 1, 1, tzinfo=timezone.utc), daily_pnl=100.0),
-                FakeRecord(day=datetime(2026, 1, 2, tzinfo=timezone.utc), daily_pnl=-50.0),
+                FakeRecord(
+                    day=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                    daily_pnl=100.0,
+                ),
+                FakeRecord(
+                    day=datetime(2026, 1, 2, tzinfo=timezone.utc),
+                    daily_pnl=-50.0,
+                ),
             ],
         ]
 
