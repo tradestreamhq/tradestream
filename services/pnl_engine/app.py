@@ -133,12 +133,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     "size": float(r.size),
                     "pnl": float(r.pnl),
                     "pnl_pct": float(r.pnl_pct),
-                    "lot_timestamp": r.lot_timestamp.isoformat()
-                    if r.lot_timestamp
-                    else None,
-                    "exit_timestamp": r.exit_timestamp.isoformat()
-                    if r.exit_timestamp
-                    else None,
+                    "lot_timestamp": (
+                        r.lot_timestamp.isoformat() if r.lot_timestamp else None
+                    ),
+                    "exit_timestamp": (
+                        r.exit_timestamp.isoformat() if r.exit_timestamp else None
+                    ),
                 }
                 # Apply time filters on the realized events
                 if start and r.exit_timestamp:
@@ -181,7 +181,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             return collection_response([], "unrealized_pnl")
 
         trades = [dict(r) for r in trade_rows]
-        current_prices = {r["symbol"]: Decimal(str(r["current_price"])) for r in price_rows}
+        current_prices = {
+            r["symbol"]: Decimal(str(r["current_price"])) for r in price_rows
+        }
 
         engine = _build_engine(trades, CostBasisMethod.FIFO)
 
@@ -259,7 +261,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             )
 
         trades = [dict(r) for r in trade_rows]
-        current_prices = {r["symbol"]: Decimal(str(r["current_price"])) for r in price_rows}
+        current_prices = {
+            r["symbol"]: Decimal(str(r["current_price"])) for r in price_rows
+        }
 
         engine = _build_engine(trades, cost_method)
 
