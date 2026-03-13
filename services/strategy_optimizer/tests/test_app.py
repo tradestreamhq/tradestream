@@ -35,7 +35,12 @@ def _valid_request():
     return {
         "strategy_name": "SMA_RSI",
         "parameter_ranges": [
-            {"name": "movingAveragePeriod", "min_value": 10, "max_value": 20, "step": 10},
+            {
+                "name": "movingAveragePeriod",
+                "min_value": 10,
+                "max_value": 20,
+                "step": 10,
+            },
             {"name": "rsiPeriod", "min_value": 10, "max_value": 14, "step": 4},
         ],
         "instrument": "BTC/USD",
@@ -110,7 +115,9 @@ class TestStatusEndpoint:
         body = resp.json()
         assert body["data"]["attributes"]["job_id"] == job_id
         assert body["data"]["attributes"]["status"] in [
-            "PENDING", "RUNNING", "COMPLETED"
+            "PENDING",
+            "RUNNING",
+            "COMPLETED",
         ]
 
     def test_status_completed(self, client):

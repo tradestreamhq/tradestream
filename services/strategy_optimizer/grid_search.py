@@ -107,9 +107,7 @@ class GridSearchOptimizer:
         results: List[GridSearchResult] = []
         for i, params in enumerate(grid):
             try:
-                metrics = self.runner.run_strategy(
-                    ohlcv, config.strategy_name, params
-                )
+                metrics = self.runner.run_strategy(ohlcv, config.strategy_name, params)
                 results.append(
                     GridSearchResult(
                         parameters=params,

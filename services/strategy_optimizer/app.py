@@ -187,9 +187,7 @@ def create_app(
                     f"Parameter '{pr.name}': min_value must be <= max_value"
                 )
             if pr.step <= 0:
-                return validation_error(
-                    f"Parameter '{pr.name}': step must be positive"
-                )
+                return validation_error(f"Parameter '{pr.name}': step must be positive")
 
         ranges = [
             ParameterRange(
@@ -257,7 +255,11 @@ def create_app(
 
         if job.status == OptimizationStatus.PENDING:
             return success_response(
-                {"job_id": job.job_id, "status": "PENDING", "message": "Not started yet"},
+                {
+                    "job_id": job.job_id,
+                    "status": "PENDING",
+                    "message": "Not started yet",
+                },
                 "optimization_results",
                 resource_id=job.job_id,
             )
