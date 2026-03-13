@@ -67,9 +67,7 @@ async def _load_strategy_returns(
         GROUP BY si.id
     """
     alloc_rows = await conn.fetch(alloc_query)
-    alloc_map = {
-        row["strategy_id"]: float(row["capital"]) for row in alloc_rows
-    }
+    alloc_map = {row["strategy_id"]: float(row["capital"]) for row in alloc_rows}
 
     # Build StrategyReturn objects
     strategy_returns = []
