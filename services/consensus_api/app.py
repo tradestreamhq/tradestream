@@ -120,15 +120,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             if sid in seen_strategies:
                 continue
             seen_strategies.add(sid)
-            signals.append(Signal(
-                strategy_id=sid,
-                spec_id=str(row["spec_id"]),
-                instrument=row["instrument"],
-                signal_type=row["signal_type"],
-                strength=float(row["strength"]) if row["strength"] else 0.5,
-                price=float(row["price"]) if row["price"] else 0.0,
-                timestamp=row["created_at"],
-            ))
+            signals.append(
+                Signal(
+                    strategy_id=sid,
+                    spec_id=str(row["spec_id"]),
+                    instrument=row["instrument"],
+                    signal_type=row["signal_type"],
+                    strength=float(row["strength"]) if row["strength"] else 0.5,
+                    price=float(row["price"]) if row["price"] else 0.0,
+                    timestamp=row["created_at"],
+                )
+            )
         return signals
 
     def _consensus_to_dict(cs: ConsensusSignal) -> Dict[str, Any]:
@@ -225,8 +227,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             items.append(item)
 
         return collection_response(
-            items, "consensus_signal", total=total,
-            limit=pagination.limit, offset=pagination.offset,
+            items,
+            "consensus_signal",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
     @app.get("/agreement", tags=["Consensus"])
@@ -260,15 +265,17 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             if sid in seen[instrument]:
                 continue
             seen[instrument].add(sid)
-            signals_by_pair[instrument].append(Signal(
-                strategy_id=sid,
-                spec_id=str(row["spec_id"]),
-                instrument=instrument,
-                signal_type=row["signal_type"],
-                strength=float(row["strength"]) if row["strength"] else 0.5,
-                price=float(row["price"]) if row["price"] else 0.0,
-                timestamp=row["created_at"],
-            ))
+            signals_by_pair[instrument].append(
+                Signal(
+                    strategy_id=sid,
+                    spec_id=str(row["spec_id"]),
+                    instrument=instrument,
+                    signal_type=row["signal_type"],
+                    strength=float(row["strength"]) if row["strength"] else 0.5,
+                    price=float(row["price"]) if row["price"] else 0.0,
+                    timestamp=row["created_at"],
+                )
+            )
 
         matrix = aggregator.compute_agreement_matrix(signals_by_pair)
 
@@ -277,7 +284,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "matrix": matrix,
                 "pairs_analyzed": len(signals_by_pair),
                 "strategies": sorted(
-                    set(s.strategy_id for sigs in signals_by_pair.values() for s in sigs)
+                    set(
+                        s.strategy_id for sigs in signals_by_pair.values() for s in sigs
+                    )
                 ),
             },
             "agreement_matrix",

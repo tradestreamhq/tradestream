@@ -52,8 +52,11 @@ def client():
 class TestStrategyWeight:
     def test_compute_weight_balanced(self):
         sw = StrategyWeight(
-            strategy_id="s1", spec_id="sp1", strategy_name="test",
-            win_rate=0.7, sharpe_ratio=1.5,
+            strategy_id="s1",
+            spec_id="sp1",
+            strategy_name="test",
+            win_rate=0.7,
+            sharpe_ratio=1.5,
         )
         w = sw.compute_weight()
         # 0.4 * 0.7 + 0.6 * (1.5/3.0) = 0.28 + 0.30 = 0.58
@@ -61,8 +64,11 @@ class TestStrategyWeight:
 
     def test_compute_weight_high_sharpe(self):
         sw = StrategyWeight(
-            strategy_id="s1", spec_id="sp1", strategy_name="test",
-            win_rate=0.5, sharpe_ratio=3.0,
+            strategy_id="s1",
+            spec_id="sp1",
+            strategy_name="test",
+            win_rate=0.5,
+            sharpe_ratio=3.0,
         )
         w = sw.compute_weight()
         # 0.4 * 0.5 + 0.6 * 1.0 = 0.20 + 0.60 = 0.80
@@ -70,8 +76,11 @@ class TestStrategyWeight:
 
     def test_compute_weight_clamped(self):
         sw = StrategyWeight(
-            strategy_id="s1", spec_id="sp1", strategy_name="test",
-            win_rate=1.5, sharpe_ratio=10.0,
+            strategy_id="s1",
+            spec_id="sp1",
+            strategy_name="test",
+            win_rate=1.5,
+            sharpe_ratio=10.0,
         )
         w = sw.compute_weight()
         # clamped: 0.4 * 1.0 + 0.6 * 1.0 = 1.0
@@ -79,15 +88,20 @@ class TestStrategyWeight:
 
     def test_compute_weight_zero(self):
         sw = StrategyWeight(
-            strategy_id="s1", spec_id="sp1", strategy_name="test",
-            win_rate=0.0, sharpe_ratio=-1.0,
+            strategy_id="s1",
+            spec_id="sp1",
+            strategy_name="test",
+            win_rate=0.0,
+            sharpe_ratio=-1.0,
         )
         w = sw.compute_weight()
         assert abs(w - 0.0) < 0.001
 
 
 class TestSignalAggregator:
-    def _make_signal(self, strategy_id, signal_type, strength=0.8, price=100.0, minutes_ago=0):
+    def _make_signal(
+        self, strategy_id, signal_type, strength=0.8, price=100.0, minutes_ago=0
+    ):
         return Signal(
             strategy_id=strategy_id,
             spec_id=f"spec_{strategy_id}",
@@ -101,8 +115,10 @@ class TestSignalAggregator:
     def _make_weights(self, strategy_ids, weight_val=0.5):
         return {
             sid: StrategyWeight(
-                strategy_id=sid, spec_id=f"spec_{sid}",
-                strategy_name=f"strat_{sid}", weight=weight_val,
+                strategy_id=sid,
+                spec_id=f"spec_{sid}",
+                strategy_name=f"strat_{sid}",
+                weight=weight_val,
             )
             for sid in strategy_ids
         }
@@ -180,11 +196,15 @@ class TestSignalAggregator:
         ]
         weights = {
             "s1": StrategyWeight(
-                strategy_id="s1", spec_id="sp1", strategy_name="good",
+                strategy_id="s1",
+                spec_id="sp1",
+                strategy_name="good",
                 weight=0.9,
             ),
             "s2": StrategyWeight(
-                strategy_id="s2", spec_id="sp2", strategy_name="bad",
+                strategy_id="s2",
+                spec_id="sp2",
+                strategy_name="bad",
                 weight=0.1,
             ),
         }
@@ -311,10 +331,17 @@ class TestConsensusEndpoint:
         now = datetime.now(timezone.utc)
         conn.fetch.side_effect = [
             [],  # no weights
-            [FakeRecord(
-                strategy_id="s1", spec_id="sp1", instrument="BTC-USD",
-                signal_type="BUY", strength=0.8, price=50000.0, created_at=now,
-            )],
+            [
+                FakeRecord(
+                    strategy_id="s1",
+                    spec_id="sp1",
+                    instrument="BTC-USD",
+                    signal_type="BUY",
+                    strength=0.8,
+                    price=50000.0,
+                    created_at=now,
+                )
+            ],
         ]
         resp = tc.get("/BTC-USD")
         assert resp.status_code == 200
@@ -329,12 +356,18 @@ class TestConsensusHistoryEndpoint:
         now = datetime.now(timezone.utc)
         conn.fetch.return_value = [
             FakeRecord(
-                id=sig_id, instrument="BTC-USD", direction="LONG",
-                confidence=0.85, contributing_signals=3,
-                agreeing_signals=2, dissenting_signals=1,
-                weighted_score=1.2, avg_price=50000.0,
+                id=sig_id,
+                instrument="BTC-USD",
+                direction="LONG",
+                confidence=0.85,
+                contributing_signals=3,
+                agreeing_signals=2,
+                dissenting_signals=1,
+                weighted_score=1.2,
+                avg_price=50000.0,
                 signal_details=[],
-                window_start=now, window_end=now,
+                window_start=now,
+                window_end=now,
                 created_at=now,
             )
         ]
@@ -362,11 +395,14 @@ class TestConsensusHistoryEndpoint:
 class TestConfigEndpoint:
     def test_update_config(self, client):
         tc, conn = client
-        resp = tc.put("/config", json={
-            "window_seconds": 120,
-            "min_strategies": 3,
-            "confidence_threshold": 0.7,
-        })
+        resp = tc.put(
+            "/config",
+            json={
+                "window_seconds": 120,
+                "min_strategies": 3,
+                "confidence_threshold": 0.7,
+            },
+        )
         assert resp.status_code == 200
         body = resp.json()
         attrs = body["data"]["attributes"]

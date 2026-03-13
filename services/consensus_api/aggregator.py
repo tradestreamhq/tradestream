@@ -154,13 +154,15 @@ class SignalAggregator:
             price_sum += signal.price * w
             price_weight_sum += w
 
-            signal_details.append({
-                "strategy_id": signal.strategy_id,
-                "signal_type": signal.signal_type,
-                "strength": signal.strength,
-                "weight": w,
-                "effective_weight": effective_weight,
-            })
+            signal_details.append(
+                {
+                    "strategy_id": signal.strategy_id,
+                    "signal_type": signal.signal_type,
+                    "strength": signal.strength,
+                    "weight": w,
+                    "effective_weight": effective_weight,
+                }
+            )
 
         # Determine direction
         scores = {
