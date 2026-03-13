@@ -39,9 +39,7 @@ class TradeValidation(BaseModel):
 
 class PositionRequest(BaseModel):
     symbol: str = Field(..., description="Trading instrument symbol")
-    side: str = Field(
-        ..., description="LONG or SHORT", pattern="^(LONG|SHORT)$"
-    )
+    side: str = Field(..., description="LONG or SHORT", pattern="^(LONG|SHORT)$")
     quantity: float = Field(..., gt=0, description="Position quantity")
     entry_price: float = Field(..., gt=0, description="Entry price per unit")
 
@@ -273,8 +271,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 if current_side == body.side and current_qty > 0:
                     new_qty = current_qty + body.quantity
                     new_avg = (
-                        (current_avg * current_qty)
-                        + (body.entry_price * body.quantity)
+                        (current_avg * current_qty) + (body.entry_price * body.quantity)
                     ) / new_qty
                     await conn.execute(
                         """UPDATE paper_portfolio
@@ -357,12 +354,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @app.get("/history", tags=["Portfolio"])
     async def get_history(
-        start_date: Optional[str] = Query(
-            None, description="Start date (YYYY-MM-DD)"
-        ),
-        end_date: Optional[str] = Query(
-            None, description="End date (YYYY-MM-DD)"
-        ),
+        start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+        end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
         limit: int = Query(90, ge=1, le=365, description="Max snapshots"),
     ):
         """Get daily portfolio value snapshots for equity curve visualization."""
@@ -424,9 +417,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                    FROM paper_trades WHERE status = 'CLOSED'"""
             )
 
-            total_unrealized = sum(
-                float(r["unrealized_pnl"]) for r in positions
-            )
+            total_unrealized = sum(float(r["unrealized_pnl"]) for r in positions)
             total_realized = float(realized_row["total_realized"])
             total_equity = total_realized + total_unrealized
 
@@ -514,8 +505,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         positions = [dict(row) for row in rows]
         total_exposure = sum(
-            abs(float(p["quantity"]) * float(p["avg_entry_price"]))
-            for p in positions
+            abs(float(p["quantity"]) * float(p["avg_entry_price"])) for p in positions
         )
         position_count = len(positions)
 
