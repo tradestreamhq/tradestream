@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,11 +29,24 @@ jobs:
       - name: Install linting tools
         run: pip install black==25.1.0 isort mypy
 
+      - name: Get changed Python files
+        id: changed-files
+        run: |
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT origin/main...HEAD -- '*.py' || true)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "has_py_files=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_py_files=true" >> $GITHUB_OUTPUT
+            echo "$CHANGED_FILES" > /tmp/changed_py_files.txt
+          fi
+
       - name: Run black (check mode)
-        run: black --check --diff .
+        if: steps.changed-files.outputs.has_py_files == 'true'
+        run: black --check --diff $(cat /tmp/changed_py_files.txt | tr '\n' ' ')
 
       - name: Run isort (check mode)
-        run: isort --check-only --diff --profile black .
+        if: steps.changed-files.outputs.has_py_files == 'true'
+        run: isort --check-only --diff --profile black $(cat /tmp/changed_py_files.txt | tr '\n' ' ')
 
   type-check:
     name: Type Check Python
@@ -67,29 +82,38 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-          cache: gradle
 
       - name: Download google-java-format
         run: |
           wget -q https://github.com/google/google-java-format/releases/download/v1.24.0/google-java-format-1.24.0-all-deps.jar \
             -O /tmp/google-java-format.jar
 
-      - name: Check Java formatting
+      - name: Get changed Java files
+        id: changed-files
         run: |
-          JAVA_FILES=$(find . -name "*.java" -not -path "./bazel-*" | head -500)
-          if [ -n "$JAVA_FILES" ]; then
-            java --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
-                 --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
-                 --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
-                 --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
-                 --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-                 -jar /tmp/google-java-format.jar --set-exit-if-changed --dry-run $JAVA_FILES
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT origin/main...HEAD -- '*.java' || true)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "has_java_files=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_java_files=true" >> $GITHUB_OUTPUT
+            echo "$CHANGED_FILES" > /tmp/changed_java_files.txt
           fi
+
+      - name: Check Java formatting
+        if: steps.changed-files.outputs.has_java_files == 'true'
+        run: |
+          java --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+               --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+               --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+               --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+               --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+               -jar /tmp/google-java-format.jar --set-exit-if-changed --dry-run $(cat /tmp/changed_java_files.txt | tr '\n' ' ')
 
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    needs: [lint-python, lint-java]
+    needs: [lint-python, type-check, lint-java]
+    if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v4
 
@@ -136,6 +160,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: [unit-tests]
+    if: ${{ !cancelled() && needs.unit-tests.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -175,6 +200,7 @@ jobs:
     name: Build All Targets
     runs-on: ubuntu-latest
     needs: [unit-tests]
+    if: ${{ !cancelled() && needs.unit-tests.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
