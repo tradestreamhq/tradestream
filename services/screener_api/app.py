@@ -40,7 +40,8 @@ logger = logging.getLogger(__name__)
 
 class FilterDTO(BaseModel):
     field: str = Field(
-        ..., description="Field to filter on (price, volume, rsi, sma_20, sma_50, sma_200, ema_12, ema_26, change_pct)"
+        ...,
+        description="Field to filter on (price, volume, rsi, sma_20, sma_50, sma_200, ema_12, ema_26, change_pct)",
     )
     operator: str = Field(
         ..., description="Comparison operator (gt, gte, lt, lte, eq, between)"
@@ -178,7 +179,9 @@ def create_app(db_pool: asyncpg.Pool, market_data_fn=None) -> FastAPI:
             logger.warning("Could not load user presets from database")
 
         all_presets = built_in + user_presets
-        return collection_response(all_presets, "screener_preset", total=len(all_presets))
+        return collection_response(
+            all_presets, "screener_preset", total=len(all_presets)
+        )
 
     @presets_router.post("", status_code=201)
     async def create_preset(body: PresetCreateDTO):

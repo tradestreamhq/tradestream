@@ -183,16 +183,12 @@ class TestScanLogic:
 
     def test_none_value_field(self):
         snap = _make_snapshot(rsi=None)
-        request = ScanRequest(
-            filters=[FilterCriterion("rsi", FilterOperator.LTE, 30)]
-        )
+        request = ScanRequest(filters=[FilterCriterion("rsi", FilterOperator.LTE, 30)])
         results = run_scan([snap], request)
         assert len(results) == 0
 
     def test_empty_snapshots(self):
-        request = ScanRequest(
-            filters=[FilterCriterion("price", FilterOperator.GT, 0)]
-        )
+        request = ScanRequest(filters=[FilterCriterion("price", FilterOperator.GT, 0)])
         results = run_scan([], request)
         assert len(results) == 0
 
