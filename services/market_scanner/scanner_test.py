@@ -137,8 +137,7 @@ class TestRSIExtreme:
         sc, market_data = scanner
         closes = [60000 + i * 100 for i in range(16)]
         candles = [
-            {"high": c + 10, "low": c - 10, "close": c, "volume": 100}
-            for c in closes
+            {"high": c + 10, "low": c - 10, "close": c, "volume": 100} for c in closes
         ]
         market_data.get_candles.return_value = candles
 
@@ -154,8 +153,7 @@ class TestRSIExtreme:
         sc, market_data = scanner
         closes = [60000 - i * 100 for i in range(16)]
         candles = [
-            {"high": c + 10, "low": c - 10, "close": c, "volume": 100}
-            for c in closes
+            {"high": c + 10, "low": c - 10, "close": c, "volume": 100} for c in closes
         ]
         market_data.get_candles.return_value = candles
 
@@ -186,8 +184,7 @@ class TestMACrossover:
         sc, market_data = scanner
         closes = [60000 + i * i * 5 for i in range(22)]
         candles = [
-            {"high": c + 10, "low": c - 10, "close": c, "volume": 100}
-            for c in closes
+            {"high": c + 10, "low": c - 10, "close": c, "volume": 100} for c in closes
         ]
         market_data.get_candles.return_value = candles
 
@@ -220,7 +217,23 @@ class TestComputeRSI:
         assert rsi == 100.0
 
     def test_mixed(self):
-        closes = [100, 110, 105, 115, 108, 120, 112, 125, 118, 130, 122, 135, 128, 140, 132]
+        closes = [
+            100,
+            110,
+            105,
+            115,
+            108,
+            120,
+            112,
+            125,
+            118,
+            130,
+            122,
+            135,
+            128,
+            140,
+            132,
+        ]
         rsi = MarketScanner._compute_rsi(closes, 14)
         assert rsi is not None
         assert 0 <= rsi <= 100
