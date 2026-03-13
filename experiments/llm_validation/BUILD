@@ -5,6 +5,7 @@ load("@rules_python//python:py_test.bzl", "py_test")
 py_library(
     name = "strategy_schema",
     srcs = ["strategy_schema.py"],
+    visibility = ["//visibility:public"],
     deps = [
         "//third_party/python:pyyaml",
     ],
