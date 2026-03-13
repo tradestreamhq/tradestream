@@ -1,8 +1,58 @@
 """Build rules for marketdata components."""
 
+load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
+
+java_library(
+    name = "timeframe",
+    srcs = ["Timeframe.java"],
+)
+
+java_library(
+    name = "candle_store",
+    srcs = ["CandleStore.java"],
+    deps = [
+        ":timeframe",
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+    ],
+)
+
+java_library(
+    name = "in_memory_candle_store",
+    srcs = ["InMemoryCandleStore.java"],
+    deps = [
+        ":candle_store",
+        ":timeframe",
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+    ],
+)
+
+java_library(
+    name = "candle_aggregator",
+    srcs = ["CandleAggregator.java"],
+    deps = [
+        ":timeframe",
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "candle_aggregation_pipeline",
+    srcs = ["CandleAggregationPipeline.java"],
+    deps = [
+        ":candle_aggregator",
+        ":candle_store",
+        ":timeframe",
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+    ],
+)
 
 kt_jvm_library(
     name = "candle_fetcher",
