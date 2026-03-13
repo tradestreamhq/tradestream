@@ -112,12 +112,20 @@ class TestKellyCriterionSize:
     def test_kelly_fraction_scales_down(self):
         params = self._default_params()
         full = kelly_criterion_size(
-            price=1000, win_rate=0.6, avg_win=0.03, avg_loss=0.02,
-            risk_params=params, kelly_fraction=1.0,
+            price=1000,
+            win_rate=0.6,
+            avg_win=0.03,
+            avg_loss=0.02,
+            risk_params=params,
+            kelly_fraction=1.0,
         )
         quarter = kelly_criterion_size(
-            price=1000, win_rate=0.6, avg_win=0.03, avg_loss=0.02,
-            risk_params=params, kelly_fraction=0.25,
+            price=1000,
+            win_rate=0.6,
+            avg_win=0.03,
+            avg_loss=0.02,
+            risk_params=params,
+            kelly_fraction=0.25,
         )
         assert quarter.quantity < full.quantity
 
@@ -125,7 +133,10 @@ class TestKellyCriterionSize:
         params = self._default_params()
         for wr in (0.0, 1.0, -0.1):
             result = kelly_criterion_size(
-                price=1000, win_rate=wr, avg_win=0.03, avg_loss=0.02,
+                price=1000,
+                win_rate=wr,
+                avg_win=0.03,
+                avg_loss=0.02,
                 risk_params=params,
             )
             assert result.quantity == 0.0

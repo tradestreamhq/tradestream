@@ -173,7 +173,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 rows = await conn.fetch(query, *params)
                 total = await conn.fetchval(count_query, *count_params)
             items = [_row_to_dict(r) for r in rows]
-            return collection_response(items, "position", total=total, limit=limit, offset=offset)
+            return collection_response(
+                items, "position", total=total, limit=limit, offset=offset
+            )
         except Exception as e:
             logger.exception("Failed to get position history")
             return server_error(str(e))

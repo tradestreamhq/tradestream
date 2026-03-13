@@ -33,7 +33,11 @@ def fixed_fraction_size(
             position_value=0.0,
         )
 
-    sl_pct = stop_loss_pct if stop_loss_pct is not None else risk_params.default_stop_loss_pct
+    sl_pct = (
+        stop_loss_pct
+        if stop_loss_pct is not None
+        else risk_params.default_stop_loss_pct
+    )
     risk_amount = risk_params.capital * risk_params.risk_pct
     max_position_value = risk_params.capital * risk_params.max_position_pct
 

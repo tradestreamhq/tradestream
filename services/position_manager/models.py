@@ -33,7 +33,10 @@ class RiskParams(BaseModel):
         0.1, gt=0, le=1.0, description="Max fraction of capital in a single position"
     )
     default_stop_loss_pct: float = Field(
-        0.05, gt=0, le=1.0, description="Default stop-loss distance as fraction of entry"
+        0.05,
+        gt=0,
+        le=1.0,
+        description="Default stop-loss distance as fraction of entry",
     )
 
 
