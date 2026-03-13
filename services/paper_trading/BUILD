@@ -15,9 +15,20 @@ py_library(
 )
 
 py_library(
+    name = "engine_lib",
+    srcs = ["engine.py"],
+    deps = [
+        ":postgres_client_lib",
+        "//services/shared:mcp_client",
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
     name = "service_lib",
     srcs = ["service.py"],
     deps = [
+        ":engine_lib",
         ":postgres_client_lib",
         "//services/shared:auth",
         "//services/shared:mcp_client",
@@ -53,6 +64,17 @@ py_test(
     name = "postgres_client_test",
     srcs = ["postgres_client_test.py"],
     deps = [
+        ":postgres_client_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "engine_test",
+    srcs = ["engine_test.py"],
+    deps = [
+        ":engine_lib",
         ":postgres_client_lib",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
