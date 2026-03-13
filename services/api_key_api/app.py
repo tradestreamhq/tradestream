@@ -44,12 +44,8 @@ KEY_LENGTH = 32
 
 class CreateApiKeyRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Key name")
-    permissions: List[str] = Field(
-        ..., min_length=1, description="List of permissions"
-    )
-    expires_at: Optional[str] = Field(
-        None, description="Expiry timestamp (ISO format)"
-    )
+    permissions: List[str] = Field(..., min_length=1, description="List of permissions")
+    expires_at: Optional[str] = Field(None, description="Expiry timestamp (ISO format)")
     environment: str = Field(
         "live", description="Environment: 'live' or 'test'", pattern="^(live|test)$"
     )
@@ -138,7 +134,9 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
         if not api_key:
             return JSONResponse(
                 status_code=401,
-                content={"error": {"code": "UNAUTHORIZED", "message": "Missing API key"}},
+                content={
+                    "error": {"code": "UNAUTHORIZED", "message": "Missing API key"}
+                },
             )
 
         # Extract prefix for efficient lookup
@@ -151,7 +149,12 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
         if not prefix:
             return JSONResponse(
                 status_code=401,
-                content={"error": {"code": "UNAUTHORIZED", "message": "Invalid API key format"}},
+                content={
+                    "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Invalid API key format",
+                    }
+                },
             )
 
         # Look up candidate keys by prefix
@@ -170,7 +173,12 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
             logger.error("DB error during API key lookup: %s", e)
             return JSONResponse(
                 status_code=500,
-                content={"error": {"code": "SERVER_ERROR", "message": "Internal server error"}},
+                content={
+                    "error": {
+                        "code": "SERVER_ERROR",
+                        "message": "Internal server error",
+                    }
+                },
             )
 
         # Verify against stored hashes
@@ -183,7 +191,9 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
         if not matched_key:
             return JSONResponse(
                 status_code=401,
-                content={"error": {"code": "UNAUTHORIZED", "message": "Invalid API key"}},
+                content={
+                    "error": {"code": "UNAUTHORIZED", "message": "Invalid API key"}
+                },
             )
 
         # Check expiry
@@ -192,7 +202,9 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
         ) < datetime.now(timezone.utc):
             return JSONResponse(
                 status_code=401,
-                content={"error": {"code": "UNAUTHORIZED", "message": "API key has expired"}},
+                content={
+                    "error": {"code": "UNAUTHORIZED", "message": "API key has expired"}
+                },
             )
 
         # Rate limiting
@@ -200,7 +212,9 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
         if not _rate_limiter.is_allowed(key_id, matched_key["rate_limit_per_minute"]):
             return JSONResponse(
                 status_code=429,
-                content={"error": {"code": "RATE_LIMITED", "message": "Rate limit exceeded"}},
+                content={
+                    "error": {"code": "RATE_LIMITED", "message": "Rate limit exceeded"}
+                },
             )
 
         # Update usage stats (fire-and-forget)
@@ -290,9 +304,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "key": full_key,
                 "key_prefix": row["key_prefix"],
                 "permissions": list(row["permissions"]),
-                "expires_at": row["expires_at"].isoformat() if row["expires_at"] else None,
+                "expires_at": (
+                    row["expires_at"].isoformat() if row["expires_at"] else None
+                ),
                 "rate_limit_per_minute": row["rate_limit_per_minute"],
-                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                "created_at": (
+                    row["created_at"].isoformat() if row["created_at"] else None
+                ),
             },
             resource_type="api_key",
             resource_id=str(row["id"]),
@@ -326,12 +344,18 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "name": row["name"],
                 "key_prefix": row["key_prefix"],
                 "permissions": list(row["permissions"]),
-                "expires_at": row["expires_at"].isoformat() if row["expires_at"] else None,
+                "expires_at": (
+                    row["expires_at"].isoformat() if row["expires_at"] else None
+                ),
                 "is_revoked": row["is_revoked"],
                 "request_count": row["request_count"],
-                "last_used_at": row["last_used_at"].isoformat() if row["last_used_at"] else None,
+                "last_used_at": (
+                    row["last_used_at"].isoformat() if row["last_used_at"] else None
+                ),
                 "rate_limit_per_minute": row["rate_limit_per_minute"],
-                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                "created_at": (
+                    row["created_at"].isoformat() if row["created_at"] else None
+                ),
             }
             items.append(item)
 
