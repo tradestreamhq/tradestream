@@ -270,9 +270,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             count_query = """
                 SELECT COUNT(*) FROM alert_history WHERE rule_id = $1::uuid
             """
-            rows = await conn.fetch(
-                query, rule_id, pagination.limit, pagination.offset
-            )
+            rows = await conn.fetch(query, rule_id, pagination.limit, pagination.offset)
             total = await conn.fetchval(count_query, rule_id)
 
         items = []

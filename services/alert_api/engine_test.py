@@ -147,8 +147,14 @@ class TestEvaluateRule:
 class TestEvaluateRules:
     def test_multiple_rules_multiple_triggers(self):
         rules = [
-            _rule(name="dd-rule", condition_type="drawdown_exceeded", threshold=Decimal("5")),
-            _rule(name="pnl-rule", condition_type="pnl_target", threshold=Decimal("100")),
+            _rule(
+                name="dd-rule",
+                condition_type="drawdown_exceeded",
+                threshold=Decimal("5"),
+            ),
+            _rule(
+                name="pnl-rule", condition_type="pnl_target", threshold=Decimal("100")
+            ),
             _rule(name="sig-rule", condition_type="signal_generated"),
         ]
         # Drawdown event should only match the drawdown rule
