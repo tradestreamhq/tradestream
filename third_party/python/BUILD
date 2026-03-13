@@ -248,3 +248,11 @@ py_library(
         requirement("cryptography"),
     ],
 )
+
+py_library(
+    name = "jsonschema",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("jsonschema"),
+    ],
+)
