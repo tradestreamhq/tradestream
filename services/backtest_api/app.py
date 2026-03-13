@@ -156,7 +156,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
                     if curve:
                         eq_records = [
-                            (uuid.UUID(backtest_id), pt.timestamp, pt.equity, pt.drawdown)
+                            (
+                                uuid.UUID(backtest_id),
+                                pt.timestamp,
+                                pt.equity,
+                                pt.drawdown,
+                            )
                             for pt in curve
                         ]
                         await conn.executemany(
