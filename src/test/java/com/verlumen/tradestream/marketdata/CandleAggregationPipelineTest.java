@@ -99,8 +99,7 @@ public class CandleAggregationPipelineTest {
     pipeline.flush();
 
     // 10 minutes of trades at 6s intervals = 10 one-minute candles.
-    ImmutableList<Candle> oneMinCandles =
-        store.query("BTC/USD", Timeframe.ONE_MINUTE, 0, 600_000L);
+    ImmutableList<Candle> oneMinCandles = store.query("BTC/USD", Timeframe.ONE_MINUTE, 0, 600_000L);
     assertThat(oneMinCandles).hasSize(10);
 
     // 2 five-minute candles.

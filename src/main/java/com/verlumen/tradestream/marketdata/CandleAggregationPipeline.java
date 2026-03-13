@@ -2,7 +2,6 @@ package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 
 /**
  * Coordinates multiple {@link CandleAggregator} instances (one per timeframe) and persists
