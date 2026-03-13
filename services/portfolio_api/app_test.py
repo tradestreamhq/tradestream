@@ -646,9 +646,7 @@ class TestUpdatePositionFromTrade:
         conn = AsyncMock()
         conn.fetchrow.return_value = None
 
-        await _update_position_from_trade(
-            conn, "BTC/USD", "SELL", 1.0, 50000.0
-        )
+        await _update_position_from_trade(conn, "BTC/USD", "SELL", 1.0, 50000.0)
 
         args = conn.execute.call_args.args
         assert args[4] == "SHORT"
@@ -660,9 +658,7 @@ class TestUpdatePositionFromTrade:
             quantity=1.0, avg_entry_price=50000.0, side="LONG"
         )
 
-        await _update_position_from_trade(
-            conn, "BTC/USD", "BUY", 1.0, 60000.0
-        )
+        await _update_position_from_trade(conn, "BTC/USD", "BUY", 1.0, 60000.0)
 
         args = conn.execute.call_args.args
         assert "UPDATE" in args[0]
@@ -676,9 +672,7 @@ class TestUpdatePositionFromTrade:
             quantity=2.0, avg_entry_price=50000.0, side="LONG"
         )
 
-        await _update_position_from_trade(
-            conn, "BTC/USD", "SELL", 1.0, 55000.0
-        )
+        await _update_position_from_trade(conn, "BTC/USD", "SELL", 1.0, 55000.0)
 
         args = conn.execute.call_args.args
         assert "UPDATE" in args[0]
@@ -691,9 +685,7 @@ class TestUpdatePositionFromTrade:
             quantity=1.0, avg_entry_price=50000.0, side="LONG"
         )
 
-        await _update_position_from_trade(
-            conn, "BTC/USD", "SELL", 1.0, 55000.0
-        )
+        await _update_position_from_trade(conn, "BTC/USD", "SELL", 1.0, 55000.0)
 
         args = conn.execute.call_args.args
         assert "quantity = 0" in args[0]
@@ -705,9 +697,7 @@ class TestUpdatePositionFromTrade:
             quantity=1.0, avg_entry_price=50000.0, side="LONG"
         )
 
-        await _update_position_from_trade(
-            conn, "BTC/USD", "SELL", 2.0, 55000.0
-        )
+        await _update_position_from_trade(conn, "BTC/USD", "SELL", 2.0, 55000.0)
 
         args = conn.execute.call_args.args
         assert args[2] == 1.0
@@ -720,9 +710,7 @@ class TestUpdatePositionFromTrade:
             quantity=1.0, avg_entry_price=50000.0, side="SHORT"
         )
 
-        await _update_position_from_trade(
-            conn, "BTC/USD", "SELL", 1.0, 48000.0
-        )
+        await _update_position_from_trade(conn, "BTC/USD", "SELL", 1.0, 48000.0)
 
         args = conn.execute.call_args.args
         assert args[2] == 2.0
@@ -735,9 +723,7 @@ class TestUpdatePositionFromTrade:
             quantity=2.0, avg_entry_price=50000.0, side="SHORT"
         )
 
-        await _update_position_from_trade(
-            conn, "BTC/USD", "BUY", 1.0, 48000.0
-        )
+        await _update_position_from_trade(conn, "BTC/USD", "BUY", 1.0, 48000.0)
 
         args = conn.execute.call_args.args
         assert args[2] == 1.0
