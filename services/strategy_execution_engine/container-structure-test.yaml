@@ -1,0 +1,41 @@
+schemaVersion: "2.0.0"
+
+metadataTest:
+  workdir: "/services/strategy_execution_engine"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Python executable exists"
+    path: "/usr/local/bin/python3"
+    shouldExist: true
+    permissions: "Lrwxrwxrwx"
+
+  - name: "Strategy Execution Engine script exists"
+    path: "/services/strategy_execution_engine/strategy_execution_engine"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
+
+  - name: "Main application file exists"
+    path: "/services/strategy_execution_engine/main.py"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
+
+commandTests:
+  - name: "Python executable test"
+    command: "/usr/local/bin/python3"
+    args: ["--version"]
+    exitCode: 0
+    expectedOutput:
+      - "Python 3"
+
+  - name: "File content validation test"
+    command: "/usr/local/bin/python3"
+    args:
+      [
+        "-c",
+        "import os; main_path = '/services/strategy_execution_engine/main.py'; print('Main file exists:', os.path.exists(main_path)); print('Main file size:', os.path.getsize(main_path) if os.path.exists(main_path) else 'N/A')",
+      ]
+    exitCode: 0
+    expectedOutput:
+      - "Main file exists: True"
+      - "Main file size:"
