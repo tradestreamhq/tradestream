@@ -352,3 +352,267 @@ class TestConnect:
     async def test_close_without_pool(self):
         client = PostgresClient("h", 5432, "db", "u", "p")
         await client.close()  # Should not raise
+
+
+class TestCreateSession:
+    @pytest.mark.asyncio
+    async def test_create_session(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+
+        from datetime import datetime
+
+        conn.fetchrow.return_value = {
+            "id": "sess-uuid-1",
+            "starting_balance": Decimal("50000"),
+            "current_balance": Decimal("50000"),
+            "status": "ACTIVE",
+            "started_at": datetime(2026, 3, 13),
+        }
+
+        result = await pg_client.create_session(50000.0)
+
+        assert result["session_id"] == "sess-uuid-1"
+        assert result["starting_balance"] == 50000.0
+        assert result["status"] == "ACTIVE"
+
+    @pytest.mark.asyncio
+    async def test_create_session_no_pool(self, pg_client):
+        pg_client.pool = None
+        with pytest.raises(RuntimeError, match="PostgreSQL connection not established"):
+            await pg_client.create_session(100000.0)
+
+
+class TestGetActiveSession:
+    @pytest.mark.asyncio
+    async def test_get_active_session_exists(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+
+        from datetime import datetime
+
+        conn.fetchrow.return_value = {
+            "id": "sess-uuid-1",
+            "starting_balance": Decimal("100000"),
+            "current_balance": Decimal("95000"),
+            "status": "ACTIVE",
+            "started_at": datetime(2026, 3, 13),
+            "total_realized_pnl": Decimal("500"),
+            "total_trades": 5,
+        }
+
+        result = await pg_client.get_active_session()
+
+        assert result is not None
+        assert result["session_id"] == "sess-uuid-1"
+        assert result["status"] == "ACTIVE"
+
+    @pytest.mark.asyncio
+    async def test_get_active_session_none(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+        conn.fetchrow.return_value = None
+
+        result = await pg_client.get_active_session()
+        assert result is None
+
+
+class TestStopSession:
+    @pytest.mark.asyncio
+    async def test_stop_session_success(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+
+        from datetime import datetime
+
+        conn.fetchrow.return_value = {
+            "id": "sess-uuid-1",
+            "starting_balance": Decimal("100000"),
+            "current_balance": Decimal("95000"),
+            "status": "STOPPED",
+            "started_at": datetime(2026, 3, 13),
+            "stopped_at": datetime(2026, 3, 13, 1, 0),
+            "total_realized_pnl": Decimal("500"),
+            "total_trades": 5,
+        }
+
+        result = await pg_client.stop_session("sess-uuid-1")
+
+        assert result is not None
+        assert result["status"] == "STOPPED"
+        assert "stopped_at" in result
+
+    @pytest.mark.asyncio
+    async def test_stop_session_not_found(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+        conn.fetchrow.return_value = None
+
+        result = await pg_client.stop_session("nonexistent")
+        assert result is None
+
+
+class TestExecuteSessionTrade:
+    @pytest.mark.asyncio
+    async def test_execute_session_buy_trade(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+        _make_transaction_mock(conn)
+
+        from datetime import datetime
+
+        conn.fetchrow.side_effect = [
+            # INSERT paper_trades RETURNING
+            {"id": "trade-uuid-1", "opened_at": datetime(2026, 3, 13)},
+            # SELECT from paper_portfolio (no existing)
+            None,
+        ]
+
+        result = await pg_client.execute_session_trade(
+            session_id="sess-1",
+            signal_id=None,
+            symbol="BTC-USD",
+            side="BUY",
+            entry_price=50000.0,
+            quantity=0.5,
+        )
+
+        assert result["trade_id"] == "trade-uuid-1"
+        assert result["session_id"] == "sess-1"
+        assert result["side"] == "BUY"
+        # Should have updated session balance
+        assert conn.execute.call_count >= 1
+
+
+class TestGetSessionTrades:
+    @pytest.mark.asyncio
+    async def test_get_session_trades(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+
+        from datetime import datetime
+
+        conn.fetch.return_value = [
+            {
+                "id": "t-1",
+                "signal_id": None,
+                "symbol": "BTC-USD",
+                "side": "BUY",
+                "entry_price": Decimal("50000"),
+                "exit_price": None,
+                "quantity": Decimal("0.5"),
+                "pnl": None,
+                "opened_at": datetime(2026, 3, 13),
+                "closed_at": None,
+                "status": "OPEN",
+            }
+        ]
+
+        result = await pg_client.get_session_trades("sess-1")
+        assert len(result) == 1
+        assert result[0]["trade_id"] == "t-1"
+
+
+class TestGetSessionStats:
+    @pytest.mark.asyncio
+    async def test_get_session_stats(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+
+        conn.fetchrow.side_effect = [
+            # session row
+            {
+                "starting_balance": Decimal("100000"),
+                "current_balance": Decimal("95000"),
+                "total_realized_pnl": Decimal("2000"),
+                "total_trades": 10,
+            },
+            # stats_row
+            {
+                "total_pnl": Decimal("2000"),
+                "closed_trades": 8,
+                "winning_trades": 6,
+                "losing_trades": 2,
+                "avg_pnl": Decimal("250"),
+                "best_trade": Decimal("1000"),
+                "worst_trade": Decimal("-300"),
+            },
+        ]
+
+        result = await pg_client.get_session_stats("sess-1")
+
+        assert result["starting_balance"] == 100000.0
+        assert result["total_pnl"] == 2000.0
+        assert result["return_pct"] == 2.0
+        assert result["win_rate"] == 75.0
+
+    @pytest.mark.asyncio
+    async def test_get_session_stats_not_found(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+        conn.fetchrow.return_value = None
+
+        result = await pg_client.get_session_stats("nonexistent")
+        assert result == {}
+
+
+class TestGetLiveTradeStats:
+    @pytest.mark.asyncio
+    async def test_get_live_stats(self, pg_client):
+        conn, ctx = _make_conn_mock()
+        pg_client.pool.acquire.return_value = ctx
+
+        conn.fetchrow.return_value = {
+            "total_pnl": Decimal("3000"),
+            "total_trades": 15,
+            "winning_trades": 10,
+            "losing_trades": 5,
+            "avg_pnl": Decimal("200"),
+            "best_trade": Decimal("900"),
+            "worst_trade": Decimal("-400"),
+        }
+
+        result = await pg_client.get_live_trade_stats()
+
+        assert result["total_pnl"] == 3000.0
+        assert result["total_trades"] == 15
+        assert result["win_rate"] == 66.67
+
+
+class TestSessionRowToDict:
+    def test_converts_row(self):
+        from datetime import datetime
+
+        row = {
+            "id": "sess-uuid",
+            "starting_balance": Decimal("100000"),
+            "current_balance": Decimal("95000"),
+            "status": "ACTIVE",
+            "started_at": datetime(2026, 3, 13),
+            "total_realized_pnl": Decimal("500"),
+            "total_trades": 3,
+        }
+
+        result = PostgresClient._session_row_to_dict(row)
+
+        assert result["session_id"] == "sess-uuid"
+        assert result["starting_balance"] == 100000.0
+        assert result["status"] == "ACTIVE"
+        assert "stopped_at" not in result
+
+    def test_converts_row_with_stopped_at(self):
+        from datetime import datetime
+
+        row = {
+            "id": "sess-uuid",
+            "starting_balance": Decimal("100000"),
+            "current_balance": Decimal("95000"),
+            "status": "STOPPED",
+            "started_at": datetime(2026, 3, 13),
+            "stopped_at": datetime(2026, 3, 13, 1, 0),
+            "total_realized_pnl": Decimal("500"),
+            "total_trades": 3,
+        }
+
+        result = PostgresClient._session_row_to_dict(row)
+        assert "stopped_at" in result
