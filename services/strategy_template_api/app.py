@@ -71,7 +71,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @router.get("")
     async def list_strategy_templates(
         category: Optional[str] = Query(
-            None, description="Filter by category (e.g. trend-following, mean-reversion)"
+            None,
+            description="Filter by category (e.g. trend-following, mean-reversion)",
         ),
     ):
         templates = list_templates(category=category)
@@ -100,9 +101,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         )
 
     @router.post("/{template_id}/instantiate", status_code=201)
-    async def instantiate_strategy_template(
-        template_id: str, body: InstantiateRequest
-    ):
+    async def instantiate_strategy_template(template_id: str, body: InstantiateRequest):
         template = get_template(template_id)
         if template is None:
             return not_found("Template", template_id)
