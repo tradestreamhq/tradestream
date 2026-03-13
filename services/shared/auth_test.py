@@ -95,9 +95,7 @@ class TestFlaskAuthMiddleware:
         token = create_access_token("user-1", "user@example.com")
         with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
             with app.test_client() as client:
-                resp = client.get(
-                    "/data", headers={"Authorization": f"Bearer {token}"}
-                )
+                resp = client.get("/data", headers={"Authorization": f"Bearer {token}"})
                 assert resp.status_code == 200
 
 

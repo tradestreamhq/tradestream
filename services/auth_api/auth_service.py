@@ -119,14 +119,14 @@ class AuthService:
             return None
         return {"id": str(row["id"]), "email": row["email"], "name": row["name"]}
 
-    async def create_token_pair(
-        self, user_id: str, email: str
-    ) -> Dict[str, str]:
+    async def create_token_pair(self, user_id: str, email: str) -> Dict[str, str]:
         """Create an access + refresh token pair, storing refresh token in DB."""
         access_token = create_access_token(user_id, email)
         refresh_token = create_refresh_token()
         token_h = hash_token(refresh_token)
-        expires_at = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            days=REFRESH_TOKEN_EXPIRE_DAYS
+        )
 
         async with self._pool.acquire() as conn:
             await conn.execute(
@@ -242,7 +242,9 @@ class AuthService:
                 "permissions": list(r["permissions"]),
                 "is_active": r["is_active"],
                 "rate_limit_per_minute": r["rate_limit_per_minute"],
-                "last_used_at": r["last_used_at"].isoformat() if r["last_used_at"] else None,
+                "last_used_at": (
+                    r["last_used_at"].isoformat() if r["last_used_at"] else None
+                ),
                 "created_at": r["created_at"].isoformat(),
             }
             for r in rows
