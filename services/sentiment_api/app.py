@@ -168,7 +168,9 @@ def create_app(influxdb_client, redis_client) -> FastAPI:
         price_changes: Dict[str, float] = {}
 
         for symbol in symbols:
-            candles_by_tf = _fetch_candles_by_timeframe(influxdb_client, symbol, limit=50)
+            candles_by_tf = _fetch_candles_by_timeframe(
+                influxdb_client, symbol, limit=50
+            )
             if not candles_by_tf:
                 continue
 
@@ -180,7 +182,9 @@ def create_app(influxdb_client, redis_client) -> FastAPI:
             # Calculate recent price change from daily candles
             daily = candles_by_tf.get("1d", [])
             if len(daily) >= 2 and daily[-2]["close"] != 0:
-                pct = ((daily[-1]["close"] - daily[-2]["close"]) / daily[-2]["close"]) * 100
+                pct = (
+                    (daily[-1]["close"] - daily[-2]["close"]) / daily[-2]["close"]
+                ) * 100
                 price_changes[symbol] = pct
 
         divergences = detect_divergences(sentiment_results, price_changes, threshold)
@@ -196,7 +200,9 @@ def create_app(influxdb_client, redis_client) -> FastAPI:
 
         entries = []
         for symbol in symbols:
-            candles_by_tf = _fetch_candles_by_timeframe(influxdb_client, symbol, limit=50)
+            candles_by_tf = _fetch_candles_by_timeframe(
+                influxdb_client, symbol, limit=50
+            )
             if not candles_by_tf:
                 continue
 

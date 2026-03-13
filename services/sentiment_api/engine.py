@@ -136,7 +136,9 @@ def compute_momentum_sentiment(price_changes: Sequence[float]) -> float:
     return _clamp(avg_change / 5.0)
 
 
-def compute_timeframe_sentiment(candles: List[Dict[str, Any]]) -> Optional[TimeframeSentiment]:
+def compute_timeframe_sentiment(
+    candles: List[Dict[str, Any]],
+) -> Optional[TimeframeSentiment]:
     """Compute sentiment for a single timeframe from OHLCV candles.
 
     Expects candles sorted oldest-to-newest with keys:
@@ -157,7 +159,9 @@ def compute_timeframe_sentiment(candles: List[Dict[str, Any]]) -> Optional[Timef
     # Volume analysis
     avg_volume = sum(volumes[-20:]) / min(len(volumes), 20)
     current_volume = volumes[-1]
-    latest_change = ((closes[-1] - closes[-2]) / closes[-2]) * 100 if closes[-2] != 0 else 0
+    latest_change = (
+        ((closes[-1] - closes[-2]) / closes[-2]) * 100 if closes[-2] != 0 else 0
+    )
 
     # Price momentum (last 5 period changes)
     price_changes = []
@@ -227,7 +231,9 @@ def compute_sentiment(
         agg_breakdown.rsi = round(agg_breakdown.rsi / total_weight, 4)
         agg_breakdown.macd_trend = round(agg_breakdown.macd_trend / total_weight, 4)
         agg_breakdown.volume = round(agg_breakdown.volume / total_weight, 4)
-        agg_breakdown.price_momentum = round(agg_breakdown.price_momentum / total_weight, 4)
+        agg_breakdown.price_momentum = round(
+            agg_breakdown.price_momentum / total_weight, 4
+        )
     else:
         final_score = 0.0
 
