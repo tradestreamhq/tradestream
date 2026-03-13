@@ -42,6 +42,7 @@ def _sample_row(**overrides):
         emotion_tag="confident",
         lesson_learned="Wait for confirmation",
         rating=4,
+        screenshots_urls=["https://example.com/chart1.png"],
         created_at=_NOW,
         updated_at=_NOW,
     )
@@ -71,7 +72,7 @@ class TestCreateEntry:
         conn.executemany.return_value = None
 
         resp = tc.post(
-            "/entries",
+            "/",
             json={
                 "trade_id": str(_TRADE_ID),
                 "entry_notes": "Looked like a breakout",
@@ -80,15 +81,17 @@ class TestCreateEntry:
                 "lesson_learned": "Wait for confirmation",
                 "rating": 4,
                 "tags": ["breakout", "crypto"],
+                "screenshots_urls": ["https://example.com/chart1.png"],
             },
         )
-        assert resp.status_code == 200
+        assert resp.status_code == 201
         body = resp.json()
         assert body["data"]["type"] == "journal_entry"
         attrs = body["data"]["attributes"]
         assert attrs["emotion_tag"] == "confident"
         assert attrs["rating"] == 4
         assert attrs["tags"] == ["breakout", "crypto"]
+        assert attrs["screenshots_urls"] == ["https://example.com/chart1.png"]
 
     def test_create_minimal(self, client):
         tc, conn = client
@@ -99,19 +102,20 @@ class TestCreateEntry:
             emotion_tag=None,
             lesson_learned="",
             rating=None,
+            screenshots_urls=[],
         )
 
-        resp = tc.post("/entries", json={})
-        assert resp.status_code == 200
+        resp = tc.post("/", json={})
+        assert resp.status_code == 201
 
     def test_create_invalid_emotion(self, client):
         tc, _ = client
-        resp = tc.post("/entries", json={"emotion_tag": "happy"})
+        resp = tc.post("/", json={"emotion_tag": "happy"})
         assert resp.status_code == 422
 
     def test_create_invalid_rating(self, client):
         tc, _ = client
-        resp = tc.post("/entries", json={"rating": 6})
+        resp = tc.post("/", json={"rating": 6})
         assert resp.status_code == 422
 
 
@@ -124,7 +128,7 @@ class TestListEntries:
             [FakeRecord(tag="breakout")],
         ]
 
-        resp = tc.get("/entries")
+        resp = tc.get("/")
         assert resp.status_code == 200
         body = resp.json()
         assert body["meta"]["total"] == 1
@@ -139,7 +143,7 @@ class TestListEntries:
             [FakeRecord(tag="breakout")],
         ]
 
-        resp = tc.get("/entries?emotion=confident")
+        resp = tc.get("/?emotion=confident")
         assert resp.status_code == 200
 
     def test_filter_by_rating(self, client):
@@ -147,7 +151,7 @@ class TestListEntries:
         conn.fetchval.return_value = 0
         conn.fetch.side_effect = [[]]
 
-        resp = tc.get("/entries?rating=5")
+        resp = tc.get("/?rating=5")
         assert resp.status_code == 200
         assert resp.json()["meta"]["total"] == 0
 
@@ -159,7 +163,7 @@ class TestListEntries:
             [FakeRecord(tag="breakout")],
         ]
 
-        resp = tc.get("/entries?tag=breakout")
+        resp = tc.get("/?tag=breakout")
         assert resp.status_code == 200
 
     def test_filter_by_date_range(self, client):
@@ -168,7 +172,7 @@ class TestListEntries:
         conn.fetch.side_effect = [[]]
 
         resp = tc.get(
-            "/entries?date_from=2026-01-01T00:00:00Z&date_to=2026-12-31T23:59:59Z"
+            "/?date_from=2026-01-01T00:00:00Z&date_to=2026-12-31T23:59:59Z"
         )
         assert resp.status_code == 200
 
@@ -182,7 +186,7 @@ class TestGetEntry:
             FakeRecord(tag="crypto"),
         ]
 
-        resp = tc.get(f"/entries/{_ENTRY_ID}")
+        resp = tc.get(f"/{_ENTRY_ID}")
         assert resp.status_code == 200
         body = resp.json()
         assert body["data"]["id"] == str(_ENTRY_ID)
@@ -192,7 +196,7 @@ class TestGetEntry:
         tc, conn = client
         conn.fetchrow.return_value = None
 
-        resp = tc.get(f"/entries/{uuid.uuid4()}")
+        resp = tc.get(f"/{uuid.uuid4()}")
         assert resp.status_code == 404
 
 
@@ -207,7 +211,7 @@ class TestUpdateEntry:
         conn.executemany.return_value = None
 
         resp = tc.put(
-            f"/entries/{_ENTRY_ID}",
+            f"/{_ENTRY_ID}",
             json={
                 "entry_notes": "Updated notes",
                 "tags": ["reversal", "mistake"],
@@ -222,7 +226,7 @@ class TestUpdateEntry:
         conn.fetchrow.return_value = None
 
         resp = tc.put(
-            f"/entries/{uuid.uuid4()}",
+            f"/{uuid.uuid4()}",
             json={"entry_notes": "test"},
         )
         assert resp.status_code == 404
@@ -236,13 +240,29 @@ class TestUpdateEntry:
         conn.fetch.return_value = [FakeRecord(tag="breakout")]
 
         resp = tc.put(
-            f"/entries/{_ENTRY_ID}",
+            f"/{_ENTRY_ID}",
             json={"emotion_tag": "fearful", "rating": 2},
         )
         assert resp.status_code == 200
         attrs = resp.json()["data"]["attributes"]
         assert attrs["emotion_tag"] == "fearful"
         assert attrs["rating"] == 2
+
+    def test_update_screenshots(self, client):
+        tc, conn = client
+        conn.fetchrow.side_effect = [
+            FakeRecord(id=_ENTRY_ID),
+            _sample_row(screenshots_urls=["https://example.com/new.png"]),
+        ]
+        conn.fetch.return_value = []
+
+        resp = tc.put(
+            f"/{_ENTRY_ID}",
+            json={"screenshots_urls": ["https://example.com/new.png"]},
+        )
+        assert resp.status_code == 200
+        attrs = resp.json()["data"]["attributes"]
+        assert attrs["screenshots_urls"] == ["https://example.com/new.png"]
 
     def test_update_lesson_learned(self, client):
         tc, conn = client
@@ -253,17 +273,60 @@ class TestUpdateEntry:
         conn.fetch.return_value = []
 
         resp = tc.put(
-            f"/entries/{_ENTRY_ID}",
+            f"/{_ENTRY_ID}",
             json={"lesson_learned": "Don't chase"},
         )
         assert resp.status_code == 200
         assert resp.json()["data"]["attributes"]["lesson_learned"] == "Don't chase"
 
 
+class TestTags:
+    def test_list_tags(self, client):
+        tc, conn = client
+        conn.fetch.return_value = [
+            FakeRecord(tag="breakout", entry_count=5),
+            FakeRecord(tag="fomo", entry_count=3),
+            FakeRecord(tag="reversal", entry_count=1),
+        ]
+
+        resp = tc.get("/tags")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body["data"]) == 3
+        assert body["data"][0]["attributes"]["tag"] == "breakout"
+        assert body["data"][0]["attributes"]["entry_count"] == 5
+
+    def test_list_tags_empty(self, client):
+        tc, conn = client
+        conn.fetch.return_value = []
+
+        resp = tc.get("/tags")
+        assert resp.status_code == 200
+        assert len(resp.json()["data"]) == 0
+
+
 class TestStats:
     def test_stats_full(self, client):
         tc, conn = client
         conn.fetch.side_effect = [
+            # streak_rows
+            [
+                FakeRecord(entry_date=date(2026, 3, 13)),
+                FakeRecord(entry_date=date(2026, 3, 12)),
+                FakeRecord(entry_date=date(2026, 3, 11)),
+                FakeRecord(entry_date=date(2026, 3, 9)),
+            ],
+            # weekly_rows
+            [
+                FakeRecord(week_start=date(2026, 3, 9), entry_count=4),
+                FakeRecord(week_start=date(2026, 3, 2), entry_count=2),
+            ],
+            # tag_rows
+            [
+                FakeRecord(tag="breakout", entry_count=5),
+                FakeRecord(tag="fomo", entry_count=3),
+            ],
+            # emotion_rows
             [
                 FakeRecord(
                     emotion_tag="confident",
@@ -271,24 +334,7 @@ class TestStats:
                     wins=7,
                     losses=3,
                     avg_pnl=150.0,
-                    total_pnl=1500.0,
                 ),
-                FakeRecord(
-                    emotion_tag="fearful",
-                    total_trades=5,
-                    wins=1,
-                    losses=4,
-                    avg_pnl=-100.0,
-                    total_pnl=-500.0,
-                ),
-            ],
-            [
-                FakeRecord(rating=4, total_trades=8, avg_pnl=200.0, total_pnl=1600.0),
-                FakeRecord(rating=2, total_trades=3, avg_pnl=-50.0, total_pnl=-150.0),
-            ],
-            [
-                FakeRecord(tag="fomo", occurrences=5, avg_pnl=-200.0),
-                FakeRecord(tag="no-stop-loss", occurrences=3, avg_pnl=-350.0),
             ],
         ]
 
@@ -296,159 +342,24 @@ class TestStats:
         assert resp.status_code == 200
         attrs = resp.json()["data"]["attributes"]
 
-        assert len(attrs["win_rate_by_emotion"]) == 2
-        confident = attrs["win_rate_by_emotion"][0]
-        assert confident["emotion_tag"] == "confident"
-        assert confident["win_rate"] == 0.7
-
-        assert len(attrs["avg_pnl_by_rating"]) == 2
-        assert attrs["avg_pnl_by_rating"][0]["rating"] == 4
-        assert attrs["avg_pnl_by_rating"][0]["avg_pnl"] == 200.0
-
-        assert len(attrs["common_mistakes"]) == 2
-        assert attrs["common_mistakes"][0]["tag"] == "fomo"
+        assert attrs["current_streak"] == 3
+        assert attrs["longest_streak"] == 3
+        assert len(attrs["entries_per_week"]) == 2
+        assert attrs["entries_per_week"][0]["entry_count"] == 4
+        assert len(attrs["most_used_tags"]) == 2
+        assert attrs["most_used_tags"][0]["tag"] == "breakout"
+        assert len(attrs["win_rate_by_emotion"]) == 1
+        assert attrs["win_rate_by_emotion"][0]["win_rate"] == 0.7
 
     def test_stats_empty(self, client):
         tc, conn = client
-        conn.fetch.side_effect = [[], [], []]
+        conn.fetch.side_effect = [[], [], [], []]
 
         resp = tc.get("/stats")
         assert resp.status_code == 200
         attrs = resp.json()["data"]["attributes"]
+        assert attrs["current_streak"] == 0
+        assert attrs["longest_streak"] == 0
+        assert attrs["entries_per_week"] == []
+        assert attrs["most_used_tags"] == []
         assert attrs["win_rate_by_emotion"] == []
-        assert attrs["avg_pnl_by_rating"] == []
-        assert attrs["common_mistakes"] == []
-
-
-class TestStreaks:
-    def test_streaks_with_data(self, client):
-        tc, conn = client
-        conn.fetch.return_value = [
-            FakeRecord(
-                trade_id=uuid.uuid4(),
-                symbol="BTC/USD",
-                pnl=100.0,
-                closed_at=datetime(2026, 3, 1, tzinfo=timezone.utc),
-                emotion_tag="confident",
-                rating=4,
-            ),
-            FakeRecord(
-                trade_id=uuid.uuid4(),
-                symbol="ETH/USD",
-                pnl=50.0,
-                closed_at=datetime(2026, 3, 2, tzinfo=timezone.utc),
-                emotion_tag="neutral",
-                rating=3,
-            ),
-            FakeRecord(
-                trade_id=uuid.uuid4(),
-                symbol="BTC/USD",
-                pnl=-80.0,
-                closed_at=datetime(2026, 3, 3, tzinfo=timezone.utc),
-                emotion_tag="fearful",
-                rating=2,
-            ),
-        ]
-
-        resp = tc.get("/streaks")
-        assert resp.status_code == 200
-        attrs = resp.json()["data"]["attributes"]
-
-        assert attrs["current_streak"]["type"] == "losing"
-        assert attrs["current_streak"]["length"] == 1
-        assert attrs["longest_winning_streak"]["length"] == 2
-        assert attrs["longest_losing_streak"]["length"] == 1
-
-    def test_streaks_empty(self, client):
-        tc, conn = client
-        conn.fetch.return_value = []
-
-        resp = tc.get("/streaks")
-        assert resp.status_code == 200
-        attrs = resp.json()["data"]["attributes"]
-        assert attrs["current_streak"]["type"] == "none"
-        assert attrs["longest_winning_streak"]["length"] == 0
-
-    def test_streaks_all_wins(self, client):
-        tc, conn = client
-        conn.fetch.return_value = [
-            FakeRecord(
-                trade_id=uuid.uuid4(),
-                symbol="BTC/USD",
-                pnl=100.0,
-                closed_at=datetime(2026, 3, 1, tzinfo=timezone.utc),
-                emotion_tag="confident",
-                rating=5,
-            ),
-            FakeRecord(
-                trade_id=uuid.uuid4(),
-                symbol="ETH/USD",
-                pnl=200.0,
-                closed_at=datetime(2026, 3, 2, tzinfo=timezone.utc),
-                emotion_tag="confident",
-                rating=5,
-            ),
-        ]
-
-        resp = tc.get("/streaks")
-        assert resp.status_code == 200
-        attrs = resp.json()["data"]["attributes"]
-        assert attrs["current_streak"]["type"] == "winning"
-        assert attrs["current_streak"]["length"] == 2
-        assert attrs["longest_losing_streak"]["length"] == 0
-
-
-class TestCalendar:
-    def test_calendar_data(self, client):
-        tc, conn = client
-        conn.fetch.return_value = [
-            FakeRecord(
-                date=date(2026, 3, 1),
-                trade_count=3,
-                wins=2,
-                losses=1,
-                daily_pnl=500.0,
-            ),
-            FakeRecord(
-                date=date(2026, 3, 2),
-                trade_count=1,
-                wins=0,
-                losses=1,
-                daily_pnl=-200.0,
-            ),
-        ]
-
-        resp = tc.get("/calendar")
-        assert resp.status_code == 200
-        body = resp.json()
-        assert len(body["data"]) == 2
-        day1 = body["data"][0]["attributes"]
-        assert day1["date"] == "2026-03-01"
-        assert day1["daily_pnl"] == 500.0
-        assert day1["wins"] == 2
-
-    def test_calendar_empty(self, client):
-        tc, conn = client
-        conn.fetch.return_value = []
-
-        resp = tc.get("/calendar")
-        assert resp.status_code == 200
-        assert len(resp.json()["data"]) == 0
-
-    def test_calendar_with_date_filter(self, client):
-        tc, conn = client
-        conn.fetch.return_value = [
-            FakeRecord(
-                date=date(2026, 3, 1),
-                trade_count=1,
-                wins=1,
-                losses=0,
-                daily_pnl=100.0,
-            ),
-        ]
-
-        resp = tc.get(
-            "/calendar?date_from=2026-03-01T00:00:00Z" "&date_to=2026-03-31T23:59:59Z"
-        )
-        assert resp.status_code == 200
-        assert len(resp.json()["data"]) == 1

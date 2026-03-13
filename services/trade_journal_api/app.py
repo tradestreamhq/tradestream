@@ -2,7 +2,7 @@
 Trade Journal REST API — RMM Level 2.
 
 Provides CRUD endpoints for trade journal entries with emotion tracking,
-ratings, lessons learned, and analytics (stats, streaks, calendar heatmap).
+ratings, lessons learned, tags, screenshots, and analytics.
 """
 
 import logging
@@ -47,6 +47,9 @@ class CreateJournalEntry(BaseModel):
     tags: Optional[List[str]] = Field(
         default_factory=list, description="Arbitrary tags"
     )
+    screenshots_urls: Optional[List[str]] = Field(
+        default_factory=list, description="URLs to trade screenshots"
+    )
 
 
 class UpdateJournalEntry(BaseModel):
@@ -60,6 +63,9 @@ class UpdateJournalEntry(BaseModel):
     lesson_learned: Optional[str] = Field(None, description="Update lesson")
     rating: Optional[int] = Field(None, ge=1, le=5, description="Update rating")
     tags: Optional[List[str]] = Field(None, description="Replace tags")
+    screenshots_urls: Optional[List[str]] = Field(
+        None, description="Replace screenshot URLs"
+    )
 
 
 # --- Helpers ---
@@ -74,6 +80,8 @@ def _row_to_dict(row: dict) -> Dict[str, Any]:
     for key in ("created_at", "updated_at"):
         if key in item and item[key] is not None:
             item[key] = item[key].isoformat()
+    if "screenshots_urls" in item and item["screenshots_urls"] is not None:
+        item["screenshots_urls"] = list(item["screenshots_urls"])
     return item
 
 
@@ -102,7 +110,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     # --- Create ---
 
-    @app.post("/entries", tags=["Journal"])
+    @app.post("", tags=["Journal"], status_code=201)
     async def create_entry(body: CreateJournalEntry):
         """Create a journal entry for a trade."""
         try:
@@ -111,8 +119,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     """
                     INSERT INTO trade_journal
                         (trade_id, entry_notes, exit_notes, emotion_tag,
-                         lesson_learned, rating)
-                    VALUES ($1, $2, $3, $4, $5, $6)
+                         lesson_learned, rating, screenshots_urls)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
                     RETURNING *
                     """,
                     body.trade_id,
@@ -121,6 +129,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     body.emotion_tag,
                     body.lesson_learned or "",
                     body.rating,
+                    body.screenshots_urls or [],
                 )
                 entry = _row_to_dict(row)
                 entry_id = entry["id"]
@@ -133,14 +142,16 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     )
                 entry["tags"] = tags
 
-            return success_response(entry, "journal_entry", resource_id=entry_id)
+            return success_response(
+                entry, "journal_entry", resource_id=entry_id, status_code=201
+            )
         except Exception:
             logger.exception("Failed to create journal entry")
             return server_error("Failed to create journal entry")
 
     # --- List (paginated, filterable) ---
 
-    @app.get("/entries", tags=["Journal"])
+    @app.get("", tags=["Journal"])
     async def list_entries(
         pagination: PaginationParams = Query(),
         emotion: Optional[str] = Query(None, description="Filter by emotion_tag"),
@@ -220,7 +231,131 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     # --- Get by ID ---
 
-    @app.get("/entries/{entry_id}", tags=["Journal"])
+    @app.get("/tags", tags=["Journal"])
+    async def list_tags():
+        """List all tags with entry counts."""
+        query = """
+            SELECT tag, COUNT(*)::int AS entry_count
+            FROM journal_tags
+            GROUP BY tag
+            ORDER BY entry_count DESC, tag ASC
+        """
+        try:
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch(query)
+            items = [dict(row) for row in rows]
+            return collection_response(items, "journal_tag", total=len(items))
+        except Exception:
+            logger.exception("Failed to list tags")
+            return server_error("Failed to list tags")
+
+    @app.get("/stats", tags=["Analytics"])
+    async def get_stats():
+        """Journaling stats: streaks, entries per week, most used tags."""
+        streak_query = """
+            SELECT DATE(created_at) AS entry_date
+            FROM trade_journal
+            ORDER BY entry_date DESC
+        """
+        weekly_query = """
+            SELECT
+                DATE_TRUNC('week', created_at)::date AS week_start,
+                COUNT(*)::int AS entry_count
+            FROM trade_journal
+            GROUP BY week_start
+            ORDER BY week_start DESC
+            LIMIT 12
+        """
+        tags_query = """
+            SELECT tag, COUNT(*)::int AS entry_count
+            FROM journal_tags
+            GROUP BY tag
+            ORDER BY entry_count DESC
+            LIMIT 10
+        """
+        emotion_query = """
+            SELECT
+                tj.emotion_tag,
+                COUNT(*)::int AS total_trades,
+                SUM(CASE WHEN pt.pnl > 0 THEN 1 ELSE 0 END)::int AS wins,
+                SUM(CASE WHEN pt.pnl <= 0 THEN 1 ELSE 0 END)::int AS losses,
+                ROUND(AVG(pt.pnl)::numeric, 4) AS avg_pnl
+            FROM trade_journal tj
+            JOIN paper_trades pt ON pt.id = tj.trade_id
+            WHERE tj.emotion_tag IS NOT NULL
+              AND pt.status = 'CLOSED'
+            GROUP BY tj.emotion_tag
+            ORDER BY total_trades DESC
+        """
+        try:
+            async with db_pool.acquire() as conn:
+                streak_rows = await conn.fetch(streak_query)
+                weekly_rows = await conn.fetch(weekly_query)
+                tag_rows = await conn.fetch(tags_query)
+                emotion_rows = await conn.fetch(emotion_query)
+
+            # Compute journaling streak (consecutive days)
+            current_streak = 0
+            longest_streak = 0
+            if streak_rows:
+                dates = sorted(
+                    set(row["entry_date"] for row in streak_rows), reverse=True
+                )
+                from datetime import date, timedelta
+
+                today = date.today()
+                if dates and (today - dates[0]).days <= 1:
+                    streak = 1
+                    for i in range(1, len(dates)):
+                        if (dates[i - 1] - dates[i]).days == 1:
+                            streak += 1
+                        else:
+                            break
+                    current_streak = streak
+
+                # Longest streak
+                streak = 1
+                for i in range(1, len(dates)):
+                    if (dates[i - 1] - dates[i]).days == 1:
+                        streak += 1
+                    else:
+                        longest_streak = max(longest_streak, streak)
+                        streak = 1
+                longest_streak = max(longest_streak, streak)
+
+            entries_per_week = []
+            for row in weekly_rows:
+                item = dict(row)
+                if item.get("week_start"):
+                    item["week_start"] = item["week_start"].isoformat()
+                entries_per_week.append(item)
+
+            most_used_tags = [dict(row) for row in tag_rows]
+
+            win_rate_by_emotion = []
+            for row in emotion_rows:
+                item = dict(row)
+                total = item["total_trades"]
+                item["win_rate"] = round(item["wins"] / total, 4) if total > 0 else 0
+                if item["avg_pnl"] is not None:
+                    item["avg_pnl"] = float(item["avg_pnl"])
+                win_rate_by_emotion.append(item)
+
+            return success_response(
+                {
+                    "current_streak": current_streak,
+                    "longest_streak": longest_streak,
+                    "entries_per_week": entries_per_week,
+                    "most_used_tags": most_used_tags,
+                    "win_rate_by_emotion": win_rate_by_emotion,
+                },
+                "journal_stats",
+            )
+        except Exception:
+            logger.exception("Failed to get journal stats")
+            return server_error("Failed to get journal stats")
+
+    @app.get("/{entry_id}", tags=["Journal"])
     async def get_entry(entry_id: UUID):
         """Get a single journal entry by ID."""
         try:
@@ -242,7 +377,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     # --- Update ---
 
-    @app.put("/entries/{entry_id}", tags=["Journal"])
+    @app.put("/{entry_id}", tags=["Journal"])
     async def update_entry(entry_id: UUID, body: UpdateJournalEntry):
         """Update a journal entry."""
         try:
@@ -269,6 +404,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                         set_clauses.append(f"{field} = ${idx}")
                         params.append(val)
                         idx += 1
+
+                if body.screenshots_urls is not None:
+                    set_clauses.append(f"screenshots_urls = ${idx}")
+                    params.append(body.screenshots_urls)
+                    idx += 1
 
                 params.append(entry_id)
                 update_query = f"""
@@ -301,250 +441,5 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         except Exception:
             logger.exception("Failed to update journal entry")
             return server_error("Failed to update journal entry")
-
-    # --- Stats: win rate by emotion, avg PnL by rating, common mistakes ---
-
-    @app.get("/stats", tags=["Analytics"])
-    async def get_stats():
-        """Analytics: win rate by emotion, avg PnL by rating, most common mistakes."""
-        emotion_query = """
-            SELECT
-                tj.emotion_tag,
-                COUNT(*)::int AS total_trades,
-                SUM(CASE WHEN pt.pnl > 0 THEN 1 ELSE 0 END)::int AS wins,
-                SUM(CASE WHEN pt.pnl <= 0 THEN 1 ELSE 0 END)::int AS losses,
-                ROUND(AVG(pt.pnl)::numeric, 4) AS avg_pnl,
-                ROUND(SUM(pt.pnl)::numeric, 4) AS total_pnl
-            FROM trade_journal tj
-            JOIN paper_trades pt ON pt.id = tj.trade_id
-            WHERE tj.emotion_tag IS NOT NULL
-              AND pt.status = 'CLOSED'
-            GROUP BY tj.emotion_tag
-            ORDER BY total_trades DESC
-        """
-        rating_query = """
-            SELECT
-                tj.rating,
-                COUNT(*)::int AS total_trades,
-                ROUND(AVG(pt.pnl)::numeric, 4) AS avg_pnl,
-                ROUND(SUM(pt.pnl)::numeric, 4) AS total_pnl
-            FROM trade_journal tj
-            JOIN paper_trades pt ON pt.id = tj.trade_id
-            WHERE tj.rating IS NOT NULL
-              AND pt.status = 'CLOSED'
-            GROUP BY tj.rating
-            ORDER BY tj.rating
-        """
-        mistakes_query = """
-            SELECT
-                jt.tag,
-                COUNT(*)::int AS occurrences,
-                ROUND(AVG(pt.pnl)::numeric, 4) AS avg_pnl
-            FROM journal_tags jt
-            JOIN trade_journal tj ON tj.id = jt.journal_id
-            JOIN paper_trades pt ON pt.id = tj.trade_id
-            WHERE pt.pnl < 0 AND pt.status = 'CLOSED'
-            GROUP BY jt.tag
-            ORDER BY occurrences DESC
-            LIMIT 10
-        """
-        try:
-            async with db_pool.acquire() as conn:
-                emotion_rows = await conn.fetch(emotion_query)
-                rating_rows = await conn.fetch(rating_query)
-                mistake_rows = await conn.fetch(mistakes_query)
-
-            win_rate_by_emotion = []
-            for row in emotion_rows:
-                item = dict(row)
-                total = item["total_trades"]
-                item["win_rate"] = round(item["wins"] / total, 4) if total > 0 else 0
-                for key in ("avg_pnl", "total_pnl"):
-                    if item[key] is not None:
-                        item[key] = float(item[key])
-                win_rate_by_emotion.append(item)
-
-            avg_pnl_by_rating = []
-            for row in rating_rows:
-                item = dict(row)
-                for key in ("avg_pnl", "total_pnl"):
-                    if item[key] is not None:
-                        item[key] = float(item[key])
-                avg_pnl_by_rating.append(item)
-
-            common_mistakes = []
-            for row in mistake_rows:
-                item = dict(row)
-                if item["avg_pnl"] is not None:
-                    item["avg_pnl"] = float(item["avg_pnl"])
-                common_mistakes.append(item)
-
-            return success_response(
-                {
-                    "win_rate_by_emotion": win_rate_by_emotion,
-                    "avg_pnl_by_rating": avg_pnl_by_rating,
-                    "common_mistakes": common_mistakes,
-                },
-                "journal_stats",
-            )
-        except Exception:
-            logger.exception("Failed to get journal stats")
-            return server_error("Failed to get journal stats")
-
-    # --- Streaks: winning/losing streaks with context ---
-
-    @app.get("/streaks", tags=["Analytics"])
-    async def get_streaks():
-        """Get winning/losing streaks with context."""
-        query = """
-            SELECT
-                pt.id AS trade_id,
-                pt.symbol,
-                pt.pnl,
-                pt.closed_at,
-                tj.emotion_tag,
-                tj.rating
-            FROM paper_trades pt
-            LEFT JOIN trade_journal tj ON tj.trade_id = pt.id
-            WHERE pt.status = 'CLOSED'
-            ORDER BY pt.closed_at ASC
-        """
-        try:
-            async with db_pool.acquire() as conn:
-                rows = await conn.fetch(query)
-
-            trades = []
-            for row in rows:
-                item = dict(row)
-                if item.get("trade_id"):
-                    item["trade_id"] = str(item["trade_id"])
-                if item.get("pnl") is not None:
-                    item["pnl"] = float(item["pnl"])
-                if item.get("closed_at"):
-                    item["closed_at"] = item["closed_at"].isoformat()
-                trades.append(item)
-
-            empty_streak = {"type": "none", "length": 0, "trades": []}
-            if not trades:
-                return success_response(
-                    {
-                        "current_streak": empty_streak,
-                        "longest_winning_streak": {"length": 0, "trades": []},
-                        "longest_losing_streak": {"length": 0, "trades": []},
-                    },
-                    "journal_streaks",
-                )
-
-            streaks = []
-            current_type = None
-            current_trades: list = []
-
-            for trade in trades:
-                pnl = trade.get("pnl", 0) or 0
-                trade_type = "winning" if pnl > 0 else "losing"
-
-                if trade_type == current_type:
-                    current_trades.append(trade)
-                else:
-                    if current_trades:
-                        streaks.append(
-                            {
-                                "type": current_type,
-                                "length": len(current_trades),
-                                "trades": current_trades,
-                            }
-                        )
-                    current_type = trade_type
-                    current_trades = [trade]
-
-            if current_trades:
-                streaks.append(
-                    {
-                        "type": current_type,
-                        "length": len(current_trades),
-                        "trades": current_trades,
-                    }
-                )
-
-            current_streak = streaks[-1] if streaks else empty_streak
-
-            winning_streaks = [s for s in streaks if s["type"] == "winning"]
-            losing_streaks = [s for s in streaks if s["type"] == "losing"]
-
-            longest_win = (
-                max(winning_streaks, key=lambda s: s["length"])
-                if winning_streaks
-                else {"length": 0, "trades": []}
-            )
-            longest_loss = (
-                max(losing_streaks, key=lambda s: s["length"])
-                if losing_streaks
-                else {"length": 0, "trades": []}
-            )
-
-            return success_response(
-                {
-                    "current_streak": current_streak,
-                    "longest_winning_streak": longest_win,
-                    "longest_losing_streak": longest_loss,
-                },
-                "journal_streaks",
-            )
-        except Exception:
-            logger.exception("Failed to get streaks")
-            return server_error("Failed to get streaks")
-
-    # --- Calendar: PnL by day heatmap data ---
-
-    @app.get("/calendar", tags=["Analytics"])
-    async def get_calendar(
-        date_from: Optional[datetime] = Query(None, description="Start date"),
-        date_to: Optional[datetime] = Query(None, description="End date"),
-    ):
-        """Calendar heatmap data — PnL aggregated by day."""
-        conditions = ["pt.status = 'CLOSED'", "pt.closed_at IS NOT NULL"]
-        params: list = []
-        idx = 1
-
-        if date_from:
-            conditions.append(f"pt.closed_at >= ${idx}")
-            params.append(date_from)
-            idx += 1
-        if date_to:
-            conditions.append(f"pt.closed_at <= ${idx}")
-            params.append(date_to)
-            idx += 1
-
-        where = "WHERE " + " AND ".join(conditions)
-
-        query = f"""
-            SELECT
-                DATE(pt.closed_at) AS date,
-                COUNT(*)::int AS trade_count,
-                SUM(CASE WHEN pt.pnl > 0 THEN 1 ELSE 0 END)::int AS wins,
-                SUM(CASE WHEN pt.pnl <= 0 THEN 1 ELSE 0 END)::int AS losses,
-                ROUND(SUM(pt.pnl)::numeric, 4) AS daily_pnl
-            FROM paper_trades pt
-            {where}
-            GROUP BY DATE(pt.closed_at)
-            ORDER BY date
-        """
-        try:
-            async with db_pool.acquire() as conn:
-                rows = await conn.fetch(query, *params)
-
-            days = []
-            for row in rows:
-                item = dict(row)
-                if item.get("date"):
-                    item["date"] = item["date"].isoformat()
-                if item.get("daily_pnl") is not None:
-                    item["daily_pnl"] = float(item["daily_pnl"])
-                days.append(item)
-
-            return collection_response(days, "calendar_day")
-        except Exception:
-            logger.exception("Failed to get calendar data")
-            return server_error("Failed to get calendar data")
 
     return app

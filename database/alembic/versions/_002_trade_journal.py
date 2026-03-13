@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS trade_journal (
     emotion_tag VARCHAR(20) CHECK (emotion_tag IN ('confident', 'fearful', 'neutral', 'greedy')),
     lesson_learned TEXT NOT NULL DEFAULT '',
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    screenshots_urls TEXT[] NOT NULL DEFAULT '{}',
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
