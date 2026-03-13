@@ -26,19 +26,13 @@ class ExchangeDataProvider:
         """Verify exchange connectivity."""
         self.exchange.fetch_time()
 
-    def get_order_book(
-        self, pair: str, levels: int = 10
-    ) -> Optional[Dict[str, Any]]:
+    def get_order_book(self, pair: str, levels: int = 10) -> Optional[Dict[str, Any]]:
         """Fetch order book from exchange."""
         try:
             ob = self.exchange.fetch_order_book(pair, limit=levels)
             return {
-                "bids": [
-                    {"price": p, "size": s} for p, s in ob.get("bids", [])
-                ],
-                "asks": [
-                    {"price": p, "size": s} for p, s in ob.get("asks", [])
-                ],
+                "bids": [{"price": p, "size": s} for p, s in ob.get("bids", [])],
+                "asks": [{"price": p, "size": s} for p, s in ob.get("asks", [])],
             }
         except Exception:
             logger.exception("Failed to fetch order book for %s", pair)

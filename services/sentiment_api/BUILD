@@ -76,8 +76,8 @@ py_test(
     name = "app_test",
     srcs = ["app_test.py"],
     deps = [
-        ":app_lib",
         ":analyzer_lib",
+        ":app_lib",
         "//third_party/python:fastapi",
         "//third_party/python:httpx",
         "//third_party/python:pytest",
