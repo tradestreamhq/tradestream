@@ -44,8 +44,13 @@ public class CandleAggregator {
     if (builder == null) {
       builder =
           new CandleBuilder(
-              pair, intervalStart, trade.getPrice(), trade.getPrice(), trade.getPrice(),
-              trade.getPrice(), trade.getVolume());
+              pair,
+              intervalStart,
+              trade.getPrice(),
+              trade.getPrice(),
+              trade.getPrice(),
+              trade.getPrice(),
+              trade.getVolume());
       activeCandles.put(pair, builder);
     } else {
       builder.update(trade.getPrice(), trade.getVolume());
