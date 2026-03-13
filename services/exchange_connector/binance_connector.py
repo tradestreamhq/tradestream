@@ -142,9 +142,7 @@ class BinanceConnector(ExchangeConnector):
             if info and float(info) > 0:
                 free = float(balance_data.get("free", {}).get(currency, 0) or 0)
                 used = float(balance_data.get("used", {}).get(currency, 0) or 0)
-                balances.append(
-                    Balance(currency=currency, available=free, locked=used)
-                )
+                balances.append(Balance(currency=currency, available=free, locked=used))
         return balances
 
     @retry(**_retry_params)
