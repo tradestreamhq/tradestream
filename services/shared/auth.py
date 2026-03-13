@@ -38,7 +38,11 @@ def _try_jwt_auth(auth_header: str) -> dict | None:
         from services.auth_api.auth_service import decode_access_token
 
         payload = decode_access_token(auth_header[7:])
-        return {"user_id": payload["sub"], "email": payload["email"], "auth_type": "jwt"}
+        return {
+            "user_id": payload["sub"],
+            "email": payload["email"],
+            "auth_type": "jwt",
+        }
     except Exception:
         return None
 
