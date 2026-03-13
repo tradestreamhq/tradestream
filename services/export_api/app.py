@@ -65,11 +65,15 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         start_date: Optional[str] = Query(None, description="Start date (ISO format)"),
         end_date: Optional[str] = Query(None, description="End date (ISO format)"),
         symbol: Optional[str] = Query(None, description="Filter by symbol"),
-        status: Optional[str] = Query(None, description="Filter by status (OPEN/CLOSED)"),
+        status: Optional[str] = Query(
+            None, description="Filter by status (OPEN/CLOSED)"
+        ),
     ):
         """Export trade history (paper_trades) as CSV or JSON."""
         if format not in _VALID_FORMATS:
-            return validation_error(f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}")
+            return validation_error(
+                f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}"
+            )
 
         conditions = ["1=1"]
         params = []
@@ -121,7 +125,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         if format == "csv":
             return to_csv_response(items, "trades.csv")
-        return to_json_export_response(items, total, pagination.limit, pagination.offset)
+        return to_json_export_response(
+            items, total, pagination.limit, pagination.offset
+        )
 
     @export_router.get("/signals")
     async def export_signals(
@@ -134,7 +140,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     ):
         """Export signal history as CSV or JSON."""
         if format not in _VALID_FORMATS:
-            return validation_error(f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}")
+            return validation_error(
+                f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}"
+            )
 
         conditions = ["1=1"]
         params = []
@@ -187,7 +195,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         if format == "csv":
             return to_csv_response(items, "signals.csv")
-        return to_json_export_response(items, total, pagination.limit, pagination.offset)
+        return to_json_export_response(
+            items, total, pagination.limit, pagination.offset
+        )
 
     @export_router.get("/performance")
     async def export_performance(
@@ -195,13 +205,19 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         format: str = Query("json", description="Output format: csv or json"),
         start_date: Optional[str] = Query(None, description="Start date (ISO format)"),
         end_date: Optional[str] = Query(None, description="End date (ISO format)"),
-        implementation_id: Optional[str] = Query(None, description="Filter by implementation"),
-        environment: Optional[str] = Query(None, description="Filter by environment (BACKTEST/PAPER/LIVE)"),
+        implementation_id: Optional[str] = Query(
+            None, description="Filter by implementation"
+        ),
+        environment: Optional[str] = Query(
+            None, description="Filter by environment (BACKTEST/PAPER/LIVE)"
+        ),
         instrument: Optional[str] = Query(None, description="Filter by instrument"),
     ):
         """Export performance metrics as CSV or JSON."""
         if format not in _VALID_FORMATS:
-            return validation_error(f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}")
+            return validation_error(
+                f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}"
+            )
 
         conditions = ["1=1"]
         params = []
@@ -262,7 +278,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         if format == "csv":
             return to_csv_response(items, "performance.csv")
-        return to_json_export_response(items, total, pagination.limit, pagination.offset)
+        return to_json_export_response(
+            items, total, pagination.limit, pagination.offset
+        )
 
     @export_router.get("/candles")
     async def export_candles(
@@ -280,7 +298,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         PostgreSQL for export convenience.
         """
         if format not in _VALID_FORMATS:
-            return validation_error(f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}")
+            return validation_error(
+                f"Invalid format '{format}'. Must be one of: {', '.join(_VALID_FORMATS)}"
+            )
 
         conditions = ["1=1"]
         params = []
@@ -331,7 +351,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         if format == "csv":
             return to_csv_response(items, "candles.csv")
-        return to_json_export_response(items, total, pagination.limit, pagination.offset)
+        return to_json_export_response(
+            items, total, pagination.limit, pagination.offset
+        )
 
     # --- Report endpoints ---
 
@@ -376,7 +398,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     async def get_trade_recap(
         start_date: str = Query(..., description="Period start date (ISO format)"),
         end_date: str = Query(..., description="Period end date (ISO format)"),
-        period_label: str = Query(..., description="Period label (e.g. '2026-W10', '2026-02')"),
+        period_label: str = Query(
+            ..., description="Period label (e.g. '2026-W10', '2026-02')"
+        ),
         instrument: Optional[str] = Query(None, description="Filter by instrument"),
     ):
         """Generate a periodic trade recap report."""
@@ -410,7 +434,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @report_router.get("/risk-exposure")
     async def get_risk_exposure(
-        implementation_id: Optional[str] = Query(None, description="Filter by implementation"),
+        implementation_id: Optional[str] = Query(
+            None, description="Filter by implementation"
+        ),
     ):
         """Generate a risk exposure report."""
         try:

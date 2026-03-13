@@ -192,7 +192,9 @@ class TestExportSignals:
         conn.fetch.return_value = []
         conn.fetchval.return_value = 0
 
-        resp = tc.get("/signals?instrument=ETH/USD&signal_type=BUY&start_date=2026-01-01")
+        resp = tc.get(
+            "/signals?instrument=ETH/USD&signal_type=BUY&start_date=2026-01-01"
+        )
         assert resp.status_code == 200
 
 
@@ -467,7 +469,9 @@ class TestFormatters:
         from services.export_api.formatters import to_csv_response
 
         resp = to_csv_response([], "test.csv")
-        assert resp.headers.get("content-disposition") == 'attachment; filename="test.csv"'
+        assert (
+            resp.headers.get("content-disposition") == 'attachment; filename="test.csv"'
+        )
 
     def test_csv_with_data(self):
         from services.export_api.formatters import to_csv_response
