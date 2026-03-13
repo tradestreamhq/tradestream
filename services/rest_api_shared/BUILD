@@ -48,11 +48,35 @@ py_library(
     ],
 )
 
+py_library(
+    name = "version",
+    srcs = [
+        "__init__.py",
+        "version.py",
+    ],
+    data = [
+        "//:version.json",
+    ],
+    deps = [
+        "//third_party/python:fastapi",
+    ],
+)
+
 py_test(
     name = "responses_test",
     srcs = ["responses_test.py"],
     deps = [
         ":responses",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "version_test",
+    srcs = ["version_test.py"],
+    deps = [
+        ":version",
+        "//third_party/python:httpx",
         "//third_party/python:pytest",
     ],
 )
