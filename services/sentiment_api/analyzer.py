@@ -179,12 +179,8 @@ class SentimentAnalyzer:
         if not whale_trades:
             return 0.0
 
-        buy_notional = sum(
-            w.notional for w in whale_trades if w.side == "buy"
-        )
-        sell_notional = sum(
-            w.notional for w in whale_trades if w.side == "sell"
-        )
+        buy_notional = sum(w.notional for w in whale_trades if w.side == "buy")
+        sell_notional = sum(w.notional for w in whale_trades if w.side == "sell")
         total = buy_notional + sell_notional
 
         if total == 0:
@@ -220,9 +216,7 @@ class SentimentAnalyzer:
         # Trade flow
         trade_flow = None
         if trades is not None:
-            trade_flow = self.compute_trade_flow(
-                pair, trades, window_seconds, ts
-            )
+            trade_flow = self.compute_trade_flow(pair, trades, window_seconds, ts)
 
         # Whale trades
         whale_trades = []
@@ -261,15 +255,12 @@ class SentimentAnalyzer:
         if not components:
             return 0.0
 
-        total_weight = sum(
-            self.weights.get(k, 0) for k in components
-        )
+        total_weight = sum(self.weights.get(k, 0) for k in components)
         if total_weight == 0:
             return 0.0
 
         score = sum(
-            (self.weights.get(k, 0) / total_weight) * v
-            for k, v in components.items()
+            (self.weights.get(k, 0) / total_weight) * v for k, v in components.items()
         )
         return max(-1.0, min(1.0, score))
 

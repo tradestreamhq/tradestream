@@ -87,8 +87,18 @@ class TestTradeFlow:
 class TestWhaleDetection:
     def test_detects_whale(self, analyzer):
         trades = [
-            {"side": "buy", "price": 60000.0, "size": 1.0, "timestamp": "2026-01-01T00:00:00Z"},
-            {"side": "sell", "price": 60000.0, "size": 0.5, "timestamp": "2026-01-01T00:01:00Z"},
+            {
+                "side": "buy",
+                "price": 60000.0,
+                "size": 1.0,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+            {
+                "side": "sell",
+                "price": 60000.0,
+                "size": 0.5,
+                "timestamp": "2026-01-01T00:01:00Z",
+            },
         ]
         whales = analyzer.detect_whale_trades("BTC/USD", trades)
         # 60000 * 1.0 = 60000 >= 50000 threshold → whale
@@ -99,14 +109,24 @@ class TestWhaleDetection:
 
     def test_no_whales(self, analyzer):
         trades = [
-            {"side": "buy", "price": 100.0, "size": 1.0, "timestamp": "2026-01-01T00:00:00Z"},
+            {
+                "side": "buy",
+                "price": 100.0,
+                "size": 1.0,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
         ]
         whales = analyzer.detect_whale_trades("BTC/USD", trades)
         assert len(whales) == 0
 
     def test_custom_threshold(self, analyzer):
         trades = [
-            {"side": "sell", "price": 50.0, "size": 10.0, "timestamp": "2026-01-01T00:00:00Z"},
+            {
+                "side": "sell",
+                "price": 50.0,
+                "size": 10.0,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
         ]
         whales = analyzer.detect_whale_trades("BTC/USD", trades, threshold=400.0)
         assert len(whales) == 1
@@ -162,8 +182,18 @@ class TestCompositeSnapshot:
         bids = [(60000.0, 5.0), (59990.0, 3.0)]
         asks = [(60010.0, 2.0), (60020.0, 1.0)]
         trades = [
-            {"side": "buy", "price": 60000.0, "size": 2.0, "timestamp": "2026-01-01T00:00:00Z"},
-            {"side": "sell", "price": 60000.0, "size": 1.0, "timestamp": "2026-01-01T00:00:01Z"},
+            {
+                "side": "buy",
+                "price": 60000.0,
+                "size": 2.0,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+            {
+                "side": "sell",
+                "price": 60000.0,
+                "size": 1.0,
+                "timestamp": "2026-01-01T00:00:01Z",
+            },
         ]
         snapshot = analyzer.compute_snapshot(
             pair="BTC/USD",

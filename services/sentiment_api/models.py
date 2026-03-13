@@ -97,9 +97,7 @@ class SentimentSnapshot:
                 if self.order_book_imbalance
                 else None
             ),
-            "trade_flow": (
-                self.trade_flow.to_dict() if self.trade_flow else None
-            ),
+            "trade_flow": (self.trade_flow.to_dict() if self.trade_flow else None),
             "whale_trades": [w.to_dict() for w in self.whale_trades],
             "funding_rate": self.funding_rate,
             "funding_sentiment": round(self.funding_sentiment, 6),

@@ -45,8 +45,18 @@ class TestGetSentiment:
             ],
         }
         provider.get_recent_trades.return_value = [
-            {"side": "buy", "price": 60000.0, "size": 2.0, "timestamp": "2026-01-01T00:00:00Z"},
-            {"side": "sell", "price": 60000.0, "size": 1.0, "timestamp": "2026-01-01T00:00:01Z"},
+            {
+                "side": "buy",
+                "price": 60000.0,
+                "size": 2.0,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+            {
+                "side": "sell",
+                "price": 60000.0,
+                "size": 1.0,
+                "timestamp": "2026-01-01T00:00:01Z",
+            },
         ]
         provider.get_funding_rate.return_value = 0.0001
 
@@ -85,8 +95,16 @@ class TestSentimentHistory:
     def test_history(self, client):
         tc, provider = client
         provider.get_sentiment_history.return_value = [
-            {"pair": "BTC/USD", "composite_score": 0.5, "timestamp": "2026-01-01T00:00:00Z"},
-            {"pair": "BTC/USD", "composite_score": -0.2, "timestamp": "2026-01-01T00:05:00Z"},
+            {
+                "pair": "BTC/USD",
+                "composite_score": 0.5,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+            {
+                "pair": "BTC/USD",
+                "composite_score": -0.2,
+                "timestamp": "2026-01-01T00:05:00Z",
+            },
         ]
         resp = tc.get("/BTC%2FUSD/history?limit=10")
         assert resp.status_code == 200
@@ -125,7 +143,9 @@ class TestWhaleTrades:
         provider.get_whale_trades.return_value = []
         resp = tc.get("/BTC%2FUSD/whale-trades?threshold=200000")
         assert resp.status_code == 200
-        provider.get_whale_trades.assert_called_with("BTC/USD", limit=50, threshold=200000.0)
+        provider.get_whale_trades.assert_called_with(
+            "BTC/USD", limit=50, threshold=200000.0
+        )
 
     def test_whale_trades_not_found(self, client):
         tc, provider = client
