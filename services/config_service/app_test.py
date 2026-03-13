@@ -59,10 +59,12 @@ class TestConfigServiceYaml:
         with tempfile.TemporaryDirectory() as tmpdir:
             yaml_file = Path(tmpdir) / "risk.yaml"
             yaml_file.write_text(
-                textwrap.dedent("""\
+                textwrap.dedent(
+                    """\
                     max_position_pct: 25.0
                     stop_loss_pct: 3.0
-                """)
+                """
+                )
             )
             svc = ConfigService(config_dir=tmpdir)
             svc.load()
@@ -81,8 +83,14 @@ class TestConfigServiceYaml:
             svc = ConfigService(config_dir=tmpdir)
             svc.load()
 
-            assert svc.get_namespace("exchange", mask_secrets=False)["default_exchange"] == "kraken"
-            assert svc.get_namespace("strategy", mask_secrets=False)["backtest_days"] == 180
+            assert (
+                svc.get_namespace("exchange", mask_secrets=False)["default_exchange"]
+                == "kraken"
+            )
+            assert (
+                svc.get_namespace("strategy", mask_secrets=False)["backtest_days"]
+                == 180
+            )
 
     def test_load_yaml_invalid_file_skipped(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -185,9 +193,7 @@ class TestConfigServiceValidation:
 
     def test_validate_invalid_choice(self):
         svc = ConfigService()
-        result = svc.validate_config(
-            {"notification": {"min_severity": "apocalypse"}}
-        )
+        result = svc.validate_config({"notification": {"min_severity": "apocalypse"}})
         assert result["valid"] is False
         assert "Invalid value" in result["errors"][0]["message"]
 
@@ -266,12 +272,18 @@ class TestHotReload:
 
             svc = ConfigService(config_dir=tmpdir)
             svc.load()
-            assert svc.get_namespace("risk", mask_secrets=False)["max_position_pct"] == 25.0
+            assert (
+                svc.get_namespace("risk", mask_secrets=False)["max_position_pct"]
+                == 25.0
+            )
 
             # Modify the file and reload
             yaml_file.write_text("max_position_pct: 50.0\n")
             svc.load()
-            assert svc.get_namespace("risk", mask_secrets=False)["max_position_pct"] == 50.0
+            assert (
+                svc.get_namespace("risk", mask_secrets=False)["max_position_pct"]
+                == 50.0
+            )
 
     def test_start_stop_watching(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -364,14 +376,18 @@ class TestUpdateConfig:
 class TestValidateConfig:
     def test_validate_valid(self, client):
         tc, _ = client
-        resp = tc.post("/validate", json={"config": {"risk": {"max_position_pct": 20.0}}})
+        resp = tc.post(
+            "/validate", json={"config": {"risk": {"max_position_pct": 20.0}}}
+        )
         assert resp.status_code == 200
         body = resp.json()
         assert body["data"]["attributes"]["valid"] is True
 
     def test_validate_invalid(self, client):
         tc, _ = client
-        resp = tc.post("/validate", json={"config": {"risk": {"max_position_pct": "bad"}}})
+        resp = tc.post(
+            "/validate", json={"config": {"risk": {"max_position_pct": "bad"}}}
+        )
         assert resp.status_code == 200
         body = resp.json()
         assert body["data"]["attributes"]["valid"] is False

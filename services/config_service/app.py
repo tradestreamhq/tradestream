@@ -76,9 +76,7 @@ def create_app(config_service: ConfigService) -> FastAPI:
         except ValueError as e:
             return not_found("Namespace", namespace)
         except ConfigValidationError as e:
-            return validation_error(
-                "Config validation failed", details=e.errors
-            )
+            return validation_error("Config validation failed", details=e.errors)
         return success_response(updated, "config", resource_id=namespace)
 
     @config_router.post("/validate")

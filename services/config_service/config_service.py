@@ -199,16 +199,12 @@ class ConfigService:
         self._notify_watchers(namespace)
         return result
 
-    def validate_config(
-        self, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def validate_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Validate a config blob. Returns {"valid": bool, "errors": [...]}."""
         all_errors = []
         for ns, values in config.items():
             if ns not in VALID_NAMESPACES:
-                all_errors.append(
-                    {"field": ns, "message": f"Unknown namespace: {ns}"}
-                )
+                all_errors.append({"field": ns, "message": f"Unknown namespace: {ns}"})
                 continue
             if not isinstance(values, dict):
                 all_errors.append(
