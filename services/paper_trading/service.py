@@ -12,6 +12,7 @@ from typing import Optional
 from absl import logging
 from flask import Flask, jsonify, request
 
+from services.paper_trading.engine import PaperTradingEngine
 from services.paper_trading.postgres_client import PostgresClient
 from services.shared.auth import flask_auth_middleware
 from services.shared.mcp_client import call_mcp_tool
@@ -205,6 +206,119 @@ def create_app(
             return jsonify(summary)
         except Exception as e:
             logging.error("Failed to get P&L summary: %s", e)
+            return jsonify({"error": str(e)}), 500
+
+    # ---- Paper Trading Mode endpoints (/api/v1/paper-trading) ----
+
+    engine = PaperTradingEngine(pg_client, market_mcp_url)
+
+    @app.route("/api/v1/paper-trading/start", methods=["POST"])
+    def start_session():
+        """Start a new paper trading session.
+
+        Request body (optional):
+            starting_balance: Initial virtual balance (default 100000.0)
+        """
+        data = request.get_json(silent=True) or {}
+        starting_balance = float(data.get("starting_balance", 100000.0))
+
+        if starting_balance <= 0:
+            return jsonify({"error": "starting_balance must be positive"}), 400
+
+        try:
+            session = run_async(engine.start_session(starting_balance))
+            return jsonify(session), 201
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 409
+        except Exception as e:
+            logging.error("Failed to start paper trading session: %s", e)
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/v1/paper-trading/stop", methods=["POST"])
+    def stop_session():
+        """Stop an active paper trading session.
+
+        Request body:
+            session_id: UUID of the session to stop
+        """
+        data = request.get_json()
+        if not data or not data.get("session_id"):
+            return jsonify({"error": "session_id is required"}), 400
+
+        try:
+            session = run_async(engine.stop_session(data["session_id"]))
+            return jsonify(session)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            logging.error("Failed to stop paper trading session: %s", e)
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/v1/paper-trading/portfolio", methods=["GET"])
+    def get_session_portfolio():
+        """Get portfolio for a paper trading session.
+
+        Query params:
+            session_id: UUID of the session
+        """
+        session_id = request.args.get("session_id")
+        if not session_id:
+            return jsonify({"error": "session_id query param is required"}), 400
+
+        try:
+            portfolio = run_async(engine.get_session_portfolio(session_id))
+            return jsonify(portfolio)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            logging.error("Failed to get session portfolio: %s", e)
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/v1/paper-trading/trades", methods=["GET"])
+    def get_session_trades():
+        """Get trades for a paper trading session.
+
+        Query params:
+            session_id: UUID of the session (required)
+            symbol: Filter by symbol
+            status: Filter by status (OPEN/CLOSED)
+            limit: Max results (default 50)
+        """
+        session_id = request.args.get("session_id")
+        if not session_id:
+            return jsonify({"error": "session_id query param is required"}), 400
+
+        symbol = request.args.get("symbol")
+        status = request.args.get("status")
+        limit = int(request.args.get("limit", 50))
+
+        try:
+            result = run_async(
+                engine.get_session_trades(
+                    session_id, symbol=symbol, status=status, limit=limit
+                )
+            )
+            return jsonify(result)
+        except Exception as e:
+            logging.error("Failed to get session trades: %s", e)
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/v1/paper-trading/performance", methods=["GET"])
+    def get_performance_comparison():
+        """Compare paper trading performance against live trades.
+
+        Query params:
+            session_id: UUID of the session to compare
+        """
+        session_id = request.args.get("session_id")
+        if not session_id:
+            return jsonify({"error": "session_id query param is required"}), 400
+
+        try:
+            comparison = run_async(engine.get_performance_comparison(session_id))
+            return jsonify(comparison)
+        except Exception as e:
+            logging.error("Failed to get performance comparison: %s", e)
             return jsonify({"error": str(e)}), 500
 
     return app
