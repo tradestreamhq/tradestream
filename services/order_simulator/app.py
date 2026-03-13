@@ -66,9 +66,7 @@ def create_app(
     async def place_order(body: OrderRequest):
         """Place a simulated order."""
         if body.order_type != OrderType.MARKET and body.price is None:
-            return validation_error(
-                f"{body.order_type.value} orders require a price"
-            )
+            return validation_error(f"{body.order_type.value} orders require a price")
 
         order = SimulatedOrder(
             instrument=body.instrument,

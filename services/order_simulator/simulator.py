@@ -65,17 +65,19 @@ class OrderSimulator:
     def place_order(self, order: SimulatedOrder) -> SimulatedOrder:
         """Place an order into the simulator."""
         if order.order_type != OrderType.MARKET and order.price is None:
-            raise ValueError(
-                f"{order.order_type.value} orders require a price"
-            )
+            raise ValueError(f"{order.order_type.value} orders require a price")
 
         self._orders[order.id] = order
         order.status = OrderStatus.OPEN
         order.updated_at = datetime.now(timezone.utc).isoformat()
-        logger.info("Order placed: %s %s %s %.4f @ %s",
-                     order.side.value, order.order_type.value,
-                     order.instrument, order.quantity,
-                     order.price or "MARKET")
+        logger.info(
+            "Order placed: %s %s %s %.4f @ %s",
+            order.side.value,
+            order.order_type.value,
+            order.instrument,
+            order.quantity,
+            order.price or "MARKET",
+        )
         return order
 
     def cancel_order(self, order_id: str) -> Optional[SimulatedOrder]:
@@ -83,7 +85,11 @@ class OrderSimulator:
         order = self._orders.get(order_id)
         if order is None:
             return None
-        if order.status in (OrderStatus.FILLED, OrderStatus.CANCELLED, OrderStatus.EXPIRED):
+        if order.status in (
+            OrderStatus.FILLED,
+            OrderStatus.CANCELLED,
+            OrderStatus.EXPIRED,
+        ):
             return None
         order.status = OrderStatus.CANCELLED
         order.updated_at = datetime.now(timezone.utc).isoformat()
@@ -142,7 +148,9 @@ class OrderSimulator:
         fill_price = base_price + slippage
 
         is_maker = order.order_type == OrderType.LIMIT
-        fee_rate = self.fee_schedule.maker_fee if is_maker else self.fee_schedule.taker_fee
+        fee_rate = (
+            self.fee_schedule.maker_fee if is_maker else self.fee_schedule.taker_fee
+        )
         fee = abs(fill_qty * fill_price * fee_rate)
 
         # Update balance and positions
@@ -231,7 +239,13 @@ class OrderSimulator:
 
         if self.slippage_config.model == SlippageModel.VOLATILITY:
             random_factor = random.uniform(0.5, 1.5)
-            return direction * base_price * volatility * self.slippage_config.value * random_factor
+            return (
+                direction
+                * base_price
+                * volatility
+                * self.slippage_config.value
+                * random_factor
+            )
 
         return 0.0
 
