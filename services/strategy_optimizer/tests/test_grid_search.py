@@ -78,8 +78,12 @@ class TestGridSearchConfig:
         config = GridSearchConfig(
             strategy_name="SMA_RSI",
             parameter_ranges=[
-                ParameterRange(name="a", min_value=10, max_value=50, step=10),  # 5 values
-                ParameterRange(name="b", min_value=20, max_value=40, step=10),  # 3 values
+                ParameterRange(
+                    name="a", min_value=10, max_value=50, step=10
+                ),  # 5 values
+                ParameterRange(
+                    name="b", min_value=20, max_value=40, step=10
+                ),  # 3 values
             ],
         )
         assert config.total_combinations == 15
@@ -146,9 +150,7 @@ class TestGridSearchOptimizer:
 
     def test_run_top_n_limits_results(self):
         runner = MagicMock()
-        runner.run_strategy.side_effect = [
-            _make_metrics(sharpe=i) for i in range(5)
-        ]
+        runner.run_strategy.side_effect = [_make_metrics(sharpe=i) for i in range(5)]
 
         optimizer = GridSearchOptimizer(runner=runner)
         config = GridSearchConfig(
@@ -207,7 +209,9 @@ class TestGridSearchOptimizer:
         config = GridSearchConfig(
             strategy_name="SMA_RSI",
             parameter_ranges=[
-                ParameterRange(name="movingAveragePeriod", min_value=20, max_value=20, step=1),
+                ParameterRange(
+                    name="movingAveragePeriod", min_value=20, max_value=20, step=1
+                ),
             ],
         )
 
