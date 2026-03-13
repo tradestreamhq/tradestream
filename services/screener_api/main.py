@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
-    dsn = os.environ.get(
-        "DATABASE_URL", "postgresql://localhost:5432/tradestream"
-    )
+    dsn = os.environ.get("DATABASE_URL", "postgresql://localhost:5432/tradestream")
     pool = await asyncpg.create_pool(dsn=dsn, min_size=2, max_size=10)
 
     app = create_app(pool)

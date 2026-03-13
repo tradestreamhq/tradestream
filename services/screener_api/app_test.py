@@ -35,18 +35,33 @@ def _make_pool():
 def _sample_snapshots():
     return [
         MarketSnapshot(
-            symbol="BTC/USD", price=60000.0, volume=5_000_000.0,
-            rsi=45.0, sma_20=59000.0, sma_50=58000.0, sma_200=55000.0,
+            symbol="BTC/USD",
+            price=60000.0,
+            volume=5_000_000.0,
+            rsi=45.0,
+            sma_20=59000.0,
+            sma_50=58000.0,
+            sma_200=55000.0,
             sector="Crypto",
         ),
         MarketSnapshot(
-            symbol="ETH/USD", price=3500.0, volume=3_000_000.0,
-            rsi=25.0, sma_20=3400.0, sma_50=3300.0, sma_200=3000.0,
+            symbol="ETH/USD",
+            price=3500.0,
+            volume=3_000_000.0,
+            rsi=25.0,
+            sma_20=3400.0,
+            sma_50=3300.0,
+            sma_200=3000.0,
             sector="Crypto",
         ),
         MarketSnapshot(
-            symbol="AAPL", price=150.0, volume=80_000_000.0,
-            rsi=60.0, sma_20=148.0, sma_50=145.0, sma_200=140.0,
+            symbol="AAPL",
+            price=150.0,
+            volume=80_000_000.0,
+            rsi=60.0,
+            sma_20=148.0,
+            sma_50=145.0,
+            sma_200=140.0,
             sector="Technology",
         ),
     ]
@@ -84,9 +99,7 @@ class TestScanEndpoint:
         resp = tc.post(
             "/scan",
             json={
-                "filters": [
-                    {"field": "price", "operator": "gte", "value": 100.0}
-                ],
+                "filters": [{"field": "price", "operator": "gte", "value": 100.0}],
             },
         )
         assert resp.status_code == 200
@@ -104,9 +117,7 @@ class TestScanEndpoint:
         resp = tc.post(
             "/scan",
             json={
-                "filters": [
-                    {"field": "rsi", "operator": "lte", "value": 30.0}
-                ],
+                "filters": [{"field": "rsi", "operator": "lte", "value": 30.0}],
             },
         )
         assert resp.status_code == 200
@@ -119,9 +130,7 @@ class TestScanEndpoint:
         resp = tc.post(
             "/scan",
             json={
-                "filters": [
-                    {"field": "price", "operator": "gt", "value": 0}
-                ],
+                "filters": [{"field": "price", "operator": "gt", "value": 0}],
                 "sector": "Technology",
             },
         )
@@ -177,9 +186,7 @@ class TestScanEndpoint:
         resp = tc.post(
             "/scan",
             json={
-                "filters": [
-                    {"field": "price", "operator": "gt", "value": 999_999.0}
-                ],
+                "filters": [{"field": "price", "operator": "gt", "value": 999_999.0}],
             },
         )
         assert resp.status_code == 200
@@ -191,9 +198,7 @@ class TestScanEndpoint:
         resp = tc.post(
             "/scan",
             json={
-                "filters": [
-                    {"field": "price", "operator": "gt", "value": 0}
-                ],
+                "filters": [{"field": "price", "operator": "gt", "value": 0}],
             },
         )
         assert resp.status_code == 200
@@ -205,9 +210,7 @@ class TestScanEndpoint:
         resp = tc.post(
             "/scan",
             json={
-                "filters": [
-                    {"field": "price", "operator": "gt", "value": 0}
-                ],
+                "filters": [{"field": "price", "operator": "gt", "value": 0}],
                 "limit": 1,
             },
         )
@@ -220,9 +223,7 @@ class TestScanEndpoint:
         resp = tc.post(
             "/scan",
             json={
-                "filters": [
-                    {"field": "price", "operator": "invalid", "value": 0}
-                ],
+                "filters": [{"field": "price", "operator": "invalid", "value": 0}],
             },
         )
         assert resp.status_code == 422
@@ -321,9 +322,7 @@ class TestPresetsEndpoints:
             json={
                 "name": "New Preset",
                 "description": "My custom scan",
-                "filters": [
-                    {"field": "price", "operator": "gt", "value": 50}
-                ],
+                "filters": [{"field": "price", "operator": "gt", "value": 50}],
                 "sector": "Technology",
             },
         )

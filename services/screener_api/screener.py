@@ -103,9 +103,7 @@ def _evaluate_criterion(snapshot: MarketSnapshot, criterion: FilterCriterion) ->
     return False
 
 
-def run_scan(
-    snapshots: List[MarketSnapshot], request: ScanRequest
-) -> List[ScanResult]:
+def run_scan(snapshots: List[MarketSnapshot], request: ScanRequest) -> List[ScanResult]:
     """Run a scan against a list of market snapshots.
 
     Returns matching instruments sorted by score (descending).
