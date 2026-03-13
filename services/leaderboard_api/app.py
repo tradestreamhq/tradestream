@@ -228,7 +228,11 @@ def _normalize_equity_curves(rows) -> Dict[str, List[Dict[str, Any]]]:
                 "strategy_name": row["strategy_name"],
                 "points": [],
             }
-        total_return = float(row["total_return"]) if row["total_return"] is not None else 0.0
+        total_return = (
+            float(row["total_return"])
+            if row["total_return"] is not None
+            else 0.0
+        )
         curves[impl_id]["points"].append(
             {
                 "period_start": row["period_start"].isoformat(),
@@ -291,7 +295,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     @app.get("/leaderboard", tags=["Leaderboard"])
     async def get_leaderboard(
-        period: Period = Query(Period.THIRTY_DAYS, description="Time period for metrics"),
+        period: Period = Query(
+            Period.THIRTY_DAYS, description="Time period for metrics"
+        ),
         sort_by: SortMetric = Query(SortMetric.SHARPE, description="Metric to rank by"),
     ):
         """Get ranked list of strategies by performance metrics."""
@@ -318,7 +324,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.get("/leaderboard/compare", tags=["Leaderboard"])
     async def compare_strategies(
         ids: str = Query(..., description="Comma-separated implementation IDs"),
-        period: Period = Query(Period.THIRTY_DAYS, description="Time period for metrics"),
+        period: Period = Query(
+            Period.THIRTY_DAYS, description="Time period for metrics"
+        ),
     ):
         """Side-by-side comparison of selected strategies."""
         id_list = [s.strip() for s in ids.split(",") if s.strip()]
