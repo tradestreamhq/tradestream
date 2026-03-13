@@ -171,9 +171,7 @@ class TestListEntries:
         conn.fetchval.return_value = 0
         conn.fetch.side_effect = [[]]
 
-        resp = tc.get(
-            "/?date_from=2026-01-01T00:00:00Z&date_to=2026-12-31T23:59:59Z"
-        )
+        resp = tc.get("/?date_from=2026-01-01T00:00:00Z&date_to=2026-12-31T23:59:59Z")
         assert resp.status_code == 200
 
 
