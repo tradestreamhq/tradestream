@@ -385,9 +385,7 @@ class TestDispatcher:
         disp, conn = dispatcher
         conn.fetch.return_value = []
 
-        results = await disp.dispatch_event(
-            "trade_executed", {"trade": "SELL"}
-        )
+        results = await disp.dispatch_event("trade_executed", {"trade": "SELL"})
 
         assert len(results) == 0
         mock_send.assert_not_called()
@@ -407,9 +405,7 @@ class TestDispatcher:
             )
         ]
 
-        results = await disp.dispatch_event(
-            "alert_triggered", {"alert": "price_drop"}
-        )
+        results = await disp.dispatch_event("alert_triggered", {"alert": "price_drop"})
 
         assert len(results) == 1
         assert results[0]["success"] is False

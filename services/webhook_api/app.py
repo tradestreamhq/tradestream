@@ -125,7 +125,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             item["events"] = list(item["events"])
             items.append(item)
 
-        return collection_response(items, "webhook", total=total, limit=limit, offset=offset)
+        return collection_response(
+            items, "webhook", total=total, limit=limit, offset=offset
+        )
 
     @app.get("/{webhook_id}", tags=["Webhooks"])
     async def get_webhook(webhook_id: uuid.UUID):
