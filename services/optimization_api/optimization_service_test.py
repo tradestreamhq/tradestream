@@ -152,24 +152,45 @@ class TestRankResults:
 class TestGetObjectiveValue:
     def test_sharpe_objective(self):
         trial = TrialResult(
-            parameters={}, objective_value=0.0, sharpe_ratio=1.5,
-            cumulative_return=0.2, max_drawdown=0.1, number_of_trades=10,
-            win_rate=0.6, profit_factor=1.5, sortino_ratio=1.0, strategy_score=0.5,
+            parameters={},
+            objective_value=0.0,
+            sharpe_ratio=1.5,
+            cumulative_return=0.2,
+            max_drawdown=0.1,
+            number_of_trades=10,
+            win_rate=0.6,
+            profit_factor=1.5,
+            sortino_ratio=1.0,
+            strategy_score=0.5,
         )
         assert get_objective_value(trial, Objective.SHARPE) == 1.5
 
     def test_return_objective(self):
         trial = TrialResult(
-            parameters={}, objective_value=0.0, sharpe_ratio=1.5,
-            cumulative_return=0.2, max_drawdown=0.1, number_of_trades=10,
-            win_rate=0.6, profit_factor=1.5, sortino_ratio=1.0, strategy_score=0.5,
+            parameters={},
+            objective_value=0.0,
+            sharpe_ratio=1.5,
+            cumulative_return=0.2,
+            max_drawdown=0.1,
+            number_of_trades=10,
+            win_rate=0.6,
+            profit_factor=1.5,
+            sortino_ratio=1.0,
+            strategy_score=0.5,
         )
         assert get_objective_value(trial, Objective.RETURN) == 0.2
 
     def test_drawdown_objective_negated(self):
         trial = TrialResult(
-            parameters={}, objective_value=0.0, sharpe_ratio=1.5,
-            cumulative_return=0.2, max_drawdown=0.1, number_of_trades=10,
-            win_rate=0.6, profit_factor=1.5, sortino_ratio=1.0, strategy_score=0.5,
+            parameters={},
+            objective_value=0.0,
+            sharpe_ratio=1.5,
+            cumulative_return=0.2,
+            max_drawdown=0.1,
+            number_of_trades=10,
+            win_rate=0.6,
+            profit_factor=1.5,
+            sortino_ratio=1.0,
+            strategy_score=0.5,
         )
         assert get_objective_value(trial, Objective.DRAWDOWN) == -0.1

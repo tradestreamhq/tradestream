@@ -47,7 +47,9 @@ def client_with_backtest():
     """Client with a mock backtest function for end-to-end testing."""
     pool, conn = _make_pool()
 
-    async def mock_backtest(strategy_name, parameters, instrument, start_date, end_date):
+    async def mock_backtest(
+        strategy_name, parameters, instrument, start_date, end_date
+    ):
         # Return metrics that vary based on parameters for realistic testing
         period = parameters.get("period", 14)
         return {
@@ -83,9 +85,7 @@ class TestSubmitOptimization:
             json={
                 "strategy_id": "SMA_RSI",
                 "parameter_space": {
-                    "numeric": [
-                        {"name": "period", "min": 10, "max": 20, "step": 5}
-                    ],
+                    "numeric": [{"name": "period", "min": 10, "max": 20, "step": 5}],
                     "categorical": [],
                 },
                 "objective": "sharpe",

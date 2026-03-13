@@ -163,8 +163,6 @@ def get_objective_value(trial: TrialResult, objective: Objective) -> float:
     raise ValueError(f"Unknown objective: {objective}")
 
 
-def rank_results(
-    trials: List[TrialResult], objective: Objective
-) -> List[TrialResult]:
+def rank_results(trials: List[TrialResult], objective: Objective) -> List[TrialResult]:
     """Rank trial results by the given objective (best first)."""
     return sorted(trials, key=lambda t: get_objective_value(t, objective), reverse=True)

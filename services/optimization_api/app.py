@@ -149,9 +149,7 @@ def create_app(db_pool: asyncpg.Pool, backtest_fn=None) -> FastAPI:
 
             # Parse parameter spaces
             numeric = [
-                NumericParamSpace(
-                    name=p.name, min=p.min, max=p.max, step=p.step
-                )
+                NumericParamSpace(name=p.name, min=p.min, max=p.max, step=p.step)
                 for p in request.parameter_space.numeric
             ]
             categorical = [
@@ -262,7 +260,11 @@ def create_app(db_pool: asyncpg.Pool, backtest_fn=None) -> FastAPI:
                     result.objective.value,
                     result.total_combinations,
                     result.completed_combinations,
-                    json.dumps(result.best_parameters) if result.best_parameters else None,
+                    (
+                        json.dumps(result.best_parameters)
+                        if result.best_parameters
+                        else None
+                    ),
                     result.best_objective_value,
                     json.dumps(top_results),
                     result.error,
@@ -291,12 +293,16 @@ def create_app(db_pool: asyncpg.Pool, backtest_fn=None) -> FastAPI:
             )
 
         if not body.parameter_space.numeric and not body.parameter_space.categorical:
-            return validation_error("parameter_space must define at least one parameter")
+            return validation_error(
+                "parameter_space must define at least one parameter"
+            )
 
         # Validate numeric params
         for p in body.parameter_space.numeric:
             if p.min > p.max:
-                return validation_error(f"Parameter '{p.name}': min ({p.min}) > max ({p.max})")
+                return validation_error(
+                    f"Parameter '{p.name}': min ({p.min}) > max ({p.max})"
+                )
             if p.step <= 0:
                 return validation_error(f"Parameter '{p.name}': step must be positive")
 
@@ -397,7 +403,9 @@ def create_app(db_pool: asyncpg.Pool, backtest_fn=None) -> FastAPI:
             "ranked_results": row["ranked_results"],
             "error": row["error"],
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-            "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
+            "completed_at": (
+                row["completed_at"].isoformat() if row["completed_at"] else None
+            ),
         }
         return success_response(data, "optimization_job", resource_id=str(row["id"]))
 
@@ -459,8 +467,12 @@ def create_app(db_pool: asyncpg.Pool, backtest_fn=None) -> FastAPI:
                 "best_parameters": row["best_parameters"],
                 "best_objective_value": row["best_objective_value"],
                 "error": row["error"],
-                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-                "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
+                "created_at": (
+                    row["created_at"].isoformat() if row["created_at"] else None
+                ),
+                "completed_at": (
+                    row["completed_at"].isoformat() if row["completed_at"] else None
+                ),
             }
             items.append(item)
 
