@@ -1,0 +1,34 @@
+# Build outputs
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-tradestream
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Claude worktrees
+.claude/
+
+# Docker
+docker-compose*.yml
+.dockerignore
+
+# Docs
+*.md
+docs/
+LICENSE
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
