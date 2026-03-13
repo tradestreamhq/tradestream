@@ -51,7 +51,9 @@ def strategy_performance_summary(
             "losing_trades": losing_trades,
             "win_rate": round(win_rate, 4),
             "total_pnl": round(total_pnl, 8),
-            "avg_sharpe_ratio": round(avg_sharpe, 4) if avg_sharpe is not None else None,
+            "avg_sharpe_ratio": (
+                round(avg_sharpe, 4) if avg_sharpe is not None else None
+            ),
             "worst_max_drawdown": (
                 round(worst_drawdown, 4) if worst_drawdown is not None else None
             ),
@@ -120,7 +122,9 @@ def trade_recap(
             "win_rate": round(wins / total, 4) if total > 0 else 0.0,
             "total_pnl": round(total_pnl, 8),
             "best_trade_pnl": round(best_trade, 8) if best_trade is not None else None,
-            "worst_trade_pnl": round(worst_trade, 8) if worst_trade is not None else None,
+            "worst_trade_pnl": (
+                round(worst_trade, 8) if worst_trade is not None else None
+            ),
         },
         "by_instrument": instruments,
         "trades": [
@@ -150,9 +154,19 @@ def risk_exposure_report(
         open_trades: Currently open paper trades.
     """
     # Aggregate risk metrics from performance data
-    drawdowns = [float(r["max_drawdown"]) for r in performance_rows if r.get("max_drawdown") is not None]
-    volatilities = [float(r["volatility"]) for r in performance_rows if r.get("volatility") is not None]
-    var_values = [float(r["var_95"]) for r in performance_rows if r.get("var_95") is not None]
+    drawdowns = [
+        float(r["max_drawdown"])
+        for r in performance_rows
+        if r.get("max_drawdown") is not None
+    ]
+    volatilities = [
+        float(r["volatility"])
+        for r in performance_rows
+        if r.get("volatility") is not None
+    ]
+    var_values = [
+        float(r["var_95"]) for r in performance_rows if r.get("var_95") is not None
+    ]
 
     # Open position exposure
     position_exposure = {}
@@ -177,8 +191,14 @@ def risk_exposure_report(
         "generated_at": datetime.utcnow().isoformat(),
         "risk_metrics": {
             "worst_max_drawdown": round(min(drawdowns), 4) if drawdowns else None,
-            "avg_max_drawdown": round(sum(drawdowns) / len(drawdowns), 4) if drawdowns else None,
-            "avg_volatility": round(sum(volatilities) / len(volatilities), 4) if volatilities else None,
+            "avg_max_drawdown": (
+                round(sum(drawdowns) / len(drawdowns), 4) if drawdowns else None
+            ),
+            "avg_volatility": (
+                round(sum(volatilities) / len(volatilities), 4)
+                if volatilities
+                else None
+            ),
             "worst_var_95": round(min(var_values), 4) if var_values else None,
         },
         "open_positions": {
