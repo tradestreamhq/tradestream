@@ -60,7 +60,7 @@ py_test(
         ":config_service_lib",
         "//third_party/python:fastapi",
         "//third_party/python:httpx",
-        "//third_party/python:pyyaml",
         "//third_party/python:pytest",
+        "//third_party/python:pyyaml",
     ],
 )
