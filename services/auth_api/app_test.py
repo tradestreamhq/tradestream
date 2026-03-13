@@ -91,7 +91,11 @@ class TestRegister:
             },
         )
         # Should return validation error
-        assert resp.status_code in (400, 422, 200)  # validation_error returns 200 with error
+        assert resp.status_code in (
+            400,
+            422,
+            200,
+        )  # validation_error returns 200 with error
 
     def test_register_short_password(self, client):
         tc, conn, _ = client
@@ -265,7 +269,9 @@ class TestApiKeyEndpoints:
         )
         # Should fail with validation error about missing auth
         body = resp.json()
-        assert "error" in body or "Authorization" in str(body) or resp.status_code == 401
+        assert (
+            "error" in body or "Authorization" in str(body) or resp.status_code == 401
+        )
 
     def test_list_api_keys(self, client):
         tc, conn, _ = client
