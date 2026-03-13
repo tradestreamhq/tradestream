@@ -223,9 +223,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
             data = {
                 "portfolio_value": float(portfolio_row["portfolio_value"]),
-                "total_unrealized_pnl": float(
-                    portfolio_row["total_unrealized_pnl"]
-                ),
+                "total_unrealized_pnl": float(portfolio_row["total_unrealized_pnl"]),
                 "total_realized_pnl": float(pnl_row["total_realized_pnl"]),
                 "pnl_today": float(pnl_row["pnl_today"]),
                 "pnl_week": float(pnl_row["pnl_week"]),
@@ -264,9 +262,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         try:
             async with db_pool.acquire() as conn:
-                query = _CHART_SQL_TEMPLATE.format(
-                    lookback=lookback, bucket=bucket
-                )
+                query = _CHART_SQL_TEMPLATE.format(lookback=lookback, bucket=bucket)
                 rows = await conn.fetch(query)
 
             points = [
@@ -301,9 +297,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 for row in strategies:
                     impl_id = row["id"]
                     sparkline_rows = await conn.fetch(_SPARKLINE_SQL)
-                    sparkline = [
-                        float(s["daily_pnl"]) for s in sparkline_rows
-                    ]
+                    sparkline = [float(s["daily_pnl"]) for s in sparkline_rows]
 
                     result.append(
                         {
@@ -326,14 +320,10 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                                 else None
                             ),
                             "total_trades": (
-                                int(row["total_trades"])
-                                if row["total_trades"]
-                                else 0
+                                int(row["total_trades"]) if row["total_trades"] else 0
                             ),
                             "win_rate": (
-                                float(row["win_rate"])
-                                if row["win_rate"]
-                                else None
+                                float(row["win_rate"]) if row["win_rate"] else None
                             ),
                             "sparkline": sparkline,
                         }
@@ -370,9 +360,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     "title": row["title"],
                     "description": row["description"],
                     "occurred_at": (
-                        row["occurred_at"].isoformat()
-                        if row["occurred_at"]
-                        else None
+                        row["occurred_at"].isoformat() if row["occurred_at"] else None
                     ),
                 }
                 if row["pnl"] is not None:
@@ -408,9 +396,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 market_data = []
                 for sym_row in symbols:
                     symbol = sym_row["symbol"]
-                    latest = await conn.fetchrow(
-                        _LATEST_PRICE_SQL, symbol
-                    )
+                    latest = await conn.fetchrow(_LATEST_PRICE_SQL, symbol)
                     prev = await conn.fetchrow(_PREV_PRICE_SQL, symbol)
 
                     if latest and latest["price"]:
@@ -421,11 +407,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                             else current_price
                         )
                         change_24h = (
-                            (
-                                (current_price - prev_price)
-                                / prev_price
-                                * 100
-                            )
+                            ((current_price - prev_price) / prev_price * 100)
                             if prev_price != 0
                             else 0.0
                         )
@@ -435,9 +417,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                                 "symbol": symbol,
                                 "price": current_price,
                                 "change_24h_pct": round(change_24h, 2),
-                                "updated_at": latest[
-                                    "created_at"
-                                ].isoformat(),
+                                "updated_at": latest["created_at"].isoformat(),
                             }
                         )
                     else:
