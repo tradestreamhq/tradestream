@@ -256,3 +256,19 @@ py_library(
         requirement("jsonschema"),
     ],
 )
+
+py_library(
+    name = "bcrypt",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("bcrypt"),
+    ],
+)
+
+py_library(
+    name = "pyjwt",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("PyJWT"),
+    ],
+)

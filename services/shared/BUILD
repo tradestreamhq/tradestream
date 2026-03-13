@@ -81,6 +81,7 @@ py_test(
     srcs = ["auth_test.py"],
     deps = [
         ":auth",
+        "//services/auth_api:auth_service_lib",
         "//third_party/python:fastapi",
         "//third_party/python:flask",
         "//third_party/python:httpx",
