@@ -158,9 +158,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 ),
             }
 
-        return success_response(
-            data, "strategy_performance", resource_id=strategy_id
-        )
+        return success_response(data, "strategy_performance", resource_id=strategy_id)
 
     # --- GET /strategies/{strategy_id}/trades ---
 
@@ -251,8 +249,15 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         for row in rows:
             item = dict(row)
             item["id"] = str(item["id"])
-            for field in ("pnl", "pnl_percent", "entry_price", "exit_price",
-                          "stop_loss", "take_profit", "strength"):
+            for field in (
+                "pnl",
+                "pnl_percent",
+                "entry_price",
+                "exit_price",
+                "stop_loss",
+                "take_profit",
+                "strength",
+            ):
                 if item.get(field) is not None:
                     item[field] = float(item[field])
             for field in ("created_at", "exit_time"):
