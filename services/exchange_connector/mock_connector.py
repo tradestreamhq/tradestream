@@ -123,7 +123,11 @@ class MockExchangeConnector(ExchangeConnector):
             type=order_type,
             quantity=quantity,
             price=fill_price,
-            status=OrderStatus.FILLED if order_type == OrderType.MARKET else OrderStatus.OPEN,
+            status=(
+                OrderStatus.FILLED
+                if order_type == OrderType.MARKET
+                else OrderStatus.OPEN
+            ),
             filled_quantity=quantity if order_type == OrderType.MARKET else 0.0,
             timestamp_ms=int(time.time() * 1000),
         )
