@@ -61,8 +61,10 @@ class TestCreateBacktest:
         base = datetime(2025, 1, 1, tzinfo=timezone.utc)
         rows = []
         for i in range(n):
-            ts = datetime(2025, 1, 1 + i, tzinfo=timezone.utc) if i < 28 else datetime(
-                2025, 2, i - 27, tzinfo=timezone.utc
+            ts = (
+                datetime(2025, 1, 1 + i, tzinfo=timezone.utc)
+                if i < 28
+                else datetime(2025, 2, i - 27, tzinfo=timezone.utc)
             )
             price = 100.0 + i
             rows.append(

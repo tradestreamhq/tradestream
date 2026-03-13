@@ -177,7 +177,9 @@ def run_backtest(
     sharpe = 0.0
     if len(returns) > 1:
         avg_ret = sum(returns) / len(returns)
-        std_ret = math.sqrt(sum((r - avg_ret) ** 2 for r in returns) / (len(returns) - 1))
+        std_ret = math.sqrt(
+            sum((r - avg_ret) ** 2 for r in returns) / (len(returns) - 1)
+        )
         if std_ret > 0:
             sharpe = (avg_ret / std_ret) * math.sqrt(252)
 
