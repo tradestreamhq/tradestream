@@ -48,7 +48,9 @@ class TradeSide(str, Enum):
 
 class StartReplayRequest(BaseModel):
     symbol: str = Field(..., description="Trading symbol (e.g. BTC/USD)")
-    start_date: str = Field(..., description="Replay start date (YYYY-MM-DD or RFC3339)")
+    start_date: str = Field(
+        ..., description="Replay start date (YYYY-MM-DD or RFC3339)"
+    )
     end_date: str = Field(..., description="Replay end date (YYYY-MM-DD or RFC3339)")
     speed: int = Field(1, description="Playback speed: 1, 5, 10, or 50")
     interval: str = Field("1h", description="Candle interval (1m, 5m, 15m, 1h, 4h, 1d)")
@@ -57,7 +59,9 @@ class StartReplayRequest(BaseModel):
 class PlaceTradeRequest(BaseModel):
     side: TradeSide = Field(..., description="Trade side: buy or sell")
     quantity: float = Field(..., gt=0, description="Trade quantity")
-    price: Optional[float] = Field(None, description="Limit price; defaults to current candle close")
+    price: Optional[float] = Field(
+        None, description="Limit price; defaults to current candle close"
+    )
 
 
 class ReplaySession:
@@ -289,7 +293,9 @@ def create_app(influxdb_client) -> FastAPI:
             )
 
         if session.tick_index == 0:
-            return validation_error("Must advance at least one tick before placing a trade")
+            return validation_error(
+                "Must advance at least one tick before placing a trade"
+            )
 
         # Use the last replayed candle's close as market price
         last_candle = session.candles[session.tick_index - 1]
