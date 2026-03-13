@@ -144,9 +144,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     async def list_entries(
         pagination: PaginationParams = Query(),
         emotion: Optional[str] = Query(None, description="Filter by emotion_tag"),
-        rating: Optional[int] = Query(
-            None, ge=1, le=5, description="Filter by rating"
-        ),
+        rating: Optional[int] = Query(None, ge=1, le=5, description="Filter by rating"),
         tag: Optional[str] = Query(None, description="Filter by tag"),
         date_from: Optional[datetime] = Query(
             None, description="Entries created on or after"
@@ -237,9 +235,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     "SELECT tag FROM journal_tags WHERE journal_id = $1", entry_id
                 )
                 entry["tags"] = [r["tag"] for r in tag_rows]
-            return success_response(
-                entry, "journal_entry", resource_id=str(entry_id)
-            )
+            return success_response(entry, "journal_entry", resource_id=str(entry_id))
         except Exception:
             logger.exception("Failed to get journal entry")
             return server_error("Failed to get journal entry")
@@ -301,9 +297,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     )
                     entry["tags"] = [r["tag"] for r in tag_rows]
 
-            return success_response(
-                entry, "journal_entry", resource_id=str(entry_id)
-            )
+            return success_response(entry, "journal_entry", resource_id=str(entry_id))
         except Exception:
             logger.exception("Failed to update journal entry")
             return server_error("Failed to update journal entry")
@@ -364,9 +358,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             for row in emotion_rows:
                 item = dict(row)
                 total = item["total_trades"]
-                item["win_rate"] = (
-                    round(item["wins"] / total, 4) if total > 0 else 0
-                )
+                item["win_rate"] = round(item["wins"] / total, 4) if total > 0 else 0
                 for key in ("avg_pnl", "total_pnl"):
                     if item[key] is not None:
                         item[key] = float(item[key])

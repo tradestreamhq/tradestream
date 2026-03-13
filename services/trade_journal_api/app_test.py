@@ -257,9 +257,7 @@ class TestUpdateEntry:
             json={"lesson_learned": "Don't chase"},
         )
         assert resp.status_code == 200
-        assert (
-            resp.json()["data"]["attributes"]["lesson_learned"] == "Don't chase"
-        )
+        assert resp.json()["data"]["attributes"]["lesson_learned"] == "Don't chase"
 
 
 class TestStats:
@@ -285,12 +283,8 @@ class TestStats:
                 ),
             ],
             [
-                FakeRecord(
-                    rating=4, total_trades=8, avg_pnl=200.0, total_pnl=1600.0
-                ),
-                FakeRecord(
-                    rating=2, total_trades=3, avg_pnl=-50.0, total_pnl=-150.0
-                ),
+                FakeRecord(rating=4, total_trades=8, avg_pnl=200.0, total_pnl=1600.0),
+                FakeRecord(rating=2, total_trades=3, avg_pnl=-50.0, total_pnl=-150.0),
             ],
             [
                 FakeRecord(tag="fomo", occurrences=5, avg_pnl=-200.0),
@@ -454,8 +448,7 @@ class TestCalendar:
         ]
 
         resp = tc.get(
-            "/calendar?date_from=2026-03-01T00:00:00Z"
-            "&date_to=2026-03-31T23:59:59Z"
+            "/calendar?date_from=2026-03-01T00:00:00Z" "&date_to=2026-03-31T23:59:59Z"
         )
         assert resp.status_code == 200
         assert len(resp.json()["data"]) == 1
