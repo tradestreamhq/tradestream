@@ -124,8 +124,7 @@ class TestLimitOrderFill:
     def test_buy_limit_fills_at_or_below(self):
         sim = OrderSimulator()
         order = _make_order(
-            order_type=OrderType.LIMIT, side=OrderSide.BUY,
-            price=50_000.0, quantity=0.1
+            order_type=OrderType.LIMIT, side=OrderSide.BUY, price=50_000.0, quantity=0.1
         )
         sim.place_order(order)
 
@@ -146,8 +145,10 @@ class TestLimitOrderFill:
         sim.process_market_tick("BTC/USD", bid=49_990.0, ask=50_010.0)
 
         sell = _make_order(
-            order_type=OrderType.LIMIT, side=OrderSide.SELL,
-            price=51_000.0, quantity=0.5
+            order_type=OrderType.LIMIT,
+            side=OrderSide.SELL,
+            price=51_000.0,
+            quantity=0.5,
         )
         sim.place_order(sell)
 
@@ -169,8 +170,10 @@ class TestStopLossOrderFill:
         sim.process_market_tick("BTC/USD", bid=50_000.0, ask=50_010.0)
 
         stop = _make_order(
-            order_type=OrderType.STOP_LOSS, side=OrderSide.SELL,
-            price=49_000.0, quantity=0.5
+            order_type=OrderType.STOP_LOSS,
+            side=OrderSide.SELL,
+            price=49_000.0,
+            quantity=0.5,
         )
         sim.place_order(stop)
 
@@ -192,8 +195,10 @@ class TestTakeProfitOrderFill:
         sim.process_market_tick("BTC/USD", bid=50_000.0, ask=50_010.0)
 
         tp = _make_order(
-            order_type=OrderType.TAKE_PROFIT, side=OrderSide.SELL,
-            price=52_000.0, quantity=0.5
+            order_type=OrderType.TAKE_PROFIT,
+            side=OrderSide.SELL,
+            price=52_000.0,
+            quantity=0.5,
         )
         sim.place_order(tp)
 
@@ -279,9 +284,7 @@ class TestFeeSchedule:
         fee_sched = FeeSchedule(maker_fee=0.001, taker_fee=0.002)
         config = SlippageConfig(model=SlippageModel.FIXED, value=0.0)
         sim = OrderSimulator(fee_schedule=fee_sched, slippage_config=config)
-        order = _make_order(
-            order_type=OrderType.LIMIT, price=50_000.0, quantity=0.1
-        )
+        order = _make_order(order_type=OrderType.LIMIT, price=50_000.0, quantity=0.1)
         sim.place_order(order)
         fills = sim.process_market_tick("BTC/USD", bid=49_990.0, ask=50_000.0)
         assert len(fills) == 1

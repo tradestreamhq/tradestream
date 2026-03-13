@@ -40,7 +40,8 @@ class SlippageModel(str, enum.Enum):
 class SlippageConfig(BaseModel):
     model: SlippageModel = SlippageModel.PERCENTAGE
     value: float = Field(
-        default=0.001, description="Slippage value (absolute for FIXED, fraction for PERCENTAGE/VOLATILITY)"
+        default=0.001,
+        description="Slippage value (absolute for FIXED, fraction for PERCENTAGE/VOLATILITY)",
     )
 
 
@@ -69,7 +70,8 @@ class SimulatedOrder(BaseModel):
     side: OrderSide
     quantity: float = Field(gt=0)
     price: Optional[float] = Field(
-        default=None, description="Limit/stop price (required for LIMIT, STOP_LOSS, TAKE_PROFIT)"
+        default=None,
+        description="Limit/stop price (required for LIMIT, STOP_LOSS, TAKE_PROFIT)",
     )
     status: OrderStatus = OrderStatus.PENDING
     filled_quantity: float = 0.0
@@ -90,9 +92,7 @@ class OrderRequest(BaseModel):
     order_type: OrderType
     side: OrderSide
     quantity: float = Field(..., gt=0, description="Order quantity")
-    price: Optional[float] = Field(
-        default=None, description="Limit/stop price"
-    )
+    price: Optional[float] = Field(default=None, description="Limit/stop price")
     expires_at: Optional[str] = Field(
         default=None, description="ISO 8601 expiration timestamp"
     )
