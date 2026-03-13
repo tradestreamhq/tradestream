@@ -116,9 +116,7 @@ def evaluate_rule(rule: AlertRule, event: AlertEvent) -> Optional[TriggeredAlert
     return None
 
 
-def evaluate_rules(
-    rules: List[AlertRule], event: AlertEvent
-) -> List[TriggeredAlert]:
+def evaluate_rules(rules: List[AlertRule], event: AlertEvent) -> List[TriggeredAlert]:
     """Evaluate all rules against an event, returning any that triggered."""
     triggered = []
     for rule in rules:
@@ -153,9 +151,7 @@ class AlertEngine:
                 threshold=row["threshold"],
                 strategy_id=str(row["strategy_id"]) if row["strategy_id"] else None,
                 implementation_id=(
-                    str(row["implementation_id"])
-                    if row["implementation_id"]
-                    else None
+                    str(row["implementation_id"]) if row["implementation_id"] else None
                 ),
                 notification_channels=list(row["notification_channels"]),
                 is_active=row["is_active"],
