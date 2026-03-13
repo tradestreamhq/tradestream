@@ -217,7 +217,7 @@ class ExecutionContext:
     def add_signal(self, signal: Signal) -> None:
         self.signals.append(signal)
         if len(self.signals) > self.max_signals:
-            self.signals = self.signals[-self.max_signals:]
+            self.signals = self.signals[-self.max_signals :]
         self.state.last_signal_time = signal.timestamp
 
     def to_dict(self) -> Dict[str, Any]:

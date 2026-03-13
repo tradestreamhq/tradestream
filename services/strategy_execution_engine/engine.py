@@ -386,9 +386,7 @@ class StrategyExecutionEngine:
         if strategy_id in self._contexts:
             existing = self._contexts[strategy_id]
             if existing.state.status == StrategyStatus.RUNNING:
-                raise ValueError(
-                    f"Strategy {strategy_id} is already running"
-                )
+                raise ValueError(f"Strategy {strategy_id} is already running")
 
         # Resolve parameter values
         param_values = {}
@@ -413,7 +411,10 @@ class StrategyExecutionEngine:
         self._candle_buffers[strategy_id] = []
         logger.info(
             "Started strategy %s (%s) on %s/%s",
-            strategy_id, config.name, symbol, timeframe,
+            strategy_id,
+            config.name,
+            symbol,
+            timeframe,
         )
         return ctx
 
@@ -432,9 +433,7 @@ class StrategyExecutionEngine:
         ctx = self._contexts.get(strategy_id)
         return ctx.state if ctx else None
 
-    def get_signals(
-        self, strategy_id: str, limit: int = 50
-    ) -> List[Signal]:
+    def get_signals(self, strategy_id: str, limit: int = 50) -> List[Signal]:
         ctx = self._contexts.get(strategy_id)
         if ctx is None:
             return []
@@ -567,7 +566,10 @@ class StrategyExecutionEngine:
 
         logger.info(
             "BUY signal for %s at %.2f (SL=%.2f, TP=%.2f)",
-            ctx.symbol, entry_price, stop_loss, take_profit,
+            ctx.symbol,
+            entry_price,
+            stop_loss,
+            take_profit,
         )
         return signal
 
@@ -615,6 +617,9 @@ class StrategyExecutionEngine:
 
         logger.info(
             "SELL signal for %s at %.2f (PnL=%.2f, reason=%s)",
-            ctx.symbol, exit_price, pnl, reason,
+            ctx.symbol,
+            exit_price,
+            pnl,
+            reason,
         )
         return signal

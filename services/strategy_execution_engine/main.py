@@ -71,10 +71,26 @@ def load_strategy_config_from_db(strategy_id: str) -> dict:
             "name": row["name"],
             "description": row["description"] or "",
             "complexity": row["complexity"] or "SIMPLE",
-            "indicators": row["indicators"] if isinstance(row["indicators"], list) else json.loads(row["indicators"]),
-            "entryConditions": row["entry_conditions"] if isinstance(row["entry_conditions"], list) else json.loads(row["entry_conditions"]),
-            "exitConditions": row["exit_conditions"] if isinstance(row["exit_conditions"], list) else json.loads(row["exit_conditions"]),
-            "parameters": row["parameters"] if isinstance(row["parameters"], list) else json.loads(row["parameters"]),
+            "indicators": (
+                row["indicators"]
+                if isinstance(row["indicators"], list)
+                else json.loads(row["indicators"])
+            ),
+            "entryConditions": (
+                row["entry_conditions"]
+                if isinstance(row["entry_conditions"], list)
+                else json.loads(row["entry_conditions"])
+            ),
+            "exitConditions": (
+                row["exit_conditions"]
+                if isinstance(row["exit_conditions"], list)
+                else json.loads(row["exit_conditions"])
+            ),
+            "parameters": (
+                row["parameters"]
+                if isinstance(row["parameters"], list)
+                else json.loads(row["parameters"])
+            ),
         }
     finally:
         conn.close()
@@ -82,11 +98,13 @@ def load_strategy_config_from_db(strategy_id: str) -> dict:
 
 @app.route("/api/health", methods=["GET"])
 def health_check():
-    return jsonify({
-        "status": "healthy",
-        "service": "strategy-execution-engine",
-        "timestamp": datetime.utcnow().isoformat(),
-    })
+    return jsonify(
+        {
+            "status": "healthy",
+            "service": "strategy-execution-engine",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    )
 
 
 @app.route("/api/v1/strategies/<strategy_id>/start", methods=["POST"])
@@ -115,11 +133,16 @@ def start_strategy(strategy_id):
             timeframe=timeframe,
             parameter_overrides=parameter_overrides,
         )
-        return jsonify({
-            "message": f"Strategy {strategy_id} started",
-            "context": ctx.to_dict(),
-            "timestamp": datetime.utcnow().isoformat(),
-        }), 200
+        return (
+            jsonify(
+                {
+                    "message": f"Strategy {strategy_id} started",
+                    "context": ctx.to_dict(),
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 409
@@ -133,11 +156,16 @@ def stop_strategy(strategy_id):
     """Stop execution of a strategy."""
     try:
         state = engine.stop_strategy(strategy_id)
-        return jsonify({
-            "message": f"Strategy {strategy_id} stopped",
-            "state": state.to_dict(),
-            "timestamp": datetime.utcnow().isoformat(),
-        }), 200
+        return (
+            jsonify(
+                {
+                    "message": f"Strategy {strategy_id} stopped",
+                    "state": state.to_dict(),
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            ),
+            200,
+        )
     except KeyError:
         return jsonify({"error": f"Strategy {strategy_id} not found"}), 404
     except Exception as e:
@@ -151,10 +179,15 @@ def get_strategy_state(strategy_id):
     state = engine.get_state(strategy_id)
     if state is None:
         return jsonify({"error": f"Strategy {strategy_id} not found"}), 404
-    return jsonify({
-        "state": state.to_dict(),
-        "timestamp": datetime.utcnow().isoformat(),
-    }), 200
+    return (
+        jsonify(
+            {
+                "state": state.to_dict(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        ),
+        200,
+    )
 
 
 @app.route("/api/v1/strategies/<strategy_id>/signals", methods=["GET"])
@@ -168,24 +201,31 @@ def get_strategy_signals(strategy_id):
         return jsonify({"error": f"Strategy {strategy_id} not found"}), 404
 
     signals = engine.get_signals(strategy_id, limit=limit)
-    return jsonify({
-        "strategy_id": strategy_id,
-        "signals": [s.to_dict() for s in signals],
-        "count": len(signals),
-        "timestamp": datetime.utcnow().isoformat(),
-    }), 200
+    return (
+        jsonify(
+            {
+                "strategy_id": strategy_id,
+                "signals": [s.to_dict() for s in signals],
+                "count": len(signals),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        ),
+        200,
+    )
 
 
 def main(argv):
     del argv  # Unused
 
-    DB_CONFIG.update({
-        "host": os.environ.get("DB_HOST", "localhost"),
-        "port": int(os.environ.get("DB_PORT", "5432")),
-        "database": os.environ.get("DB_NAME", "tradestream"),
-        "username": os.environ.get("DB_USER", "tradestream"),
-        "password": os.environ.get("DB_PASSWORD", ""),
-    })
+    DB_CONFIG.update(
+        {
+            "host": os.environ.get("DB_HOST", "localhost"),
+            "port": int(os.environ.get("DB_PORT", "5432")),
+            "database": os.environ.get("DB_NAME", "tradestream"),
+            "username": os.environ.get("DB_USER", "tradestream"),
+            "password": os.environ.get("DB_PASSWORD", ""),
+        }
+    )
 
     port = int(os.environ.get("PORT", "8080"))
     logger.info("Starting Strategy Execution Engine on port %d", port)

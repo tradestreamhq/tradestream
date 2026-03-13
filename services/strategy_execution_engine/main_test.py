@@ -151,9 +151,7 @@ class TestIndicatorComputer(unittest.TestCase):
         # Arrange: alternating up/down
         candles = _make_candles([10, 12, 11, 13, 12], volume=100.0)
         computer = IndicatorComputer(candles)
-        indicators = [
-            IndicatorConfig(id="obv", type="OBV", input="close", params={})
-        ]
+        indicators = [IndicatorConfig(id="obv", type="OBV", input="close", params={})]
 
         # Act
         result = computer.compute(indicators, {})
@@ -161,10 +159,10 @@ class TestIndicatorComputer(unittest.TestCase):
         # Assert
         obv = result["obv"]
         self.assertEqual(obv[0], 0.0)
-        self.assertEqual(obv[1], 100.0)   # up: +100
-        self.assertEqual(obv[2], 0.0)     # down: -100
-        self.assertEqual(obv[3], 100.0)   # up: +100
-        self.assertEqual(obv[4], 0.0)     # down: -100
+        self.assertEqual(obv[1], 100.0)  # up: +100
+        self.assertEqual(obv[2], 0.0)  # down: -100
+        self.assertEqual(obv[3], 100.0)  # up: +100
+        self.assertEqual(obv[4], 0.0)  # down: -100
 
     def test_parameter_resolution(self):
         # Arrange
@@ -207,9 +205,7 @@ class TestIndicatorComputer(unittest.TestCase):
         candles = _make_candles(list(range(10, 40)))
         computer = IndicatorComputer(candles)
         indicators = [
-            IndicatorConfig(
-                id="rsi", type="RSI", input="close", params={"period": 14}
-            ),
+            IndicatorConfig(id="rsi", type="RSI", input="close", params={"period": 14}),
             IndicatorConfig(
                 id="rsiEma", type="EMA", input="rsi", params={"period": 10}
             ),
@@ -233,7 +229,7 @@ class TestConditionEvaluator(unittest.TestCase):
     def test_crossed_up(self):
         # Arrange: series A crosses above series B
         indicator_values = {
-            "fast": [8.0, 9.0, 10.0, 11.0],   # was below, now above
+            "fast": [8.0, 9.0, 10.0, 11.0],  # was below, now above
             "slow": [10.0, 10.0, 10.0, 10.0],
         }
         conditions = [
@@ -294,9 +290,7 @@ class TestConditionEvaluator(unittest.TestCase):
         # Arrange
         indicator_values = {"rsi": [60.0, 65.0, 75.0]}
         conditions = [
-            ConditionConfig(
-                type="OVER", indicator="rsi", params={"value": 70}
-            )
+            ConditionConfig(type="OVER", indicator="rsi", params={"value": 70})
         ]
 
         # Act
@@ -309,9 +303,7 @@ class TestConditionEvaluator(unittest.TestCase):
         # Arrange
         indicator_values = {"rsi": [40.0, 35.0, 25.0]}
         conditions = [
-            ConditionConfig(
-                type="UNDER", indicator="rsi", params={"value": 30}
-            )
+            ConditionConfig(type="UNDER", indicator="rsi", params={"value": 30})
         ]
 
         # Act
@@ -346,9 +338,7 @@ class TestConditionEvaluator(unittest.TestCase):
             "sma": [100.0, 100.0, 100.0],
         }
         conditions = [
-            ConditionConfig(
-                type="OVER", indicator="close", params={"other": "sma"}
-            )
+            ConditionConfig(type="OVER", indicator="close", params={"other": "sma"})
         ]
 
         # Act
@@ -365,12 +355,8 @@ class TestConditionEvaluator(unittest.TestCase):
             "rsi": [40.0, 35.0, 25.0],
         }
         conditions = [
-            ConditionConfig(
-                type="OVER", indicator="close", params={"other": "sma"}
-            ),
-            ConditionConfig(
-                type="UNDER", indicator="rsi", params={"value": 30}
-            ),
+            ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+            ConditionConfig(type="UNDER", indicator="rsi", params={"value": 30}),
         ]
 
         # Act
@@ -387,12 +373,8 @@ class TestConditionEvaluator(unittest.TestCase):
             "rsi": [40.0, 45.0, 50.0],
         }
         conditions = [
-            ConditionConfig(
-                type="OVER", indicator="close", params={"other": "sma"}
-            ),
-            ConditionConfig(
-                type="UNDER", indicator="rsi", params={"value": 30}
-            ),
+            ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+            ConditionConfig(type="UNDER", indicator="rsi", params={"value": 30}),
         ]
 
         # Act
@@ -426,9 +408,7 @@ class TestStrategyExecutionEngine(unittest.TestCase):
     """Test the core execution engine."""
 
     def setUp(self):
-        self.engine = StrategyExecutionEngine(
-            stop_loss_pct=0.02, take_profit_pct=0.04
-        )
+        self.engine = StrategyExecutionEngine(stop_loss_pct=0.02, take_profit_pct=0.04)
         self.macd_config = StrategyConfig(
             name="MACD_CROSSOVER",
             description="MACD crosses Signal Line",
@@ -437,7 +417,10 @@ class TestStrategyExecutionEngine(unittest.TestCase):
                     id="macd",
                     type="MACD",
                     input="close",
-                    params={"shortPeriod": "${shortEmaPeriod}", "longPeriod": "${longEmaPeriod}"},
+                    params={
+                        "shortPeriod": "${shortEmaPeriod}",
+                        "longPeriod": "${longEmaPeriod}",
+                    },
                 ),
                 IndicatorConfig(
                     id="signal",
@@ -529,9 +512,7 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         self.engine.stop_strategy("test-1")
 
         # Act
-        signal = self.engine.on_candle(
-            "test-1", Candle(close=100.0, symbol="BTC/USD")
-        )
+        signal = self.engine.on_candle("test-1", Candle(close=100.0, symbol="BTC/USD"))
 
         # Assert
         self.assertIsNone(signal)
@@ -551,13 +532,19 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         config = StrategyConfig(
             name="TEST",
             indicators=[
-                IndicatorConfig(id="sma", type="SMA", input="close", params={"period": 3}),
+                IndicatorConfig(
+                    id="sma", type="SMA", input="close", params={"period": 3}
+                ),
             ],
             entry_conditions=[
-                ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="OVER", indicator="close", params={"other": "sma"}
+                ),
             ],
             exit_conditions=[
-                ConditionConfig(type="UNDER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="UNDER", indicator="close", params={"other": "sma"}
+                ),
             ],
         )
         self.engine.start_strategy("test-entry", config, "BTC/USD")
@@ -584,13 +571,19 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         config = StrategyConfig(
             name="TEST",
             indicators=[
-                IndicatorConfig(id="sma", type="SMA", input="close", params={"period": 3}),
+                IndicatorConfig(
+                    id="sma", type="SMA", input="close", params={"period": 3}
+                ),
             ],
             entry_conditions=[
-                ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="OVER", indicator="close", params={"other": "sma"}
+                ),
             ],
             exit_conditions=[
-                ConditionConfig(type="UNDER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="UNDER", indicator="close", params={"other": "sma"}
+                ),
             ],
         )
         self.engine.start_strategy("test-exit", config, "ETH/USD")
@@ -614,13 +607,19 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         config = StrategyConfig(
             name="TEST",
             indicators=[
-                IndicatorConfig(id="sma", type="SMA", input="close", params={"period": 2}),
+                IndicatorConfig(
+                    id="sma", type="SMA", input="close", params={"period": 2}
+                ),
             ],
             entry_conditions=[
-                ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="OVER", indicator="close", params={"other": "sma"}
+                ),
             ],
             exit_conditions=[
-                ConditionConfig(type="UNDER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="UNDER", indicator="close", params={"other": "sma"}
+                ),
             ],
         )
         # Disable risk management to let conditions drive exits
@@ -634,8 +633,10 @@ class TestStrategyExecutionEngine(unittest.TestCase):
 
         state = engine.get_state("test-pnl")
         # After exit, realized PnL should be tracked
-        self.assertEqual(state.total_trades + (1 if state.position == PositionState.LONG else 0),
-                         state.total_trades + (1 if state.position == PositionState.LONG else 0))
+        self.assertEqual(
+            state.total_trades + (1 if state.position == PositionState.LONG else 0),
+            state.total_trades + (1 if state.position == PositionState.LONG else 0),
+        )
 
     def test_stop_loss_trigger(self):
         """Test that stop loss triggers a SELL signal."""
@@ -643,13 +644,19 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         config = StrategyConfig(
             name="TEST",
             indicators=[
-                IndicatorConfig(id="sma", type="SMA", input="close", params={"period": 2}),
+                IndicatorConfig(
+                    id="sma", type="SMA", input="close", params={"period": 2}
+                ),
             ],
             entry_conditions=[
-                ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="OVER", indicator="close", params={"other": "sma"}
+                ),
             ],
             exit_conditions=[
-                ConditionConfig(type="UNDER", indicator="close", params={"value": 0}),  # never triggers
+                ConditionConfig(
+                    type="UNDER", indicator="close", params={"value": 0}
+                ),  # never triggers
             ],
         )
         engine = StrategyExecutionEngine(stop_loss_pct=0.05, take_profit_pct=0.5)
@@ -674,13 +681,19 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         config = StrategyConfig(
             name="TEST",
             indicators=[
-                IndicatorConfig(id="sma", type="SMA", input="close", params={"period": 2}),
+                IndicatorConfig(
+                    id="sma", type="SMA", input="close", params={"period": 2}
+                ),
             ],
             entry_conditions=[
-                ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="OVER", indicator="close", params={"other": "sma"}
+                ),
             ],
             exit_conditions=[
-                ConditionConfig(type="UNDER", indicator="close", params={"value": 0}),  # never triggers
+                ConditionConfig(
+                    type="UNDER", indicator="close", params={"value": 0}
+                ),  # never triggers
             ],
         )
         engine = StrategyExecutionEngine(stop_loss_pct=0.5, take_profit_pct=0.03)
@@ -705,10 +718,14 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         config = StrategyConfig(
             name="TEST",
             indicators=[
-                IndicatorConfig(id="sma", type="SMA", input="close", params={"period": 2}),
+                IndicatorConfig(
+                    id="sma", type="SMA", input="close", params={"period": 2}
+                ),
             ],
             entry_conditions=[
-                ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="OVER", indicator="close", params={"other": "sma"}
+                ),
             ],
             exit_conditions=[],
         )
@@ -729,10 +746,14 @@ class TestStrategyExecutionEngine(unittest.TestCase):
         config = StrategyConfig(
             name="TEST",
             indicators=[
-                IndicatorConfig(id="sma", type="SMA", input="close", params={"period": 2}),
+                IndicatorConfig(
+                    id="sma", type="SMA", input="close", params={"period": 2}
+                ),
             ],
             entry_conditions=[
-                ConditionConfig(type="OVER", indicator="close", params={"other": "sma"}),
+                ConditionConfig(
+                    type="OVER", indicator="close", params={"other": "sma"}
+                ),
             ],
             exit_conditions=[],
         )
@@ -772,8 +793,18 @@ class TestStrategyConfig(unittest.TestCase):
             "description": "SMA + RSI strategy",
             "complexity": "SIMPLE",
             "indicators": [
-                {"id": "sma", "type": "SMA", "input": "close", "params": {"period": 20}},
-                {"id": "rsi", "type": "RSI", "input": "close", "params": {"period": 14}},
+                {
+                    "id": "sma",
+                    "type": "SMA",
+                    "input": "close",
+                    "params": {"period": 20},
+                },
+                {
+                    "id": "rsi",
+                    "type": "RSI",
+                    "input": "close",
+                    "params": {"period": 14},
+                },
             ],
             "entryConditions": [
                 {"type": "OVER", "indicator": "close", "params": {"other": "sma"}},
@@ -783,7 +814,13 @@ class TestStrategyConfig(unittest.TestCase):
                 {"type": "OVER", "indicator": "rsi", "params": {"value": 70}},
             ],
             "parameters": [
-                {"name": "smaPeriod", "type": "INTEGER", "min": 10, "max": 50, "defaultValue": 20},
+                {
+                    "name": "smaPeriod",
+                    "type": "INTEGER",
+                    "min": 10,
+                    "max": 50,
+                    "defaultValue": 20,
+                },
             ],
         }
 
@@ -898,7 +935,12 @@ class TestAPIEndpoints(unittest.TestCase):
             "config": {
                 "name": "TEST",
                 "indicators": [
-                    {"id": "sma", "type": "SMA", "input": "close", "params": {"period": 20}}
+                    {
+                        "id": "sma",
+                        "type": "SMA",
+                        "input": "close",
+                        "params": {"period": 20},
+                    }
                 ],
                 "entryConditions": [
                     {"type": "OVER", "indicator": "close", "params": {"other": "sma"}}
