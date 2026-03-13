@@ -60,8 +60,9 @@ def get_db_connection():
     )
 
 
-def compute_decay_factor(signal_age_hours: float,
-                         half_life_hours: float = DEFAULT_DECAY_HALF_LIFE_HOURS) -> float:
+def compute_decay_factor(
+    signal_age_hours: float, half_life_hours: float = DEFAULT_DECAY_HALF_LIFE_HOURS
+) -> float:
     """Compute exponential decay factor for a signal based on its age.
 
     Returns a value between 0 and 1, where 1 means no decay (fresh signal)
@@ -170,9 +171,7 @@ def compute_consensus(
         spec_id = str(signal.get("spec_id", ""))
         perf = strategy_performances.get(spec_id, 0.5)
 
-        score = compute_signal_score(
-            signal, now, perf, user_weights, half_life_hours
-        )
+        score = compute_signal_score(signal, now, perf, user_weights, half_life_hours)
 
         # Weight by decay for aggregation
         created_at = signal.get("created_at")
@@ -264,9 +263,7 @@ def fetch_strategy_performances(spec_ids: List[str]) -> Dict[str, float]:
             )
             results = {}
             for row in cur.fetchall():
-                results[row["spec_id"]] = compute_strategy_performance_score(
-                    dict(row)
-                )
+                results[row["spec_id"]] = compute_strategy_performance_score(dict(row))
             return results
     finally:
         conn.close()
@@ -320,8 +317,13 @@ def fetch_signal_history(
                     if signal.get(key) is not None:
                         signal[key] = signal[key].isoformat()
                 for key in (
-                    "strength", "price", "stop_loss", "take_profit",
-                    "exit_price", "pnl", "pnl_percent",
+                    "strength",
+                    "price",
+                    "stop_loss",
+                    "take_profit",
+                    "exit_price",
+                    "pnl",
+                    "pnl_percent",
                 ):
                     if signal.get(key) is not None:
                         signal[key] = float(signal[key])
@@ -376,9 +378,7 @@ def aggregate_signals():
         signals = fetch_signals_for_symbol(symbol, hours=hours)
 
         # Get unique strategy spec_ids
-        spec_ids = list(
-            {str(s["spec_id"]) for s in signals if s.get("spec_id")}
-        )
+        spec_ids = list({str(s["spec_id"]) for s in signals if s.get("spec_id")})
         strategy_performances = fetch_strategy_performances(spec_ids)
 
         now = datetime.now(timezone.utc)
@@ -391,34 +391,39 @@ def aggregate_signals():
         for signal in signals:
             spec_id = str(signal.get("spec_id", ""))
             perf = strategy_performances.get(spec_id, 0.5)
-            score = compute_signal_score(
-                signal, now, perf, user_weights, half_life
+            score = compute_signal_score(signal, now, perf, user_weights, half_life)
+            signal_details.append(
+                {
+                    "id": str(signal["id"]),
+                    "signal_type": signal["signal_type"],
+                    "strength": float(signal.get("strength") or 0),
+                    "strategy_performance": round(perf, 4),
+                    "weighted_score": round(score, 4),
+                    "created_at": (
+                        signal["created_at"].isoformat()
+                        if signal.get("created_at")
+                        else None
+                    ),
+                }
             )
-            signal_details.append({
-                "id": str(signal["id"]),
-                "signal_type": signal["signal_type"],
-                "strength": float(signal.get("strength") or 0),
-                "strategy_performance": round(perf, 4),
-                "weighted_score": round(score, 4),
-                "created_at": signal["created_at"].isoformat()
-                if signal.get("created_at")
-                else None,
-            })
 
-        return jsonify({
-            "symbol": symbol,
-            "consensus": consensus,
-            "signals": signal_details,
-            "parameters": {
-                "hours": hours,
-                "half_life_hours": half_life,
-                "weights": user_weights or {
-                    "recency": DEFAULT_RECENCY_WEIGHT,
-                    "performance": DEFAULT_PERFORMANCE_WEIGHT,
-                    "confidence": DEFAULT_CONFIDENCE_WEIGHT,
+        return jsonify(
+            {
+                "symbol": symbol,
+                "consensus": consensus,
+                "signals": signal_details,
+                "parameters": {
+                    "hours": hours,
+                    "half_life_hours": half_life,
+                    "weights": user_weights
+                    or {
+                        "recency": DEFAULT_RECENCY_WEIGHT,
+                        "performance": DEFAULT_PERFORMANCE_WEIGHT,
+                        "confidence": DEFAULT_CONFIDENCE_WEIGHT,
+                    },
                 },
-            },
-        })
+            }
+        )
     except Exception as e:
         logger.exception("Error aggregating signals")
         return jsonify({"error": str(e)}), 500
@@ -438,14 +443,14 @@ def get_consensus():
         return jsonify({"error": "symbol query parameter is required"}), 400
 
     hours = int(request.args.get("hours", 48))
-    half_life = float(request.args.get("half_life_hours", DEFAULT_DECAY_HALF_LIFE_HOURS))
+    half_life = float(
+        request.args.get("half_life_hours", DEFAULT_DECAY_HALF_LIFE_HOURS)
+    )
 
     try:
         signals = fetch_signals_for_symbol(symbol, hours=hours)
 
-        spec_ids = list(
-            {str(s["spec_id"]) for s in signals if s.get("spec_id")}
-        )
+        spec_ids = list({str(s["spec_id"]) for s in signals if s.get("spec_id")})
         strategy_performances = fetch_strategy_performances(spec_ids)
 
         now = datetime.now(timezone.utc)
@@ -481,17 +486,21 @@ def get_signal_history():
     limit, offset = clamp_pagination(limit, offset)
 
     try:
-        signals, total = fetch_signal_history(symbol, days=days, limit=limit, offset=offset)
+        signals, total = fetch_signal_history(
+            symbol, days=days, limit=limit, offset=offset
+        )
 
-        return jsonify({
-            "symbol": symbol,
-            "signals": signals,
-            "pagination": {
-                "total": total,
-                "limit": limit,
-                "offset": offset,
-            },
-        })
+        return jsonify(
+            {
+                "symbol": symbol,
+                "signals": signals,
+                "pagination": {
+                    "total": total,
+                    "limit": limit,
+                    "offset": offset,
+                },
+            }
+        )
     except Exception as e:
         logger.exception("Error fetching signal history")
         return jsonify({"error": str(e)}), 500

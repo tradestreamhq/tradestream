@@ -155,9 +155,7 @@ class TestSignalScore(unittest.TestCase):
     def test_older_signal_lower_magnitude(self):
         now = datetime.now(timezone.utc)
         fresh = _make_signal("BUY", strength=0.9, created_at=now)
-        old = _make_signal(
-            "BUY", strength=0.9, created_at=now - timedelta(hours=48)
-        )
+        old = _make_signal("BUY", strength=0.9, created_at=now - timedelta(hours=48))
         fresh_score = compute_signal_score(fresh, now, strategy_performance=0.8)
         old_score = compute_signal_score(old, now, strategy_performance=0.8)
         self.assertGreater(abs(fresh_score), abs(old_score))
@@ -182,12 +180,16 @@ class TestSignalScore(unittest.TestCase):
         signal = _make_signal("BUY", strength=0.9, created_at=now)
         # All weight on confidence
         score_conf = compute_signal_score(
-            signal, now, strategy_performance=0.1,
+            signal,
+            now,
+            strategy_performance=0.1,
             user_weights={"recency": 0.0, "performance": 0.0, "confidence": 1.0},
         )
         # All weight on performance
         score_perf = compute_signal_score(
-            signal, now, strategy_performance=0.1,
+            signal,
+            now,
+            strategy_performance=0.1,
             user_weights={"recency": 0.0, "performance": 1.0, "confidence": 0.0},
         )
         # High confidence (0.9) vs low performance (0.1) should differ
@@ -428,11 +430,13 @@ class TestAggregateEndpoint(unittest.TestCase):
 
         response = self.client.post(
             "/api/v1/signals/aggregate",
-            data=json.dumps({
-                "symbol": "ETH-USD",
-                "weights": {"recency": 0.5, "performance": 0.3, "confidence": 0.2},
-                "half_life_hours": 12,
-            }),
+            data=json.dumps(
+                {
+                    "symbol": "ETH-USD",
+                    "weights": {"recency": 0.5, "performance": 0.3, "confidence": 0.2},
+                    "half_life_hours": 12,
+                }
+            ),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
@@ -589,8 +593,7 @@ class TestDecayIntegration(unittest.TestCase):
         now = datetime.now(timezone.utc)
         signals = [
             _make_signal("BUY", strength=0.7, created_at=now),
-            _make_signal("SELL", strength=0.7,
-                         created_at=now - timedelta(hours=72)),
+            _make_signal("SELL", strength=0.7, created_at=now - timedelta(hours=72)),
         ]
         result = compute_consensus(signals, now, {}, half_life_hours=24)
         self.assertEqual(result["direction"], "bullish")
@@ -605,7 +608,8 @@ class TestDecayIntegration(unittest.TestCase):
         for i in range(10):
             signals.append(
                 _make_signal(
-                    "SELL", strength=0.9,
+                    "SELL",
+                    strength=0.9,
                     created_at=now - timedelta(hours=i + 1),
                 )
             )
@@ -615,8 +619,7 @@ class TestDecayIntegration(unittest.TestCase):
     def test_zero_half_life_no_decay(self):
         """With zero half-life, all signals have equal weight regardless of age."""
         now = datetime.now(timezone.utc)
-        old = _make_signal("SELL", strength=0.8,
-                           created_at=now - timedelta(hours=1000))
+        old = _make_signal("SELL", strength=0.8, created_at=now - timedelta(hours=1000))
         fresh = _make_signal("BUY", strength=0.8, created_at=now)
         result = compute_consensus([old, fresh], now, {}, half_life_hours=0)
         # With no decay, equal strength BUY/SELL should be neutral
