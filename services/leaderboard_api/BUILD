@@ -11,6 +11,7 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         "//services/rest_api_shared:health",
+        "//services/rest_api_shared:pagination",
         "//services/rest_api_shared:responses",
         "//services/shared:auth",
         "//third_party/python:asyncpg",

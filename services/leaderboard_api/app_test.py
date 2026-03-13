@@ -1,7 +1,7 @@
-"""Tests for the Leaderboard REST API."""
+"""Tests for the Trading Leaderboard REST API."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
@@ -10,9 +10,8 @@ from fastapi.testclient import TestClient
 from services.leaderboard_api.app import (
     Period,
     SortMetric,
-    _normalize_equity_curves,
+    _snapshot_to_dict,
     create_app,
-    period_start_date,
 )
 
 
@@ -41,346 +40,320 @@ def client():
     return TestClient(app, raise_server_exceptions=False), conn
 
 
-def _make_leaderboard_row(
-    impl_id=None,
-    spec_id=None,
-    name="Test Strategy",
-    status="VALIDATED",
-    total_return=0.15,
-    sharpe_ratio=1.5,
-    max_drawdown=-0.10,
-    win_rate=0.55,
-    profit_factor=1.8,
-    total_trades=100,
-    record_count=5,
+def _make_snapshot_row(
+    user_id=None,
+    display_name="Trader A",
+    strategy_type="momentum",
+    asset_class="crypto",
+    period="monthly",
+    total_return_pct=0.25,
+    sharpe_ratio=1.8,
+    win_rate=0.62,
+    consistency_score=0.75,
+    total_trades=150,
+    winning_trades=93,
+    losing_trades=57,
+    rank=1,
+    percentile=0.95,
+    snapshot_date=None,
 ):
     return FakeRecord(
-        implementation_id=impl_id or uuid.uuid4(),
-        spec_id=spec_id or uuid.uuid4(),
-        strategy_name=name,
-        status=status,
-        total_return=total_return,
+        user_id=user_id or uuid.uuid4(),
+        display_name=display_name,
+        strategy_type=strategy_type,
+        asset_class=asset_class,
+        period=period,
+        total_return_pct=total_return_pct,
         sharpe_ratio=sharpe_ratio,
-        max_drawdown=max_drawdown,
         win_rate=win_rate,
-        profit_factor=profit_factor,
-        total_trades=total_trades,
-        record_count=record_count,
-    )
-
-
-def _make_comparison_row(
-    impl_id=None,
-    spec_id=None,
-    name="Test Strategy",
-    status="VALIDATED",
-    total_return=0.15,
-    sharpe_ratio=1.5,
-    sortino_ratio=2.0,
-    max_drawdown=-0.10,
-    win_rate=0.55,
-    profit_factor=1.8,
-    total_trades=100,
-    winning_trades=55,
-    losing_trades=45,
-    annualized_return=0.30,
-    volatility=0.12,
-    record_count=5,
-):
-    return FakeRecord(
-        implementation_id=impl_id or uuid.uuid4(),
-        spec_id=spec_id or uuid.uuid4(),
-        strategy_name=name,
-        status=status,
-        total_return=total_return,
-        sharpe_ratio=sharpe_ratio,
-        sortino_ratio=sortino_ratio,
-        max_drawdown=max_drawdown,
-        win_rate=win_rate,
-        profit_factor=profit_factor,
+        consistency_score=consistency_score,
         total_trades=total_trades,
         winning_trades=winning_trades,
         losing_trades=losing_trades,
-        annualized_return=annualized_return,
-        volatility=volatility,
-        record_count=record_count,
+        rank=rank,
+        percentile=percentile,
+        snapshot_date=snapshot_date or date(2026, 3, 13),
     )
 
 
-# --- Period calculation tests ---
+# --- Snapshot dict conversion ---
 
 
-class TestPeriodStartDate:
-    def test_seven_days(self):
-        result = period_start_date(Period.SEVEN_DAYS)
-        assert result is not None
-        now = datetime.now(timezone.utc)
-        delta = now - result
-        assert 6.9 < delta.total_seconds() / 86400 < 7.1
+class TestSnapshotToDict:
+    def test_converts_all_fields(self):
+        uid = uuid.uuid4()
+        row = _make_snapshot_row(user_id=uid, display_name="Alpha")
+        result = _snapshot_to_dict(row)
+        assert result["user_id"] == str(uid)
+        assert result["display_name"] == "Alpha"
+        assert result["total_return_pct"] == 0.25
+        assert result["sharpe_ratio"] == 1.8
+        assert result["win_rate"] == 0.62
+        assert result["consistency_score"] == 0.75
+        assert result["total_trades"] == 150
+        assert result["winning_trades"] == 93
+        assert result["losing_trades"] == 57
+        assert result["rank"] == 1
+        assert result["percentile"] == 0.95
+        assert result["snapshot_date"] == "2026-03-13"
 
-    def test_thirty_days(self):
-        result = period_start_date(Period.THIRTY_DAYS)
-        assert result is not None
-        now = datetime.now(timezone.utc)
-        delta = now - result
-        assert 29.9 < delta.total_seconds() / 86400 < 30.1
-
-    def test_ninety_days(self):
-        result = period_start_date(Period.NINETY_DAYS)
-        assert result is not None
-        now = datetime.now(timezone.utc)
-        delta = now - result
-        assert 89.9 < delta.total_seconds() / 86400 < 90.1
-
-    def test_ytd(self):
-        result = period_start_date(Period.YTD)
-        assert result is not None
-        now = datetime.now(timezone.utc)
-        assert result.year == now.year
-        assert result.month == 1
-        assert result.day == 1
-
-    def test_all_time(self):
-        result = period_start_date(Period.ALL_TIME)
-        assert result is None
-
-
-# --- Ranking logic tests ---
+    def test_handles_none_values(self):
+        row = _make_snapshot_row(
+            sharpe_ratio=None,
+            win_rate=None,
+            consistency_score=None,
+            rank=None,
+            percentile=None,
+        )
+        result = _snapshot_to_dict(row)
+        assert result["sharpe_ratio"] is None
+        assert result["win_rate"] is None
+        assert result["consistency_score"] is None
+        assert result["rank"] is None
+        assert result["percentile"] is None
 
 
-class TestRankingLogic:
-    def test_leaderboard_returns_ranked_list(self, client):
+# --- GET /leaderboard ---
+
+
+class TestGetLeaderboard:
+    def test_returns_ranked_list(self, client):
         tc, conn = client
         id1, id2 = uuid.uuid4(), uuid.uuid4()
         conn.fetch.return_value = [
-            _make_leaderboard_row(impl_id=id1, name="Alpha", sharpe_ratio=2.0),
-            _make_leaderboard_row(impl_id=id2, name="Beta", sharpe_ratio=1.5),
+            _make_snapshot_row(user_id=id1, display_name="Alpha", rank=1),
+            _make_snapshot_row(user_id=id2, display_name="Beta", rank=2),
         ]
+        conn.fetchval.return_value = 2
 
-        resp = tc.get("/leaderboard?period=30d&sort_by=sharpe")
+        resp = tc.get("/leaderboard?period=monthly&sort_by=total_return_pct")
         assert resp.status_code == 200
         body = resp.json()
         assert len(body["data"]) == 2
+        assert body["data"][0]["attributes"]["display_name"] == "Alpha"
         assert body["data"][0]["attributes"]["rank"] == 1
-        assert body["data"][0]["attributes"]["strategy_name"] == "Alpha"
         assert body["data"][1]["attributes"]["rank"] == 2
+        assert body["meta"]["total"] == 2
 
-    def test_leaderboard_default_params(self, client):
+    def test_empty_leaderboard(self, client):
         tc, conn = client
         conn.fetch.return_value = []
+        conn.fetchval.return_value = 0
 
         resp = tc.get("/leaderboard")
         assert resp.status_code == 200
         body = resp.json()
         assert body["data"] == []
+        assert body["meta"]["total"] == 0
 
-    def test_leaderboard_sort_by_total_return(self, client):
-        tc, conn = client
-        id1, id2 = uuid.uuid4(), uuid.uuid4()
-        conn.fetch.return_value = [
-            _make_leaderboard_row(impl_id=id1, name="High Return", total_return=0.50),
-            _make_leaderboard_row(impl_id=id2, name="Low Return", total_return=0.10),
-        ]
-
-        resp = tc.get("/leaderboard?sort_by=total_return")
-        assert resp.status_code == 200
-        body = resp.json()
-        assert len(body["data"]) == 2
-        assert body["data"][0]["attributes"]["rank"] == 1
-
-    def test_leaderboard_all_periods(self, client):
+    def test_all_periods(self, client):
         tc, conn = client
         conn.fetch.return_value = []
+        conn.fetchval.return_value = 0
 
-        for period in ["7d", "30d", "90d", "ytd", "all_time"]:
+        for period in ["daily", "weekly", "monthly", "all_time"]:
             resp = tc.get(f"/leaderboard?period={period}")
             assert resp.status_code == 200
 
-    def test_leaderboard_invalid_period(self, client):
+    def test_invalid_period(self, client):
         tc, conn = client
         resp = tc.get("/leaderboard?period=invalid")
         assert resp.status_code == 422
 
-    def test_leaderboard_invalid_sort(self, client):
+    def test_all_sort_metrics(self, client):
+        tc, conn = client
+        conn.fetch.return_value = []
+        conn.fetchval.return_value = 0
+
+        for metric in [
+            "total_return_pct",
+            "sharpe_ratio",
+            "win_rate",
+            "consistency_score",
+        ]:
+            resp = tc.get(f"/leaderboard?sort_by={metric}")
+            assert resp.status_code == 200
+
+    def test_invalid_sort_metric(self, client):
         tc, conn = client
         resp = tc.get("/leaderboard?sort_by=invalid")
         assert resp.status_code == 422
 
-
-# --- Comparison tests ---
-
-
-class TestComparison:
-    def test_compare_strategies(self, client):
+    def test_filter_by_strategy_type(self, client):
         tc, conn = client
-        id1, id2 = uuid.uuid4(), uuid.uuid4()
-        conn.fetch.side_effect = [
-            # comparison query
-            [
-                _make_comparison_row(impl_id=id1, name="Alpha"),
-                _make_comparison_row(impl_id=id2, name="Beta"),
-            ],
-            # equity curve query
-            [],
+        conn.fetch.return_value = [
+            _make_snapshot_row(strategy_type="momentum"),
         ]
+        conn.fetchval.return_value = 1
 
-        resp = tc.get(f"/leaderboard/compare?ids={id1},{id2}")
+        resp = tc.get("/leaderboard?strategy_type=momentum")
         assert resp.status_code == 200
         body = resp.json()
-        attrs = body["data"]["attributes"]
-        assert len(attrs["strategies"]) == 2
-        assert attrs["period"] == "30d"
+        assert len(body["data"]) == 1
 
-    def test_compare_no_ids(self, client):
+    def test_filter_by_asset_class(self, client):
         tc, conn = client
-        resp = tc.get("/leaderboard/compare?ids=")
-        assert resp.status_code == 422
-
-    def test_compare_too_many_ids(self, client):
-        tc, conn = client
-        ids = ",".join(str(uuid.uuid4()) for _ in range(11))
-        resp = tc.get(f"/leaderboard/compare?ids={ids}")
-        assert resp.status_code == 422
-
-    def test_compare_with_equity_curves(self, client):
-        tc, conn = client
-        id1 = uuid.uuid4()
-        now = datetime.now(timezone.utc)
-        conn.fetch.side_effect = [
-            [_make_comparison_row(impl_id=id1, name="Alpha")],
-            [
-                FakeRecord(
-                    implementation_id=id1,
-                    strategy_name="Alpha",
-                    period_start=now - timedelta(days=2),
-                    period_end=now - timedelta(days=1),
-                    total_return=0.05,
-                ),
-                FakeRecord(
-                    implementation_id=id1,
-                    strategy_name="Alpha",
-                    period_start=now - timedelta(days=1),
-                    period_end=now,
-                    total_return=0.03,
-                ),
-            ],
+        conn.fetch.return_value = [
+            _make_snapshot_row(asset_class="crypto"),
         ]
+        conn.fetchval.return_value = 1
 
-        resp = tc.get(f"/leaderboard/compare?ids={id1}")
+        resp = tc.get("/leaderboard?asset_class=crypto")
         assert resp.status_code == 200
         body = resp.json()
-        attrs = body["data"]["attributes"]
-        curves = attrs["equity_curves"]
-        assert str(id1) in curves
-        points = curves[str(id1)]["points"]
-        assert len(points) == 2
-        # First equity = 1.0 * (1 + 0.05) = 1.05
-        assert abs(points[0]["equity"] - 1.05) < 0.001
-        # Second equity = 1.05 * (1 + 0.03) = 1.0815
-        assert abs(points[1]["equity"] - 1.0815) < 0.001
+        assert len(body["data"]) == 1
+
+    def test_combined_filters(self, client):
+        tc, conn = client
+        conn.fetch.return_value = []
+        conn.fetchval.return_value = 0
+
+        resp = tc.get(
+            "/leaderboard?strategy_type=momentum&asset_class=crypto&period=weekly"
+        )
+        assert resp.status_code == 200
+
+    def test_pagination(self, client):
+        tc, conn = client
+        conn.fetch.return_value = [_make_snapshot_row(rank=2)]
+        conn.fetchval.return_value = 10
+
+        resp = tc.get("/leaderboard?limit=1&offset=1")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["meta"]["limit"] == 1
+        assert body["meta"]["offset"] == 1
+        assert body["meta"]["total"] == 10
 
 
-# --- Equity curve normalization tests ---
-
-
-class TestEquityCurveNormalization:
-    def test_empty_rows(self):
-        result = _normalize_equity_curves([])
-        assert result == {}
-
-    def test_single_strategy(self):
-        id1 = uuid.uuid4()
-        now = datetime.now(timezone.utc)
-        rows = [
-            FakeRecord(
-                implementation_id=id1,
-                strategy_name="Alpha",
-                period_start=now - timedelta(days=2),
-                period_end=now - timedelta(days=1),
-                total_return=0.10,
-            ),
-            FakeRecord(
-                implementation_id=id1,
-                strategy_name="Alpha",
-                period_start=now - timedelta(days=1),
-                period_end=now,
-                total_return=-0.05,
-            ),
-        ]
-        result = _normalize_equity_curves(rows)
-        assert str(id1) in result
-        points = result[str(id1)]["points"]
-        assert len(points) == 2
-        assert abs(points[0]["equity"] - 1.10) < 0.001
-        assert abs(points[1]["equity"] - 1.045) < 0.001
-
-    def test_multiple_strategies(self):
-        id1, id2 = uuid.uuid4(), uuid.uuid4()
-        now = datetime.now(timezone.utc)
-        rows = [
-            FakeRecord(
-                implementation_id=id1,
-                strategy_name="Alpha",
-                period_start=now - timedelta(days=1),
-                period_end=now,
-                total_return=0.10,
-            ),
-            FakeRecord(
-                implementation_id=id2,
-                strategy_name="Beta",
-                period_start=now - timedelta(days=1),
-                period_end=now,
-                total_return=0.20,
-            ),
-        ]
-        result = _normalize_equity_curves(rows)
-        assert len(result) == 2
-        assert abs(result[str(id1)]["points"][0]["equity"] - 1.10) < 0.001
-        assert abs(result[str(id2)]["points"][0]["equity"] - 1.20) < 0.001
-
-    def test_null_return_treated_as_zero(self):
-        id1 = uuid.uuid4()
-        now = datetime.now(timezone.utc)
-        rows = [
-            FakeRecord(
-                implementation_id=id1,
-                strategy_name="Alpha",
-                period_start=now - timedelta(days=1),
-                period_end=now,
-                total_return=None,
-            ),
-        ]
-        result = _normalize_equity_curves(rows)
-        assert abs(result[str(id1)]["points"][0]["equity"] - 1.0) < 0.001
-
-
-# --- Cache tests ---
+# --- Caching ---
 
 
 class TestCaching:
-    def test_leaderboard_caches_response(self, client):
+    def test_caches_leaderboard_response(self, client):
         tc, conn = client
-        conn.fetch.return_value = [
-            _make_leaderboard_row(name="Cached Strategy"),
-        ]
+        conn.fetch.return_value = [_make_snapshot_row()]
+        conn.fetchval.return_value = 1
 
-        resp1 = tc.get("/leaderboard?period=7d&sort_by=sharpe")
-        resp2 = tc.get("/leaderboard?period=7d&sort_by=sharpe")
+        resp1 = tc.get("/leaderboard?period=daily&sort_by=sharpe_ratio")
+        resp2 = tc.get("/leaderboard?period=daily&sort_by=sharpe_ratio")
         assert resp1.status_code == 200
         assert resp2.status_code == 200
-        # Should only have called fetch once (second was cached)
+        # fetch called once for data, fetchval once for count — only on first call
         assert conn.fetch.call_count == 1
 
     def test_different_params_not_cached(self, client):
         tc, conn = client
         conn.fetch.return_value = []
+        conn.fetchval.return_value = 0
 
-        tc.get("/leaderboard?period=7d&sort_by=sharpe")
-        tc.get("/leaderboard?period=30d&sort_by=sharpe")
+        tc.get("/leaderboard?period=daily")
+        tc.get("/leaderboard?period=weekly")
         assert conn.fetch.call_count == 2
 
 
-# --- Health endpoint tests ---
+# --- GET /leaderboard/me ---
+
+
+class TestGetMyRanking:
+    def test_returns_user_ranking(self, client):
+        tc, conn = client
+        uid = uuid.uuid4()
+        conn.fetchrow.return_value = _make_snapshot_row(
+            user_id=uid, display_name="Me", rank=5, percentile=0.80
+        )
+
+        resp = tc.get(
+            "/leaderboard/me?period=monthly",
+            headers={"X-User-Id": str(uid)},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        attrs = body["data"]["attributes"]
+        assert attrs["display_name"] == "Me"
+        assert attrs["rank"] == 5
+        assert attrs["percentile"] == 0.80
+        assert body["data"]["id"] == str(uid)
+
+    def test_missing_user_id_header(self, client):
+        tc, conn = client
+        resp = tc.get("/leaderboard/me?period=monthly")
+        assert resp.status_code == 401
+
+    def test_user_not_found(self, client):
+        tc, conn = client
+        uid = uuid.uuid4()
+        conn.fetchrow.return_value = None
+
+        resp = tc.get(
+            "/leaderboard/me",
+            headers={"X-User-Id": str(uid)},
+        )
+        assert resp.status_code == 404
+
+    def test_all_periods(self, client):
+        tc, conn = client
+        uid = uuid.uuid4()
+        conn.fetchrow.return_value = _make_snapshot_row(user_id=uid)
+
+        for period in ["daily", "weekly", "monthly", "all_time"]:
+            resp = tc.get(
+                f"/leaderboard/me?period={period}",
+                headers={"X-User-Id": str(uid)},
+            )
+            assert resp.status_code == 200
+
+
+# --- PUT /leaderboard/visibility ---
+
+
+class TestUpdateVisibility:
+    def test_opt_in(self, client):
+        tc, conn = client
+        uid = uuid.uuid4()
+        conn.execute.return_value = "UPDATE 1"
+
+        resp = tc.put(
+            "/leaderboard/visibility?visible=true",
+            headers={"X-User-Id": str(uid)},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        attrs = body["data"]["attributes"]
+        assert attrs["leaderboard_visible"] is True
+        assert attrs["user_id"] == str(uid)
+
+    def test_opt_out(self, client):
+        tc, conn = client
+        uid = uuid.uuid4()
+        conn.execute.return_value = "UPDATE 1"
+
+        resp = tc.put(
+            "/leaderboard/visibility?visible=false",
+            headers={"X-User-Id": str(uid)},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["data"]["attributes"]["leaderboard_visible"] is False
+
+    def test_missing_user_id(self, client):
+        tc, conn = client
+        resp = tc.put("/leaderboard/visibility?visible=true")
+        assert resp.status_code == 401
+
+    def test_user_not_found(self, client):
+        tc, conn = client
+        uid = uuid.uuid4()
+        conn.execute.return_value = "UPDATE 0"
+
+        resp = tc.put(
+            "/leaderboard/visibility?visible=true",
+            headers={"X-User-Id": str(uid)},
+        )
+        assert resp.status_code == 404
+
+
+# --- Health endpoint ---
 
 
 class TestHealthEndpoints:
