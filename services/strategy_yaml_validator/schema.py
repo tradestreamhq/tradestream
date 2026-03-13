@@ -8,9 +8,19 @@ VALID_INDICATOR_TYPES = [e.value for e in IndicatorType]
 VALID_CONDITION_TYPES = [e.value for e in ConditionType]
 
 VALID_TIMEFRAMES = [
-    "1m", "5m", "15m", "30m",
-    "1h", "2h", "4h", "6h", "12h",
-    "1d", "3d", "1w", "1M",
+    "1m",
+    "5m",
+    "15m",
+    "30m",
+    "1h",
+    "2h",
+    "4h",
+    "6h",
+    "12h",
+    "1d",
+    "3d",
+    "1w",
+    "1M",
 ]
 
 STRATEGY_SCHEMA = {

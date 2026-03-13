@@ -211,9 +211,7 @@ class TestCrossFieldConsistency:
         assert any("undefined indicator" in str(e).lower() for e in result.errors)
 
     def test_undefined_parameter_ref(self):
-        yaml_content = VALID_STRATEGY.replace(
-            '${shortPeriod}', '${undefinedParam}'
-        )
+        yaml_content = VALID_STRATEGY.replace("${shortPeriod}", "${undefinedParam}")
         validator = StrategyYamlValidator()
         result = validator.validate(yaml_content)
         assert not result.is_valid
