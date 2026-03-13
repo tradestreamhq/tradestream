@@ -62,7 +62,13 @@ class TestRegistry:
         assert len(templates) == 5
 
     def test_template_ids(self):
-        expected = {"sma_crossover", "rsi_mean_reversion", "breakout", "momentum", "vwap"}
+        expected = {
+            "sma_crossover",
+            "rsi_mean_reversion",
+            "breakout",
+            "momentum",
+            "vwap",
+        }
         actual = {t.id for t in default_registry.list_all()}
         assert actual == expected
 
@@ -178,7 +184,9 @@ class TestSMACrossoverSignal:
 
     def test_insufficient_data(self):
         t = default_registry.get("sma_crossover")
-        signal = t.signal_fn({"fast_period": 5, "slow_period": 20}, {"closes": [1, 2, 3]})
+        signal = t.signal_fn(
+            {"fast_period": 5, "slow_period": 20}, {"closes": [1, 2, 3]}
+        )
         assert signal == Signal.HOLD
 
 
@@ -224,7 +232,29 @@ class TestRSIMeanReversionSignal:
 class TestBreakoutSignal:
     def test_upside_breakout(self):
         # Price breaks above recent high with volume surge
-        closes = [10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 15]
+        closes = [
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            15,
+        ]
         volumes = [100] * 20 + [200]
         t = default_registry.get("breakout")
         signal = t.signal_fn(
@@ -234,7 +264,29 @@ class TestBreakoutSignal:
         assert signal == Signal.BUY
 
     def test_downside_breakout(self):
-        closes = [10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 5]
+        closes = [
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            10,
+            11,
+            5,
+        ]
         volumes = [100] * 20 + [200]
         t = default_registry.get("breakout")
         signal = t.signal_fn(
@@ -381,7 +433,13 @@ class TestTemplateEndpoints:
 
     def test_get_each_template(self, client):
         tc, _ = client
-        for tid in ["sma_crossover", "rsi_mean_reversion", "breakout", "momentum", "vwap"]:
+        for tid in [
+            "sma_crossover",
+            "rsi_mean_reversion",
+            "breakout",
+            "momentum",
+            "vwap",
+        ]:
             resp = tc.get(f"/templates/{tid}")
             assert resp.status_code == 200
             body = resp.json()

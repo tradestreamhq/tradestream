@@ -158,7 +158,9 @@ def _rsi(closes: List[float], period: int) -> Optional[float]:
     """Relative Strength Index."""
     if len(closes) < period + 1:
         return None
-    changes = [closes[i] - closes[i - 1] for i in range(len(closes) - period, len(closes))]
+    changes = [
+        closes[i] - closes[i - 1] for i in range(len(closes) - period, len(closes))
+    ]
     gains = [c for c in changes if c > 0]
     losses = [-c for c in changes if c < 0]
     avg_gain = sum(gains) / period if gains else 0.0
@@ -312,8 +314,12 @@ def build_default_registry() -> TemplateRegistry:
             description="Uses the Relative Strength Index to identify overbought and oversold conditions for mean-reversion entries.",
             category="mean_reversion",
             parameters=[
-                ParamDef("rsi_period", ParamType.INT, 14, 2, 100, "RSI calculation period"),
-                ParamDef("overbought", ParamType.FLOAT, 70, 50, 100, "Overbought threshold"),
+                ParamDef(
+                    "rsi_period", ParamType.INT, 14, 2, 100, "RSI calculation period"
+                ),
+                ParamDef(
+                    "overbought", ParamType.FLOAT, 70, 50, 100, "Overbought threshold"
+                ),
                 ParamDef("oversold", ParamType.FLOAT, 30, 0, 50, "Oversold threshold"),
             ],
             signal_fn=_rsi_mean_reversion_signal,
@@ -327,8 +333,22 @@ def build_default_registry() -> TemplateRegistry:
             description="Detects price breakouts above recent highs or below recent lows, confirmed by volume expansion.",
             category="breakout",
             parameters=[
-                ParamDef("lookback_period", ParamType.INT, 20, 5, 200, "Lookback window for high/low"),
-                ParamDef("volume_multiplier", ParamType.FLOAT, 1.5, 1.0, 5.0, "Volume confirmation multiplier"),
+                ParamDef(
+                    "lookback_period",
+                    ParamType.INT,
+                    20,
+                    5,
+                    200,
+                    "Lookback window for high/low",
+                ),
+                ParamDef(
+                    "volume_multiplier",
+                    ParamType.FLOAT,
+                    1.5,
+                    1.0,
+                    5.0,
+                    "Volume confirmation multiplier",
+                ),
             ],
             signal_fn=_breakout_signal,
         )
@@ -341,9 +361,25 @@ def build_default_registry() -> TemplateRegistry:
             description="Combines price momentum with an EMA trend filter to capture strong directional moves.",
             category="trend_following",
             parameters=[
-                ParamDef("momentum_period", ParamType.INT, 14, 2, 200, "Momentum lookback period"),
-                ParamDef("ema_period", ParamType.INT, 20, 5, 200, "EMA trend filter period"),
-                ParamDef("threshold", ParamType.FLOAT, 2.0, 0.1, 20.0, "Momentum threshold (%)"),
+                ParamDef(
+                    "momentum_period",
+                    ParamType.INT,
+                    14,
+                    2,
+                    200,
+                    "Momentum lookback period",
+                ),
+                ParamDef(
+                    "ema_period", ParamType.INT, 20, 5, 200, "EMA trend filter period"
+                ),
+                ParamDef(
+                    "threshold",
+                    ParamType.FLOAT,
+                    2.0,
+                    0.1,
+                    20.0,
+                    "Momentum threshold (%)",
+                ),
             ],
             signal_fn=_momentum_signal,
         )
@@ -356,8 +392,17 @@ def build_default_registry() -> TemplateRegistry:
             description="Trades deviations from the Volume Weighted Average Price, buying below and selling above VWAP.",
             category="mean_reversion",
             parameters=[
-                ParamDef("period", ParamType.INT, 20, 5, 200, "VWAP calculation period"),
-                ParamDef("deviation_threshold", ParamType.FLOAT, 0.02, 0.001, 0.1, "Deviation threshold from VWAP (ratio)"),
+                ParamDef(
+                    "period", ParamType.INT, 20, 5, 200, "VWAP calculation period"
+                ),
+                ParamDef(
+                    "deviation_threshold",
+                    ParamType.FLOAT,
+                    0.02,
+                    0.001,
+                    0.1,
+                    "Deviation threshold from VWAP (ratio)",
+                ),
             ],
             signal_fn=_vwap_signal,
         )
