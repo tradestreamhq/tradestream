@@ -232,3 +232,19 @@ py_library(
         requirement("alembic"),
     ],
 )
+
+py_library(
+    name = "bcrypt",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("bcrypt"),
+    ],
+)
+
+py_library(
+    name = "pyjwt",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("PyJWT"),
+    ],
+)

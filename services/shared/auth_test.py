@@ -87,6 +87,19 @@ class TestFlaskAuthMiddleware:
                 data = resp.get_json()
                 assert data["error"] == "Invalid or missing API key"
 
+    def test_jwt_bearer_token_bypasses_api_key(self):
+        """A valid JWT Bearer token should authenticate even with API key configured."""
+        from services.auth_api.auth_service import create_access_token
+
+        app = _create_test_app()
+        token = create_access_token("user-1", "user@example.com")
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            with app.test_client() as client:
+                resp = client.get(
+                    "/data", headers={"Authorization": f"Bearer {token}"}
+                )
+                assert resp.status_code == 200
+
 
 # ---------------------------------------------------------------------------
 # Starlette / MCP SSE auth middleware tests
@@ -172,3 +185,14 @@ class TestStarletteAuthMiddleware:
             client = TestClient(app)
             resp = client.get("/data")
             assert resp.json()["error"] == "Invalid or missing API key"
+
+    def test_jwt_bearer_token_authenticates(self):
+        """A valid JWT Bearer token should authenticate via Starlette middleware."""
+        from services.auth_api.auth_service import create_access_token
+
+        app = _create_starlette_app()
+        token = create_access_token("user-1", "user@example.com")
+        with patch.dict(os.environ, {"TRADESTREAM_API_KEY": "secret123"}):
+            client = TestClient(app)
+            resp = client.get("/data", headers={"Authorization": f"Bearer {token}"})
+            assert resp.status_code == 200
