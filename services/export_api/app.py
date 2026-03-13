@@ -34,9 +34,7 @@ logger = logging.getLogger(__name__)
 class PerformanceReportRequest(BaseModel):
     start_date: date = Field(..., description="Start date for the report period")
     end_date: date = Field(..., description="End date for the report period")
-    strategy_id: Optional[str] = Field(
-        None, description="Filter by strategy spec ID"
-    )
+    strategy_id: Optional[str] = Field(None, description="Filter by strategy spec ID")
 
 
 # --- Helpers ---
@@ -195,9 +193,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             return StreamingResponse(
                 iter([csv_content]),
                 media_type="text/csv",
-                headers={
-                    "Content-Disposition": "attachment; filename=trades.csv"
-                },
+                headers={"Content-Disposition": "attachment; filename=trades.csv"},
             )
 
         return success_response(
@@ -231,9 +227,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             return StreamingResponse(
                 iter([csv_content]),
                 media_type="text/csv",
-                headers={
-                    "Content-Disposition": "attachment; filename=portfolio.csv"
-                },
+                headers={"Content-Disposition": "attachment; filename=portfolio.csv"},
             )
 
         return success_response(
@@ -259,8 +253,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         if body.strategy_id:
             strategy_filter = (
-                " AND signal_id IN "
-                "(SELECT id FROM signals WHERE spec_id = $3::uuid)"
+                " AND signal_id IN " "(SELECT id FROM signals WHERE spec_id = $3::uuid)"
             )
             params.append(body.strategy_id)
 
@@ -269,7 +262,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         async with db_pool.acquire() as conn:
             stats_row = await conn.fetchrow(stats_q, *params)
 
-        total_trades = int(stats_row["total_trades"]) if stats_row["total_trades"] else 0
+        total_trades = (
+            int(stats_row["total_trades"]) if stats_row["total_trades"] else 0
+        )
         winning = int(stats_row["winning_trades"]) if stats_row["winning_trades"] else 0
         losing = int(stats_row["losing_trades"]) if stats_row["losing_trades"] else 0
 
@@ -312,10 +307,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             trade_log.append(item)
 
         # --- equity curve ---
-        equity_q = (
-            EQUITY_CURVE_QUERY
-            + date_filter.replace("closed_at", "closed_at")
-        )
+        equity_q = EQUITY_CURVE_QUERY + date_filter.replace("closed_at", "closed_at")
         if body.strategy_id:
             equity_q += strategy_filter.replace("$3", "$3")
 
@@ -328,9 +320,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         for row in equity_rows:
             equity_curve.append(
                 {
-                    "date": row["trade_date"].isoformat()
-                    if row["trade_date"]
-                    else None,
+                    "date": (
+                        row["trade_date"].isoformat() if row["trade_date"] else None
+                    ),
                     "cumulative_pnl": _float(row["cumulative_pnl"]),
                     "pnl": _float(row["pnl"]),
                 }
@@ -359,16 +351,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 dd = peak - cum
                 if dd > max_drawdown:
                     max_drawdown = dd
-                    max_drawdown_pct = (
-                        round(dd / peak, 4) if peak > 0 else 0
-                    )
+                    max_drawdown_pct = round(dd / peak, 4) if peak > 0 else 0
                 if current_dd_start is None and dd > 0:
                     current_dd_start = point["date"]
 
         if current_dd_start is not None:
-            drawdown_periods.append(
-                {"start": current_dd_start, "end": None}
-            )
+            drawdown_periods.append({"start": current_dd_start, "end": None})
 
         drawdown = {
             "max_drawdown": max_drawdown,
