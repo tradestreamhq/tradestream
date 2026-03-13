@@ -114,9 +114,7 @@ def create_app(influxdb_client) -> FastAPI:
         if invalid:
             return validation_error(
                 f"Unknown indicators: {', '.join(invalid)}",
-                details=[
-                    {"available": ", ".join(sorted(INDICATOR_DEFAULTS.keys()))}
-                ],
+                details=[{"available": ", ".join(sorted(INDICATOR_DEFAULTS.keys()))}],
             )
 
         raw_candles = influxdb_client.get_candles(
@@ -166,8 +164,7 @@ def create_app(influxdb_client) -> FastAPI:
         results = compute_indicators(candles, config)
 
         serialized = {
-            name: _serialize_results(name, vals)
-            for name, vals in results.items()
+            name: _serialize_results(name, vals) for name, vals in results.items()
         }
 
         return success_response(

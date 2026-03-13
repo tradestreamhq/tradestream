@@ -74,7 +74,16 @@ class TestGetIndicators:
         assert resp.status_code == 200
         body = resp.json()
         attrs = body["data"]["attributes"]
-        for name in ["sma", "ema", "rsi", "macd", "bollinger_bands", "atr", "vwap", "stochastic"]:
+        for name in [
+            "sma",
+            "ema",
+            "rsi",
+            "macd",
+            "bollinger_bands",
+            "atr",
+            "vwap",
+            "stochastic",
+        ]:
             assert name in attrs["indicators"]
 
     def test_invalid_indicator(self, client):
@@ -112,7 +121,9 @@ class TestGetIndicators:
         body = resp.json()
         macd_values = body["data"]["attributes"]["indicators"]["macd"]
         # Find first non-None MACD
-        non_none = [v for v in macd_values if v is not None and v.get("macd") is not None]
+        non_none = [
+            v for v in macd_values if v is not None and v.get("macd") is not None
+        ]
         assert len(non_none) > 0
         assert "macd" in non_none[0]
         assert "signal" in non_none[0]
@@ -126,7 +137,9 @@ class TestGetIndicators:
         assert resp.status_code == 200
         body = resp.json()
         bb_values = body["data"]["attributes"]["indicators"]["bollinger_bands"]
-        non_none = [v for v in bb_values if v is not None and v.get("middle") is not None]
+        non_none = [
+            v for v in bb_values if v is not None and v.get("middle") is not None
+        ]
         assert len(non_none) > 0
         assert "upper" in non_none[0]
         assert "middle" in non_none[0]

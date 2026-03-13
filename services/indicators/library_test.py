@@ -112,9 +112,26 @@ class TestRSI:
     def test_reference_values(self):
         # Classic RSI test: prices that produce known RSI values
         closes = [
-            44.0, 44.34, 44.09, 43.61, 44.33, 44.83, 45.10, 45.42, 45.84,
-            46.08, 45.89, 46.03, 45.61, 46.28, 46.28, 46.00, 46.03, 46.41,
-            46.22, 45.64,
+            44.0,
+            44.34,
+            44.09,
+            43.61,
+            44.33,
+            44.83,
+            45.10,
+            45.42,
+            45.84,
+            46.08,
+            45.89,
+            46.03,
+            45.61,
+            46.28,
+            46.28,
+            46.00,
+            46.03,
+            46.41,
+            46.22,
+            45.64,
         ]
         result = RSI.compute(closes, period=14)
         # First 14 values (indices 0-13) should be None
@@ -136,8 +153,24 @@ class TestRSI:
         assert result[14] == pytest.approx(0.0)
 
     def test_streaming_matches_batch(self):
-        closes = [44.0, 44.34, 44.09, 43.61, 44.33, 44.83, 45.10, 45.42,
-                  45.84, 46.08, 45.89, 46.03, 45.61, 46.28, 46.28, 46.00]
+        closes = [
+            44.0,
+            44.34,
+            44.09,
+            43.61,
+            44.33,
+            44.83,
+            45.10,
+            45.42,
+            45.84,
+            46.08,
+            45.89,
+            46.03,
+            45.61,
+            46.28,
+            46.28,
+            46.00,
+        ]
         batch = RSI.compute(closes, period=14)
         rsi = RSI(14)
         streaming = [rsi.update(c) for c in closes]
@@ -321,9 +354,12 @@ class TestStochasticOscillator:
 
 class TestComputeIndicators:
     def test_multiple_indicators(self):
-        candles = [_make_candle(close=float(50 + i), high=float(51 + i),
-                                low=float(49 + i), volume=100.0)
-                   for i in range(30)]
+        candles = [
+            _make_candle(
+                close=float(50 + i), high=float(51 + i), low=float(49 + i), volume=100.0
+            )
+            for i in range(30)
+        ]
         config = {
             "sma": {"period": 5},
             "ema": {"period": 5},

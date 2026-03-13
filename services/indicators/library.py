@@ -366,9 +366,7 @@ class StochasticOscillator:
 # ---------------------------------------------------------------------------
 
 
-def compute_indicators(
-    candles: List[Candle], config: Dict
-) -> Dict[str, List]:
+def compute_indicators(candles: List[Candle], config: Dict) -> Dict[str, List]:
     """Compute multiple indicators based on a config dict.
 
     Config format:
