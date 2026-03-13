@@ -1,0 +1,35 @@
+# Development overrides — use with:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  app:
+    build:
+      target: builder
+    container_name: tradestream-app-dev
+    ports:
+      - "${APP_HTTP_PORT:-8080}:8080"
+      - "${APP_GRPC_PORT:-50051}:50051"
+      - "${APP_DEBUG_PORT:-5005}:5005"
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    volumes:
+      - ./src:/build/src
+      - ./services:/build/services
+      - ./protos:/build/protos
+      - ./shared:/build/shared
+    command: >
+      bash -c "
+        while true; do
+          bazel run //src/main/java/com/verlumen/tradestream/... --jobs=auto;
+          echo 'Restarting in 2s...'; sleep 2;
+        done
+      "
+    restart: "no"
+
+  postgres:
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
