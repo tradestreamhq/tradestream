@@ -28,9 +28,7 @@ class TestSignPayload:
     def test_sign_payload_matches_hmac(self):
         payload = b'{"event": "trade.executed"}'
         secret = "my-secret-key"
-        expected = hmac.new(
-            secret.encode("utf-8"), payload, hashlib.sha256
-        ).hexdigest()
+        expected = hmac.new(secret.encode("utf-8"), payload, hashlib.sha256).hexdigest()
         assert sign_payload(payload, secret) == expected
 
     def test_different_secrets_produce_different_signatures(self):
