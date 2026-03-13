@@ -23,6 +23,10 @@ from services.rest_api_shared.responses import (
     validation_error,
 )
 from services.shared.auth import fastapi_auth_middleware
+from services.strategy_api.versioning import (
+    create_version_snapshot,
+    create_versioning_router,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +146,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     json.dumps(body.parameters),
                     body.description,
                 )
+                await create_version_snapshot(
+                    conn,
+                    str(row["id"]),
+                    change_description="Initial version",
+                )
         except asyncpg.UniqueViolationError:
             return conflict(f"Spec with name '{body.name}' already exists")
         except Exception as e:
@@ -215,8 +224,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         """
         async with db_pool.acquire() as conn:
             row = await conn.fetchrow(query, *params)
-        if not row:
-            return not_found("Spec", spec_id)
+            if not row:
+                return not_found("Spec", spec_id)
+            await create_version_snapshot(
+                conn,
+                spec_id,
+                change_description="Config updated",
+            )
         item = dict(row)
         item["id"] = str(item["id"])
         if item.get("created_at"):
@@ -464,4 +478,5 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     app.include_router(specs_router)
     app.include_router(impls_router)
+    app.include_router(create_versioning_router(db_pool))
     return app
