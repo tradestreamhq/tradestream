@@ -37,9 +37,7 @@ class RestoreRequest(BaseModel):
 # --- Diff Utility ---
 
 
-def diff_configs(
-    old: Dict[str, Any], new: Dict[str, Any]
-) -> List[Dict[str, Any]]:
+def diff_configs(old: Dict[str, Any], new: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Compare two config snapshots and return a list of changes.
 
     Each change has: field, action (added/removed/modified), old_value, new_value.
@@ -53,11 +51,21 @@ def diff_configs(
 
         if key not in old:
             changes.append(
-                {"field": key, "action": "added", "old_value": None, "new_value": new_val}
+                {
+                    "field": key,
+                    "action": "added",
+                    "old_value": None,
+                    "new_value": new_val,
+                }
             )
         elif key not in new:
             changes.append(
-                {"field": key, "action": "removed", "old_value": old_val, "new_value": None}
+                {
+                    "field": key,
+                    "action": "removed",
+                    "old_value": old_val,
+                    "new_value": None,
+                }
             )
         elif old_val != new_val:
             # For nested dicts, recurse to show detailed changes
