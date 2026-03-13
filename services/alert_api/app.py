@@ -59,8 +59,13 @@ class AlertCreate(BaseModel):
 def _row_to_dict(row) -> Dict[str, Any]:
     """Convert an asyncpg Record to a JSON-safe dict."""
     item = dict(row)
-    for key in ("target_price", "reference_price", "percentage",
-                "trigger_price", "last_checked_price"):
+    for key in (
+        "target_price",
+        "reference_price",
+        "percentage",
+        "trigger_price",
+        "last_checked_price",
+    ):
         if item.get(key) is not None:
             item[key] = float(item[key])
     for key in ("created_at", "updated_at", "triggered_at"):
@@ -193,8 +198,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 total = await conn.fetchval(count_query, *params[:-2])
                 rows = await conn.fetch(query, *params)
             items = [_row_to_dict(r) for r in rows]
-            return collection_response(items, "price_alert", total=total,
-                                       limit=limit, offset=offset)
+            return collection_response(
+                items, "price_alert", total=total, limit=limit, offset=offset
+            )
         except Exception as e:
             logger.error("Error listing alerts: %s", e)
             return server_error(str(e))
@@ -262,8 +268,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 total = await conn.fetchval(count_query, *params[:-2])
                 rows = await conn.fetch(query, *params)
             items = [_row_to_dict(r) for r in rows]
-            return collection_response(items, "price_alert", total=total,
-                                       limit=limit, offset=offset)
+            return collection_response(
+                items, "price_alert", total=total, limit=limit, offset=offset
+            )
         except Exception as e:
             logger.error("Error fetching alert history: %s", e)
             return server_error(str(e))
@@ -329,7 +336,9 @@ async def run_evaluation(
             symbol = row["symbol"]
             condition = row["condition"]
             target = float(row["target_price"])
-            last_price = float(row["last_checked_price"]) if row["last_checked_price"] else None
+            last_price = (
+                float(row["last_checked_price"]) if row["last_checked_price"] else None
+            )
             current = prices[symbol]
 
             should_trigger = _check_condition(condition, target, current, last_price)
