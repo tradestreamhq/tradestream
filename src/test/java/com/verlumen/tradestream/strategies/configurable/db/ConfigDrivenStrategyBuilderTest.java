@@ -23,8 +23,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.num.DecimalNum;
 
 /**
  * Tests for ConfigDrivenStrategyBuilder using an in-memory H2 database that emulates the
@@ -146,7 +148,7 @@ public final class ConfigDrivenStrategyBuilderTest {
         Statement stmt = conn.createStatement()) {
       stmt.execute(
           "CREATE TABLE strategy_specs ("
-              + "  id VARCHAR(36) PRIMARY KEY DEFAULT RANDOM_UUID(),"
+              + "  id VARCHAR(36) DEFAULT RANDOM_UUID() PRIMARY KEY,"
               + "  name VARCHAR(255) UNIQUE NOT NULL,"
               + "  description TEXT,"
               + "  complexity VARCHAR(50),"
@@ -171,12 +173,12 @@ public final class ConfigDrivenStrategyBuilderTest {
     List<ConditionConfig> entryConditions =
         List.of(
             new ConditionConfig(
-                "CROSSED_UP", null, Map.of("indicator1", "sma", "indicator2", "ema")));
+                "CROSSED_UP", "sma", Map.of("indicator", "sma", "crosses", "ema")));
 
     List<ConditionConfig> exitConditions =
         List.of(
             new ConditionConfig(
-                "CROSSED_DOWN", null, Map.of("indicator1", "sma", "indicator2", "ema")));
+                "CROSSED_DOWN", "sma", Map.of("indicator", "sma", "crosses", "ema")));
 
     List<ParameterDefinition> parameters =
         List.of(
@@ -208,13 +210,17 @@ public final class ConfigDrivenStrategyBuilderTest {
     for (int i = 0; i < 100; i++) {
       double price = 100.0 + Math.sin(i * 0.1) * 10;
       series.addBar(
-          Duration.ofMinutes(1),
-          now.plusMinutes(i),
-          price, // open
-          price + 1, // high
-          price - 1, // low
-          price + 0.5, // close
-          1000.0 + i * 10); // volume
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i).toInstant().minus(Duration.ofMinutes(1)),
+              now.plusMinutes(i).toInstant(),
+              DecimalNum.valueOf(price),
+              DecimalNum.valueOf(price + 1),
+              DecimalNum.valueOf(price - 1),
+              DecimalNum.valueOf(price + 0.5),
+              DecimalNum.valueOf(1000 + i * 10),
+              DecimalNum.valueOf(0),
+              0));
     }
     return series;
   }
@@ -274,7 +280,7 @@ public final class ConfigDrivenStrategyBuilderTest {
       return false;
     }
 
-    void close() throws SQLException {
+    public void close() throws SQLException {
       try (Connection conn = getConnection();
           Statement stmt = conn.createStatement()) {
         stmt.execute("SHUTDOWN");
