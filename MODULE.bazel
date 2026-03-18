@@ -97,6 +97,10 @@ maven.install(
         "org.ta4j:ta4j-core:0.22.0",
         "org.yaml:snakeyaml:2.2",
 
+        # Flyway Dependencies
+        "org.flywaydb:flyway-core:10.21.0",
+        "org.flywaydb:flyway-database-postgresql:10.21.0",
+
         # gRPC Dependencies
         "io.grpc:grpc-netty-shaded:1.78.0",
         "io.grpc:grpc-protobuf:1.78.0",
@@ -104,6 +108,7 @@ maven.install(
         "io.grpc:grpc-services:1.78.0",
 
         # Test Dependencies
+        "com.h2database:h2:2.2.224",
         "com.google.inject.extensions:guice-testlib:7.0.0",
         "com.google.testparameterinjector:test-parameter-injector:1.9",
         "com.google.truth:truth:1.4.4",
