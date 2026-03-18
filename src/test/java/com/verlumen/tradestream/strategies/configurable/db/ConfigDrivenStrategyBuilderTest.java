@@ -10,7 +10,6 @@ import com.verlumen.tradestream.strategies.configurable.ParameterType;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
@@ -172,8 +171,7 @@ public final class ConfigDrivenStrategyBuilderTest {
 
     List<ConditionConfig> entryConditions =
         List.of(
-            new ConditionConfig(
-                "CROSSED_UP", "sma", Map.of("indicator", "sma", "crosses", "ema")));
+            new ConditionConfig("CROSSED_UP", "sma", Map.of("indicator", "sma", "crosses", "ema")));
 
     List<ConditionConfig> exitConditions =
         List.of(

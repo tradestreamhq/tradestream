@@ -93,8 +93,7 @@ public final class ConfigDrivenStrategyBuilder {
    * @param barSeries the bar series to build the strategy against
    * @return the built strategy, or empty if not found
    */
-  public Optional<Strategy> buildStrategy(String specName, BarSeries barSeries)
-      throws Exception {
+  public Optional<Strategy> buildStrategy(String specName, BarSeries barSeries) throws Exception {
     Optional<StrategyConfig> config = loadSpec(specName);
     if (config.isEmpty()) {
       return Optional.empty();

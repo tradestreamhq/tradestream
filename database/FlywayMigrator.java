@@ -52,8 +52,7 @@ public final class FlywayMigrator {
       case "migrate":
       default:
         MigrateResult result = flyway.migrate();
-        System.out.println(
-            "Successfully applied " + result.migrationsExecuted + " migration(s).");
+        System.out.println("Successfully applied " + result.migrationsExecuted + " migration(s).");
         printInfo(flyway);
         break;
     }
@@ -66,8 +65,7 @@ public final class FlywayMigrator {
     System.out.println("-".repeat(60));
     for (MigrationInfo info : infos) {
       System.out.printf(
-          "%-30s %-10s %-20s%n",
-          info.getVersion(), info.getState(), info.getDescription());
+          "%-30s %-10s %-20s%n", info.getVersion(), info.getState(), info.getDescription());
     }
   }
 

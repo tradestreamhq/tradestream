@@ -2,7 +2,6 @@ package com.verlumen.tradestream.database;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.io.File;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.junit.Before;
@@ -36,10 +35,7 @@ public final class FlywayMigrationTest {
   @Test
   public void flywayDiscoversMigrations() {
     Flyway flyway =
-        Flyway.configure()
-            .dataSource(dataSource)
-            .locations("filesystem:" + migrationsPath)
-            .load();
+        Flyway.configure().dataSource(dataSource).locations("filesystem:" + migrationsPath).load();
 
     MigrationInfo[] pending = flyway.info().pending();
 
@@ -49,10 +45,7 @@ public final class FlywayMigrationTest {
   @Test
   public void strategySpecsMigrationDiscovered() {
     Flyway flyway =
-        Flyway.configure()
-            .dataSource(dataSource)
-            .locations("filesystem:" + migrationsPath)
-            .load();
+        Flyway.configure().dataSource(dataSource).locations("filesystem:" + migrationsPath).load();
 
     MigrationInfo[] all = flyway.info().all();
 
@@ -70,10 +63,7 @@ public final class FlywayMigrationTest {
   @Test
   public void baselineMigrationDiscovered() {
     Flyway flyway =
-        Flyway.configure()
-            .dataSource(dataSource)
-            .locations("filesystem:" + migrationsPath)
-            .load();
+        Flyway.configure().dataSource(dataSource).locations("filesystem:" + migrationsPath).load();
 
     MigrationInfo[] all = flyway.info().all();
 
@@ -90,10 +80,7 @@ public final class FlywayMigrationTest {
   @Test
   public void performanceMigrationDiscovered() {
     Flyway flyway =
-        Flyway.configure()
-            .dataSource(dataSource)
-            .locations("filesystem:" + migrationsPath)
-            .load();
+        Flyway.configure().dataSource(dataSource).locations("filesystem:" + migrationsPath).load();
 
     MigrationInfo[] all = flyway.info().all();
 
