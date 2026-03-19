@@ -52,7 +52,9 @@ class SmsSender:
                 timeout=10,
             )
             if resp.status_code in (200, 201):
-                logging.info("SMS sent for %s to %s", signal.get("symbol"), self.to_number)
+                logging.info(
+                    "SMS sent for %s to %s", signal.get("symbol"), self.to_number
+                )
                 return True
             logging.warning("Twilio returned %d: %s", resp.status_code, resp.text[:200])
             return False

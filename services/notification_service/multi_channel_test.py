@@ -13,7 +13,10 @@ from services.notification_service.delivery_router import (
     DeliveryRouter,
     RoutingResult,
 )
-from services.notification_service.delivery_tracker import DeliveryReceipt, DeliveryTracker
+from services.notification_service.delivery_tracker import (
+    DeliveryReceipt,
+    DeliveryTracker,
+)
 from services.notification_service.rate_limiter import DeliveryRateLimiter
 from services.notification_service.sms_sender import SmsSender
 from services.notification_service.user_preferences import (
@@ -44,6 +47,7 @@ CRITICAL_SIGNAL = {
 
 
 # --- Mock Redis ---
+
 
 class MockRedis:
     """In-memory Redis mock for testing."""
@@ -104,11 +108,11 @@ class MockRedis:
 
     def ltrim(self, key, start, end):
         if key in self._lists:
-            self._lists[key] = self._lists[key][start: end + 1]
+            self._lists[key] = self._lists[key][start : end + 1]
 
     def lrange(self, key, start, end):
         lst = self._lists.get(key, [])
-        return lst[start: end + 1 if end >= 0 else None]
+        return lst[start : end + 1 if end >= 0 else None]
 
     def pipeline(self):
         return MockPipeline(self)
@@ -123,10 +127,12 @@ class MockPipeline:
 
     def __getattr__(self, name):
         method = getattr(self._redis, name)
+
         def wrapper(*args, **kwargs):
             result = method(*args, **kwargs)
             self._results.append(result)
             return self
+
         return wrapper
 
     def execute(self):
@@ -136,6 +142,7 @@ class MockPipeline:
 
 
 # --- SMS Sender Tests ---
+
 
 class TestSmsSender:
     def test_format_signal(self):
@@ -171,6 +178,7 @@ class TestSmsSender:
     @mock.patch("services.notification_service.sms_sender.requests.post")
     def test_send_signal_network_error(self, mock_post):
         import requests
+
         mock_post.side_effect = requests.RequestException("timeout")
         sender = SmsSender("SID", "TOKEN", "+1111", "+2222")
         assert sender.send_signal(SAMPLE_SIGNAL) is False
@@ -192,56 +200,100 @@ class TestSmsSender:
 
 # --- Deduplicator Tests ---
 
+
 class TestDeduplicator:
     def test_primary_only_allows_first(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "primary_only", "telegram") is True
+        assert (
+            dedup.should_deliver(
+                "sig-1", "user-1", "telegram", "primary_only", "telegram"
+            )
+            is True
+        )
 
     def test_primary_only_blocks_non_primary(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
-        assert dedup.should_deliver("sig-1", "user-1", "discord", "primary_only", "telegram") is False
+        assert (
+            dedup.should_deliver(
+                "sig-1", "user-1", "discord", "primary_only", "telegram"
+            )
+            is False
+        )
 
     def test_primary_only_blocks_duplicate(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "primary_only", "telegram") is True
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "primary_only", "telegram") is False
+        assert (
+            dedup.should_deliver(
+                "sig-1", "user-1", "telegram", "primary_only", "telegram"
+            )
+            is True
+        )
+        assert (
+            dedup.should_deliver(
+                "sig-1", "user-1", "telegram", "primary_only", "telegram"
+            )
+            is False
+        )
 
     def test_all_enabled_allows_all_channels(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "all_enabled") is True
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "telegram", "all_enabled") is True
+        )
         assert dedup.should_deliver("sig-1", "user-1", "discord", "all_enabled") is True
         assert dedup.should_deliver("sig-1", "user-1", "slack", "all_enabled") is True
 
     def test_all_enabled_blocks_same_channel_duplicate(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "all_enabled") is True
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "all_enabled") is False
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "telegram", "all_enabled") is True
+        )
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "telegram", "all_enabled") is False
+        )
 
     def test_fallback_chain_allows_first(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "fallback_chain") is True
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "telegram", "fallback_chain")
+            is True
+        )
 
     def test_fallback_chain_blocks_after_success(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
         dedup.should_deliver("sig-1", "user-1", "telegram", "fallback_chain")
         dedup.mark_success("sig-1", "user-1")
-        assert dedup.should_deliver("sig-1", "user-1", "discord", "fallback_chain") is False
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "discord", "fallback_chain")
+            is False
+        )
 
     def test_different_users_independent(self):
         redis = MockRedis()
         dedup = CrossChannelDeduplicator(redis)
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "primary_only", "telegram") is True
-        assert dedup.should_deliver("sig-1", "user-2", "telegram", "primary_only", "telegram") is True
+        assert (
+            dedup.should_deliver(
+                "sig-1", "user-1", "telegram", "primary_only", "telegram"
+            )
+            is True
+        )
+        assert (
+            dedup.should_deliver(
+                "sig-1", "user-2", "telegram", "primary_only", "telegram"
+            )
+            is True
+        )
 
 
 # --- Rate Limiter Tests ---
+
 
 class TestRateLimiter:
     def test_allows_under_limit(self):
@@ -272,7 +324,9 @@ class TestRateLimiter:
 
     def test_different_channels_independent(self):
         redis = MockRedis()
-        limiter = DeliveryRateLimiter(redis, limits={"telegram": (1, 3600), "discord": (1, 3600)})
+        limiter = DeliveryRateLimiter(
+            redis, limits={"telegram": (1, 3600), "discord": (1, 3600)}
+        )
         assert limiter.allow("user-1", "telegram") is True
         assert limiter.allow("user-1", "discord") is True
 
@@ -285,6 +339,7 @@ class TestRateLimiter:
 
 
 # --- User Preferences Tests ---
+
 
 class TestUserPreferences:
     def test_default_preferences(self):
@@ -365,6 +420,7 @@ class TestUserPreferences:
 
 # --- Delivery Router Tests ---
 
+
 class MockSender:
     """Test sender that records calls."""
 
@@ -397,10 +453,13 @@ class TestDeliveryRouter:
                 "discord": MockSender("discord"),
                 "slack": MockSender("slack"),
             }
-        return DeliveryRouter(
-            senders=senders,
-            redis_client=redis,
-        ), redis
+        return (
+            DeliveryRouter(
+                senders=senders,
+                redis_client=redis,
+            ),
+            redis,
+        )
 
     def test_primary_only_sends_to_primary(self):
         router, _ = self._make_router()
@@ -547,8 +606,10 @@ class TestDeliveryRouter:
     def test_sender_exception_handled(self):
         class FailingSender:
             name = "broken"
+
             def send_signal(self, signal):
                 raise RuntimeError("connection reset")
+
             def supports_priority(self, p):
                 return True
 
@@ -570,6 +631,7 @@ class TestDeliveryRouter:
 
 
 # --- Delivery Tracker Tests ---
+
 
 class TestDeliveryTracker:
     def test_record_and_get_receipt(self):
@@ -594,24 +656,28 @@ class TestDeliveryTracker:
         redis = MockRedis()
         tracker = DeliveryTracker(redis)
         for i in range(3):
-            tracker.record(DeliveryReceipt(
-                receipt_id=f"r-{i}",
-                signal_id=f"sig-{i}",
+            tracker.record(
+                DeliveryReceipt(
+                    receipt_id=f"r-{i}",
+                    signal_id=f"sig-{i}",
+                    user_id="user-1",
+                    channel="telegram",
+                    status="delivered",
+                    timestamp=time.time(),
+                    latency_ms=10.0,
+                )
+            )
+        tracker.record(
+            DeliveryReceipt(
+                receipt_id="r-fail",
+                signal_id="sig-fail",
                 user_id="user-1",
                 channel="telegram",
-                status="delivered",
+                status="failed",
                 timestamp=time.time(),
-                latency_ms=10.0,
-            ))
-        tracker.record(DeliveryReceipt(
-            receipt_id="r-fail",
-            signal_id="sig-fail",
-            user_id="user-1",
-            channel="telegram",
-            status="failed",
-            timestamp=time.time(),
-            error="timeout",
-        ))
+                error="timeout",
+            )
+        )
         metrics = tracker.get_channel_metrics("telegram")
         assert metrics["total"] == 4
         assert metrics["delivered"] == 3
@@ -620,15 +686,17 @@ class TestDeliveryTracker:
     def test_dlq_captures_failures(self):
         redis = MockRedis()
         tracker = DeliveryTracker(redis)
-        tracker.record(DeliveryReceipt(
-            receipt_id="r-fail",
-            signal_id="sig-fail",
-            user_id="user-1",
-            channel="slack",
-            status="failed",
-            timestamp=time.time(),
-            error="webhook 500",
-        ))
+        tracker.record(
+            DeliveryReceipt(
+                receipt_id="r-fail",
+                signal_id="sig-fail",
+                user_id="user-1",
+                channel="slack",
+                status="failed",
+                timestamp=time.time(),
+                error="webhook 500",
+            )
+        )
         dlq = tracker.get_dlq()
         assert len(dlq) == 1
         assert dlq[0]["error"] == "webhook 500"
@@ -640,6 +708,7 @@ class TestDeliveryTracker:
 
 
 # --- Abstract Channel Interface Test ---
+
 
 class TestDeliveryChannelInterface:
     def test_cannot_instantiate_abstract(self):

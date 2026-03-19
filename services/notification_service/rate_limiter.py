@@ -29,9 +29,7 @@ class DeliveryRateLimiter:
         self.redis = redis_client
         self.limits = limits or self.DEFAULT_LIMITS
 
-    def allow(
-        self, user_id: str, channel: str, tier: str = "free"
-    ) -> bool:
+    def allow(self, user_id: str, channel: str, tier: str = "free") -> bool:
         """Check if a delivery is allowed under the rate limit.
 
         If allowed, consumes one token. Returns True if allowed.

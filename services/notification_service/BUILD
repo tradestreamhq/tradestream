@@ -65,7 +65,6 @@ py_library(
     ],
 )
 
-
 py_library(
     name = "channel_lib",
     srcs = ["channel.py"],
