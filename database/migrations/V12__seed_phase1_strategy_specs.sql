@@ -1,4 +1,4 @@
--- V11__seed_phase1_strategy_specs.sql
+-- V12__seed_phase1_strategy_specs.sql
 -- Phase 1: Seed the first 15 simple strategy specs into the strategy_specs table.
 -- These strategies have been validated via YAML configs and deprecated Java implementations.
 -- References: Issue #1564 (migrate hardcoded strategies to config)
