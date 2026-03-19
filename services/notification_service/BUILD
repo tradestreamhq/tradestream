@@ -119,8 +119,8 @@ py_library(
         ":email_sender_lib",
         ":notification_history_lib",
         ":slack_sender_lib",
-        ":telegram_sender_lib",
         ":sms_sender_lib",
+        ":telegram_sender_lib",
         ":webhook_sender_lib",
         "//services/shared:structured_logger",
         "//third_party/python:absl_py",
@@ -157,7 +157,6 @@ py_test(
         "//third_party/python:tenacity",
     ],
 )
-
 
 py_test(
     name = "multi_channel_test",
