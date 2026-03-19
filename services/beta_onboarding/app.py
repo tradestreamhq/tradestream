@@ -82,12 +82,18 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 return not_found("Invite code", body.code)
 
             if not invite["is_active"]:
-                return error_response("INACTIVE", "This invite code is no longer active", 410)
+                return error_response(
+                    "INACTIVE", "This invite code is no longer active", 410
+                )
 
             if invite["current_uses"] >= invite["max_uses"]:
-                return error_response("EXHAUSTED", "This invite code has been fully used", 410)
+                return error_response(
+                    "EXHAUSTED", "This invite code has been fully used", 410
+                )
 
-            if invite["expires_at"] and invite["expires_at"] < datetime.now(timezone.utc):
+            if invite["expires_at"] and invite["expires_at"] < datetime.now(
+                timezone.utc
+            ):
                 return error_response("EXPIRED", "This invite code has expired", 410)
 
             # Check for existing beta user
@@ -108,7 +114,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                    VALUES ($1::uuid, $2)
                    ON CONFLICT (email) DO UPDATE SET email = $2
                    RETURNING id""",
-                customer_id, body.email,
+                customer_id,
+                body.email,
             )
 
             # Create subscription at the invite tier
@@ -117,7 +124,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 """INSERT INTO billing_subscriptions
                    (id, customer_id, tier, status, current_period_start, current_period_end)
                    VALUES ($1::uuid, $2::uuid, $3, 'active', NOW(), NOW() + INTERVAL '90 days')""",
-                sub_id, customer_id, invite["tier"],
+                sub_id,
+                customer_id,
+                invite["tier"],
             )
 
             # Create beta user
@@ -125,7 +134,10 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             await conn.execute(
                 """INSERT INTO beta_users (id, customer_id, invite_code_id, email, onboarding_step)
                    VALUES ($1::uuid, $2::uuid, $3, $4, 'REGISTERED')""",
-                beta_id, customer_id, str(invite["id"]), body.email,
+                beta_id,
+                customer_id,
+                str(invite["id"]),
+                body.email,
             )
 
             # Increment invite usage
@@ -166,13 +178,15 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 """UPDATE beta_users
                    SET telegram_chat_id = $1, onboarding_step = 'TELEGRAM_CONNECTED'
                    WHERE id = $2::uuid""",
-                body.telegram_chat_id, beta_user_id,
+                body.telegram_chat_id,
+                beta_user_id,
             )
 
             # Update billing customer with telegram ID
             await conn.execute(
                 "UPDATE billing_customers SET telegram_chat_id = $1 WHERE id = $2::uuid",
-                body.telegram_chat_id, str(user["customer_id"]),
+                body.telegram_chat_id,
+                str(user["customer_id"]),
             )
 
         return success_response(
@@ -209,15 +223,15 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             valid_names = {r["name"] for r in valid}
             invalid = [s for s in body.strategies if s not in valid_names]
             if invalid:
-                return validation_error(
-                    f"Unknown strategies: {', '.join(invalid)}"
-                )
+                return validation_error(f"Unknown strategies: {', '.join(invalid)}")
 
             await conn.execute(
                 """UPDATE beta_users
                    SET strategies = $1, pairs = $2, onboarding_step = 'STRATEGY_SELECTED'
                    WHERE id = $3::uuid""",
-                body.strategies, body.pairs, beta_user_id,
+                body.strategies,
+                body.pairs,
+                beta_user_id,
             )
 
             # Auto-create signal subscription if telegram is connected
@@ -228,8 +242,10 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                        (id, channel, endpoint, strategies, pairs, active, created_at)
                        VALUES ($1, 'telegram', $2, $3, $4, true, NOW())
                        ON CONFLICT DO NOTHING""",
-                    sub_id, user["telegram_chat_id"],
-                    body.strategies, body.pairs,
+                    sub_id,
+                    user["telegram_chat_id"],
+                    body.strategies,
+                    body.pairs,
                 )
 
         return success_response(
@@ -323,12 +339,14 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     async def list_invite_codes():
         """List all invite codes with usage stats."""
         async with db_pool.acquire() as conn:
-            rows = await conn.fetch("""
+            rows = await conn.fetch(
+                """
                 SELECT id, code, created_by, max_uses, current_uses,
                        tier, expires_at, is_active, created_at
                 FROM invite_codes
                 ORDER BY created_at DESC
-            """)
+            """
+            )
 
         items = []
         for row in rows:

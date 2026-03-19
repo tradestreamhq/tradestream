@@ -42,10 +42,17 @@ class TestQualityScoresEndpoint:
         pool, conn = _make_pool()
         conn.fetch.return_value = [
             FakeRecord(
-                id="score-1", signal_id="sig-1", strategy_name="MACD_CROSSOVER",
-                symbol="BTC/USD", confidence=0.82, indicator_agreement=0.9,
-                volume_confirmation=0.7, trend_alignment=0.85,
-                volatility_context=0.6, quality_grade="A", created_at=None,
+                id="score-1",
+                signal_id="sig-1",
+                strategy_name="MACD_CROSSOVER",
+                symbol="BTC/USD",
+                confidence=0.82,
+                indicator_agreement=0.9,
+                volume_confirmation=0.7,
+                trend_alignment=0.85,
+                volatility_context=0.6,
+                quality_grade="A",
+                created_at=None,
             ),
         ]
         app = create_app(pool)
@@ -68,8 +75,11 @@ class TestDashboardEndpoint:
             [],  # grade distribution
         ]
         conn.fetchrow.return_value = FakeRecord(
-            total_signals=0, total_wins=0, total_losses=0,
-            overall_win_rate=None, avg_return=None,
+            total_signals=0,
+            total_wins=0,
+            total_losses=0,
+            overall_win_rate=None,
+            avg_return=None,
         )
         conn.fetchval.return_value = 1  # health check
 

@@ -115,8 +115,9 @@ def score_signal(
     )
 
 
-async def store_quality_score(db_pool, signal_id: str, strategy_name: str,
-                               symbol: str, quality: QualityScore) -> str:
+async def store_quality_score(
+    db_pool, signal_id: str, strategy_name: str, symbol: str, quality: QualityScore
+) -> str:
     """Persist a quality score to the database."""
     async with db_pool.acquire() as conn:
         row = await conn.fetchrow(
@@ -126,9 +127,14 @@ async def store_quality_score(db_pool, signal_id: str, strategy_name: str,
                 trend_alignment, volatility_context, quality_grade)
                VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)
                RETURNING id""",
-            signal_id, strategy_name, symbol,
-            quality.confidence, quality.indicator_agreement,
-            quality.volume_confirmation, quality.trend_alignment,
-            quality.volatility_context, quality.grade,
+            signal_id,
+            strategy_name,
+            symbol,
+            quality.confidence,
+            quality.indicator_agreement,
+            quality.volume_confirmation,
+            quality.trend_alignment,
+            quality.volatility_context,
+            quality.grade,
         )
         return str(row["id"])

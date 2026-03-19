@@ -87,9 +87,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             item = dict(row)
             item["id"] = str(item["id"])
             item["signal_id"] = str(item["signal_id"])
-            for k in ("confidence", "indicator_agreement",
-                       "volume_confirmation", "trend_alignment",
-                       "volatility_context"):
+            for k in (
+                "confidence",
+                "indicator_agreement",
+                "volume_confirmation",
+                "trend_alignment",
+                "volatility_context",
+            ):
                 if item.get(k) is not None:
                     item[k] = float(item[k])
             if item.get("created_at"):
@@ -106,27 +110,32 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         """Get signal performance dashboard data: win rates, rankings, recent outcomes."""
         async with db_pool.acquire() as conn:
             # Strategy rankings by win rate
-            rankings = await conn.fetch("""
+            rankings = await conn.fetch(
+                """
                 SELECT strategy_name, total_signals, wins, losses, pending,
                        win_rate, avg_pnl_percent, avg_confidence, last_signal_at
                 FROM strategy_performance_summary
                 WHERE total_signals >= 5
                 ORDER BY win_rate DESC, avg_pnl_percent DESC
                 LIMIT 20
-            """)
+            """
+            )
 
             # Recent signal outcomes
-            recent = await conn.fetch("""
+            recent = await conn.fetch(
+                """
                 SELECT id, signal_id, strategy_name, symbol, direction,
                        entry_price, exit_price, pnl_percent, outcome,
                        quality_grade, opened_at, closed_at
                 FROM signal_outcomes
                 ORDER BY opened_at DESC
                 LIMIT 20
-            """)
+            """
+            )
 
             # Overall stats
-            stats = await conn.fetchrow("""
+            stats = await conn.fetchrow(
+                """
                 SELECT
                     COUNT(*) AS total_signals,
                     COUNT(*) FILTER (WHERE outcome = 'WIN') AS total_wins,
@@ -139,16 +148,19 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     ROUND(COALESCE(AVG(pnl_percent) FILTER (
                         WHERE outcome IN ('WIN', 'LOSS')), 0), 4) AS avg_return
                 FROM signal_outcomes
-            """)
+            """
+            )
 
             # Grade distribution
-            grades = await conn.fetch("""
+            grades = await conn.fetch(
+                """
                 SELECT quality_grade, COUNT(*) AS count
                 FROM signal_quality_scores
                 WHERE created_at > NOW() - INTERVAL '30 days'
                 GROUP BY quality_grade
                 ORDER BY quality_grade
-            """)
+            """
+            )
 
         def fmt_ranking(r):
             d = dict(r)
@@ -176,8 +188,14 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "total_signals": stats["total_signals"] if stats else 0,
                 "total_wins": stats["total_wins"] if stats else 0,
                 "total_losses": stats["total_losses"] if stats else 0,
-                "win_rate": float(stats["overall_win_rate"]) if stats and stats["overall_win_rate"] else 0.0,
-                "avg_return": float(stats["avg_return"]) if stats and stats["avg_return"] else 0.0,
+                "win_rate": (
+                    float(stats["overall_win_rate"])
+                    if stats and stats["overall_win_rate"]
+                    else 0.0
+                ),
+                "avg_return": (
+                    float(stats["avg_return"]) if stats and stats["avg_return"] else 0.0
+                ),
             },
             "strategy_rankings": [fmt_ranking(r) for r in rankings],
             "recent_outcomes": [fmt_outcome(r) for r in recent],
@@ -201,22 +219,28 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             if not summary:
                 return not_found("Strategy", strategy_name)
 
-            recent_outcomes = await conn.fetch("""
+            recent_outcomes = await conn.fetch(
+                """
                 SELECT id, signal_id, symbol, direction, entry_price, exit_price,
                        pnl_percent, outcome, quality_grade, opened_at, closed_at
                 FROM signal_outcomes
                 WHERE strategy_name = $1
                 ORDER BY opened_at DESC LIMIT 20
-            """, strategy_name)
+            """,
+                strategy_name,
+            )
 
-            quality_dist = await conn.fetch("""
+            quality_dist = await conn.fetch(
+                """
                 SELECT quality_grade, COUNT(*) AS count,
                        ROUND(AVG(confidence)::numeric, 4) AS avg_confidence
                 FROM signal_quality_scores
                 WHERE strategy_name = $1
                 GROUP BY quality_grade
                 ORDER BY quality_grade
-            """, strategy_name)
+            """,
+                strategy_name,
+            )
 
         s = dict(summary)
         for k in ("win_rate", "avg_pnl_percent", "avg_confidence"):
@@ -235,9 +259,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     "signal_id": str(r["signal_id"]),
                     "symbol": r["symbol"],
                     "direction": r["direction"],
-                    "entry_price": float(r["entry_price"]) if r["entry_price"] else None,
+                    "entry_price": (
+                        float(r["entry_price"]) if r["entry_price"] else None
+                    ),
                     "exit_price": float(r["exit_price"]) if r["exit_price"] else None,
-                    "pnl_percent": float(r["pnl_percent"]) if r["pnl_percent"] else None,
+                    "pnl_percent": (
+                        float(r["pnl_percent"]) if r["pnl_percent"] else None
+                    ),
                     "outcome": r["outcome"],
                     "quality_grade": r["quality_grade"],
                     "opened_at": r["opened_at"].isoformat() if r["opened_at"] else None,
@@ -249,7 +277,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 {
                     "grade": r["quality_grade"],
                     "count": r["count"],
-                    "avg_confidence": float(r["avg_confidence"]) if r["avg_confidence"] else 0.0,
+                    "avg_confidence": (
+                        float(r["avg_confidence"]) if r["avg_confidence"] else 0.0
+                    ),
                 }
                 for r in quality_dist
             ],

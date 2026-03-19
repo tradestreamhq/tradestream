@@ -36,10 +36,13 @@ class TestRedeemInvite:
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/redeem", json={
-            "code": "INVALID-CODE",
-            "email": "test@example.com",
-        })
+        resp = client.post(
+            "/redeem",
+            json={
+                "code": "INVALID-CODE",
+                "email": "test@example.com",
+            },
+        )
         assert resp.status_code == 404
 
     def test_valid_code_creates_user(self):
@@ -48,8 +51,11 @@ class TestRedeemInvite:
         conn.fetchrow.side_effect = [
             # First: find invite code
             FakeRecord(
-                id=invite_id, code="TRADESTREAM-BETA-001",
-                max_uses=50, current_uses=0, tier="pro",
+                id=invite_id,
+                code="TRADESTREAM-BETA-001",
+                max_uses=50,
+                current_uses=0,
+                tier="pro",
                 expires_at=datetime(2026, 6, 1, tzinfo=timezone.utc),
                 is_active=True,
             ),
@@ -61,10 +67,13 @@ class TestRedeemInvite:
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/redeem", json={
-            "code": "TRADESTREAM-BETA-001",
-            "email": "beta@example.com",
-        })
+        resp = client.post(
+            "/redeem",
+            json={
+                "code": "TRADESTREAM-BETA-001",
+                "email": "beta@example.com",
+            },
+        )
         assert resp.status_code == 201
         body = resp.json()
         attrs = body["data"]["attributes"]
@@ -74,33 +83,49 @@ class TestRedeemInvite:
     def test_exhausted_code_returns_410(self):
         pool, conn = _make_pool()
         conn.fetchrow.return_value = FakeRecord(
-            id="inv-1", code="USED-UP", max_uses=1, current_uses=1,
-            tier="pro", expires_at=None, is_active=True,
+            id="inv-1",
+            code="USED-UP",
+            max_uses=1,
+            current_uses=1,
+            tier="pro",
+            expires_at=None,
+            is_active=True,
         )
 
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/redeem", json={
-            "code": "USED-UP",
-            "email": "test@example.com",
-        })
+        resp = client.post(
+            "/redeem",
+            json={
+                "code": "USED-UP",
+                "email": "test@example.com",
+            },
+        )
         assert resp.status_code == 410
 
     def test_inactive_code_returns_410(self):
         pool, conn = _make_pool()
         conn.fetchrow.return_value = FakeRecord(
-            id="inv-2", code="DISABLED", max_uses=50, current_uses=0,
-            tier="pro", expires_at=None, is_active=False,
+            id="inv-2",
+            code="DISABLED",
+            max_uses=50,
+            current_uses=0,
+            tier="pro",
+            expires_at=None,
+            is_active=False,
         )
 
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/redeem", json={
-            "code": "DISABLED",
-            "email": "test@example.com",
-        })
+        resp = client.post(
+            "/redeem",
+            json={
+                "code": "DISABLED",
+                "email": "test@example.com",
+            },
+        )
         assert resp.status_code == 410
 
 
@@ -108,7 +133,8 @@ class TestConnectTelegram:
     def test_connect_updates_step(self):
         pool, conn = _make_pool()
         conn.fetchrow.return_value = FakeRecord(
-            id="beta-1", customer_id="cust-1",
+            id="beta-1",
+            customer_id="cust-1",
             onboarding_step="REGISTERED",
         )
         conn.execute.return_value = None
@@ -116,9 +142,12 @@ class TestConnectTelegram:
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/users/beta-1/connect-telegram", json={
-            "telegram_chat_id": "123456789",
-        })
+        resp = client.post(
+            "/users/beta-1/connect-telegram",
+            json={
+                "telegram_chat_id": "123456789",
+            },
+        )
         assert resp.status_code == 200
         attrs = resp.json()["data"]["attributes"]
         assert attrs["onboarding_step"] == "TELEGRAM_CONNECTED"
@@ -130,9 +159,12 @@ class TestConnectTelegram:
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/users/nonexistent/connect-telegram", json={
-            "telegram_chat_id": "123456789",
-        })
+        resp = client.post(
+            "/users/nonexistent/connect-telegram",
+            json={
+                "telegram_chat_id": "123456789",
+            },
+        )
         assert resp.status_code == 404
 
 
@@ -140,7 +172,9 @@ class TestSelectStrategies:
     def test_valid_strategies_accepted(self):
         pool, conn = _make_pool()
         conn.fetchrow.return_value = FakeRecord(
-            id="beta-1", telegram_chat_id="123456789", customer_id="cust-1",
+            id="beta-1",
+            telegram_chat_id="123456789",
+            customer_id="cust-1",
         )
         conn.fetch.return_value = [
             FakeRecord(name="MACD_CROSSOVER"),
@@ -151,10 +185,13 @@ class TestSelectStrategies:
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/users/beta-1/select-strategies", json={
-            "strategies": ["MACD_CROSSOVER", "RSI_EMA_CROSSOVER"],
-            "pairs": ["BTC/USD", "ETH/USD"],
-        })
+        resp = client.post(
+            "/users/beta-1/select-strategies",
+            json={
+                "strategies": ["MACD_CROSSOVER", "RSI_EMA_CROSSOVER"],
+                "pairs": ["BTC/USD", "ETH/USD"],
+            },
+        )
         assert resp.status_code == 200
         attrs = resp.json()["data"]["attributes"]
         assert attrs["onboarding_step"] == "STRATEGY_SELECTED"
@@ -162,17 +199,22 @@ class TestSelectStrategies:
     def test_invalid_strategy_returns_422(self):
         pool, conn = _make_pool()
         conn.fetchrow.return_value = FakeRecord(
-            id="beta-1", telegram_chat_id="123", customer_id="cust-1",
+            id="beta-1",
+            telegram_chat_id="123",
+            customer_id="cust-1",
         )
         conn.fetch.return_value = [FakeRecord(name="MACD_CROSSOVER")]
 
         app = create_app(pool)
         client = TestClient(app)
 
-        resp = client.post("/users/beta-1/select-strategies", json={
-            "strategies": ["MACD_CROSSOVER", "NONEXISTENT_STRATEGY"],
-            "pairs": ["BTC/USD"],
-        })
+        resp = client.post(
+            "/users/beta-1/select-strategies",
+            json={
+                "strategies": ["MACD_CROSSOVER", "NONEXISTENT_STRATEGY"],
+                "pairs": ["BTC/USD"],
+            },
+        )
         assert resp.status_code == 422
 
 
@@ -181,9 +223,15 @@ class TestListInviteCodes:
         pool, conn = _make_pool()
         conn.fetch.return_value = [
             FakeRecord(
-                id="inv-1", code="BETA-001", created_by="system",
-                max_uses=50, current_uses=10, tier="pro",
-                expires_at=None, is_active=True, created_at=None,
+                id="inv-1",
+                code="BETA-001",
+                created_by="system",
+                max_uses=50,
+                current_uses=10,
+                tier="pro",
+                expires_at=None,
+                is_active=True,
+                created_at=None,
             ),
         ]
 
