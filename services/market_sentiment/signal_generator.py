@@ -283,9 +283,13 @@ class SentimentMomentumTracker:
 
     def __init__(self, window_size: int = 10):
         self._window_size = window_size
-        self._history: Dict[str, Deque[Tuple[float, float]]] = {}  # symbol -> deque of (timestamp, score)
+        self._history: Dict[str, Deque[Tuple[float, float]]] = (
+            {}
+        )  # symbol -> deque of (timestamp, score)
 
-    def record(self, symbol: str, score: float, timestamp: Optional[float] = None) -> None:
+    def record(
+        self, symbol: str, score: float, timestamp: Optional[float] = None
+    ) -> None:
         """Record a new sentiment reading."""
         ts = timestamp or time.time()
         if symbol not in self._history:
@@ -311,7 +315,9 @@ class SentimentMomentumTracker:
 
         # Acceleration: change in velocity
         if len(velocities) >= 2:
-            accels = [velocities[i] - velocities[i - 1] for i in range(1, len(velocities))]
+            accels = [
+                velocities[i] - velocities[i - 1] for i in range(1, len(velocities))
+            ]
             acceleration = sum(accels) / len(accels)
         else:
             acceleration = 0.0
@@ -375,7 +381,10 @@ def generate_momentum_signal(
             sentiment_label=sentiment_label(momentum.current_score),
             signal_type="momentum",
             timestamp=now,
-            metadata={"velocity": momentum.velocity, "acceleration": momentum.acceleration},
+            metadata={
+                "velocity": momentum.velocity,
+                "acceleration": momentum.acceleration,
+            },
         )
 
     if momentum.direction == "accelerating_bearish" and momentum.velocity < -0.05:
@@ -392,7 +401,10 @@ def generate_momentum_signal(
             sentiment_label=sentiment_label(momentum.current_score),
             signal_type="momentum",
             timestamp=now,
-            metadata={"velocity": momentum.velocity, "acceleration": momentum.acceleration},
+            metadata={
+                "velocity": momentum.velocity,
+                "acceleration": momentum.acceleration,
+            },
         )
 
     if momentum.direction == "decelerating_bullish" and momentum.current_score > 0.5:
@@ -408,7 +420,10 @@ def generate_momentum_signal(
             sentiment_label=sentiment_label(momentum.current_score),
             signal_type="momentum",
             timestamp=now,
-            metadata={"velocity": momentum.velocity, "acceleration": momentum.acceleration},
+            metadata={
+                "velocity": momentum.velocity,
+                "acceleration": momentum.acceleration,
+            },
         )
 
     if momentum.direction == "decelerating_bearish" and momentum.current_score < -0.5:
@@ -424,7 +439,10 @@ def generate_momentum_signal(
             sentiment_label=sentiment_label(momentum.current_score),
             signal_type="momentum",
             timestamp=now,
-            metadata={"velocity": momentum.velocity, "acceleration": momentum.acceleration},
+            metadata={
+                "velocity": momentum.velocity,
+                "acceleration": momentum.acceleration,
+            },
         )
 
     return None

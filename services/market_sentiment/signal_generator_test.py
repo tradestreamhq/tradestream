@@ -300,7 +300,9 @@ class TestCompositeSignal:
         tracker.record("BTC-USD", -0.75, timestamp=3.0)
 
         s = self._make_sentiment(-0.75)
-        signal = generate_composite_signal(s, price_change_pct=0.0, momentum_tracker=tracker)
+        signal = generate_composite_signal(
+            s, price_change_pct=0.0, momentum_tracker=tracker
+        )
         assert signal.action in ("BUY", "SELL", "HOLD")
         assert signal.confidence > 0
 

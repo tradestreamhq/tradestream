@@ -72,8 +72,8 @@ py_test(
     name = "app_test",
     srcs = ["app_test.py"],
     deps = [
-        ":app_lib",
         ":aggregator_lib",
+        ":app_lib",
         ":signal_generator_lib",
         "//third_party/python:fastapi",
         "//third_party/python:httpx",

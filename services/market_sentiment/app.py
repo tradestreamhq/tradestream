@@ -63,11 +63,21 @@ def create_app(
     async def get_sentiment(
         symbol: str = Query(..., description="Trading symbol (e.g. BTC-USD)"),
         funding_rate: Optional[float] = Query(None, description="Current funding rate"),
-        long_short_ratio: Optional[float] = Query(None, description="Current long/short ratio"),
-        social_mentions: Optional[float] = Query(None, description="Social mention count"),
-        social_avg_mentions: Optional[float] = Query(None, description="Average social mentions"),
-        news_score: Optional[float] = Query(None, description="News sentiment score [-1,+1]"),
-        news_headline_count: Optional[int] = Query(None, description="Number of news headlines"),
+        long_short_ratio: Optional[float] = Query(
+            None, description="Current long/short ratio"
+        ),
+        social_mentions: Optional[float] = Query(
+            None, description="Social mention count"
+        ),
+        social_avg_mentions: Optional[float] = Query(
+            None, description="Average social mentions"
+        ),
+        news_score: Optional[float] = Query(
+            None, description="News sentiment score [-1,+1]"
+        ),
+        news_headline_count: Optional[int] = Query(
+            None, description="Number of news headlines"
+        ),
     ):
         """Get aggregated sentiment for a symbol with source breakdown."""
         data_points: List[SentimentDataPoint] = []
@@ -111,7 +121,9 @@ def create_app(
     @router.get("/signal")
     async def get_signal(
         symbol: str = Query(..., description="Trading symbol"),
-        sentiment_score: float = Query(..., description="Current sentiment score [-1,+1]"),
+        sentiment_score: float = Query(
+            ..., description="Current sentiment score [-1,+1]"
+        ),
         price_change_pct: float = Query(0.0, description="Recent price change %"),
     ):
         """Generate a composite sentiment trading signal."""
@@ -128,9 +140,13 @@ def create_app(
     @router.get("/divergence")
     async def get_divergence(
         symbol: str = Query(..., description="Trading symbol"),
-        sentiment_score: float = Query(..., description="Current sentiment score [-1,+1]"),
+        sentiment_score: float = Query(
+            ..., description="Current sentiment score [-1,+1]"
+        ),
         price_change_pct: float = Query(..., description="Recent price change %"),
-        threshold: float = Query(0.3, ge=0.0, le=1.0, description="Detection threshold"),
+        threshold: float = Query(
+            0.3, ge=0.0, le=1.0, description="Detection threshold"
+        ),
     ):
         """Detect price-vs-sentiment divergence for a symbol."""
         result = detect_divergence(symbol, sentiment_score, price_change_pct, threshold)
@@ -172,9 +188,7 @@ def create_app(
 
         # History for chart
         history = _momentum.get_history(symbol)
-        history_data = [
-            {"timestamp": ts, "score": round(s, 4)} for ts, s in history
-        ]
+        history_data = [{"timestamp": ts, "score": round(s, 4)} for ts, s in history]
 
         return success_response(
             {
