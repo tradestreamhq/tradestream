@@ -37,6 +37,20 @@ spec:
               value: "{{ .Values.predictionMarkets.config.bearishThreshold | default 0.3 }}"
             - name: SPIKE_THRESHOLD
               value: "{{ .Values.predictionMarkets.config.spikeThreshold | default 0.1 }}"
+          livenessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.predictionMarkets.resources | nindent 12 }}
 {{- end }}

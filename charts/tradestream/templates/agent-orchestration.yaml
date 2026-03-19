@@ -48,6 +48,22 @@ spec:
               value: "{{ .Values.agentOrchestration.config.enableDashboard | default true }}"
             - name: DASHBOARD_PORT
               value: "{{ .Values.agentOrchestration.config.dashboardPort | default 9010 }}"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: dashboard
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: dashboard
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.agentOrchestration.resources | nindent 12 }}
 {{- if .Values.agentOrchestration.config.enableDashboard }}

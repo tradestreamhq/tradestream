@@ -44,6 +44,20 @@ spec:
           args:
             - "--redis_host=$(REDIS_HOST)"
             - "--redis_port=$(REDIS_PORT)"
+          livenessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.delivery.resources | nindent 12 }}
 {{- end }}

@@ -70,6 +70,20 @@ spec:
             - "--min_age_days=$(MIN_AGE_DAYS)"
             - "--stale_signal_days=$(STALE_SIGNAL_DAYS)"
             - "--stale_backtest_days=$(STALE_BACKTEST_DAYS)"
+          livenessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.janitorAgent.resources | nindent 12 }}
 {{- end }}

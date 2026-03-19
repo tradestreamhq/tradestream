@@ -46,6 +46,20 @@ spec:
             - "--db_url=postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DATABASE)"
             - "--instruments=$(INSTRUMENTS)"
             - "--interval_seconds=$(INTERVAL_SECONDS)"
+          livenessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["true"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.learningEngine.resources | nindent 12 }}
 {{- end }}

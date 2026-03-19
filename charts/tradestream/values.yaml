@@ -915,6 +915,12 @@ signalApi:
     limits:
       cpu: "500m"
       memory: "512Mi"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
 
 # Telegram Bot - signal delivery via Telegram
 telegramBot:
@@ -1168,6 +1174,12 @@ backtesting:
     limits:
       cpu: "1"
       memory: "2Gi"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
 
 # Backtest MCP Server
 backtestMcp:

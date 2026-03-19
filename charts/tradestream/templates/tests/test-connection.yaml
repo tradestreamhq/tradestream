@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "tradestream.fullname" . }}-test-connection"
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  restartPolicy: Never
+  containers:
+    {{- if .Values.signalApi.enabled }}
+    - name: test-signal-api
+      image: busybox
+      command: ['wget', '--spider', '-q', 'http://{{ include "tradestream.fullname" . }}-signal-api:{{ .Values.signalApi.service.port | default 8080 }}/api/health']
+    {{- end }}
+    {{- if .Values.strategyApi.enabled }}
+    - name: test-strategy-api
+      image: busybox
+      command: ['wget', '--spider', '-q', 'http://{{ include "tradestream.fullname" . }}-strategy-api:{{ .Values.strategyApi.service.port | default 8080 }}/api/health']
+    {{- end }}
+    {{- if .Values.portfolioApi.enabled }}
+    - name: test-portfolio-api
+      image: busybox
+      command: ['wget', '--spider', '-q', 'http://{{ include "tradestream.fullname" . }}-portfolio-api:{{ .Values.portfolioApi.service.port | default 8080 }}/api/health']
+    {{- end }}
+    {{- if .Values.learningApi.enabled }}
+    - name: test-learning-api
+      image: busybox
+      command: ['wget', '--spider', '-q', 'http://{{ include "tradestream.fullname" . }}-learning-api:{{ .Values.learningApi.service.port | default 8080 }}/api/health']
+    {{- end }}
+    {{- if .Values.marketDataApi.enabled }}
+    - name: test-market-data-api
+      image: busybox
+      command: ['wget', '--spider', '-q', 'http://{{ include "tradestream.fullname" . }}-market-data-api:{{ .Values.marketDataApi.service.port | default 8080 }}/api/health']
+    {{- end }}
+    {{- if not (or .Values.signalApi.enabled .Values.strategyApi.enabled .Values.portfolioApi.enabled .Values.learningApi.enabled .Values.marketDataApi.enabled) }}
+    - name: test-noop
+      image: busybox
+      command: ['echo', 'No services enabled for testing']
+    {{- end }}
