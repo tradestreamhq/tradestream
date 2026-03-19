@@ -1,8 +1,8 @@
 """
 Signal delivery gating based on subscription tier.
 
-Free users: 3 signals/day, delayed by 15 minutes.
-Pro users: unlimited real-time signals.
+Free users: 3 signals/day, delayed by 15 minutes, only A/B grade signals.
+Pro users: unlimited real-time signals (all grades).
 Enterprise users: unlimited real-time + API access + priority delivery.
 """
 
@@ -17,6 +17,9 @@ from services.billing.plans import FREE_PLAN, get_plan
 logger = logging.getLogger(__name__)
 
 SIGNAL_DELAY_SECONDS_FREE = 900  # 15 minutes
+
+# Free tier only receives high-quality signals
+FREE_TIER_MIN_GRADES = {"A", "B"}
 
 
 async def get_customer_tier(
@@ -91,10 +94,35 @@ async def record_signal_delivery(db_pool: asyncpg.Pool, customer_id: str) -> Non
         )
 
 
+def check_quality_gate(tier: str, quality_grade: str = None) -> Dict:
+    """Check whether a signal's quality grade passes the tier's quality gate.
+
+    Free tier only receives A/B grade signals.
+    Pro and Enterprise receive all grades.
+    """
+    if tier in ("pro", "enterprise"):
+        return {"passed": True, "reason": None}
+
+    if quality_grade is None:
+        return {"passed": True, "reason": None}
+
+    if quality_grade not in FREE_TIER_MIN_GRADES:
+        return {
+            "passed": False,
+            "reason": (
+                f"Signal quality grade '{quality_grade}' below free tier minimum (A/B required). "
+                "Upgrade to Pro for all signal grades."
+            ),
+        }
+
+    return {"passed": True, "reason": None}
+
+
 async def should_deliver_signal(
     db_pool: asyncpg.Pool,
     telegram_chat_id: str = None,
     api_key: str = None,
+    quality_grade: str = None,
 ) -> Dict:
     """Determine if a signal should be delivered and how.
 
@@ -118,6 +146,16 @@ async def should_deliver_signal(
             "tier": tier,
             "delay_seconds": 0,
             "reason": None,
+        }
+
+    # Free tier: check quality gate
+    quality_check = check_quality_gate(tier, quality_grade)
+    if not quality_check["passed"]:
+        return {
+            "deliver": False,
+            "tier": tier,
+            "delay_seconds": 0,
+            "reason": quality_check["reason"],
         }
 
     # Free tier: check quota
