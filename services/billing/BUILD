@@ -23,6 +23,7 @@ py_library(
         "//services/rest_api_shared:health",
         "//services/rest_api_shared:responses",
         "//services/shared:auth",
+        "//services/shared:pipeline_metrics",
         "//third_party/python:asyncpg",
         "//third_party/python:fastapi",
         "//third_party/python:pydantic",

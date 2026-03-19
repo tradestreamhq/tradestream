@@ -5,8 +5,10 @@ Provides endpoints for checkout session creation, webhook handling,
 subscription management, and customer portal access.
 """
 
+import json as json_module
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -26,6 +28,7 @@ from services.rest_api_shared.responses import (
     validation_error,
 )
 from services.shared.auth import fastapi_auth_middleware
+from services.shared.pipeline_metrics import PipelineMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +54,9 @@ class PortalRequest(BaseModel):
     return_url: str = Field(..., description="URL to redirect after portal session")
 
 
-def create_app(db_pool: asyncpg.Pool) -> FastAPI:
+def create_app(
+    db_pool: asyncpg.Pool, metrics: Optional[PipelineMetrics] = None
+) -> FastAPI:
     """Create the Billing API FastAPI application."""
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
@@ -135,8 +140,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @app.post("/webhook", tags=["Webhook"])
     async def stripe_webhook(request: Request):
         """Handle Stripe webhook events."""
+        start = time.monotonic()
         payload = await request.body()
         sig_header = request.headers.get("stripe-signature", "")
+
+        if metrics:
+            metrics.stripe_webhooks_received.inc()
 
         if webhook_secret:
             try:
@@ -144,18 +153,29 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     payload, sig_header, webhook_secret
                 )
             except stripe.SignatureVerificationError:
+                logger.warning("Stripe webhook: invalid signature")
+                if metrics:
+                    metrics.stripe_webhooks_failed.inc()
                 return error_response(
                     "INVALID_SIGNATURE", "Invalid webhook signature", 400
                 )
             except ValueError:
+                if metrics:
+                    metrics.stripe_webhooks_failed.inc()
                 return error_response("INVALID_PAYLOAD", "Invalid payload", 400)
         else:
-            import json
-
-            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+            event = stripe.Event.construct_from(
+                json_module.loads(payload), stripe.api_key
+            )
 
         event_type = event["type"]
         event_id = event["id"]
+
+        logger.info(
+            "Stripe webhook received: event_type=%s event_id=%s",
+            event_type,
+            event_id,
+        )
 
         # Deduplicate events
         async with db_pool.acquire() as conn:
@@ -163,6 +183,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "SELECT id FROM billing_events WHERE stripe_event_id = $1", event_id
             )
             if existing:
+                logger.info("Stripe webhook deduplicated: %s", event_id)
                 return success_response(
                     {"status": "already_processed"}, "webhook_result"
                 )
@@ -181,6 +202,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 await handler(db_pool, event)
             except Exception as e:
                 logger.error("Error handling %s: %s", event_type, e)
+                if metrics:
+                    metrics.stripe_webhooks_failed.inc()
                 return server_error(f"Error processing event: {event_type}")
 
         # Record the event
@@ -194,6 +217,18 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 sub_id,
                 str(payload.decode("utf-8")),
             )
+
+        elapsed_ms = (time.monotonic() - start) * 1000
+        if metrics:
+            metrics.stripe_webhooks_processed.inc()
+            metrics.stripe_webhook_latency_ms.observe(elapsed_ms)
+
+        logger.info(
+            "Stripe webhook processed: event_type=%s event_id=%s latency_ms=%.1f",
+            event_type,
+            event_id,
+            elapsed_ms,
+        )
 
         return success_response(
             {"status": "processed", "event_type": event_type}, "webhook_result"
