@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeStream Signals — AI-Powered Crypto Trading Signals</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+        /* Nav */
+        nav {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 32px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 640px;
+            margin: 0 auto 36px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            margin-left: 12px;
+        }
+        .btn-secondary:hover { border-color: var(--text-muted); }
+
+        /* Features */
+        .features {
+            padding: 60px 0;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+        }
+        .feature-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+        .feature-icon {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* Stats */
+        .stats {
+            padding: 40px 0 60px;
+            text-align: center;
+        }
+        .stats h2 { font-size: 2rem; margin-bottom: 32px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 60px 0 80px;
+        }
+        .pricing h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        .pricing .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .price-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+        }
+        .price-card.featured {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+        }
+        .price-card.featured::before {
+            content: "Most Popular";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .price-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        .price-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+        .price-period {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .price-features {
+            list-style: none;
+            margin: 24px 0;
+        }
+        .price-features li {
+            padding: 8px 0;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .price-features li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+        }
+        .price-card .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        /* How it works */
+        .how-it-works {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+        }
+        .how-it-works h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+        }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 32px;
+            text-align: center;
+        }
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+        .step h3 { margin-bottom: 8px; }
+        .step p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* CTA */
+        .cta {
+            text-align: center;
+            padding: 80px 0;
+            border-top: 1px solid var(--border);
+        }
+        .cta h2 { font-size: 2rem; margin-bottom: 16px; }
+        .cta p { color: var(--text-muted); margin-bottom: 32px; }
+
+        /* Footer */
+        footer {
+            padding: 32px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .pricing-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="#" class="logo">TradeStream</a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="/docs" target="_blank">API Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>AI-Powered Crypto Trading Signals</h1>
+            <p>
+                Get real-time BUY/SELL signals backed by 30+ quantitative strategies,
+                genetic optimization, and machine learning. Delivered to your Telegram or webhook in milliseconds.
+            </p>
+            <a href="#pricing" class="btn btn-primary">Start Free</a>
+            <a href="/docs" class="btn btn-secondary" target="_blank">View API Docs</a>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon" aria-hidden="true">&#x1F4CA;</span>
+                    <h3>30+ Strategies</h3>
+                    <p>Momentum, mean-reversion, breakout, Fibonacci, volume profile, and more — all running simultaneously.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon" aria-hidden="true">&#x26A1;</span>
+                    <h3>Real-Time Delivery</h3>
+                    <p>Signals delivered within seconds via Telegram bot or webhook API. Never miss an opportunity.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon" aria-hidden="true">&#x1F9EC;</span>
+                    <h3>Genetically Optimized</h3>
+                    <p>Strategy parameters continuously evolved via genetic algorithms and walk-forward validation.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon" aria-hidden="true">&#x1F50D;</span>
+                    <h3>Full Transparency</h3>
+                    <p>Every signal includes entry, stop-loss, take-profit, confidence score, and the strategy that generated it.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon" aria-hidden="true">&#x1F4B0;</span>
+                    <h3>Performance Tracking</h3>
+                    <p>Track win rates, PnL, and drawdowns per strategy. Historical data available via API.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon" aria-hidden="true">&#x1F517;</span>
+                    <h3>Webhook Integration</h3>
+                    <p>HMAC-signed webhooks with retry logic. Integrate signals into your own trading systems.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="container">
+            <h2>Signal Performance</h2>
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-strategies">30+</div>
+                    <div class="stat-label">Active Strategies</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-winrate">--</div>
+                    <div class="stat-label">Avg Win Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-signals">--</div>
+                    <div class="stat-label">Signals Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-pairs">20+</div>
+                    <div class="stat-label">Trading Pairs</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2>Simple, Transparent Pricing</h2>
+            <p class="subtitle">Start free, upgrade when you're ready.</p>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h3>Free</h3>
+                    <div class="price-amount">$0</div>
+                    <div class="price-period">forever</div>
+                    <ul class="price-features">
+                        <li>3 signals per day</li>
+                        <li>15-minute delay</li>
+                        <li>Telegram delivery</li>
+                        <li>Basic strategy access</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary" id="btn-free">Get Started</a>
+                </div>
+                <div class="price-card featured">
+                    <h3>Pro</h3>
+                    <div class="price-amount">$29<span class="price-period">/mo</span></div>
+                    <ul class="price-features">
+                        <li>Unlimited signals</li>
+                        <li>Real-time delivery</li>
+                        <li>Telegram delivery</li>
+                        <li>All 30+ strategies</li>
+                        <li>Signal history &amp; analytics</li>
+                        <li>Performance dashboard</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary" id="btn-pro">Subscribe to Pro</a>
+                </div>
+                <div class="price-card">
+                    <h3>Enterprise</h3>
+                    <div class="price-amount">$99<span class="price-period">/mo</span></div>
+                    <ul class="price-features">
+                        <li>Everything in Pro</li>
+                        <li>Webhook API access</li>
+                        <li>Priority signal delivery</li>
+                        <li>HMAC-signed webhooks</li>
+                        <li>Custom strategy filters</li>
+                        <li>Dedicated support</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary" id="btn-enterprise">Subscribe to Enterprise</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Choose a Plan</h3>
+                    <p>Start with Free or pick Pro/Enterprise for real-time, unlimited access.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Connect</h3>
+                    <p>Add our Telegram bot or configure your webhook endpoint to receive signals.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Receive Signals</h3>
+                    <p>Get BUY/SELL signals with entry, stop-loss, take-profit, and confidence scores.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Track Results</h3>
+                    <p>Monitor strategy performance, win rates, and PnL through the dashboard or API.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Start Receiving Signals Today</h2>
+            <p>Join traders using AI-powered signals to find opportunities across 20+ crypto pairs.</p>
+            <a href="#pricing" class="btn btn-primary">Get Started Free</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TradeStream. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Fetch live performance stats from the signal API
+        (function() {
+            var API_BASE = window.SIGNAL_API_BASE || '/api/v1/signals';
+
+            function fetchStats() {
+                fetch(API_BASE + '/performance')
+                    .then(function(r) { return r.json(); })
+                    .then(function(body) {
+                        var data = body.data || [];
+                        if (!data.length) return;
+
+                        var totalSignals = 0;
+                        var totalWinRate = 0;
+                        var count = 0;
+
+                        data.forEach(function(item) {
+                            var attrs = item.attributes || item;
+                            totalSignals += attrs.total_signals || 0;
+                            if (attrs.win_rate_pct != null) {
+                                totalWinRate += attrs.win_rate_pct;
+                                count++;
+                            }
+                        });
+
+                        if (count > 0) {
+                            document.getElementById('stat-winrate').textContent =
+                                (totalWinRate / count).toFixed(1) + '%';
+                        }
+                        document.getElementById('stat-signals').textContent =
+                            totalSignals.toLocaleString();
+                    })
+                    .catch(function() { /* silent on landing page */ });
+            }
+
+            fetchStats();
+        })();
+
+        // Wire up pricing buttons to the billing checkout API
+        var BILLING_API = window.BILLING_API_BASE || '/api/v1/billing';
+
+        document.getElementById('btn-pro').addEventListener('click', function(e) {
+            e.preventDefault();
+            startCheckout('pro');
+        });
+        document.getElementById('btn-enterprise').addEventListener('click', function(e) {
+            e.preventDefault();
+            startCheckout('enterprise');
+        });
+
+        function startCheckout(tier) {
+            var email = prompt('Enter your email to subscribe:');
+            if (!email) return;
+
+            fetch(BILLING_API + '/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tier: tier,
+                    email: email,
+                    success_url: window.location.origin + '?subscribed=true',
+                    cancel_url: window.location.origin + '?cancelled=true'
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(body) {
+                var url = body.data && body.data.attributes && body.data.attributes.checkout_url;
+                if (url) {
+                    window.location.href = url;
+                } else {
+                    alert('Unable to create checkout session. Please try again.');
+                }
+            })
+            .catch(function() {
+                alert('Error connecting to billing service. Please try again.');
+            });
+        }
+
+        // Show success/cancel messages
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('subscribed') === 'true') {
+            alert('Subscription successful! Check your email for details.');
+        }
+        if (params.get('cancelled') === 'true') {
+            alert('Checkout was cancelled. You can subscribe anytime.');
+        }
+    </script>
+</body>
+</html>

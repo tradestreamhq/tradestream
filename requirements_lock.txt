@@ -2338,6 +2338,7 @@ requests==2.32.3 \
     # via
     #   -r requirements.in
     #   ccxt
+    #   stripe
     #   vectorbt
 rpds-py==0.30.0 \
     --hash=sha256:07ae8a593e1c3c6b82ca3292efbe73c30b61332fd612e05abee07c79359f292f \
@@ -2662,6 +2663,10 @@ starlette==0.52.1 \
     #   fastapi
     #   mcp
     #   sse-starlette
+stripe==14.4.1 \
+    --hash=sha256:d6722b985dc3b4d6da01ff4fa95a975d3694a89bba96895bf17aa858073ff2b8 \
+    --hash=sha256:e3eecfb336819326cd2ab9a93f98eb01b49c4d4d93c9d167a52a68ab99c19a88
+    # via -r requirements.in
 tenacity==9.1.2 \
     --hash=sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb \
     --hash=sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138
@@ -2706,6 +2711,7 @@ typing-extensions==4.13.2 \
     #   pydantic-core
     #   reactivex
     #   sqlalchemy
+    #   stripe
     #   typing-inspection
 typing-inspection==0.4.2 \
     --hash=sha256:4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7 \
