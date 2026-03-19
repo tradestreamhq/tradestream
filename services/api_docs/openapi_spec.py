@@ -57,6 +57,59 @@ _BASE_SPEC = {
         "contact": {"name": "TradeStream", "email": "support@tradestream.io"},
         "license": {"name": "Proprietary"},
         "x-logo": {"url": "/assets/logo.png"},
+        "x-api-guidelines": {
+            "authentication": (
+                "TradeStream supports two authentication methods:\n\n"
+                "1. **API Key** — Include `X-API-Key: ts_live_sk_...` header. "
+                "Create keys at POST /api/v1/api-keys with specific scopes.\n\n"
+                "2. **JWT Bearer Token** — Obtain via POST /api/v1/auth/login, "
+                "include as `Authorization: Bearer <token>`. Access tokens expire "
+                "after 15 minutes; use POST /api/v1/auth/refresh to renew.\n\n"
+                "3. **Stripe Webhook Signatures** — The POST /api/v1/billing/webhooks/stripe "
+                "endpoint verifies the `Stripe-Signature` header using your webhook signing secret."
+            ),
+            "rate_limits": (
+                "Rate limits are enforced per API key or user token:\n\n"
+                "| Plan       | Requests/min | Requests/day |\n"
+                "|------------|-------------:|-------------:|\n"
+                "| Free       |           30 |        1,000 |\n"
+                "| Starter    |          120 |       10,000 |\n"
+                "| Pro        |          600 |       50,000 |\n"
+                "| Enterprise |        3,000 |      unlimited |\n\n"
+                "Rate limit headers are included in every response:\n"
+                "- `X-RateLimit-Limit` — max requests per window\n"
+                "- `X-RateLimit-Remaining` — requests remaining\n"
+                "- `X-RateLimit-Reset` — UTC epoch seconds when the window resets\n\n"
+                "When rate limited, the API returns HTTP 429 with a Retry-After header."
+            ),
+            "pagination": (
+                "List endpoints support cursor-based pagination via `limit` and `offset` "
+                "query parameters. Responses include a `meta` object:\n\n"
+                "```json\n"
+                '{"data": [...], "meta": {"total": 142, "limit": 50, "offset": 0}}\n'
+                "```\n\n"
+                "Default limit is 20; maximum is 200."
+            ),
+            "errors": (
+                "All errors follow a consistent format:\n\n"
+                "```json\n"
+                '{"error": {"code": "NOT_FOUND", "message": "Resource not found", "details": []}}\n'
+                "```\n\n"
+                "Common error codes:\n"
+                "- `VALIDATION_ERROR` (400) — Invalid request parameters\n"
+                "- `UNAUTHORIZED` (401) — Missing or invalid authentication\n"
+                "- `FORBIDDEN` (403) — Insufficient permissions/scopes\n"
+                "- `NOT_FOUND` (404) — Resource does not exist\n"
+                "- `CONFLICT` (409) — Resource already exists\n"
+                "- `RATE_LIMITED` (429) — Too many requests\n"
+                "- `INTERNAL_ERROR` (500) — Server error"
+            ),
+            "versioning": (
+                "The API is versioned via URL path prefix (`/api/v1/`). "
+                "Breaking changes will increment the version number. "
+                "Non-breaking additions (new fields, endpoints) may be added without version change."
+            ),
+        },
     },
     "servers": [
         {
@@ -272,6 +325,28 @@ _BASE_SPEC = {
                     },
                 },
                 "required": ["status", "service"],
+            },
+            "RateLimitError": {
+                "type": "object",
+                "description": "Returned when rate limit is exceeded (HTTP 429)",
+                "properties": {
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "code": {"type": "string", "example": "RATE_LIMITED"},
+                            "message": {
+                                "type": "string",
+                                "example": "Rate limit exceeded. Retry after 30 seconds.",
+                            },
+                            "retry_after": {
+                                "type": "integer",
+                                "description": "Seconds to wait before retrying",
+                                "example": 30,
+                            },
+                        },
+                        "required": ["code", "message", "retry_after"],
+                    },
+                },
             },
             # --- Portfolio API schemas ---
             "PortfolioState": {

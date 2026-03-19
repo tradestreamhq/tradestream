@@ -1,6 +1,7 @@
 """Tests for the API Documentation service and OpenAPI spec validation."""
 
 import json
+import re
 
 import pytest
 from fastapi.testclient import TestClient
@@ -38,6 +39,10 @@ class TestSwaggerUI:
         spec = resp.json()
         assert spec["openapi"].startswith("3.0")
 
+    def test_index_page(self, client):
+        resp = client.get("/")
+        assert resp.status_code == 200
+
 
 class TestOpenAPISpecValidity:
     """Validate the OpenAPI spec structure and completeness."""
@@ -57,17 +62,25 @@ class TestOpenAPISpecValidity:
         assert "version" in info
         assert "description" in info
 
-    def test_spec_has_security_scheme(self):
+    def test_spec_has_security_schemes(self):
         spec = get_spec()
         schemes = spec["components"]["securitySchemes"]
         assert "ApiKeyAuth" in schemes
         assert schemes["ApiKeyAuth"]["type"] == "apiKey"
         assert schemes["ApiKeyAuth"]["in"] == "header"
+        assert "BearerAuth" in schemes
+        assert schemes["BearerAuth"]["type"] == "http"
+        assert schemes["BearerAuth"]["scheme"] == "bearer"
 
     def test_spec_has_global_security(self):
         spec = get_spec()
         assert "security" in spec
-        assert len(spec["security"]) > 0
+        assert len(spec["security"]) >= 2
+        security_names = set()
+        for entry in spec["security"]:
+            security_names.update(entry.keys())
+        assert "ApiKeyAuth" in security_names
+        assert "BearerAuth" in security_names
 
     def test_all_paths_have_operations(self):
         spec = get_spec()
@@ -116,9 +129,6 @@ class TestOpenAPISpecValidity:
     def test_all_refs_resolve(self):
         spec = get_spec()
         spec_json = json.dumps(spec)
-        # Find all $ref values
-        import re
-
         refs = re.findall(r'"\$ref":\s*"([^"]+)"', spec_json)
         schemas = spec.get("components", {}).get("schemas", {})
         for ref in refs:
@@ -132,10 +142,7 @@ class TestOpenAPISpecValidity:
 
     def test_path_parameters_declared(self):
         spec = get_spec()
-        import re
-
         for path, methods in spec["paths"].items():
-            # Extract path parameters like {spec_id}
             path_params = re.findall(r"\{(\w+)\}", path)
             if not path_params:
                 continue
@@ -157,30 +164,27 @@ class TestOpenAPISpecValidity:
                 if method not in methods:
                     continue
                 operation = methods[method]
-                # Skip health checks and creation endpoints without bodies
                 if path.endswith("/health") or path.endswith("/ready"):
                     continue
-                # Endpoints that create resources without request body
-                # (e.g., POST /specs/{id}/implementations)
                 if "requestBody" not in operation:
-                    # At minimum ensure there's at least one response defined
                     assert "responses" in operation
 
     def test_minimum_endpoint_count(self):
-        """Ensure we documented at least 50 endpoints."""
+        """Ensure we documented at least 100 endpoints."""
         spec = get_spec()
         endpoint_count = 0
         for path, methods in spec["paths"].items():
             endpoint_count += len(methods)
         assert (
-            endpoint_count >= 50
-        ), f"Expected at least 50 endpoints, got {endpoint_count}"
+            endpoint_count >= 100
+        ), f"Expected at least 100 endpoints, got {endpoint_count}"
 
     def test_tags_cover_all_modules(self):
         """Verify tags cover the expected modules."""
         spec = get_spec()
         tag_names = {t["name"] for t in spec.get("tags", [])}
         expected_modules = {
+            # Core services
             "Portfolio",
             "Positions",
             "Risk",
@@ -195,6 +199,21 @@ class TestOpenAPISpecValidity:
             "Paper Trading",
             "Portfolio State",
             "Health",
+            # New modules
+            "Signals",
+            "Signal Subscriptions",
+            "Marketplace",
+            "Marketplace Reviews",
+            "Billing",
+            "Backtesting",
+            "Opportunities",
+            "Users",
+            "API Keys",
+            "Notifications",
+            "TradingView",
+            "Telegram",
+            "Discord",
+            "Webhooks",
         }
         missing = expected_modules - tag_names
         assert not missing, f"Missing tags for modules: {missing}"
@@ -206,6 +225,12 @@ class TestOpenAPISpecValidity:
         error_obj = error_schema["properties"]["error"]
         assert "code" in error_obj["properties"]
         assert "message" in error_obj["properties"]
+
+    def test_rate_limit_error_schema(self):
+        spec = get_spec()
+        assert "RateLimitError" in spec["components"]["schemas"]
+        rl = spec["components"]["schemas"]["RateLimitError"]
+        assert "retry_after" in rl["properties"]["error"]["properties"]
 
     def test_pagination_meta_schema(self):
         spec = get_spec()
@@ -242,4 +267,95 @@ class TestOpenAPISpecValidity:
                     assert isinstance(code, str), (
                         f"Response code {code} in {method.upper()} {path} "
                         f"should be a string, got {type(code).__name__}"
+                    )
+
+    def test_signal_schemas_present(self):
+        """Verify signal-related schemas are defined."""
+        spec = get_spec()
+        schemas = spec["components"]["schemas"]
+        for name in ["Signal", "SignalSubscription", "SignalFilter", "SignalDeliveryLog"]:
+            assert name in schemas, f"Missing schema: {name}"
+
+    def test_marketplace_schemas_present(self):
+        """Verify marketplace schemas are defined."""
+        spec = get_spec()
+        schemas = spec["components"]["schemas"]
+        for name in [
+            "MarketplaceListing", "ListingPricing", "ListingPerformance",
+            "MarketplaceReview", "LeaderboardEntry",
+        ]:
+            assert name in schemas, f"Missing schema: {name}"
+
+    def test_billing_schemas_present(self):
+        """Verify billing schemas are defined."""
+        spec = get_spec()
+        schemas = spec["components"]["schemas"]
+        for name in ["BillingAccount", "Plan", "Invoice", "PaymentMethod", "UsageMetrics"]:
+            assert name in schemas, f"Missing schema: {name}"
+
+    def test_backtesting_schemas_present(self):
+        """Verify backtesting schemas are defined."""
+        spec = get_spec()
+        schemas = spec["components"]["schemas"]
+        for name in [
+            "BacktestRequest", "BacktestResponse", "BacktestMetrics",
+            "WalkForwardRequest", "OptimizationRequest",
+        ]:
+            assert name in schemas, f"Missing schema: {name}"
+
+    def test_user_schemas_present(self):
+        """Verify user management schemas are defined."""
+        spec = get_spec()
+        schemas = spec["components"]["schemas"]
+        for name in ["User", "AuthTokens", "ApiKey", "NotificationPreferences"]:
+            assert name in schemas, f"Missing schema: {name}"
+
+    def test_integration_schemas_present(self):
+        """Verify integration schemas are defined."""
+        spec = get_spec()
+        schemas = spec["components"]["schemas"]
+        for name in [
+            "TradingViewAlert", "TradingViewConfig", "TelegramConfig",
+            "DiscordConfig", "WebhookConfig", "WebhookDelivery",
+        ]:
+            assert name in schemas, f"Missing schema: {name}"
+
+    def test_opportunity_schemas_present(self):
+        """Verify opportunity schemas are defined."""
+        spec = get_spec()
+        schemas = spec["components"]["schemas"]
+        for name in ["Opportunity", "ConfluenceFactor"]:
+            assert name in schemas, f"Missing schema: {name}"
+
+    def test_servers_defined(self):
+        """Verify server URLs are defined."""
+        spec = get_spec()
+        assert "servers" in spec
+        assert len(spec["servers"]) >= 2
+        urls = [s["url"] for s in spec["servers"]]
+        assert any("localhost" in u for u in urls)
+
+    def test_api_guidelines_documented(self):
+        """Verify rate limits, pagination, and errors are documented."""
+        spec = get_spec()
+        guidelines = spec["info"].get("x-api-guidelines", {})
+        assert "rate_limits" in guidelines
+        assert "pagination" in guidelines
+        assert "errors" in guidelines
+        assert "authentication" in guidelines
+
+    def test_public_endpoints_have_empty_security(self):
+        """Endpoints like login and register should have empty security."""
+        spec = get_spec()
+        public_paths = [
+            "/api/v1/auth/register",
+            "/api/v1/auth/login",
+            "/api/v1/auth/refresh",
+            "/api/v1/billing/plans",
+        ]
+        for path in public_paths:
+            if path in spec["paths"]:
+                for method, op in spec["paths"][path].items():
+                    assert op.get("security") == [], (
+                        f"{method.upper()} {path} should have security: [] (public)"
                     )
