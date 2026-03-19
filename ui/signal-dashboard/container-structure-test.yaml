@@ -1,8 +1,19 @@
 schemaVersion: "2.0.0"
+
+metadataTest:
+  workdir: "/usr/share/nginx/html"
+
 fileExistenceTests:
-  - name: "index.html exists"
-    path: "/usr/share/nginx/html/ui/signal-dashboard/dist/index.html"
+  - name: "Nginx executable exists"
+    path: "/usr/sbin/nginx"
     shouldExist: true
-  - name: "nginx config exists"
+    permissions: "-rwxr-xr-x"
+
+  - name: "UI files exist in nginx html directory"
+    path: "/usr/share/nginx/html/index.html"
+    shouldExist: true
+
+  - name: "Nginx configuration exists"
     path: "/ui/signal-dashboard/nginx.conf"
     shouldExist: true
+    permissions: "-rwxr-xr-x"

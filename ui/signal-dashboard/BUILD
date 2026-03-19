@@ -29,7 +29,7 @@ tar(
 oci_image(
     name = "signal_dashboard_ui",
     base = "@nginx_alpine",
-    cmd = ["cp /ui/signal-dashboard/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;'"],
+    cmd = ["cp /ui/signal-dashboard/nginx.conf /etc/nginx/nginx.conf && cp -r /ui/signal-dashboard/dist/* /usr/share/nginx/html/ 2>/dev/null; nginx -g 'daemon off;'"],
     entrypoint = [
         "/bin/sh",
         "-c",
