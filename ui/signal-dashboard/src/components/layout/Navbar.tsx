@@ -6,6 +6,7 @@ import { cn } from "@/utils/utils";
 const NAV_LINKS = [
   { to: "/signals", label: "Signals" },
   { to: "/strategies", label: "Strategies" },
+  { to: "/builder", label: "Builder" },
   { to: "/marketplace", label: "Marketplace" },
   { to: "/history", label: "History" },
 ];
