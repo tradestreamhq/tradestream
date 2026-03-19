@@ -17,6 +17,7 @@ py_library(
 py_library(
     name = "portfolio_state_lib",
     srcs = ["portfolio_state.py"],
+    visibility = ["//visibility:public"],
 )
 
 py_library(
