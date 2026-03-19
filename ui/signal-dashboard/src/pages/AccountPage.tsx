@@ -109,9 +109,9 @@ export function AccountPage() {
               Upgrade Plan
             </a>
           )}
-          <button className="btn-secondary text-sm">
+          <a href="/api/billing/portal" target="_blank" rel="noopener noreferrer" className="btn-secondary inline-block text-sm">
             Manage Billing
-          </button>
+          </a>
         </div>
       </section>
 
