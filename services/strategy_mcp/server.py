@@ -166,6 +166,38 @@ async def list_tools() -> list[Tool]:
                 "required": ["impl_id"],
             },
         ),
+        Tool(
+            name="get_strategy_signal",
+            description="Get the current signal from a specific strategy for a symbol",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "strategy_id": {
+                        "type": "string",
+                        "description": "Strategy identifier",
+                    },
+                    "symbol": {
+                        "type": "string",
+                        "description": "Trading pair e.g. ETH/USD",
+                    },
+                },
+                "required": ["strategy_id", "symbol"],
+            },
+        ),
+        Tool(
+            name="get_strategy_consensus",
+            description="Get aggregated consensus across all active strategies for a symbol",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Trading pair e.g. ETH/USD",
+                    },
+                },
+                "required": ["symbol"],
+            },
+        ),
     ]
 
 
@@ -234,6 +266,26 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     text=json.dumps({"error": "Walk-forward results not found"}),
                 )
             ]
+        return [TextContent(type="text", text=json.dumps(result, default=str))]
+
+    elif name == "get_strategy_signal":
+        result = await pg.get_strategy_signal(
+            strategy_id=arguments["strategy_id"],
+            symbol=arguments["symbol"],
+        )
+        if result is None:
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {"error": "No signal found for this strategy and symbol"}
+                    ),
+                )
+            ]
+        return [TextContent(type="text", text=json.dumps(result, default=str))]
+
+    elif name == "get_strategy_consensus":
+        result = await pg.get_strategy_consensus(symbol=arguments["symbol"])
         return [TextContent(type="text", text=json.dumps(result, default=str))]
 
     else:

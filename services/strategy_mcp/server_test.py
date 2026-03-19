@@ -25,10 +25,10 @@ class TestMCPServer:
         return pg
 
     @pytest.mark.asyncio
-    async def test_list_tools_returns_seven(self):
-        """Test that list_tools returns all 7 tools."""
+    async def test_list_tools_returns_nine(self):
+        """Test that list_tools returns all 9 tools."""
         tools = await list_tools()
-        assert len(tools) == 7
+        assert len(tools) == 9
         names = {t.name for t in tools}
         assert names == {
             "get_top_strategies",
@@ -38,6 +38,8 @@ class TestMCPServer:
             "list_strategy_types",
             "create_spec",
             "get_walk_forward",
+            "get_strategy_signal",
+            "get_strategy_consensus",
         }
 
     @pytest.mark.asyncio
@@ -238,6 +240,57 @@ class TestMCPServer:
 
         data = json.loads(result[0].text)
         assert "error" in data
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_signal(self, mock_pg):
+        """Test get_strategy_signal tool."""
+        mock_pg.get_strategy_signal.return_value = {
+            "signal": "BUY",
+            "confidence": 0.85,
+            "triggered_at": "2026-03-19T12:00:00",
+            "parameters": {"period": 14},
+        }
+
+        result = await call_tool(
+            "get_strategy_signal", {"strategy_id": "42", "symbol": "ETH/USD"}
+        )
+
+        data = json.loads(result[0].text)
+        assert data["signal"] == "BUY"
+        assert data["confidence"] == 0.85
+        mock_pg.get_strategy_signal.assert_called_once_with(
+            strategy_id="42", symbol="ETH/USD"
+        )
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_signal_not_found(self, mock_pg):
+        """Test get_strategy_signal when no signal exists."""
+        mock_pg.get_strategy_signal.return_value = None
+
+        result = await call_tool(
+            "get_strategy_signal", {"strategy_id": "99", "symbol": "BTC/USD"}
+        )
+
+        data = json.loads(result[0].text)
+        assert "error" in data
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_consensus(self, mock_pg):
+        """Test get_strategy_consensus tool."""
+        mock_pg.get_strategy_consensus.return_value = {
+            "bullish_count": 5,
+            "bearish_count": 2,
+            "neutral_count": 1,
+            "consensus": "BUY",
+            "confidence": 0.72,
+        }
+
+        result = await call_tool("get_strategy_consensus", {"symbol": "ETH/USD"})
+
+        data = json.loads(result[0].text)
+        assert data["consensus"] == "BUY"
+        assert data["bullish_count"] == 5
+        mock_pg.get_strategy_consensus.assert_called_once_with(symbol="ETH/USD")
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self, mock_pg):
