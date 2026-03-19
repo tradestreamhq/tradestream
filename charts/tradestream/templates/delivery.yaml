@@ -1,0 +1,49 @@
+{{- if .Values.delivery.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-delivery
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: delivery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: delivery
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: delivery
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: delivery
+          image: "{{ .Values.delivery.image.repository }}:{{ .Values.delivery.image.tag }}"
+          imagePullPolicy: {{ .Values.delivery.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: REDIS_HOST
+              value: {{ tpl .Values.delivery.redis.host . | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.delivery.redis.port | quote }}
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.delivery.secrets.telegramBotToken.name }}
+                  key: {{ .Values.delivery.secrets.telegramBotToken.key }}
+                  optional: true
+            - name: WEBHOOK_SIGNING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.delivery.secrets.webhookSigningSecret.name }}
+                  key: {{ .Values.delivery.secrets.webhookSigningSecret.key }}
+                  optional: true
+          args:
+            - "--redis_host=$(REDIS_HOST)"
+            - "--redis_port=$(REDIS_PORT)"
+          resources:
+            {{- toYaml .Values.delivery.resources | nindent 12 }}
+{{- end }}

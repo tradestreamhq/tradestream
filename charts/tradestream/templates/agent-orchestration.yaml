@@ -1,0 +1,73 @@
+{{- if .Values.agentOrchestration.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-agent-orchestration
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-orchestration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: agent-orchestration
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: agent-orchestration
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: agent-orchestration
+          image: "{{ .Values.agentOrchestration.image.repository }}:{{ .Values.agentOrchestration.image.tag }}"
+          imagePullPolicy: {{ .Values.agentOrchestration.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: dashboard
+              containerPort: {{ .Values.agentOrchestration.config.dashboardPort | default 9010 }}
+              protocol: TCP
+          env:
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.agentOrchestration.secrets.openrouterApiKey.name }}
+                  key: {{ .Values.agentOrchestration.secrets.openrouterApiKey.key }}
+            - name: MCP_STRATEGY_URL
+              value: "http://{{ include "tradestream.fullname" . }}-strategy-mcp:8080"
+            - name: MCP_MARKET_URL
+              value: "http://{{ include "tradestream.fullname" . }}-market-mcp:8080"
+            - name: MCP_SIGNAL_URL
+              value: "http://{{ include "tradestream.fullname" . }}-signal-mcp:8080"
+            - name: MCP_BACKTEST_URL
+              value: "http://{{ include "tradestream.fullname" . }}-backtest-mcp:8080"
+            - name: CYCLE_INTERVAL_SECONDS
+              value: "{{ .Values.agentOrchestration.config.cycleIntervalSeconds | default 300 }}"
+            - name: ENABLE_DASHBOARD
+              value: "{{ .Values.agentOrchestration.config.enableDashboard | default true }}"
+            - name: DASHBOARD_PORT
+              value: "{{ .Values.agentOrchestration.config.dashboardPort | default 9010 }}"
+          resources:
+            {{- toYaml .Values.agentOrchestration.resources | nindent 12 }}
+{{- if .Values.agentOrchestration.config.enableDashboard }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-agent-orchestration
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-orchestration
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.agentOrchestration.config.dashboardPort | default 9010 }}
+      targetPort: dashboard
+      protocol: TCP
+      name: dashboard
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-orchestration
+{{- end }}
+{{- end }}

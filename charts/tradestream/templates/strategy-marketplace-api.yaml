@@ -1,0 +1,83 @@
+{{- if .Values.strategyMarketplaceApi.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-marketplace-api
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-marketplace-api
+spec:
+  replicas: {{ .Values.strategyMarketplaceApi.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: strategy-marketplace-api
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: strategy-marketplace-api
+    spec:
+      containers:
+        - name: strategy-marketplace-api
+          image: "{{ .Values.strategyMarketplaceApi.image.repository }}:{{ .Values.strategyMarketplaceApi.image.tag }}"
+          imagePullPolicy: {{ .Values.strategyMarketplaceApi.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.strategyMarketplaceApi.service.port | default 8090 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: API_PORT
+              value: "{{ .Values.strategyMarketplaceApi.service.port | default 8090 }}"
+            - name: API_HOST
+              value: "{{ .Values.strategyMarketplaceApi.service.host | default "0.0.0.0" }}"
+          resources:
+            {{- toYaml .Values.strategyMarketplaceApi.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-marketplace-api
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-marketplace-api
+spec:
+  type: {{ .Values.strategyMarketplaceApi.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.strategyMarketplaceApi.service.port | default 8090 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-marketplace-api
+{{- end }}
