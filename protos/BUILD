@@ -132,3 +132,23 @@ py_proto_library(
     visibility = ["//visibility:public"],
     deps = [":polymarket_proto"],
 )
+
+proto_library(
+    name = "prediction_markets_proto",
+    srcs = ["prediction_markets.proto"],
+    deps = [
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+java_proto_library(
+    name = "prediction_markets_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":prediction_markets_proto"],
+)
+
+py_proto_library(
+    name = "prediction_markets_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":prediction_markets_proto"],
+)
