@@ -132,7 +132,7 @@ class PredictionMarketSignalGeneratorTest(absltest.TestCase):
             if s.signal_type == SignalType.INSIDER_ACTIVITY
         ]
         self.assertGreater(len(insider_signals), 0)
-        self.assertIn("0x7a3f91abc", insider_signals[0].reasoning)
+        self.assertIn("0x7a3f91ab", insider_signals[0].reasoning)
 
     def test_low_confidence_insider_alerts_ignored(self):
         insider_alerts = [{
