@@ -120,7 +120,13 @@ def _snapshot_to_dict(row) -> dict:
     result: Dict[str, Any] = {}
     result["strategy_id"] = str(row["strategy_id"])
     result["period"] = row["period"]
-    for key in ("total_return_pct", "sharpe_ratio", "win_rate", "max_drawdown_pct", "consistency_score"):
+    for key in (
+        "total_return_pct",
+        "sharpe_ratio",
+        "win_rate",
+        "max_drawdown_pct",
+        "consistency_score",
+    ):
         val = row.get(key)
         result[key] = float(val) if val is not None else None
     for key in ("trade_count", "rank"):
@@ -212,9 +218,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     body.price,
                 )
         except asyncpg.UniqueViolationError:
-            return conflict(
-                f"Listing for strategy '{body.strategy_id}' already exists"
-            )
+            return conflict(f"Listing for strategy '{body.strategy_id}' already exists")
         except Exception as e:
             logger.error("Failed to publish listing: %s", e)
             return server_error(str(e))
@@ -359,9 +363,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "consistency_score": float(perf_row["consistency_score"]),
                 "snapshot_date": str(perf_row["snapshot_date"]),
             }
-        return success_response(
-            item, "marketplace_listing", resource_id=item["id"]
-        )
+        return success_response(item, "marketplace_listing", resource_id=item["id"])
 
     # --- Subscribe / Unsubscribe ---
 
@@ -543,7 +545,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         sort_by: LeaderboardSort = Query(
             LeaderboardSort.TOTAL_RETURN, description="Metric to rank by"
         ),
-        category: Optional[str] = Query(None, description="Filter by strategy category"),
+        category: Optional[str] = Query(
+            None, description="Filter by strategy category"
+        ),
         pagination: PaginationParams = Depends(),
     ):
         """Get ranked list of strategies by performance metrics."""

@@ -262,7 +262,9 @@ class TestCategories:
         tc, conn = client
         conn.fetch.return_value = [
             FakeRecord(name="momentum", label="Momentum", description="Price momentum"),
-            FakeRecord(name="breakout", label="Breakout", description="Range breakouts"),
+            FakeRecord(
+                name="breakout", label="Breakout", description="Range breakouts"
+            ),
         ]
 
         resp = tc.get("/strategies/categories")
