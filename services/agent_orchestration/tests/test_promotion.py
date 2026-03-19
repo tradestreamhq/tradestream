@@ -30,7 +30,10 @@ class TestPromoteWinners:
         promoted = promote_winners(validated, state, mcp_urls)
         assert len(promoted) == 2
         assert state.candidates["strat_a"].phase == config.PHASE_PROMOTION
-        assert state.candidates["strat_a"].allocation_weight == config.INITIAL_ALLOCATION_WEIGHT
+        assert (
+            state.candidates["strat_a"].allocation_weight
+            == config.INITIAL_ALLOCATION_WEIGHT
+        )
         assert len(state.promotion_history) == 2
 
     @patch("services.agent_orchestration.promotion._log_promotion_decision")

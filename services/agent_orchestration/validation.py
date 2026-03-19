@@ -28,7 +28,9 @@ def _run_backtest(mcp_urls, strategy_name, symbol, period_days=90):
         return_type="parsed",
     )
     if isinstance(result, dict) and "error" in result:
-        logging.warning("Backtest failed for %s on %s: %s", strategy_name, symbol, result["error"])
+        logging.warning(
+            "Backtest failed for %s on %s: %s", strategy_name, symbol, result["error"]
+        )
         return None
     return result
 
@@ -101,7 +103,8 @@ def validate_candidates(candidate_names, mcp_urls):
             if not _passes_minimum_criteria(metrics):
                 logging.info(
                     "Validation: %s failed criteria on %s (sharpe=%.2f, wr=%.2f, dd=%.2f)",
-                    name, symbol,
+                    name,
+                    symbol,
                     metrics["sharpe_ratio"],
                     metrics["win_rate"],
                     metrics["max_drawdown"],
@@ -117,7 +120,9 @@ def validate_candidates(candidate_names, mcp_urls):
         agg = _aggregate_metrics(symbol_metrics)
         logging.info(
             "Validation: %s PASSED (avg sharpe=%.2f, avg wr=%.2f)",
-            name, agg["sharpe_ratio"], agg["win_rate"],
+            name,
+            agg["sharpe_ratio"],
+            agg["win_rate"],
         )
         validated.append((name, agg))
 
@@ -131,8 +136,14 @@ def _aggregate_metrics(symbol_metrics):
     if not symbol_metrics:
         return {}
 
-    keys = ["sharpe_ratio", "win_rate", "max_drawdown", "cumulative_return",
-            "profit_factor", "sortino_ratio"]
+    keys = [
+        "sharpe_ratio",
+        "win_rate",
+        "max_drawdown",
+        "cumulative_return",
+        "profit_factor",
+        "sortino_ratio",
+    ]
     n = len(symbol_metrics)
     agg = {}
 
@@ -140,9 +151,7 @@ def _aggregate_metrics(symbol_metrics):
         total = sum(m.get(key, 0.0) for m in symbol_metrics.values())
         agg[key] = total / n
 
-    agg["total_trades"] = sum(
-        m.get("total_trades", 0) for m in symbol_metrics.values()
-    )
+    agg["total_trades"] = sum(m.get("total_trades", 0) for m in symbol_metrics.values())
     agg["symbols_tested"] = list(symbol_metrics.keys())
     agg["per_symbol"] = symbol_metrics
 

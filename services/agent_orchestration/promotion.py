@@ -45,7 +45,9 @@ def promote_winners(validated_candidates, state, mcp_urls):
         promoted.append(name)
         logging.info(
             "Promotion: %s promoted with allocation=%.2f (sharpe=%.2f)",
-            name, allocation, metrics.get("sharpe_ratio", 0),
+            name,
+            allocation,
+            metrics.get("sharpe_ratio", 0),
         )
 
     return promoted

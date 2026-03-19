@@ -17,12 +17,8 @@ flags.DEFINE_string("api_key", "", "LLM API key (OpenRouter).")
 flags.DEFINE_string(
     "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL."
 )
-flags.DEFINE_string(
-    "mcp_market_url", "http://localhost:8081", "Market MCP server URL."
-)
-flags.DEFINE_string(
-    "mcp_signal_url", "http://localhost:8082", "Signal MCP server URL."
-)
+flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL.")
+flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL.")
 flags.DEFINE_string(
     "mcp_backtest_url", "http://localhost:8083", "Backtest MCP server URL."
 )
@@ -70,6 +66,7 @@ def main(argv):
     api_key = FLAGS.api_key
     if not api_key:
         import os
+
         api_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not api_key:
         logging.error("No API key provided. Set --api_key or OPENROUTER_API_KEY.")

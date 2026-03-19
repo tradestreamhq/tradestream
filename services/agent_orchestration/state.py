@@ -12,8 +12,15 @@ from services.agent_orchestration import config
 class CandidateRecord:
     """A strategy candidate tracked through the orchestration pipeline."""
 
-    def __init__(self, name, spec, phase=config.PHASE_DISCOVERY,
-                 created_at=None, metrics=None, allocation_weight=0.0):
+    def __init__(
+        self,
+        name,
+        spec,
+        phase=config.PHASE_DISCOVERY,
+        created_at=None,
+        metrics=None,
+        allocation_weight=0.0,
+    ):
         self.name = name
         self.spec = spec
         self.phase = phase
@@ -65,7 +72,9 @@ class OrchestrationState:
     def load(self):
         """Load state from disk."""
         if not os.path.exists(self.state_file):
-            logging.info("No existing state file at %s, starting fresh.", self.state_file)
+            logging.info(
+                "No existing state file at %s, starting fresh.", self.state_file
+            )
             return
         try:
             with open(self.state_file, "r") as f:
@@ -125,21 +134,25 @@ class OrchestrationState:
         if name in self.candidates:
             self.candidates[name].phase = config.PHASE_PROMOTION
             self.candidates[name].allocation_weight = allocation_weight
-            self.promotion_history.append({
-                "name": name,
-                "promoted_at": time.time(),
-                "cycle": self.cycle_number,
-            })
+            self.promotion_history.append(
+                {
+                    "name": name,
+                    "promoted_at": time.time(),
+                    "cycle": self.cycle_number,
+                }
+            )
 
     def retire(self, name, reason):
         """Retire a promoted strategy."""
         if name in self.candidates:
-            self.retirement_history.append({
-                "name": name,
-                "retired_at": time.time(),
-                "cycle": self.cycle_number,
-                "reason": reason,
-            })
+            self.retirement_history.append(
+                {
+                    "name": name,
+                    "retired_at": time.time(),
+                    "cycle": self.cycle_number,
+                    "reason": reason,
+                }
+            )
             del self.candidates[name]
 
     def get_candidates_in_phase(self, phase):

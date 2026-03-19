@@ -28,14 +28,16 @@ def create_dashboard_app(state):
     def orchestration_status():
         """Overall orchestration status."""
         promoted = state.get_promoted_strategies()
-        return jsonify({
-            "cycle_number": state.cycle_number,
-            "last_cycle_time": state.last_cycle_time,
-            "total_candidates": len(state.candidates),
-            "promoted_count": len(promoted),
-            "total_promotions": len(state.promotion_history),
-            "total_retirements": len(state.retirement_history),
-        })
+        return jsonify(
+            {
+                "cycle_number": state.cycle_number,
+                "last_cycle_time": state.last_cycle_time,
+                "total_candidates": len(state.candidates),
+                "promoted_count": len(promoted),
+                "total_promotions": len(state.promotion_history),
+                "total_retirements": len(state.retirement_history),
+            }
+        )
 
     @app.route("/api/orchestration/funnel", methods=["GET"])
     def discovery_funnel():
@@ -45,34 +47,38 @@ def create_dashboard_app(state):
         for c in candidates:
             by_phase.setdefault(c.phase, []).append(c.to_dict())
 
-        return jsonify({
-            "discovery": len(by_phase.get(config.PHASE_DISCOVERY, [])),
-            "validation": len(by_phase.get(config.PHASE_VALIDATION, [])),
-            "promoted": len(by_phase.get(config.PHASE_PROMOTION, [])),
-            "phases": {
-                phase: [
-                    {"name": c["name"], "allocation": c.get("allocation_weight", 0)}
-                    for c in recs
-                ]
-                for phase, recs in by_phase.items()
-            },
-        })
+        return jsonify(
+            {
+                "discovery": len(by_phase.get(config.PHASE_DISCOVERY, [])),
+                "validation": len(by_phase.get(config.PHASE_VALIDATION, [])),
+                "promoted": len(by_phase.get(config.PHASE_PROMOTION, [])),
+                "phases": {
+                    phase: [
+                        {"name": c["name"], "allocation": c.get("allocation_weight", 0)}
+                        for c in recs
+                    ]
+                    for phase, recs in by_phase.items()
+                },
+            }
+        )
 
     @app.route("/api/orchestration/promoted", methods=["GET"])
     def promoted_strategies():
         """List all currently promoted (live) strategies with metrics."""
         promoted = state.get_promoted_strategies()
-        return jsonify({
-            "strategies": [
-                {
-                    "name": c.name,
-                    "allocation_weight": c.allocation_weight,
-                    "metrics": c.metrics,
-                    "promoted_since": c.created_at,
-                }
-                for c in promoted
-            ]
-        })
+        return jsonify(
+            {
+                "strategies": [
+                    {
+                        "name": c.name,
+                        "allocation_weight": c.allocation_weight,
+                        "metrics": c.metrics,
+                        "promoted_since": c.created_at,
+                    }
+                    for c in promoted
+                ]
+            }
+        )
 
     @app.route("/api/orchestration/history", methods=["GET"])
     def cycle_history():

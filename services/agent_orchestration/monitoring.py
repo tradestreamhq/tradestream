@@ -50,11 +50,15 @@ def monitor_promoted_strategies(state, mcp_urls):
         if current_sharpe < config.RETIREMENT_SHARPE_THRESHOLD:
             logging.info(
                 "Monitoring: retiring %s (sharpe=%.2f < threshold=%.2f)",
-                name, current_sharpe, config.RETIREMENT_SHARPE_THRESHOLD,
+                name,
+                current_sharpe,
+                config.RETIREMENT_SHARPE_THRESHOLD,
             )
             state.retire(name, reason=f"sharpe={current_sharpe:.2f}")
             _log_monitoring_decision(
-                mcp_urls, name, "RETIRED",
+                mcp_urls,
+                name,
+                "RETIRED",
                 f"Sharpe {current_sharpe:.2f} below threshold",
             )
             retired.append(name)
@@ -72,15 +76,20 @@ def monitor_promoted_strategies(state, mcp_urls):
 
         if abs(new_allocation - old_allocation) > 0.001:
             candidate.allocation_weight = new_allocation
-            adjusted.append({
-                "name": name,
-                "old_allocation": old_allocation,
-                "new_allocation": new_allocation,
-                "sharpe": current_sharpe,
-            })
+            adjusted.append(
+                {
+                    "name": name,
+                    "old_allocation": old_allocation,
+                    "new_allocation": new_allocation,
+                    "sharpe": current_sharpe,
+                }
+            )
             logging.info(
                 "Monitoring: %s allocation %.2f -> %.2f (sharpe=%.2f)",
-                name, old_allocation, new_allocation, current_sharpe,
+                name,
+                old_allocation,
+                new_allocation,
+                current_sharpe,
             )
 
         # Update stored metrics

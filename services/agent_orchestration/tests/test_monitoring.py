@@ -84,4 +84,6 @@ class TestMonitorPromotedStrategies:
 
         result = monitor_promoted_strategies(state, mcp_urls)
         if result["adjusted"]:
-            assert result["adjusted"][0]["new_allocation"] <= config.MAX_ALLOCATION_WEIGHT
+            assert (
+                result["adjusted"][0]["new_allocation"] <= config.MAX_ALLOCATION_WEIGHT
+            )

@@ -20,6 +20,10 @@ def test_retry_settings():
 
 
 def test_phase_names():
-    phases = {config.PHASE_DISCOVERY, config.PHASE_VALIDATION,
-              config.PHASE_PROMOTION, config.PHASE_MONITORING}
+    phases = {
+        config.PHASE_DISCOVERY,
+        config.PHASE_VALIDATION,
+        config.PHASE_PROMOTION,
+        config.PHASE_MONITORING,
+    }
     assert len(phases) == 4  # All unique

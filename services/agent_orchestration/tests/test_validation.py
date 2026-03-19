@@ -88,12 +88,24 @@ class TestPassesMinimumCriteria:
 class TestAggregateMetrics:
     def test_averages_correctly(self):
         symbol_metrics = {
-            "BTC-USD": {"sharpe_ratio": 1.0, "win_rate": 0.6, "max_drawdown": -0.1,
-                        "cumulative_return": 0.2, "total_trades": 30,
-                        "profit_factor": 1.5, "sortino_ratio": 1.8},
-            "ETH-USD": {"sharpe_ratio": 2.0, "win_rate": 0.5, "max_drawdown": -0.2,
-                        "cumulative_return": 0.4, "total_trades": 20,
-                        "profit_factor": 2.0, "sortino_ratio": 2.5},
+            "BTC-USD": {
+                "sharpe_ratio": 1.0,
+                "win_rate": 0.6,
+                "max_drawdown": -0.1,
+                "cumulative_return": 0.2,
+                "total_trades": 30,
+                "profit_factor": 1.5,
+                "sortino_ratio": 1.8,
+            },
+            "ETH-USD": {
+                "sharpe_ratio": 2.0,
+                "win_rate": 0.5,
+                "max_drawdown": -0.2,
+                "cumulative_return": 0.4,
+                "total_trades": 20,
+                "profit_factor": 2.0,
+                "sortino_ratio": 2.5,
+            },
         }
         agg = _aggregate_metrics(symbol_metrics)
         assert agg["sharpe_ratio"] == 1.5
@@ -130,7 +142,10 @@ class TestValidateCandidates:
             return bad_result
 
         mock_backtest.side_effect = side_effect
-        mcp_urls = {"backtest": "http://localhost:8083", "strategy": "http://localhost:8080"}
+        mcp_urls = {
+            "backtest": "http://localhost:8083",
+            "strategy": "http://localhost:8080",
+        }
 
         result = validate_candidates(["good_strat", "bad_strat"], mcp_urls)
         assert len(result) == 1
@@ -139,7 +154,10 @@ class TestValidateCandidates:
     @patch("services.agent_orchestration.validation._run_backtest")
     def test_handles_backtest_failure(self, mock_backtest):
         mock_backtest.return_value = None
-        mcp_urls = {"backtest": "http://localhost:8083", "strategy": "http://localhost:8080"}
+        mcp_urls = {
+            "backtest": "http://localhost:8083",
+            "strategy": "http://localhost:8080",
+        }
 
         result = validate_candidates(["failing_strat"], mcp_urls)
         assert len(result) == 0
@@ -159,7 +177,10 @@ class TestValidateCandidates:
             }
 
         mock_backtest.side_effect = side_effect
-        mcp_urls = {"backtest": "http://localhost:8083", "strategy": "http://localhost:8080"}
+        mcp_urls = {
+            "backtest": "http://localhost:8083",
+            "strategy": "http://localhost:8080",
+        }
 
         result = validate_candidates(["ok", "best"], mcp_urls)
         assert len(result) == 2

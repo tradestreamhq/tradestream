@@ -99,8 +99,12 @@ MCP_TOOLS = [
                     "description": {"type": "string"},
                 },
                 "required": [
-                    "name", "indicators", "entry_conditions",
-                    "exit_conditions", "parameters", "description",
+                    "name",
+                    "indicators",
+                    "entry_conditions",
+                    "exit_conditions",
+                    "parameters",
+                    "description",
                 ],
             },
         },
@@ -167,7 +171,8 @@ def run_discovery(api_key, mcp_urls, candidates_per_cycle=None):
                     pass
             logging.info(
                 "Discovery: finished after %d iterations, created=%s",
-                iteration + 1, created_names,
+                iteration + 1,
+                created_names,
             )
             return created_names
 
@@ -185,14 +190,20 @@ def run_discovery(api_key, mcp_urls, candidates_per_cycle=None):
                 created_names.append(fn_args["name"])
 
             result = resolve_and_call(
-                fn_name, fn_args, TOOL_TO_SERVER, mcp_urls, return_type="string",
+                fn_name,
+                fn_args,
+                TOOL_TO_SERVER,
+                mcp_urls,
+                return_type="string",
             )
 
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": result,
-            })
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": result,
+                }
+            )
 
     logging.warning("Discovery: reached max iterations (%d)", config.MAX_LLM_ITERATIONS)
     return created_names

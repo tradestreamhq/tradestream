@@ -48,7 +48,9 @@ def run_cycle(api_key, mcp_urls, state):
         stats["discovered"] = len(discovered_names)
         for name in discovered_names:
             state.add_candidate(name, {"source": "discovery", "cycle": cycle_num})
-        logging.info("[Cycle %d] Discovered %d candidates", cycle_num, len(discovered_names))
+        logging.info(
+            "[Cycle %d] Discovered %d candidates", cycle_num, len(discovered_names)
+        )
     except Exception as e:
         logging.error("[Cycle %d] Discovery failed: %s", cycle_num, e)
         discovered_names = []
@@ -97,7 +99,10 @@ def run_cycle(api_key, mcp_urls, state):
     logging.info(
         "=== Orchestration Cycle %d COMPLETE === "
         "discovered=%d, validated=%d, promoted=%d",
-        cycle_num, stats["discovered"], stats["validated"], stats["promoted"],
+        cycle_num,
+        stats["discovered"],
+        stats["validated"],
+        stats["promoted"],
     )
     return stats
 
@@ -123,7 +128,8 @@ def run_orchestration_loop(
 
     logging.info(
         "Orchestration loop starting (interval=%ds, state_file=%s)",
-        interval, state.state_file,
+        interval,
+        state.state_file,
     )
     state.load()
 
