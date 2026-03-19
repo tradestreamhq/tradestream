@@ -133,10 +133,14 @@ def calculate_opportunity_score(
 
     # Risk-adjusted return (Sharpe-like normalization)
     risk_adjusted_return = apply_sharpe_adjustment(expected_return, return_stddev)
-    return_score = min(risk_adjusted_return / caps.max_return, 1.0) if caps.max_return > 0 else 0.0
+    return_score = (
+        min(risk_adjusted_return / caps.max_return, 1.0) if caps.max_return > 0 else 0.0
+    )
 
     # Normalize volatility with regime-adjusted cap
-    volatility_score = min(volatility / caps.max_volatility, 1.0) if caps.max_volatility > 0 else 0.0
+    volatility_score = (
+        min(volatility / caps.max_volatility, 1.0) if caps.max_volatility > 0 else 0.0
+    )
 
     # Freshness decay: 100% at 0 min, 50% at 30 min, 0% at 60 min
     freshness_score = max(0.0, 1.0 - (minutes_ago / FRESHNESS_WINDOW_MIN))
@@ -225,8 +229,12 @@ def compute_score_breakdown(
     """
     caps = get_regime_adjusted_caps(market_regime)
     risk_adjusted = apply_sharpe_adjustment(expected_return, return_stddev)
-    return_score = min(risk_adjusted / caps.max_return, 1.0) if caps.max_return > 0 else 0.0
-    volatility_score = min(volatility / caps.max_volatility, 1.0) if caps.max_volatility > 0 else 0.0
+    return_score = (
+        min(risk_adjusted / caps.max_return, 1.0) if caps.max_return > 0 else 0.0
+    )
+    volatility_score = (
+        min(volatility / caps.max_volatility, 1.0) if caps.max_volatility > 0 else 0.0
+    )
     freshness_score = max(0.0, 1.0 - (minutes_ago / FRESHNESS_WINDOW_MIN))
 
     w = DEFAULT_WEIGHTS
@@ -246,14 +254,20 @@ def compute_score_breakdown(
         "opportunity_tier": tier,
         "market_regime": market_regime,
         "opportunity_factors": {
-            "confidence": {"value": confidence, "contribution": contributions["confidence"]},
+            "confidence": {
+                "value": confidence,
+                "contribution": contributions["confidence"],
+            },
             "expected_return": {
                 "value": expected_return,
                 "stddev": return_stddev,
                 "risk_adjusted": round(risk_adjusted, 6),
                 "contribution": contributions["expected_return"],
             },
-            "consensus": {"value": consensus_pct, "contribution": contributions["consensus"]},
+            "consensus": {
+                "value": consensus_pct,
+                "contribution": contributions["consensus"],
+            },
             "volatility": {
                 "value": volatility,
                 "percentile": volatility_percentile,

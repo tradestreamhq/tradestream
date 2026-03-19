@@ -340,10 +340,12 @@ class TestCalculateExpectedReturn:
 
     def test_weighted_average(self):
         """Two strategies with different weights."""
-        ret, std = calculate_expected_return([
-            (0.02, 0.01, 1.0),  # Lower return, lower weight
-            (0.04, 0.02, 3.0),  # Higher return, higher weight
-        ])
+        ret, std = calculate_expected_return(
+            [
+                (0.02, 0.01, 1.0),  # Lower return, lower weight
+                (0.04, 0.02, 3.0),  # Higher return, higher weight
+            ]
+        )
         expected_ret = (0.02 * 1.0 + 0.04 * 3.0) / 4.0
         expected_std = (0.01 * 1.0 + 0.02 * 3.0) / 4.0
         assert abs(ret - expected_ret) < 1e-9
@@ -394,7 +396,9 @@ class TestScoreBreakdown:
         )
         factors = result["opportunity_factors"]
         contrib_sum = sum(f["contribution"] for f in factors.values())
-        assert abs(contrib_sum - result["opportunity_score"]) < 0.2  # Rounding tolerance
+        assert (
+            abs(contrib_sum - result["opportunity_score"]) < 0.2
+        )  # Rounding tolerance
 
     def test_breakdown_tier_matches_score(self):
         result = compute_score_breakdown(
