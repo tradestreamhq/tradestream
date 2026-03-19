@@ -81,6 +81,19 @@ py_library(
 )
 
 py_library(
+    name = "notifier_lib",
+    srcs = [
+        "__init__.py",
+        "notifier.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//third_party/python:absl_py",
+        "//third_party/python:requests",
+    ],
+)
+
+py_library(
     name = "agent_lib",
     srcs = [
         "__init__.py",
@@ -90,6 +103,7 @@ py_library(
     deps = [
         ":db_maintenance_lib",
         ":health_checker_lib",
+        ":notifier_lib",
         ":report_lib",
         ":retirement_criteria_lib",
         ":state_repair_lib",
@@ -153,6 +167,16 @@ py_test(
     deps = [
         ":state_repair_lib",
         "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "notifier_test",
+    srcs = ["notifier_test.py"],
+    deps = [
+        ":notifier_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:requests",
     ],
 )
 

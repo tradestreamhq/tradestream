@@ -489,6 +489,120 @@ class PostgreSQLMaintenance:
             logging.error("Failed to get active implementation count: %s", e)
             return 0
 
+    def detect_market_regime(self, symbol: str, lookback_days: int = 30) -> str:
+        """Detect the current market regime for a symbol."""
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT detect_market_regime(%s, %s)",
+                (symbol, lookback_days),
+            )
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            return row[0] if row and row[0] else "ranging"
+        except Exception as e:
+            logging.error("Failed to detect market regime for %s: %s", symbol, e)
+            return "ranging"
+
+    def reactivate_implementation(
+        self, impl_id: str, reason: str, requester: str
+    ) -> MaintenanceResult:
+        """Reactivate a retired implementation by setting status to VALIDATING."""
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                UPDATE strategy_implementations
+                SET status = 'VALIDATING', updated_at = NOW()
+                WHERE impl_id = %s AND status = 'RETIRED'
+                """,
+                (impl_id,),
+            )
+            rows = cur.rowcount
+
+            if rows > 0:
+                cur.execute(
+                    """
+                    INSERT INTO reactivation_log
+                    (impl_id, reason, requester)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (impl_id, reason, requester),
+                )
+
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            if rows > 0:
+                logging.info("Reactivated implementation %s: %s", impl_id, reason)
+                return MaintenanceResult(
+                    operation=f"reactivate_impl:{impl_id}",
+                    success=True,
+                    details=f"Implementation {impl_id} reactivated: {reason}",
+                    rows_affected=rows,
+                )
+            else:
+                return MaintenanceResult(
+                    operation=f"reactivate_impl:{impl_id}",
+                    success=False,
+                    details=f"Implementation {impl_id} not found or not retired",
+                )
+        except Exception as e:
+            logging.error("Failed to reactivate implementation %s: %s", impl_id, e)
+            return MaintenanceResult(
+                operation=f"reactivate_impl:{impl_id}",
+                success=False,
+                details=f"Failed to reactivate implementation {impl_id}",
+                error=str(e),
+            )
+
+    def get_reactivation_count(self, impl_id: str) -> int:
+        """Get the number of times an implementation has been reactivated."""
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT COUNT(*) FROM reactivation_log WHERE impl_id = %s",
+                (impl_id,),
+            )
+            count = cur.fetchone()[0]
+            cur.close()
+            conn.close()
+            return count
+        except Exception as e:
+            logging.error("Failed to get reactivation count for %s: %s", impl_id, e)
+            return 0
+
+    def get_retirement_info(self, impl_id: str) -> Optional[dict]:
+        """Get retirement log info for an implementation."""
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT can_reactivate, retired_at
+                FROM retirement_log
+                WHERE impl_id = %s
+                ORDER BY retired_at DESC
+                LIMIT 1
+                """,
+                (impl_id,),
+            )
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            if row:
+                return {"can_reactivate": row[0], "retired_at": row[1]}
+            return None
+        except Exception as e:
+            logging.error("Failed to get retirement info for %s: %s", impl_id, e)
+            return None
+
     def save_report(self, report_data: dict) -> MaintenanceResult:
         """Save a janitor report to the database."""
         try:
