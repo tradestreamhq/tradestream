@@ -104,10 +104,20 @@ class KalshiClientTest(absltest.TestCase):
     @mock.patch("requests.Session.get")
     def test_find_significant_movers(self, mock_get):
         markets = [
-            {"ticker": "FED-1", "title": "Rate Cut", "yes_price": 0.72,
-             "previous_yes_price": 0.45, "volume": 10000},
-            {"ticker": "FED-2", "title": "Rate Hold", "yes_price": 0.50,
-             "previous_yes_price": 0.48, "volume": 5000},
+            {
+                "ticker": "FED-1",
+                "title": "Rate Cut",
+                "yes_price": 0.72,
+                "previous_yes_price": 0.45,
+                "volume": 10000,
+            },
+            {
+                "ticker": "FED-2",
+                "title": "Rate Hold",
+                "yes_price": 0.50,
+                "previous_yes_price": 0.48,
+                "volume": 5000,
+            },
         ]
 
         movers = self.client.find_significant_movers(markets, min_change=0.10)
@@ -118,8 +128,8 @@ class KalshiClientTest(absltest.TestCase):
 
     @mock.patch("requests.Session.get")
     def test_raises_on_http_error(self, mock_get):
-        self.mock_response.raise_for_status.side_effect = (
-            requests.exceptions.HTTPError("500")
+        self.mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "500"
         )
         mock_get.return_value = self.mock_response
 

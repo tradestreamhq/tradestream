@@ -37,8 +37,11 @@ class PredictionMarketProvider(MarketDataProvider):
     and be analyzed alongside traditional price data.
     """
 
-    def __init__(self, kalshi_client: KalshiClient = None,
-                 polymarket_client: PolymarketInsiderClient = None):
+    def __init__(
+        self,
+        kalshi_client: KalshiClient = None,
+        polymarket_client: PolymarketInsiderClient = None,
+    ):
         self._kalshi = kalshi_client
         self._polymarket = polymarket_client
         self._known_symbols = set()
@@ -87,20 +90,26 @@ class PredictionMarketProvider(MarketDataProvider):
                 ob = orderbook.get("orderbook", orderbook)
                 yes_price = self._extract_best_price(ob.get("yes", []))
                 no_price = self._extract_best_price(ob.get("no", []))
-                prob = yes_price if yes_price > 0 else (1.0 - no_price if no_price > 0 else 0)
+                prob = (
+                    yes_price
+                    if yes_price > 0
+                    else (1.0 - no_price if no_price > 0 else 0)
+                )
 
                 if prob > 0:
-                    candles.append(NormalizedCandle(
-                        timestamp_ms=int(time.time() * 1000),
-                        symbol=symbol,
-                        open=prob,
-                        high=prob,
-                        low=prob,
-                        close=prob,
-                        volume=0,
-                        asset_class=self.get_asset_class(),
-                        source="kalshi",
-                    ))
+                    candles.append(
+                        NormalizedCandle(
+                            timestamp_ms=int(time.time() * 1000),
+                            symbol=symbol,
+                            open=prob,
+                            high=prob,
+                            low=prob,
+                            close=prob,
+                            volume=0,
+                            asset_class=self.get_asset_class(),
+                            source="kalshi",
+                        )
+                    )
             except Exception as e:
                 logging.warning(f"Failed to fetch candle for {symbol}: {e}")
 

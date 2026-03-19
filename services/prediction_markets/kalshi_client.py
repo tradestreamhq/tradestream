@@ -33,11 +33,14 @@ CRYPTO_RELEVANT_SERIES = ["FED", "SEC", "CFTC", "BTCETF", "ETHETF"]
 class KalshiClient:
     """Client for the Kalshi prediction market REST API."""
 
-    def __init__(self, base_url: str = KALSHI_BASE_URL,
-                 request_timeout: float = 5.0,
-                 cache_ttl_seconds: int = 60,
-                 stale_cache_max_age_seconds: int = 300,
-                 relevant_series: list = None):
+    def __init__(
+        self,
+        base_url: str = KALSHI_BASE_URL,
+        request_timeout: float = 5.0,
+        cache_ttl_seconds: int = 60,
+        stale_cache_max_age_seconds: int = 300,
+        relevant_series: list = None,
+    ):
         self.base_url = base_url.rstrip("/")
         self.request_timeout = request_timeout
         self.cache_ttl_seconds = cache_ttl_seconds
@@ -68,8 +71,9 @@ class KalshiClient:
         self._cache_timestamps[key] = time.time()
 
     @retry(**api_retry_params)
-    def get_markets(self, series_ticker: str = "",
-                    status: str = "open", limit: int = 50) -> dict:
+    def get_markets(
+        self, series_ticker: str = "", status: str = "open", limit: int = 50
+    ) -> dict:
         """Fetch active markets, optionally filtered by series.
 
         Args:
@@ -160,8 +164,7 @@ class KalshiClient:
                 markets = result.get("markets", [])
                 all_markets.extend(markets)
             except Exception as e:
-                logging.warning(
-                    f"Failed to fetch Kalshi markets for {series}: {e}")
+                logging.warning(f"Failed to fetch Kalshi markets for {series}: {e}")
         return all_markets
 
     def get_crypto_relevant_markets_safe(self) -> dict:
@@ -182,8 +185,7 @@ class KalshiClient:
                 return {"markets": all_stale, "stale": True}
             return {"markets": [], "unavailable": True}
 
-    def find_significant_movers(self, markets: list,
-                                min_change: float = 0.10) -> list:
+    def find_significant_movers(self, markets: list, min_change: float = 0.10) -> list:
         """Identify markets with significant price movements.
 
         Args:
@@ -196,18 +198,22 @@ class KalshiClient:
         movers = []
         for market in markets:
             yes_price = market.get("yes_price", 0) or market.get("last_price", 0)
-            prev_price = market.get("previous_yes_price", 0) or market.get("prev_price", 0)
+            prev_price = market.get("previous_yes_price", 0) or market.get(
+                "prev_price", 0
+            )
             if prev_price > 0 and yes_price > 0:
                 change = abs(yes_price - prev_price)
                 if change >= min_change:
-                    movers.append({
-                        "ticker": market.get("ticker", ""),
-                        "title": market.get("title", market.get("subtitle", "")),
-                        "yes_price": yes_price,
-                        "previous_price": prev_price,
-                        "change": change,
-                        "volume": market.get("volume", 0),
-                    })
+                    movers.append(
+                        {
+                            "ticker": market.get("ticker", ""),
+                            "title": market.get("title", market.get("subtitle", "")),
+                            "yes_price": yes_price,
+                            "previous_price": prev_price,
+                            "change": change,
+                            "volume": market.get("volume", 0),
+                        }
+                    )
         return sorted(movers, key=lambda m: m["change"], reverse=True)
 
     def close(self):

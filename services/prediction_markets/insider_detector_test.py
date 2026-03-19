@@ -16,12 +16,14 @@ class InsiderActivityDetectorTest(absltest.TestCase):
         )
 
     def test_volume_spike_detection(self):
-        markets = [{
-            "market_id": "m1",
-            "question": "Rate cut?",
-            "volume": 30000,
-            "avg_volume": 5000,
-        }]
+        markets = [
+            {
+                "market_id": "m1",
+                "question": "Rate cut?",
+                "volume": 30000,
+                "avg_volume": 5000,
+            }
+        ]
 
         signals = self.detector.analyze_markets(markets)
 
@@ -30,13 +32,15 @@ class InsiderActivityDetectorTest(absltest.TestCase):
         self.assertEqual(signals[0].severity, "HIGH")
 
     def test_price_dislocation_detection(self):
-        markets = [{
-            "market_id": "m2",
-            "question": "ETF approval?",
-            "volume": 5000,
-            "probability": 0.80,
-            "previous_probability": 0.50,
-        }]
+        markets = [
+            {
+                "market_id": "m2",
+                "question": "ETF approval?",
+                "volume": 5000,
+                "probability": 0.80,
+                "previous_probability": 0.50,
+            }
+        ]
 
         signals = self.detector.analyze_markets(markets)
 
@@ -45,36 +49,42 @@ class InsiderActivityDetectorTest(absltest.TestCase):
         self.assertIn("up", price_signals[0].details)
 
     def test_no_signal_for_low_volume(self):
-        markets = [{
-            "market_id": "m3",
-            "question": "Low volume market",
-            "volume": 500,  # Below threshold
-            "avg_volume": 100,
-        }]
+        markets = [
+            {
+                "market_id": "m3",
+                "question": "Low volume market",
+                "volume": 500,  # Below threshold
+                "avg_volume": 100,
+            }
+        ]
 
         signals = self.detector.analyze_markets(markets)
         self.assertEqual(len(signals), 0)
 
     def test_no_signal_for_normal_activity(self):
-        markets = [{
-            "market_id": "m4",
-            "question": "Normal market",
-            "volume": 5000,
-            "avg_volume": 4000,
-            "probability": 0.52,
-            "previous_probability": 0.50,
-        }]
+        markets = [
+            {
+                "market_id": "m4",
+                "question": "Normal market",
+                "volume": 5000,
+                "avg_volume": 4000,
+                "probability": 0.52,
+                "previous_probability": 0.50,
+            }
+        ]
 
         signals = self.detector.analyze_markets(markets)
         self.assertEqual(len(signals), 0)
 
     def test_critical_severity_for_extreme_spike(self):
-        markets = [{
-            "market_id": "m5",
-            "question": "Extreme spike",
-            "volume": 120000,
-            "avg_volume": 5000,
-        }]
+        markets = [
+            {
+                "market_id": "m5",
+                "question": "Extreme spike",
+                "volume": 120000,
+                "avg_volume": 5000,
+            }
+        ]
 
         signals = self.detector.analyze_markets(markets)
 
@@ -84,8 +94,9 @@ class InsiderActivityDetectorTest(absltest.TestCase):
 
     def test_enrich_tracker_alerts(self):
         alerts = [{"market_id": "m1", "confidence": "HIGH"}]
-        markets = [{"market_id": "m1", "volume": 50000, "liquidity": 10000,
-                     "active": True}]
+        markets = [
+            {"market_id": "m1", "volume": 50000, "liquidity": 10000, "active": True}
+        ]
 
         enriched = self.detector.enrich_tracker_alerts(alerts, markets)
 

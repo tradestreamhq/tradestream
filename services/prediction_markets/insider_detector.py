@@ -15,10 +15,11 @@ from absl import logging
 @dataclass(frozen=True)
 class InsiderSignal:
     """Detected insider activity signal."""
+
     market_id: str
     market_question: str
-    anomaly_type: str       # "volume_spike", "price_dislocation", "wallet_cluster"
-    severity: str           # "LOW", "MEDIUM", "HIGH", "CRITICAL"
+    anomaly_type: str  # "volume_spike", "price_dislocation", "wallet_cluster"
+    severity: str  # "LOW", "MEDIUM", "HIGH", "CRITICAL"
     details: str
     detected_at_ms: int
 
@@ -31,9 +32,12 @@ class InsiderActivityDetector:
     and enriching tracker alerts with additional context.
     """
 
-    def __init__(self, volume_spike_threshold: float = 3.0,
-                 price_dislocation_threshold: float = 0.15,
-                 min_volume_for_analysis: float = 1000.0):
+    def __init__(
+        self,
+        volume_spike_threshold: float = 3.0,
+        price_dislocation_threshold: float = 0.15,
+        min_volume_for_analysis: float = 1000.0,
+    ):
         self.volume_spike_threshold = volume_spike_threshold
         self.price_dislocation_threshold = price_dislocation_threshold
         self.min_volume_for_analysis = min_volume_for_analysis
@@ -68,8 +72,7 @@ class InsiderActivityDetector:
 
         return signals
 
-    def enrich_tracker_alerts(self, tracker_alerts: list,
-                               markets: list) -> list:
+    def enrich_tracker_alerts(self, tracker_alerts: list, markets: list) -> list:
         """Enrich polymarket-insider-tracker alerts with local analysis.
 
         Args:

@@ -24,9 +24,7 @@ class CorrelationTrackerTest(absltest.TestCase):
                 lag_hours=24.0,
             )
 
-        result = self.tracker.compute_correlation(
-            "monetary_policy", "BTC/USD"
-        )
+        result = self.tracker.compute_correlation("monetary_policy", "BTC/USD")
 
         self.assertIsNotNone(result)
         self.assertGreater(result.correlation, 0.9)
@@ -73,17 +71,13 @@ class CorrelationTrackerTest(absltest.TestCase):
                 lag_hours=24.0,
             )
 
-        score = self.tracker.get_signal_quality_score(
-            "monetary_policy", "BTC/USD"
-        )
+        score = self.tracker.get_signal_quality_score("monetary_policy", "BTC/USD")
 
         self.assertGreater(score, 0.5)
         self.assertLessEqual(score, 1.0)
 
     def test_signal_quality_score_insufficient_data(self):
-        score = self.tracker.get_signal_quality_score(
-            "unknown", "BTC/USD"
-        )
+        score = self.tracker.get_signal_quality_score("unknown", "BTC/USD")
         self.assertEqual(score, 0.5)
 
     def test_max_observations_enforced(self):
@@ -132,9 +126,7 @@ class CorrelationTrackerTest(absltest.TestCase):
         self.assertEqual(result, 0.0)
 
     def test_accuracy_no_valid_pairs(self):
-        result = CorrelationTracker._compute_accuracy(
-            [0.0, 0.0], [0.0, 0.0]
-        )
+        result = CorrelationTracker._compute_accuracy([0.0, 0.0], [0.0, 0.0])
         self.assertEqual(result, 0.5)
 
 

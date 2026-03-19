@@ -53,9 +53,7 @@ class CategorizeKalshiMarketTest(absltest.TestCase):
 
 class RunCheckTest(absltest.TestCase):
     def setUp(self):
-        self.signal_gen = PredictionMarketSignalGenerator(
-            config=ThresholdConfig()
-        )
+        self.signal_gen = PredictionMarketSignalGenerator(config=ThresholdConfig())
         self.insider_detector = InsiderActivityDetector()
         self.correlation_tracker = CorrelationTracker()
 
@@ -122,7 +120,9 @@ class RunCheckTest(absltest.TestCase):
         )
 
         mock_poly.get_recent_alerts_safe.assert_called_once()
-        insider_signals = [s for s in signals if s.signal_type.value == "insider_activity"]
+        insider_signals = [
+            s for s in signals if s.signal_type.value == "insider_activity"
+        ]
         self.assertGreater(len(insider_signals), 0)
 
 

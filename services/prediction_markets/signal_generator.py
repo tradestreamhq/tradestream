@@ -16,6 +16,7 @@ from absl import logging
 
 class SignalType(Enum):
     """Types of prediction market signals."""
+
     PROBABILITY_THRESHOLD = "probability_threshold"
     PROBABILITY_SPIKE = "probability_spike"
     INSIDER_ACTIVITY = "insider_activity"
@@ -38,6 +39,7 @@ CATEGORY_ASSET_MAP = {
 @dataclass(frozen=True)
 class PredictionSignal:
     """A trading signal derived from prediction market data."""
+
     signal_id: str
     signal_type: SignalType
     source_event_id: str
@@ -53,6 +55,7 @@ class PredictionSignal:
 @dataclass
 class ThresholdConfig:
     """Configuration for probability threshold signals."""
+
     bullish_threshold: float = 0.70
     bearish_threshold: float = 0.30
     spike_threshold: float = 0.10  # 10% change in probability
@@ -62,13 +65,13 @@ class ThresholdConfig:
 class PredictionMarketSignalGenerator:
     """Generates trading signals from prediction market events."""
 
-    def __init__(self, config: ThresholdConfig = None,
-                 target_symbols: list = None):
+    def __init__(self, config: ThresholdConfig = None, target_symbols: list = None):
         self.config = config or ThresholdConfig()
         self.target_symbols = target_symbols or ["BTC/USD", "ETH/USD", "SOL/USD"]
 
-    def generate_signals(self, events: list,
-                         insider_alerts: list = None) -> List[PredictionSignal]:
+    def generate_signals(
+        self, events: list, insider_alerts: list = None
+    ) -> List[PredictionSignal]:
         """Generate signals from prediction market data.
 
         Args:
@@ -104,50 +107,60 @@ class PredictionMarketSignalGenerator:
             return signals
 
         # Bullish threshold crossing (probability went above threshold)
-        if prob >= self.config.bullish_threshold and prev < self.config.bullish_threshold:
+        if (
+            prob >= self.config.bullish_threshold
+            and prev < self.config.bullish_threshold
+        ):
             for asset in affected_assets:
                 if asset not in self.target_symbols:
                     continue
                 strength = min(1.0, (prob - self.config.bullish_threshold) * 5 + 0.5)
-                signals.append(PredictionSignal(
-                    signal_id=str(uuid.uuid4()),
-                    signal_type=SignalType.PROBABILITY_THRESHOLD,
-                    source_event_id=event.get("event_id", ""),
-                    category=category,
-                    probability=prob,
-                    probability_change=prob - prev,
-                    affected_asset=asset,
-                    signal_strength=strength,
-                    reasoning=(
-                        f"Bullish: '{event.get('question', '')}' probability "
-                        f"crossed {self.config.bullish_threshold:.0%} "
-                        f"(now {prob:.0%}, was {prev:.0%})"
-                    ),
-                    timestamp_ms=int(time.time() * 1000),
-                ))
+                signals.append(
+                    PredictionSignal(
+                        signal_id=str(uuid.uuid4()),
+                        signal_type=SignalType.PROBABILITY_THRESHOLD,
+                        source_event_id=event.get("event_id", ""),
+                        category=category,
+                        probability=prob,
+                        probability_change=prob - prev,
+                        affected_asset=asset,
+                        signal_strength=strength,
+                        reasoning=(
+                            f"Bullish: '{event.get('question', '')}' probability "
+                            f"crossed {self.config.bullish_threshold:.0%} "
+                            f"(now {prob:.0%}, was {prev:.0%})"
+                        ),
+                        timestamp_ms=int(time.time() * 1000),
+                    )
+                )
 
         # Bearish threshold crossing
-        if prob <= self.config.bearish_threshold and prev > self.config.bearish_threshold:
+        if (
+            prob <= self.config.bearish_threshold
+            and prev > self.config.bearish_threshold
+        ):
             for asset in affected_assets:
                 if asset not in self.target_symbols:
                     continue
                 strength = min(1.0, (self.config.bearish_threshold - prob) * 5 + 0.5)
-                signals.append(PredictionSignal(
-                    signal_id=str(uuid.uuid4()),
-                    signal_type=SignalType.PROBABILITY_THRESHOLD,
-                    source_event_id=event.get("event_id", ""),
-                    category=category,
-                    probability=prob,
-                    probability_change=prob - prev,
-                    affected_asset=asset,
-                    signal_strength=strength,
-                    reasoning=(
-                        f"Bearish: '{event.get('question', '')}' probability "
-                        f"dropped below {self.config.bearish_threshold:.0%} "
-                        f"(now {prob:.0%}, was {prev:.0%})"
-                    ),
-                    timestamp_ms=int(time.time() * 1000),
-                ))
+                signals.append(
+                    PredictionSignal(
+                        signal_id=str(uuid.uuid4()),
+                        signal_type=SignalType.PROBABILITY_THRESHOLD,
+                        source_event_id=event.get("event_id", ""),
+                        category=category,
+                        probability=prob,
+                        probability_change=prob - prev,
+                        affected_asset=asset,
+                        signal_strength=strength,
+                        reasoning=(
+                            f"Bearish: '{event.get('question', '')}' probability "
+                            f"dropped below {self.config.bearish_threshold:.0%} "
+                            f"(now {prob:.0%}, was {prev:.0%})"
+                        ),
+                        timestamp_ms=int(time.time() * 1000),
+                    )
+                )
 
         return signals
 
@@ -169,22 +182,24 @@ class PredictionMarketSignalGenerator:
             if asset not in self.target_symbols:
                 continue
             strength = min(1.0, change / self.config.spike_threshold * 0.5)
-            signals.append(PredictionSignal(
-                signal_id=str(uuid.uuid4()),
-                signal_type=SignalType.PROBABILITY_SPIKE,
-                source_event_id=event.get("event_id", ""),
-                category=category,
-                probability=prob,
-                probability_change=prob - prev,
-                affected_asset=asset,
-                signal_strength=strength,
-                reasoning=(
-                    f"Spike {direction}: '{event.get('question', '')}' "
-                    f"moved {change:.0%} "
-                    f"({prev:.0%} -> {prob:.0%})"
-                ),
-                timestamp_ms=int(time.time() * 1000),
-            ))
+            signals.append(
+                PredictionSignal(
+                    signal_id=str(uuid.uuid4()),
+                    signal_type=SignalType.PROBABILITY_SPIKE,
+                    source_event_id=event.get("event_id", ""),
+                    category=category,
+                    probability=prob,
+                    probability_change=prob - prev,
+                    affected_asset=asset,
+                    signal_strength=strength,
+                    reasoning=(
+                        f"Spike {direction}: '{event.get('question', '')}' "
+                        f"moved {change:.0%} "
+                        f"({prev:.0%} -> {prob:.0%})"
+                    ),
+                    timestamp_ms=int(time.time() * 1000),
+                )
+            )
 
         return signals
 
@@ -207,22 +222,26 @@ class PredictionMarketSignalGenerator:
         for asset in affected_assets:
             if asset not in self.target_symbols:
                 continue
-            strength = min(1.0, volume_ratio / (self.config.volume_anomaly_multiplier * 2))
-            signals.append(PredictionSignal(
-                signal_id=str(uuid.uuid4()),
-                signal_type=SignalType.VOLUME_ANOMALY,
-                source_event_id=event.get("event_id", ""),
-                category=category,
-                probability=event.get("probability", 0),
-                probability_change=0,
-                affected_asset=asset,
-                signal_strength=strength,
-                reasoning=(
-                    f"Volume anomaly: '{event.get('question', '')}' "
-                    f"volume {volume_ratio:.1f}x average"
-                ),
-                timestamp_ms=int(time.time() * 1000),
-            ))
+            strength = min(
+                1.0, volume_ratio / (self.config.volume_anomaly_multiplier * 2)
+            )
+            signals.append(
+                PredictionSignal(
+                    signal_id=str(uuid.uuid4()),
+                    signal_type=SignalType.VOLUME_ANOMALY,
+                    source_event_id=event.get("event_id", ""),
+                    category=category,
+                    probability=event.get("probability", 0),
+                    probability_change=0,
+                    affected_asset=asset,
+                    signal_strength=strength,
+                    reasoning=(
+                        f"Volume anomaly: '{event.get('question', '')}' "
+                        f"volume {volume_ratio:.1f}x average"
+                    ),
+                    timestamp_ms=int(time.time() * 1000),
+                )
+            )
 
         return signals
 
@@ -238,23 +257,25 @@ class PredictionMarketSignalGenerator:
             strength = 0.8 if confidence == "HIGH" else 1.0
             # Insider alerts on prediction markets generally affect all major crypto
             for asset in self.target_symbols:
-                signals.append(PredictionSignal(
-                    signal_id=str(uuid.uuid4()),
-                    signal_type=SignalType.INSIDER_ACTIVITY,
-                    source_event_id=alert.get("market_id", ""),
-                    category="insider",
-                    probability=alert.get("price", 0),
-                    probability_change=0,
-                    affected_asset=asset,
-                    signal_strength=strength,
-                    reasoning=(
-                        f"Insider activity ({confidence}): "
-                        f"Wallet {alert.get('wallet_address', 'unknown')[:10]}... "
-                        f"{alert.get('side', 'BUY')} ${alert.get('position_size', 0):,.0f} "
-                        f"on '{alert.get('market_question', '')}'"
-                    ),
-                    timestamp_ms=int(time.time() * 1000),
-                ))
+                signals.append(
+                    PredictionSignal(
+                        signal_id=str(uuid.uuid4()),
+                        signal_type=SignalType.INSIDER_ACTIVITY,
+                        source_event_id=alert.get("market_id", ""),
+                        category="insider",
+                        probability=alert.get("price", 0),
+                        probability_change=0,
+                        affected_asset=asset,
+                        signal_strength=strength,
+                        reasoning=(
+                            f"Insider activity ({confidence}): "
+                            f"Wallet {alert.get('wallet_address', 'unknown')[:10]}... "
+                            f"{alert.get('side', 'BUY')} ${alert.get('position_size', 0):,.0f} "
+                            f"on '{alert.get('market_question', '')}'"
+                        ),
+                        timestamp_ms=int(time.time() * 1000),
+                    )
+                )
 
         return signals
 

@@ -28,9 +28,13 @@ api_retry_params = dict(
 class PolymarketInsiderClient:
     """Client for fetching insider alerts from polymarket-insider-tracker."""
 
-    def __init__(self, base_url: str, request_timeout: float = 5.0,
-                 cache_ttl_seconds: int = 60,
-                 stale_cache_max_age_seconds: int = 300):
+    def __init__(
+        self,
+        base_url: str,
+        request_timeout: float = 5.0,
+        cache_ttl_seconds: int = 60,
+        stale_cache_max_age_seconds: int = 300,
+    ):
         self.base_url = base_url.rstrip("/")
         self.request_timeout = request_timeout
         self.cache_ttl_seconds = cache_ttl_seconds
@@ -60,8 +64,7 @@ class PolymarketInsiderClient:
         self._cache_timestamps[key] = time.time()
 
     @retry(**api_retry_params)
-    def get_recent_alerts(self, min_confidence: str = "HIGH",
-                          limit: int = 5) -> dict:
+    def get_recent_alerts(self, min_confidence: str = "HIGH", limit: int = 5) -> dict:
         """Fetch recent insider alerts.
 
         Args:
@@ -128,8 +131,9 @@ class PolymarketInsiderClient:
         self._set_cache(cache_key, data)
         return data
 
-    def get_recent_alerts_safe(self, min_confidence: str = "HIGH",
-                               limit: int = 5) -> dict:
+    def get_recent_alerts_safe(
+        self, min_confidence: str = "HIGH", limit: int = 5
+    ) -> dict:
         """Fetch alerts with graceful degradation.
 
         Returns cached data on failure, or empty result if no cache.

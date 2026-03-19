@@ -16,23 +16,25 @@ from absl import logging
 @dataclass
 class CorrelationRecord:
     """A single observation for correlation tracking."""
+
     event_id: str
     asset_symbol: str
-    probability_change: float   # Change in prediction market probability
-    price_change_pct: float     # Subsequent asset price change (%)
-    lag_hours: float            # Time between prediction and price observation
+    probability_change: float  # Change in prediction market probability
+    price_change_pct: float  # Subsequent asset price change (%)
+    lag_hours: float  # Time between prediction and price observation
     timestamp_ms: int
 
 
 @dataclass
 class CorrelationResult:
     """Computed correlation between prediction market and asset price."""
+
     event_category: str
     asset_symbol: str
-    correlation: float          # Pearson correlation coefficient
+    correlation: float  # Pearson correlation coefficient
     sample_count: int
     avg_lag_hours: float
-    signal_accuracy: float      # % of signals that predicted direction correctly
+    signal_accuracy: float  # % of signals that predicted direction correctly
     computed_at_ms: int
 
 
@@ -43,16 +45,23 @@ class CorrelationTracker:
     coefficients and signal accuracy metrics.
     """
 
-    def __init__(self, max_observations: int = 1000,
-                 observation_window_hours: float = 48.0):
+    def __init__(
+        self, max_observations: int = 1000, observation_window_hours: float = 48.0
+    ):
         self.max_observations = max_observations
         self.observation_window_hours = observation_window_hours
         # Keyed by (category, asset_symbol)
         self._observations: Dict[Tuple[str, str], List[CorrelationRecord]] = {}
 
-    def record_observation(self, event_id: str, category: str,
-                           asset_symbol: str, probability_change: float,
-                           price_change_pct: float, lag_hours: float):
+    def record_observation(
+        self,
+        event_id: str,
+        category: str,
+        asset_symbol: str,
+        probability_change: float,
+        price_change_pct: float,
+        lag_hours: float,
+    ):
         """Record a paired observation of prediction and price movement.
 
         Args:
@@ -67,21 +76,24 @@ class CorrelationTracker:
         if key not in self._observations:
             self._observations[key] = []
 
-        self._observations[key].append(CorrelationRecord(
-            event_id=event_id,
-            asset_symbol=asset_symbol,
-            probability_change=probability_change,
-            price_change_pct=price_change_pct,
-            lag_hours=lag_hours,
-            timestamp_ms=int(time.time() * 1000),
-        ))
+        self._observations[key].append(
+            CorrelationRecord(
+                event_id=event_id,
+                asset_symbol=asset_symbol,
+                probability_change=probability_change,
+                price_change_pct=price_change_pct,
+                lag_hours=lag_hours,
+                timestamp_ms=int(time.time() * 1000),
+            )
+        )
 
         # Trim to max observations
         if len(self._observations[key]) > self.max_observations:
-            self._observations[key] = self._observations[key][-self.max_observations:]
+            self._observations[key] = self._observations[key][-self.max_observations :]
 
-    def compute_correlation(self, category: str,
-                            asset_symbol: str) -> Optional[CorrelationResult]:
+    def compute_correlation(
+        self, category: str, asset_symbol: str
+    ) -> Optional[CorrelationResult]:
         """Compute Pearson correlation for a category-asset pair.
 
         Args:
@@ -117,14 +129,13 @@ class CorrelationTracker:
     def get_all_correlations(self) -> List[CorrelationResult]:
         """Compute correlations for all tracked category-asset pairs."""
         results = []
-        for (category, asset_symbol) in self._observations:
+        for category, asset_symbol in self._observations:
             result = self.compute_correlation(category, asset_symbol)
             if result is not None:
                 results.append(result)
         return sorted(results, key=lambda r: abs(r.correlation), reverse=True)
 
-    def get_signal_quality_score(self, category: str,
-                                  asset_symbol: str) -> float:
+    def get_signal_quality_score(self, category: str, asset_symbol: str) -> float:
         """Get a 0-1 quality score for signals of this type.
 
         Combines correlation strength and directional accuracy.
@@ -158,8 +169,9 @@ class CorrelationTracker:
         return numerator / (denom_x * denom_y)
 
     @staticmethod
-    def _compute_accuracy(prob_changes: List[float],
-                          price_changes: List[float]) -> float:
+    def _compute_accuracy(
+        prob_changes: List[float], price_changes: List[float]
+    ) -> float:
         """Compute directional accuracy: % of times probability change
         predicted the direction of price change."""
         correct = 0

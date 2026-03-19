@@ -35,8 +35,7 @@ flags.DEFINE_string(
 )
 flags.DEFINE_string(
     "kalshi_base_url",
-    os.getenv("KALSHI_BASE_URL",
-              "https://api.elections.kalshi.com/trade-api/v2"),
+    os.getenv("KALSHI_BASE_URL", "https://api.elections.kalshi.com/trade-api/v2"),
     "Base URL for Kalshi API.",
 )
 flags.DEFINE_boolean(
@@ -113,8 +112,9 @@ def _build_kalshi_client():
     )
 
 
-def _run_check(polymarket_client, kalshi_client, signal_gen,
-               insider_detector, correlation_tracker):
+def _run_check(
+    polymarket_client, kalshi_client, signal_gen, insider_detector, correlation_tracker
+):
     """Run one prediction market alpha check cycle."""
     events = []
     insider_alerts = []
@@ -129,28 +129,30 @@ def _run_check(polymarket_client, kalshi_client, signal_gen,
                 freshness = "CACHED"
             elif result.get("unavailable"):
                 freshness = "UNAVAILABLE"
-            logging.info(
-                f"Kalshi: {freshness}, {len(kalshi_markets)} markets")
+            logging.info(f"Kalshi: {freshness}, {len(kalshi_markets)} markets")
 
             # Convert Kalshi markets to events for signal generation
             for m in kalshi_markets:
-                events.append({
-                    "event_id": m.get("ticker", ""),
-                    "source": "kalshi",
-                    "question": m.get("title", m.get("subtitle", "")),
-                    "category": _categorize_kalshi_market(m),
-                    "probability": m.get("yes_price", 0),
-                    "previous_probability": m.get("previous_yes_price", 0),
-                    "volume": m.get("volume", 0),
-                    "avg_volume": m.get("volume_24h", 0),
-                })
+                events.append(
+                    {
+                        "event_id": m.get("ticker", ""),
+                        "source": "kalshi",
+                        "question": m.get("title", m.get("subtitle", "")),
+                        "category": _categorize_kalshi_market(m),
+                        "probability": m.get("yes_price", 0),
+                        "previous_probability": m.get("previous_yes_price", 0),
+                        "volume": m.get("volume", 0),
+                        "avg_volume": m.get("volume_24h", 0),
+                    }
+                )
 
             # Check for insider-like activity via anomaly detection
             anomalies = insider_detector.analyze_markets(kalshi_markets)
             for a in anomalies:
                 logging.info(
                     f"Anomaly detected: {a.anomaly_type} on {a.market_id} "
-                    f"({a.severity})")
+                    f"({a.severity})"
+                )
         except Exception as e:
             logging.error(f"Kalshi fetch failed: {e}")
 
@@ -164,8 +166,7 @@ def _run_check(polymarket_client, kalshi_client, signal_gen,
                 freshness = "CACHED"
             elif alert_result.get("unavailable"):
                 freshness = "UNAVAILABLE"
-            logging.info(
-                f"Polymarket: {freshness}, {len(insider_alerts)} alerts")
+            logging.info(f"Polymarket: {freshness}, {len(insider_alerts)} alerts")
         except Exception as e:
             logging.error(f"Polymarket fetch failed: {e}")
 
@@ -174,7 +175,8 @@ def _run_check(polymarket_client, kalshi_client, signal_gen,
     for s in signals:
         logging.info(
             f"Signal: {s.signal_type.value} | {s.affected_asset} | "
-            f"strength={s.signal_strength:.2f} | {s.reasoning}")
+            f"strength={s.signal_strength:.2f} | {s.reasoning}"
+        )
 
     return signals
 
@@ -225,16 +227,25 @@ def main(argv):
 
     if FLAGS.run_mode == "dry":
         logging.info("Dry run: executing single check cycle.")
-        _run_check(polymarket_client, kalshi_client, signal_gen,
-                    insider_detector, correlation_tracker)
+        _run_check(
+            polymarket_client,
+            kalshi_client,
+            signal_gen,
+            insider_detector,
+            correlation_tracker,
+        )
         logging.info("Dry run complete.")
     else:
-        logging.info(
-            f"Starting poll loop (interval={FLAGS.poll_interval_seconds}s)")
+        logging.info(f"Starting poll loop (interval={FLAGS.poll_interval_seconds}s)")
         while not _shutdown:
             try:
-                _run_check(polymarket_client, kalshi_client, signal_gen,
-                           insider_detector, correlation_tracker)
+                _run_check(
+                    polymarket_client,
+                    kalshi_client,
+                    signal_gen,
+                    insider_detector,
+                    correlation_tracker,
+                )
             except Exception as e:
                 logging.error(f"Check cycle failed: {e}")
             time.sleep(FLAGS.poll_interval_seconds)
