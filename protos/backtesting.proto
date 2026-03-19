@@ -23,6 +23,12 @@ service BacktestingService {
 
   // Run walk-forward validation to detect overfitting
   rpc RunWalkForwardValidation(WalkForwardRequest) returns (WalkForwardResult);
+
+  // Run Monte Carlo simulation to estimate strategy robustness
+  rpc RunMonteCarloSimulation(MonteCarloRequest) returns (MonteCarloResult);
+
+  // Run portfolio-level backtest with multiple strategies
+  rpc RunPortfolioBacktest(PortfolioBacktestRequest) returns (PortfolioBacktestResult);
 }
 
 // The universal backtest request: includes candle data, strategy type,
@@ -168,4 +174,129 @@ message WalkForwardResult {
 
   // Return degradation: 1 - (OOS Return / IS Return)
   double return_degradation = 11;
+}
+
+// =========================
+//    Monte Carlo Simulation
+// =========================
+
+// Request for Monte Carlo simulation
+message MonteCarloRequest {
+  // Strategy to simulate
+  strategies.Strategy strategy = 1;
+
+  // Historical candle data
+  repeated marketdata.Candle candles = 2;
+
+  // Number of simulation iterations (default: 1000)
+  int32 num_simulations = 3;
+
+  // Confidence level for percentile metrics (default: 0.95)
+  double confidence_level = 4;
+
+  // Random seed for reproducibility (0 = random)
+  int64 random_seed = 5;
+}
+
+// Result from Monte Carlo simulation
+message MonteCarloResult {
+  // Original (actual) backtest result
+  BacktestResult original_result = 1;
+
+  // Median metrics across all simulations
+  BacktestResult median_result = 2;
+
+  // Percentile metrics at confidence level (e.g., 5th percentile at 95% confidence)
+  BacktestResult worst_case_result = 3;
+
+  // Percentile metrics at 1 - confidence level (e.g., 95th percentile)
+  BacktestResult best_case_result = 4;
+
+  // Number of simulations run
+  int32 num_simulations = 5;
+
+  // Confidence level used
+  double confidence_level = 6;
+
+  // Probability of profit (fraction of simulations with positive return)
+  double probability_of_profit = 7;
+
+  // Expected max drawdown at confidence level
+  double expected_max_drawdown = 8;
+
+  // Expected Sharpe ratio (mean across simulations)
+  double expected_sharpe = 9;
+
+  // Standard deviation of Sharpe across simulations
+  double sharpe_std_dev = 10;
+
+  // Distribution of cumulative returns (histogram buckets)
+  repeated double return_distribution = 11;
+
+  // Distribution of max drawdowns
+  repeated double drawdown_distribution = 12;
+}
+
+// =========================
+//    Portfolio Backtesting
+// =========================
+
+// Capital allocation for a strategy within a portfolio
+message StrategyAllocation {
+  // Strategy to run
+  strategies.Strategy strategy = 1;
+
+  // Weight of capital allocated (0.0 to 1.0, all weights must sum to 1.0)
+  double weight = 2;
+}
+
+// Request for portfolio-level backtest
+message PortfolioBacktestRequest {
+  // Historical candle data
+  repeated marketdata.Candle candles = 1;
+
+  // Strategies with capital allocation weights
+  repeated StrategyAllocation allocations = 2;
+
+  // Initial portfolio capital (default: 10000)
+  double initial_capital = 3;
+
+  // Rebalance frequency in bars (0 = no rebalancing)
+  int32 rebalance_frequency_bars = 4;
+}
+
+// Per-strategy result within a portfolio
+message StrategyResult {
+  // Strategy name
+  string strategy_name = 1;
+
+  // Capital weight allocated
+  double weight = 2;
+
+  // Individual backtest result
+  BacktestResult result = 3;
+
+  // Contribution to portfolio return (weight * strategy return)
+  double return_contribution = 4;
+
+  // Contribution to portfolio risk
+  double risk_contribution = 5;
+}
+
+// Result from portfolio-level backtest
+message PortfolioBacktestResult {
+  // Aggregate portfolio metrics
+  BacktestResult portfolio_result = 1;
+
+  // Per-strategy results
+  repeated StrategyResult strategy_results = 2;
+
+  // Correlation matrix between strategy returns (flattened row-major)
+  repeated double correlation_matrix = 3;
+
+  // Number of strategies in portfolio
+  int32 num_strategies = 4;
+
+  // Portfolio diversification ratio
+  double diversification_ratio = 5;
 }
