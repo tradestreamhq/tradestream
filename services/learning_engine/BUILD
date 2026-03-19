@@ -16,14 +16,78 @@ py_library(
     ],
 )
 
+py_library(
+    name = "regime_detector_lib",
+    srcs = ["regime_detector.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "performance_tracker_lib",
+    srcs = ["performance_tracker.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "weight_optimizer_lib",
+    srcs = ["weight_optimizer.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "parameter_adapter_lib",
+    srcs = ["parameter_adapter.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "regime_alerter_lib",
+    srcs = ["regime_alerter.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "dashboard_provider_lib",
+    srcs = ["dashboard_provider.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "ab_testing_lib",
+    srcs = ["ab_testing.py"],
+    deps = [
+        "//third_party/python:absl_py",
+    ],
+)
+
 py_binary(
     name = "app",
     srcs = ["main.py"],
     main = "main.py",
     deps = [
+        ":ab_testing_lib",
+        ":dashboard_provider_lib",
         ":engine_lib",
+        ":parameter_adapter_lib",
+        ":performance_tracker_lib",
+        ":regime_alerter_lib",
+        ":regime_detector_lib",
+        ":weight_optimizer_lib",
         "//services/shared:structured_logger",
         "//third_party/python:absl_py",
+        "//third_party/python:psycopg2_binary",
     ],
 )
 
@@ -33,6 +97,66 @@ py_test(
     args = [],
     deps = [
         ":engine_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "regime_detector_test",
+    srcs = ["regime_detector_test.py"],
+    args = [],
+    deps = [
+        ":regime_detector_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "performance_tracker_test",
+    srcs = ["performance_tracker_test.py"],
+    args = [],
+    deps = [
+        ":performance_tracker_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "weight_optimizer_test",
+    srcs = ["weight_optimizer_test.py"],
+    args = [],
+    deps = [
+        ":weight_optimizer_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "parameter_adapter_test",
+    srcs = ["parameter_adapter_test.py"],
+    args = [],
+    deps = [
+        ":parameter_adapter_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "regime_alerter_test",
+    srcs = ["regime_alerter_test.py"],
+    args = [],
+    deps = [
+        ":regime_alerter_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "ab_testing_test",
+    srcs = ["ab_testing_test.py"],
+    args = [],
+    deps = [
+        ":ab_testing_lib",
         "//third_party/python:pytest",
     ],
 )
