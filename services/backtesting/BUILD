@@ -38,10 +38,53 @@ py_library(
 )
 
 py_library(
+    name = "walk_forward_lib",
+    srcs = ["walk_forward.py"],
+    deps = [
+        ":vectorbt_runner_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+    ],
+)
+
+py_library(
+    name = "monte_carlo_lib",
+    srcs = ["monte_carlo.py"],
+    deps = [
+        ":vectorbt_runner_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:vectorbt",
+    ],
+)
+
+py_library(
+    name = "portfolio_backtest_lib",
+    srcs = ["portfolio_backtest.py"],
+    deps = [
+        ":vectorbt_runner_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:vectorbt",
+    ],
+)
+
+py_library(
+    name = "results_comparison_lib",
+    srcs = ["results_comparison.py"],
+    deps = [
+        ":vectorbt_runner_lib",
+    ],
+)
+
+py_library(
     name = "backtesting_service_lib",
     srcs = ["backtesting_service.py"],
     deps = [
+        ":monte_carlo_lib",
+        ":portfolio_backtest_lib",
         ":vectorbt_runner_lib",
+        ":walk_forward_lib",
         "//protos:backtesting_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
@@ -97,6 +140,59 @@ py_test(
     deps = [
         ":backtesting_service_lib",
         "//third_party/python:grpcio",
+    ],
+)
+
+py_test(
+    name = "test_walk_forward",
+    size = "medium",
+    srcs = ["tests/test_walk_forward.py"],
+    deps = [
+        ":vectorbt_runner_lib",
+        ":walk_forward_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:pytest",
+        "//third_party/python:vectorbt",
+    ],
+)
+
+py_test(
+    name = "test_monte_carlo",
+    size = "medium",
+    srcs = ["tests/test_monte_carlo.py"],
+    deps = [
+        ":monte_carlo_lib",
+        ":vectorbt_runner_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:pytest",
+        "//third_party/python:vectorbt",
+    ],
+)
+
+py_test(
+    name = "test_portfolio_backtest",
+    size = "medium",
+    srcs = ["tests/test_portfolio_backtest.py"],
+    deps = [
+        ":portfolio_backtest_lib",
+        ":vectorbt_runner_lib",
+        "//third_party/python:numpy",
+        "//third_party/python:pandas",
+        "//third_party/python:pytest",
+        "//third_party/python:vectorbt",
+    ],
+)
+
+py_test(
+    name = "test_results_comparison",
+    size = "small",
+    srcs = ["tests/test_results_comparison.py"],
+    deps = [
+        ":results_comparison_lib",
+        ":vectorbt_runner_lib",
+        "//third_party/python:pytest",
     ],
 )
 
