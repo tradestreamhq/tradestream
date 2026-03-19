@@ -8,6 +8,7 @@ backtesting, and publishing to the marketplace.
 
 import json
 import logging
+import statistics
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
@@ -1174,8 +1175,6 @@ def _run_simple_backtest(
     win_rate = wins / total_trades if total_trades > 0 else 0
 
     # Sharpe ratio approximation
-    import statistics
-
     avg_pnl = statistics.mean(pnls) if pnls else 0
     std_pnl = statistics.stdev(pnls) if len(pnls) > 1 else 1
     sharpe = (avg_pnl / std_pnl) if std_pnl > 0 else 0
