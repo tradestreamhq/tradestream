@@ -45,8 +45,14 @@ INDICATOR_CATALOG = [
         "description": "Measures speed and magnitude of price changes",
         "inputs": ["close"],
         "params": [
-            {"name": "period", "type": "integer", "default": 14, "min": 2, "max": 200,
-             "description": "Lookback period"},
+            {
+                "name": "period",
+                "type": "integer",
+                "default": 14,
+                "min": 2,
+                "max": 200,
+                "description": "Lookback period",
+            },
         ],
         "outputs": ["value"],
     },
@@ -57,12 +63,30 @@ INDICATOR_CATALOG = [
         "description": "Moving Average Convergence Divergence",
         "inputs": ["close"],
         "params": [
-            {"name": "shortPeriod", "type": "integer", "default": 12, "min": 2, "max": 100,
-             "description": "Short EMA period"},
-            {"name": "longPeriod", "type": "integer", "default": 26, "min": 2, "max": 200,
-             "description": "Long EMA period"},
-            {"name": "signalPeriod", "type": "integer", "default": 9, "min": 2, "max": 50,
-             "description": "Signal line period"},
+            {
+                "name": "shortPeriod",
+                "type": "integer",
+                "default": 12,
+                "min": 2,
+                "max": 100,
+                "description": "Short EMA period",
+            },
+            {
+                "name": "longPeriod",
+                "type": "integer",
+                "default": 26,
+                "min": 2,
+                "max": 200,
+                "description": "Long EMA period",
+            },
+            {
+                "name": "signalPeriod",
+                "type": "integer",
+                "default": 9,
+                "min": 2,
+                "max": 50,
+                "description": "Signal line period",
+            },
         ],
         "outputs": ["macd_line", "signal_line", "histogram"],
     },
@@ -73,8 +97,14 @@ INDICATOR_CATALOG = [
         "description": "Average closing price over a period",
         "inputs": ["close"],
         "params": [
-            {"name": "period", "type": "integer", "default": 20, "min": 2, "max": 500,
-             "description": "Lookback period"},
+            {
+                "name": "period",
+                "type": "integer",
+                "default": 20,
+                "min": 2,
+                "max": 500,
+                "description": "Lookback period",
+            },
         ],
         "outputs": ["value"],
     },
@@ -85,8 +115,14 @@ INDICATOR_CATALOG = [
         "description": "Weighted moving average favoring recent prices",
         "inputs": ["close"],
         "params": [
-            {"name": "period", "type": "integer", "default": 20, "min": 2, "max": 500,
-             "description": "Lookback period"},
+            {
+                "name": "period",
+                "type": "integer",
+                "default": 20,
+                "min": 2,
+                "max": 500,
+                "description": "Lookback period",
+            },
         ],
         "outputs": ["value"],
     },
@@ -97,10 +133,22 @@ INDICATOR_CATALOG = [
         "description": "Volatility bands around a moving average",
         "inputs": ["close"],
         "params": [
-            {"name": "period", "type": "integer", "default": 20, "min": 2, "max": 200,
-             "description": "Moving average period"},
-            {"name": "stdDev", "type": "double", "default": 2.0, "min": 0.5, "max": 5.0,
-             "description": "Standard deviation multiplier"},
+            {
+                "name": "period",
+                "type": "integer",
+                "default": 20,
+                "min": 2,
+                "max": 200,
+                "description": "Moving average period",
+            },
+            {
+                "name": "stdDev",
+                "type": "double",
+                "default": 2.0,
+                "min": 0.5,
+                "max": 5.0,
+                "description": "Standard deviation multiplier",
+            },
         ],
         "outputs": ["upper", "middle", "lower"],
     },
@@ -111,8 +159,14 @@ INDICATOR_CATALOG = [
         "description": "Measures market volatility",
         "inputs": ["high", "low", "close"],
         "params": [
-            {"name": "period", "type": "integer", "default": 14, "min": 2, "max": 200,
-             "description": "Lookback period"},
+            {
+                "name": "period",
+                "type": "integer",
+                "default": 14,
+                "min": 2,
+                "max": 200,
+                "description": "Lookback period",
+            },
         ],
         "outputs": ["value"],
     },
@@ -123,10 +177,22 @@ INDICATOR_CATALOG = [
         "description": "Compares closing price to price range over a period",
         "inputs": ["high", "low", "close"],
         "params": [
-            {"name": "kPeriod", "type": "integer", "default": 14, "min": 2, "max": 200,
-             "description": "%K period"},
-            {"name": "dPeriod", "type": "integer", "default": 3, "min": 2, "max": 50,
-             "description": "%D smoothing period"},
+            {
+                "name": "kPeriod",
+                "type": "integer",
+                "default": 14,
+                "min": 2,
+                "max": 200,
+                "description": "%K period",
+            },
+            {
+                "name": "dPeriod",
+                "type": "integer",
+                "default": 3,
+                "min": 2,
+                "max": 50,
+                "description": "%D smoothing period",
+            },
         ],
         "outputs": ["k", "d"],
     },
@@ -137,8 +203,14 @@ INDICATOR_CATALOG = [
         "description": "Measures trend strength",
         "inputs": ["high", "low", "close"],
         "params": [
-            {"name": "period", "type": "integer", "default": 14, "min": 2, "max": 200,
-             "description": "Lookback period"},
+            {
+                "name": "period",
+                "type": "integer",
+                "default": 14,
+                "min": 2,
+                "max": 200,
+                "description": "Lookback period",
+            },
         ],
         "outputs": ["value", "plus_di", "minus_di"],
     },
@@ -149,8 +221,14 @@ INDICATOR_CATALOG = [
         "description": "Measures deviation from statistical mean",
         "inputs": ["high", "low", "close"],
         "params": [
-            {"name": "period", "type": "integer", "default": 20, "min": 2, "max": 200,
-             "description": "Lookback period"},
+            {
+                "name": "period",
+                "type": "integer",
+                "default": 20,
+                "min": 2,
+                "max": 200,
+                "description": "Lookback period",
+            },
         ],
         "outputs": ["value"],
     },
@@ -179,12 +257,30 @@ INDICATOR_CATALOG = [
         "description": "Multi-component trend indicator",
         "inputs": ["high", "low", "close"],
         "params": [
-            {"name": "tenkanPeriod", "type": "integer", "default": 9, "min": 2, "max": 100,
-             "description": "Tenkan-sen (conversion line) period"},
-            {"name": "kijunPeriod", "type": "integer", "default": 26, "min": 2, "max": 200,
-             "description": "Kijun-sen (base line) period"},
-            {"name": "senkouBPeriod", "type": "integer", "default": 52, "min": 2, "max": 500,
-             "description": "Senkou Span B period"},
+            {
+                "name": "tenkanPeriod",
+                "type": "integer",
+                "default": 9,
+                "min": 2,
+                "max": 100,
+                "description": "Tenkan-sen (conversion line) period",
+            },
+            {
+                "name": "kijunPeriod",
+                "type": "integer",
+                "default": 26,
+                "min": 2,
+                "max": 200,
+                "description": "Kijun-sen (base line) period",
+            },
+            {
+                "name": "senkouBPeriod",
+                "type": "integer",
+                "default": 52,
+                "min": 2,
+                "max": 500,
+                "description": "Senkou Span B period",
+            },
         ],
         "outputs": ["tenkan", "kijun", "senkou_a", "senkou_b", "chikou"],
     },
@@ -195,10 +291,22 @@ INDICATOR_CATALOG = [
         "description": "Stop and reverse indicator",
         "inputs": ["high", "low"],
         "params": [
-            {"name": "accelerationFactor", "type": "double", "default": 0.02, "min": 0.001, "max": 0.5,
-             "description": "Acceleration factor"},
-            {"name": "maxAcceleration", "type": "double", "default": 0.2, "min": 0.01, "max": 1.0,
-             "description": "Max acceleration"},
+            {
+                "name": "accelerationFactor",
+                "type": "double",
+                "default": 0.02,
+                "min": 0.001,
+                "max": 0.5,
+                "description": "Acceleration factor",
+            },
+            {
+                "name": "maxAcceleration",
+                "type": "double",
+                "default": 0.2,
+                "min": 0.01,
+                "max": 1.0,
+                "description": "Max acceleration",
+            },
         ],
         "outputs": ["value"],
     },
@@ -209,8 +317,14 @@ INDICATOR_CATALOG = [
         "description": "A fixed numeric threshold for comparisons",
         "inputs": [],
         "params": [
-            {"name": "value", "type": "double", "default": 0, "min": -99999, "max": 99999,
-             "description": "Constant value"},
+            {
+                "name": "value",
+                "type": "double",
+                "default": 0,
+                "min": -99999,
+                "max": 99999,
+                "description": "Constant value",
+            },
         ],
         "outputs": ["value"],
     },
@@ -220,22 +334,54 @@ INDICATOR_TYPE_SET = frozenset(ind["type"] for ind in INDICATOR_CATALOG)
 
 # Condition types that map to Ta4j rules
 CONDITION_TYPES = [
-    {"type": "CrossedUp", "description": "Indicator crosses above reference",
-     "requires": ["indicator", "reference"], "category": "crossover"},
-    {"type": "CrossedDown", "description": "Indicator crosses below reference",
-     "requires": ["indicator", "reference"], "category": "crossover"},
-    {"type": "OverIndicator", "description": "Indicator is above reference",
-     "requires": ["indicator", "reference"], "category": "comparison"},
-    {"type": "UnderIndicator", "description": "Indicator is below reference",
-     "requires": ["indicator", "reference"], "category": "comparison"},
-    {"type": "IsRising", "description": "Indicator is rising over N bars",
-     "requires": ["indicator", "bars"], "category": "trend"},
-    {"type": "IsFalling", "description": "Indicator is falling over N bars",
-     "requires": ["indicator", "bars"], "category": "trend"},
-    {"type": "And", "description": "Both conditions must be true",
-     "requires": ["left", "right"], "category": "logical"},
-    {"type": "Or", "description": "Either condition must be true",
-     "requires": ["left", "right"], "category": "logical"},
+    {
+        "type": "CrossedUp",
+        "description": "Indicator crosses above reference",
+        "requires": ["indicator", "reference"],
+        "category": "crossover",
+    },
+    {
+        "type": "CrossedDown",
+        "description": "Indicator crosses below reference",
+        "requires": ["indicator", "reference"],
+        "category": "crossover",
+    },
+    {
+        "type": "OverIndicator",
+        "description": "Indicator is above reference",
+        "requires": ["indicator", "reference"],
+        "category": "comparison",
+    },
+    {
+        "type": "UnderIndicator",
+        "description": "Indicator is below reference",
+        "requires": ["indicator", "reference"],
+        "category": "comparison",
+    },
+    {
+        "type": "IsRising",
+        "description": "Indicator is rising over N bars",
+        "requires": ["indicator", "bars"],
+        "category": "trend",
+    },
+    {
+        "type": "IsFalling",
+        "description": "Indicator is falling over N bars",
+        "requires": ["indicator", "bars"],
+        "category": "trend",
+    },
+    {
+        "type": "And",
+        "description": "Both conditions must be true",
+        "requires": ["left", "right"],
+        "category": "logical",
+    },
+    {
+        "type": "Or",
+        "description": "Either condition must be true",
+        "requires": ["left", "right"],
+        "category": "logical",
+    },
 ]
 
 CONDITION_TYPE_SET = frozenset(c["type"] for c in CONDITION_TYPES)
@@ -250,7 +396,9 @@ class IndicatorConfigDTO(BaseModel):
     id: str = Field(..., description="Unique identifier for this indicator instance")
     type: str = Field(..., description="Indicator type (RSI, MACD, SMA, etc.)")
     input: str = Field("close", description="Price input (close, high, low, volume)")
-    params: Dict[str, Any] = Field(default_factory=dict, description="Indicator parameters")
+    params: Dict[str, Any] = Field(
+        default_factory=dict, description="Indicator parameters"
+    )
 
     @validator("type")
     def validate_type(cls, v):
@@ -263,9 +411,13 @@ class IndicatorConfigDTO(BaseModel):
 
 
 class ConditionConfigDTO(BaseModel):
-    type: str = Field(..., description="Condition type (CrossedUp, OverIndicator, etc.)")
+    type: str = Field(
+        ..., description="Condition type (CrossedUp, OverIndicator, etc.)"
+    )
     indicator: Optional[str] = Field(None, description="Reference to an indicator id")
-    params: Dict[str, Any] = Field(default_factory=dict, description="Condition parameters")
+    params: Dict[str, Any] = Field(
+        default_factory=dict, description="Condition parameters"
+    )
 
     @validator("type")
     def validate_type(cls, v):
@@ -328,37 +480,47 @@ def validate_strategy_config(config: StrategyConfigDTO) -> List[Dict[str, str]]:
     # Check indicator IDs are unique
     indicator_ids = [ind.id for ind in config.indicators]
     if len(indicator_ids) != len(set(indicator_ids)):
-        errors.append({"field": "indicators", "message": "Indicator IDs must be unique"})
+        errors.append(
+            {"field": "indicators", "message": "Indicator IDs must be unique"}
+        )
 
     indicator_id_set = set(indicator_ids)
 
     # Validate entry conditions reference valid indicators
     for i, cond in enumerate(config.entry_conditions):
         if cond.indicator and cond.indicator not in indicator_id_set:
-            errors.append({
-                "field": f"entry_conditions[{i}].indicator",
-                "message": f"References unknown indicator '{cond.indicator}'",
-            })
+            errors.append(
+                {
+                    "field": f"entry_conditions[{i}].indicator",
+                    "message": f"References unknown indicator '{cond.indicator}'",
+                }
+            )
         ref = cond.params.get("reference")
         if ref and isinstance(ref, str) and ref not in indicator_id_set:
-            errors.append({
-                "field": f"entry_conditions[{i}].params.reference",
-                "message": f"References unknown indicator '{ref}'",
-            })
+            errors.append(
+                {
+                    "field": f"entry_conditions[{i}].params.reference",
+                    "message": f"References unknown indicator '{ref}'",
+                }
+            )
 
     # Validate exit conditions reference valid indicators
     for i, cond in enumerate(config.exit_conditions):
         if cond.indicator and cond.indicator not in indicator_id_set:
-            errors.append({
-                "field": f"exit_conditions[{i}].indicator",
-                "message": f"References unknown indicator '{cond.indicator}'",
-            })
+            errors.append(
+                {
+                    "field": f"exit_conditions[{i}].indicator",
+                    "message": f"References unknown indicator '{cond.indicator}'",
+                }
+            )
         ref = cond.params.get("reference")
         if ref and isinstance(ref, str) and ref not in indicator_id_set:
-            errors.append({
-                "field": f"exit_conditions[{i}].params.reference",
-                "message": f"References unknown indicator '{ref}'",
-            })
+            errors.append(
+                {
+                    "field": f"exit_conditions[{i}].params.reference",
+                    "message": f"References unknown indicator '{ref}'",
+                }
+            )
 
     # Validate indicator params against catalog
     catalog_map = {ind["type"]: ind for ind in INDICATOR_CATALOG}
@@ -373,15 +535,19 @@ def validate_strategy_config(config: StrategyConfigDTO) -> List[Dict[str, str]]:
                 pmin = param_spec.get("min")
                 pmax = param_spec.get("max")
                 if pmin is not None and val < pmin:
-                    errors.append({
-                        "field": f"indicators[{i}].params.{pname}",
-                        "message": f"Value {val} below minimum {pmin}",
-                    })
+                    errors.append(
+                        {
+                            "field": f"indicators[{i}].params.{pname}",
+                            "message": f"Value {val} below minimum {pmin}",
+                        }
+                    )
                 if pmax is not None and val > pmax:
-                    errors.append({
-                        "field": f"indicators[{i}].params.{pname}",
-                        "message": f"Value {val} above maximum {pmax}",
-                    })
+                    errors.append(
+                        {
+                            "field": f"indicators[{i}].params.{pname}",
+                            "message": f"Value {val} above maximum {pmax}",
+                        }
+                    )
 
     return errors
 
@@ -397,8 +563,13 @@ def _strategy_row_to_dict(row) -> dict:
     for key in ("id", "user_id"):
         if key in item:
             item[key] = str(item[key])
-    for json_key in ("indicators", "entry_conditions", "exit_conditions", "tags",
-                      "backtest_results"):
+    for json_key in (
+        "indicators",
+        "entry_conditions",
+        "exit_conditions",
+        "tags",
+        "backtest_results",
+    ):
         if json_key in item and isinstance(item[json_key], str):
             item[json_key] = json.loads(item[json_key])
     for ts_key in ("created_at", "updated_at"):
@@ -458,14 +629,21 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     @palette_router.get("/conditions")
     async def list_conditions():
         """List available condition types."""
-        return collection_response(CONDITION_TYPES, "condition_spec", total=len(CONDITION_TYPES))
+        return collection_response(
+            CONDITION_TYPES, "condition_spec", total=len(CONDITION_TYPES)
+        )
 
     @palette_router.get("/categories")
     async def list_indicator_categories():
         """List indicator categories."""
         categories = sorted(set(ind["category"] for ind in INDICATOR_CATALOG))
-        items = [{"name": c, "count": sum(1 for i in INDICATOR_CATALOG if i["category"] == c)}
-                 for c in categories]
+        items = [
+            {
+                "name": c,
+                "count": sum(1 for i in INDICATOR_CATALOG if i["category"] == c),
+            }
+            for c in categories
+        ]
         return collection_response(items, "indicator_category", total=len(items))
 
     app.include_router(palette_router)
@@ -564,8 +742,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         items = [_strategy_row_to_dict(row) for row in rows]
         return collection_response(
-            items, "user_strategy", total=total,
-            limit=pagination.limit, offset=pagination.offset,
+            items,
+            "user_strategy",
+            total=total,
+            limit=pagination.limit,
+            offset=pagination.offset,
         )
 
     @strategy_router.get("/{strategy_id}")
@@ -662,7 +843,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             async with db_pool.acquire() as conn:
                 exists = await conn.fetchrow(
                     "SELECT version FROM user_strategies WHERE id = $1::uuid AND user_id = $2::uuid",
-                    strategy_id, x_user_id,
+                    strategy_id,
+                    x_user_id,
                 )
             if not exists:
                 return not_found("Strategy", strategy_id)
@@ -684,7 +866,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         async with db_pool.acquire() as conn:
             row = await conn.fetchrow(
                 "DELETE FROM user_strategies WHERE id = $1::uuid AND user_id = $2::uuid RETURNING id",
-                strategy_id, x_user_id,
+                strategy_id,
+                x_user_id,
             )
         if not row:
             return not_found("Strategy", strategy_id)
@@ -724,7 +907,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 """SELECT id, indicators, entry_conditions, exit_conditions
                    FROM user_strategies
                    WHERE id = $1::uuid AND user_id = $2::uuid""",
-                strategy_id, x_user_id,
+                strategy_id,
+                x_user_id,
             )
         if not row:
             return not_found("Strategy", strategy_id)
@@ -776,7 +960,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         # Compute simple backtest metrics from strategy signals
         candles = [dict(r) for r in candle_rows]
-        backtest_result = _run_simple_backtest(candles, indicators, entry_conditions, exit_conditions)
+        backtest_result = _run_simple_backtest(
+            candles, indicators, entry_conditions, exit_conditions
+        )
 
         # Store backtest results
         async with db_pool.acquire() as conn:
@@ -807,7 +993,8 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                           backtest_results, is_published
                    FROM user_strategies
                    WHERE id = $1::uuid AND user_id = $2::uuid""",
-                strategy_id, x_user_id,
+                strategy_id,
+                x_user_id,
             )
         if not row:
             return not_found("Strategy", strategy_id)
@@ -823,8 +1010,13 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         if backtest_results:
             performance_stats = {
                 k: backtest_results[k]
-                for k in ("total_return_pct", "sharpe_ratio", "win_rate",
-                          "max_drawdown_pct", "total_trades")
+                for k in (
+                    "total_return_pct",
+                    "sharpe_ratio",
+                    "win_rate",
+                    "max_drawdown_pct",
+                    "total_trades",
+                )
                 if k in backtest_results
             }
 
@@ -946,12 +1138,20 @@ def _run_simple_backtest(
         elif exits[i] and in_position:
             in_position = False
             pnl_pct = ((closes[i] - entry_price) / entry_price) * 100
-            trades.append({"entry_price": entry_price, "exit_price": closes[i], "pnl_pct": pnl_pct})
+            trades.append(
+                {
+                    "entry_price": entry_price,
+                    "exit_price": closes[i],
+                    "pnl_pct": pnl_pct,
+                }
+            )
 
     # Close open position at end
     if in_position:
         pnl_pct = ((closes[-1] - entry_price) / entry_price) * 100
-        trades.append({"entry_price": entry_price, "exit_price": closes[-1], "pnl_pct": pnl_pct})
+        trades.append(
+            {"entry_price": entry_price, "exit_price": closes[-1], "pnl_pct": pnl_pct}
+        )
 
     # Compute metrics
     total_trades = len(trades)
@@ -963,7 +1163,9 @@ def _run_simple_backtest(
             "max_drawdown_pct": 0.0,
             "total_trades": 0,
             "candles_analyzed": n,
-            "symbol": candles[0].get("currency_pair", "unknown") if candles else "unknown",
+            "symbol": (
+                candles[0].get("currency_pair", "unknown") if candles else "unknown"
+            ),
         }
 
     pnls = [t["pnl_pct"] for t in trades]
@@ -973,6 +1175,7 @@ def _run_simple_backtest(
 
     # Sharpe ratio approximation
     import statistics
+
     avg_pnl = statistics.mean(pnls) if pnls else 0
     std_pnl = statistics.stdev(pnls) if len(pnls) > 1 else 1
     sharpe = (avg_pnl / std_pnl) if std_pnl > 0 else 0

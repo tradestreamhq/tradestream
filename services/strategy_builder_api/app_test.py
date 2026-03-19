@@ -58,13 +58,26 @@ def _valid_strategy_body():
         "category": "momentum",
         "indicators": [
             {"id": "rsi_1", "type": "RSI", "input": "close", "params": {"period": 14}},
-            {"id": "threshold_1", "type": "CONSTANT", "input": "close", "params": {"value": 30}},
+            {
+                "id": "threshold_1",
+                "type": "CONSTANT",
+                "input": "close",
+                "params": {"value": 30},
+            },
         ],
         "entry_conditions": [
-            {"type": "CrossedDown", "indicator": "rsi_1", "params": {"reference": "threshold_1"}},
+            {
+                "type": "CrossedDown",
+                "indicator": "rsi_1",
+                "params": {"reference": "threshold_1"},
+            },
         ],
         "exit_conditions": [
-            {"type": "CrossedUp", "indicator": "rsi_1", "params": {"reference": "threshold_1"}},
+            {
+                "type": "CrossedUp",
+                "indicator": "rsi_1",
+                "params": {"reference": "threshold_1"},
+            },
         ],
         "tags": ["rsi", "momentum"],
     }
@@ -77,15 +90,26 @@ def _fake_strategy_row(strategy_id=None, user_id=None):
         name="My RSI Strategy",
         description="Buy when RSI crosses below 30",
         category="momentum",
-        indicators=json.dumps([
-            {"id": "rsi_1", "type": "RSI", "input": "close", "params": {"period": 14}},
-        ]),
-        entry_conditions=json.dumps([
-            {"type": "CrossedDown", "indicator": "rsi_1", "params": {}},
-        ]),
-        exit_conditions=json.dumps([
-            {"type": "CrossedUp", "indicator": "rsi_1", "params": {}},
-        ]),
+        indicators=json.dumps(
+            [
+                {
+                    "id": "rsi_1",
+                    "type": "RSI",
+                    "input": "close",
+                    "params": {"period": 14},
+                },
+            ]
+        ),
+        entry_conditions=json.dumps(
+            [
+                {"type": "CrossedDown", "indicator": "rsi_1", "params": {}},
+            ]
+        ),
+        exit_conditions=json.dumps(
+            [
+                {"type": "CrossedUp", "indicator": "rsi_1", "params": {}},
+            ]
+        ),
         tags=json.dumps(["rsi", "momentum"]),
         version=1,
         is_published=False,
@@ -208,8 +232,18 @@ class TestCreateStrategy:
         tc, _ = client
         body = _valid_strategy_body()
         body["indicators"] = [
-            {"id": "same_id", "type": "RSI", "input": "close", "params": {"period": 14}},
-            {"id": "same_id", "type": "SMA", "input": "close", "params": {"period": 20}},
+            {
+                "id": "same_id",
+                "type": "RSI",
+                "input": "close",
+                "params": {"period": 14},
+            },
+            {
+                "id": "same_id",
+                "type": "SMA",
+                "input": "close",
+                "params": {"period": 20},
+            },
         ]
         resp = tc.post("/strategies", json=body, headers=HEADERS)
         assert resp.status_code == 422
@@ -390,11 +424,22 @@ class TestBacktest:
         strategy_id = uuid.uuid4()
         conn.fetchrow.return_value = FakeRecord(
             id=strategy_id,
-            indicators=json.dumps([
-                {"id": "sma_short", "type": "SMA", "input": "close", "params": {"period": 10}},
-            ]),
-            entry_conditions=json.dumps([{"type": "CrossedUp", "indicator": "sma_short", "params": {}}]),
-            exit_conditions=json.dumps([{"type": "CrossedDown", "indicator": "sma_short", "params": {}}]),
+            indicators=json.dumps(
+                [
+                    {
+                        "id": "sma_short",
+                        "type": "SMA",
+                        "input": "close",
+                        "params": {"period": 10},
+                    },
+                ]
+            ),
+            entry_conditions=json.dumps(
+                [{"type": "CrossedUp", "indicator": "sma_short", "params": {}}]
+            ),
+            exit_conditions=json.dumps(
+                [{"type": "CrossedDown", "indicator": "sma_short", "params": {}}]
+            ),
         )
         # Return enough candle data
         candle_rows = [
@@ -438,13 +483,32 @@ class TestBacktest:
         strategy_id = uuid.uuid4()
         conn.fetchrow.return_value = FakeRecord(
             id=strategy_id,
-            indicators=json.dumps([{"id": "rsi_1", "type": "RSI", "input": "close", "params": {"period": 14}}]),
-            entry_conditions=json.dumps([{"type": "CrossedDown", "indicator": "rsi_1", "params": {}}]),
-            exit_conditions=json.dumps([{"type": "CrossedUp", "indicator": "rsi_1", "params": {}}]),
+            indicators=json.dumps(
+                [
+                    {
+                        "id": "rsi_1",
+                        "type": "RSI",
+                        "input": "close",
+                        "params": {"period": 14},
+                    }
+                ]
+            ),
+            entry_conditions=json.dumps(
+                [{"type": "CrossedDown", "indicator": "rsi_1", "params": {}}]
+            ),
+            exit_conditions=json.dumps(
+                [{"type": "CrossedUp", "indicator": "rsi_1", "params": {}}]
+            ),
         )
         conn.fetch.return_value = [
-            FakeRecord(timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
-                       open=100, high=101, low=99, close=100, volume=1000)
+            FakeRecord(
+                timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                open=100,
+                high=101,
+                low=99,
+                close=100,
+                volume=1000,
+            )
         ] * 5  # Only 5 candles
 
         resp = tc.post(
@@ -474,7 +538,9 @@ class TestPublish:
                 description="Test",
                 category="momentum",
                 tags=json.dumps(["rsi"]),
-                backtest_results=json.dumps({"total_return_pct": 15.5, "sharpe_ratio": 1.2}),
+                backtest_results=json.dumps(
+                    {"total_return_pct": 15.5, "sharpe_ratio": 1.2}
+                ),
                 is_published=False,
             ),
             # Second call: insert listing
@@ -537,14 +603,24 @@ class TestValidateStrategyConfig:
         config = StrategyConfigDTO(
             name="Test",
             indicators=[
-                IndicatorConfigDTO(id="rsi_1", type="RSI", input="close", params={"period": 14}),
-                IndicatorConfigDTO(id="const_1", type="CONSTANT", input="close", params={"value": 30}),
+                IndicatorConfigDTO(
+                    id="rsi_1", type="RSI", input="close", params={"period": 14}
+                ),
+                IndicatorConfigDTO(
+                    id="const_1", type="CONSTANT", input="close", params={"value": 30}
+                ),
             ],
             entry_conditions=[
-                ConditionConfigDTO(type="CrossedDown", indicator="rsi_1", params={"reference": "const_1"}),
+                ConditionConfigDTO(
+                    type="CrossedDown",
+                    indicator="rsi_1",
+                    params={"reference": "const_1"},
+                ),
             ],
             exit_conditions=[
-                ConditionConfigDTO(type="CrossedUp", indicator="rsi_1", params={"reference": "const_1"}),
+                ConditionConfigDTO(
+                    type="CrossedUp", indicator="rsi_1", params={"reference": "const_1"}
+                ),
             ],
         )
         errors = validate_strategy_config(config)
@@ -557,8 +633,12 @@ class TestValidateStrategyConfig:
                 IndicatorConfigDTO(id="dup", type="RSI", input="close", params={}),
                 IndicatorConfigDTO(id="dup", type="SMA", input="close", params={}),
             ],
-            entry_conditions=[ConditionConfigDTO(type="CrossedUp", indicator="dup", params={})],
-            exit_conditions=[ConditionConfigDTO(type="CrossedDown", indicator="dup", params={})],
+            entry_conditions=[
+                ConditionConfigDTO(type="CrossedUp", indicator="dup", params={})
+            ],
+            exit_conditions=[
+                ConditionConfigDTO(type="CrossedDown", indicator="dup", params={})
+            ],
         )
         errors = validate_strategy_config(config)
         assert any("unique" in e["message"].lower() for e in errors)
@@ -570,7 +650,9 @@ class TestValidateStrategyConfig:
                 IndicatorConfigDTO(id="rsi_1", type="RSI", input="close", params={}),
             ],
             entry_conditions=[
-                ConditionConfigDTO(type="CrossedUp", indicator="nonexistent", params={}),
+                ConditionConfigDTO(
+                    type="CrossedUp", indicator="nonexistent", params={}
+                ),
             ],
             exit_conditions=[
                 ConditionConfigDTO(type="CrossedDown", indicator="rsi_1", params={}),
@@ -583,10 +665,16 @@ class TestValidateStrategyConfig:
         config = StrategyConfigDTO(
             name="Test",
             indicators=[
-                IndicatorConfigDTO(id="rsi_1", type="RSI", input="close", params={"period": 0}),
+                IndicatorConfigDTO(
+                    id="rsi_1", type="RSI", input="close", params={"period": 0}
+                ),
             ],
-            entry_conditions=[ConditionConfigDTO(type="CrossedUp", indicator="rsi_1", params={})],
-            exit_conditions=[ConditionConfigDTO(type="CrossedDown", indicator="rsi_1", params={})],
+            entry_conditions=[
+                ConditionConfigDTO(type="CrossedUp", indicator="rsi_1", params={})
+            ],
+            exit_conditions=[
+                ConditionConfigDTO(type="CrossedDown", indicator="rsi_1", params={})
+            ],
         )
         errors = validate_strategy_config(config)
         assert any("below minimum" in e["message"].lower() for e in errors)
@@ -595,10 +683,16 @@ class TestValidateStrategyConfig:
         config = StrategyConfigDTO(
             name="Test",
             indicators=[
-                IndicatorConfigDTO(id="rsi_1", type="RSI", input="close", params={"period": 999}),
+                IndicatorConfigDTO(
+                    id="rsi_1", type="RSI", input="close", params={"period": 999}
+                ),
             ],
-            entry_conditions=[ConditionConfigDTO(type="CrossedUp", indicator="rsi_1", params={})],
-            exit_conditions=[ConditionConfigDTO(type="CrossedDown", indicator="rsi_1", params={})],
+            entry_conditions=[
+                ConditionConfigDTO(type="CrossedUp", indicator="rsi_1", params={})
+            ],
+            exit_conditions=[
+                ConditionConfigDTO(type="CrossedDown", indicator="rsi_1", params={})
+            ],
         )
         errors = validate_strategy_config(config)
         assert any("above maximum" in e["message"].lower() for e in errors)
@@ -615,13 +709,15 @@ class TestSimpleBacktest:
         candles = []
         for i in range(100):
             price = 100 + (i if i < 50 else 100 - i)
-            candles.append({
-                "open": price - 0.5,
-                "high": price + 1,
-                "low": price - 1,
-                "close": price,
-                "volume": 1000,
-            })
+            candles.append(
+                {
+                    "open": price - 0.5,
+                    "high": price + 1,
+                    "low": price - 1,
+                    "close": price,
+                    "volume": 1000,
+                }
+            )
 
         indicators = [{"id": "sma_1", "type": "SMA", "params": {"period": 10}}]
         entry_conds = [{"type": "CrossedUp", "indicator": "sma_1", "params": {}}]
@@ -640,8 +736,10 @@ class TestSimpleBacktest:
         assert result.get("error") == "No candle data"
 
     def test_flat_market_no_trades(self):
-        candles = [{"open": 100, "high": 100, "low": 100, "close": 100, "volume": 1000}
-                   for _ in range(100)]
+        candles = [
+            {"open": 100, "high": 100, "low": 100, "close": 100, "volume": 1000}
+            for _ in range(100)
+        ]
         result = _run_simple_backtest(candles, [], [], [])
         assert result["total_trades"] == 0
         assert result["total_return_pct"] == 0.0
