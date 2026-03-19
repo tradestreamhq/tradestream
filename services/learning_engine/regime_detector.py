@@ -19,12 +19,12 @@ from absl import logging
 
 # Regime detection thresholds (tunable).
 REGIME_THRESHOLDS = {
-    "volatility_high": 0.03,     # annualized vol > 3% per period = high
-    "volatility_low": 0.01,      # annualized vol < 1% per period = low
-    "trend_strong": 0.6,         # ADX-like trend strength > 0.6 = trending
-    "trend_weak": 0.3,           # trend strength < 0.3 = no trend
-    "volume_surge": 1.5,         # volume > 1.5x average = elevated
-    "volume_quiet": 0.5,         # volume < 0.5x average = quiet
+    "volatility_high": 0.03,  # annualized vol > 3% per period = high
+    "volatility_low": 0.01,  # annualized vol < 1% per period = low
+    "trend_strong": 0.6,  # ADX-like trend strength > 0.6 = trending
+    "trend_weak": 0.3,  # trend strength < 0.3 = no trend
+    "volume_surge": 1.5,  # volume > 1.5x average = elevated
+    "volume_quiet": 0.5,  # volume < 0.5x average = quiet
 }
 
 
@@ -92,7 +92,9 @@ class RegimeDetector:
 
         logging.info(
             "Regime detected: %s (confidence=%.2f) for %s",
-            regime_type, confidence, instrument,
+            regime_type,
+            confidence,
+            instrument,
         )
         return result
 
@@ -102,8 +104,10 @@ class RegimeDetector:
 
         # High volatility without trend → volatile
         if volatility > t["volatility_high"] and trend_strength < t["trend_weak"]:
-            confidence = min(1.0, (volatility / t["volatility_high"]) * 0.5 +
-                           (1 - trend_strength) * 0.5)
+            confidence = min(
+                1.0,
+                (volatility / t["volatility_high"]) * 0.5 + (1 - trend_strength) * 0.5,
+            )
             return "volatile", confidence
 
         # Strong trend → trending_up or trending_down
@@ -116,8 +120,10 @@ class RegimeDetector:
 
         # Low volatility and low volume → quiet
         if volatility < t["volatility_low"] and volume_ratio < t["volume_quiet"]:
-            confidence = min(1.0, (1 - volatility / t["volatility_low"]) * 0.5 +
-                           (1 - volume_ratio) * 0.5)
+            confidence = min(
+                1.0,
+                (1 - volatility / t["volatility_low"]) * 0.5 + (1 - volume_ratio) * 0.5,
+            )
             return "quiet", confidence
 
         # Low volatility alone → quiet
@@ -126,9 +132,16 @@ class RegimeDetector:
             return "quiet", confidence * 0.7
 
         # Default: ranging
-        confidence = min(1.0, (1 - trend_strength / t["trend_strong"]) * 0.7 +
-                       (1 - abs(volatility - t["volatility_low"]) /
-                        (t["volatility_high"] - t["volatility_low"])) * 0.3)
+        confidence = min(
+            1.0,
+            (1 - trend_strength / t["trend_strong"]) * 0.7
+            + (
+                1
+                - abs(volatility - t["volatility_low"])
+                / (t["volatility_high"] - t["volatility_low"])
+            )
+            * 0.3,
+        )
         return "ranging", max(0.3, confidence)
 
     # ── Indicators ──────────────────────────────────────────────────────
@@ -137,8 +150,11 @@ class RegimeDetector:
         """Calculate rolling volatility as standard deviation of returns."""
         if len(closes) < 2:
             return 0.0
-        returns = [(closes[i] - closes[i - 1]) / closes[i - 1]
-                   for i in range(1, len(closes)) if closes[i - 1] != 0]
+        returns = [
+            (closes[i] - closes[i - 1]) / closes[i - 1]
+            for i in range(1, len(closes))
+            if closes[i - 1] != 0
+        ]
         if not returns:
             return 0.0
         mean_ret = sum(returns) / len(returns)
@@ -162,7 +178,7 @@ class RegimeDetector:
         ss_yy = sum((closes[i] - y_mean) ** 2 for i in range(n))
         if ss_xx == 0 or ss_yy == 0:
             return 0.0
-        r_squared = (ss_xy ** 2) / (ss_xx * ss_yy)
+        r_squared = (ss_xy**2) / (ss_xx * ss_yy)
         return min(1.0, r_squared)
 
     def _calculate_trend_direction(self, closes):

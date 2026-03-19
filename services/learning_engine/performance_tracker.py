@@ -41,7 +41,9 @@ class PerformanceTracker:
                 "max_drawdown": None,
             }
 
-        pnls = [float(t["pnl_percent"]) for t in trades if t.get("pnl_percent") is not None]
+        pnls = [
+            float(t["pnl_percent"]) for t in trades if t.get("pnl_percent") is not None
+        ]
         if not pnls:
             return {
                 "trade_count": len(trades),
@@ -106,8 +108,15 @@ class PerformanceTracker:
 
     # ── Per-Strategy-Per-Regime Tracking ────────────────────────────────
 
-    def track_strategy_performance(self, strategy_spec_id, regime_type,
-                                    instrument, trades, window_start, window_end):
+    def track_strategy_performance(
+        self,
+        strategy_spec_id,
+        regime_type,
+        instrument,
+        trades,
+        window_start,
+        window_end,
+    ):
         """Calculate and store performance metrics for a strategy in a regime.
 
         Args:
@@ -133,7 +142,8 @@ class PerformanceTracker:
 
         logging.info(
             "Tracked performance for strategy %s in %s regime: sharpe=%.2f, wr=%.1f%%",
-            strategy_spec_id, regime_type,
+            strategy_spec_id,
+            regime_type,
             metrics["sharpe_ratio"] or 0,
             (metrics["win_rate"] or 0) * 100,
         )
@@ -171,8 +181,9 @@ class PerformanceTracker:
 
     # ── Query Methods ───────────────────────────────────────────────────
 
-    def get_strategy_performance(self, strategy_spec_id, regime_type=None,
-                                  instrument=None, limit=10):
+    def get_strategy_performance(
+        self, strategy_spec_id, regime_type=None, instrument=None, limit=10
+    ):
         """Get recent performance records for a strategy."""
         if not self._conn:
             return []

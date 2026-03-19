@@ -75,8 +75,9 @@ class ParameterAdapter:
         self._conn = db_connection
         self._rules = rules or DEFAULT_ADAPTATION_RULES
 
-    def adapt_parameters(self, strategy_spec_id, original_parameters,
-                          regime_type, instrument):
+    def adapt_parameters(
+        self, strategy_spec_id, original_parameters, regime_type, instrument
+    ):
         """Adapt strategy parameters for the given regime.
 
         Args:
@@ -110,13 +111,15 @@ class ParameterAdapter:
                     original_val = float(param_value)
                     adapted_val = round(original_val * multiplier, 6)
                     adapted[param_key] = adapted_val
-                    rules_applied.append({
-                        "parameter": param_key,
-                        "original_value": original_val,
-                        "adapted_value": adapted_val,
-                        "multiplier": multiplier,
-                        "rule": multiplier_key,
-                    })
+                    rules_applied.append(
+                        {
+                            "parameter": param_key,
+                            "original_value": original_val,
+                            "adapted_value": adapted_val,
+                            "multiplier": multiplier,
+                            "rule": multiplier_key,
+                        }
+                    )
                 except (ValueError, TypeError):
                     pass
 
@@ -135,7 +138,9 @@ class ParameterAdapter:
 
         logging.info(
             "Adapted %d parameters for strategy %s in %s regime",
-            len(rules_applied), strategy_spec_id, regime_type,
+            len(rules_applied),
+            strategy_spec_id,
+            regime_type,
         )
         return result
 
@@ -212,8 +217,7 @@ class ParameterAdapter:
             )
         self._conn.commit()
 
-    def get_adaptation_history(self, strategy_spec_id=None, instrument=None,
-                               limit=20):
+    def get_adaptation_history(self, strategy_spec_id=None, instrument=None, limit=20):
         """Get adaptation history for dashboard display."""
         if not self._conn:
             return []

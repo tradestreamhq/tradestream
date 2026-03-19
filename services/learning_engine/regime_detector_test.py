@@ -21,8 +21,13 @@ def _make_candles(closes, highs=None, lows=None, volumes=None):
     if volumes is None:
         volumes = [1000.0] * n
     return [
-        {"open": closes[i], "high": highs[i], "low": lows[i],
-         "close": closes[i], "volume": volumes[i]}
+        {
+            "open": closes[i],
+            "high": highs[i],
+            "low": lows[i],
+            "close": closes[i],
+            "volume": volumes[i],
+        }
         for i in range(n)
     ]
 
@@ -57,6 +62,7 @@ class TestRegimeDetection:
     def test_volatile_market(self):
         # High volatility, no clear trend: large swings
         import random
+
         random.seed(42)
         base = 100
         closes = []
@@ -205,12 +211,14 @@ class TestRegimeStorage:
         conn.cursor.return_value.__exit__ = mock.Mock(return_value=False)
 
         detector = RegimeDetector(db_connection=conn)
-        result = detector.store_regime({
-            "instrument": "BTC-USD",
-            "regime_type": "trending_up",
-            "confidence": 0.85,
-            "indicators": {"volatility": 0.02},
-        })
+        result = detector.store_regime(
+            {
+                "instrument": "BTC-USD",
+                "regime_type": "trending_up",
+                "confidence": 0.85,
+                "indicators": {"volatility": 0.02},
+            }
+        )
 
         assert result is not None
         assert cur.execute.call_count == 2  # UPDATE + INSERT
@@ -218,8 +226,14 @@ class TestRegimeStorage:
 
     def test_store_without_connection(self):
         detector = RegimeDetector()
-        result = detector.store_regime({"instrument": "BTC-USD", "regime_type": "trending_up",
-                                        "confidence": 0.85, "indicators": {}})
+        result = detector.store_regime(
+            {
+                "instrument": "BTC-USD",
+                "regime_type": "trending_up",
+                "confidence": 0.85,
+                "indicators": {},
+            }
+        )
         assert result is None
 
     def test_get_current_regime_no_connection(self):

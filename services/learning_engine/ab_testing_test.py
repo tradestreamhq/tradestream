@@ -65,11 +65,20 @@ class TestCalculateImprovement:
         assert improvement == -0.5
 
     def test_none_values(self):
-        assert self.manager._calculate_improvement({"avg_pnl": None}, {"avg_pnl": 1.0}) is None
-        assert self.manager._calculate_improvement({"avg_pnl": 1.0}, {"avg_pnl": None}) is None
+        assert (
+            self.manager._calculate_improvement({"avg_pnl": None}, {"avg_pnl": 1.0})
+            is None
+        )
+        assert (
+            self.manager._calculate_improvement({"avg_pnl": 1.0}, {"avg_pnl": None})
+            is None
+        )
 
     def test_zero_control(self):
-        assert self.manager._calculate_improvement({"avg_pnl": 0.0}, {"avg_pnl": 1.0}) is None
+        assert (
+            self.manager._calculate_improvement({"avg_pnl": 0.0}, {"avg_pnl": 1.0})
+            is None
+        )
 
 
 class TestCheckSignificance:
@@ -125,8 +134,10 @@ class TestCreateExperiment:
     def test_create_without_db(self):
         manager = ABTestManager()
         exp = manager.create_experiment(
-            "spec-1", "BTC-USD",
-            {"stop_loss": 2.0}, {"stop_loss": 3.0},
+            "spec-1",
+            "BTC-USD",
+            {"stop_loss": 2.0},
+            {"stop_loss": 3.0},
             hypothesis="Wider stops improve volatile market performance",
         )
         assert exp["id"] is not None
@@ -140,8 +151,10 @@ class TestCreateExperiment:
 
         manager = ABTestManager(db_connection=conn)
         exp = manager.create_experiment(
-            "spec-1", "BTC-USD",
-            {"stop_loss": 2.0}, {"stop_loss": 3.0},
+            "spec-1",
+            "BTC-USD",
+            {"stop_loss": 2.0},
+            {"stop_loss": 3.0},
         )
         cur.execute.assert_called_once()
         conn.commit.assert_called_once()
@@ -160,8 +173,9 @@ class TestRecordObservation:
         conn.cursor.return_value.__exit__ = mock.Mock(return_value=False)
 
         manager = ABTestManager(db_connection=conn)
-        manager.record_observation("exp-1", "treatment", 3.5,
-                                    pnl_absolute=350, signal_type="BUY")
+        manager.record_observation(
+            "exp-1", "treatment", 3.5, pnl_absolute=350, signal_type="BUY"
+        )
         cur.execute.assert_called_once()
         conn.commit.assert_called_once()
 

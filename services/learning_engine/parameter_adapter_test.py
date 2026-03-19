@@ -22,9 +22,7 @@ class TestAdaptParameters:
             "lookback_period": 14,
             "other_param": "untouched",
         }
-        result = self.adapter.adapt_parameters(
-            "spec-1", params, "volatile", "BTC-USD"
-        )
+        result = self.adapter.adapt_parameters("spec-1", params, "volatile", "BTC-USD")
         adapted = result["adapted_parameters"]
 
         # Stop loss should be wider (multiplied by 1.5)
@@ -41,9 +39,7 @@ class TestAdaptParameters:
 
     def test_quiet_regime_tightens_stops(self):
         params = {"stop_loss_percent": 2.0, "position_size_percent": 10.0}
-        result = self.adapter.adapt_parameters(
-            "spec-1", params, "quiet", "BTC-USD"
-        )
+        result = self.adapter.adapt_parameters("spec-1", params, "quiet", "BTC-USD")
         adapted = result["adapted_parameters"]
         assert adapted["stop_loss_percent"] < 2.0
         assert adapted["position_size_percent"] > 10.0
@@ -66,9 +62,7 @@ class TestAdaptParameters:
 
     def test_non_numeric_param_skipped(self):
         params = {"stop_loss": "dynamic", "take_profit": 5.0}
-        result = self.adapter.adapt_parameters(
-            "spec-1", params, "volatile", "BTC-USD"
-        )
+        result = self.adapter.adapt_parameters("spec-1", params, "volatile", "BTC-USD")
         adapted = result["adapted_parameters"]
         assert adapted["stop_loss"] == "dynamic"
         assert adapted["take_profit"] == 7.5

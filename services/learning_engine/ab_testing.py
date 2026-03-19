@@ -19,9 +19,14 @@ class ABTestManager:
     def __init__(self, db_connection=None):
         self._conn = db_connection
 
-    def create_experiment(self, strategy_spec_id, instrument,
-                           control_parameters, treatment_parameters,
-                           hypothesis=None):
+    def create_experiment(
+        self,
+        strategy_spec_id,
+        instrument,
+        control_parameters,
+        treatment_parameters,
+        hypothesis=None,
+    ):
         """Create a new A/B test experiment.
 
         Args:
@@ -67,14 +72,23 @@ class ABTestManager:
 
         logging.info(
             "Created A/B experiment %s for strategy %s",
-            experiment_id, strategy_spec_id,
+            experiment_id,
+            strategy_spec_id,
         )
         return experiment
 
-    def record_observation(self, experiment_id, variant, pnl_percent,
-                            pnl_absolute=None, signal_type=None,
-                            entry_price=None, exit_price=None,
-                            hold_duration=None, metadata=None):
+    def record_observation(
+        self,
+        experiment_id,
+        variant,
+        pnl_percent,
+        pnl_absolute=None,
+        signal_type=None,
+        entry_price=None,
+        exit_price=None,
+        hold_duration=None,
+        metadata=None,
+    ):
         """Record a single observation for an experiment variant.
 
         Args:
@@ -131,10 +145,19 @@ class ABTestManager:
         improvement = self._calculate_improvement(control_metrics, treatment_metrics)
         is_significant = self._check_significance(control_obs, treatment_obs)
 
-        if treatment_metrics["avg_pnl"] is not None and control_metrics["avg_pnl"] is not None:
-            if treatment_metrics["avg_pnl"] > control_metrics["avg_pnl"] and is_significant:
+        if (
+            treatment_metrics["avg_pnl"] is not None
+            and control_metrics["avg_pnl"] is not None
+        ):
+            if (
+                treatment_metrics["avg_pnl"] > control_metrics["avg_pnl"]
+                and is_significant
+            ):
                 recommendation = "adopt_treatment"
-            elif treatment_metrics["avg_pnl"] < control_metrics["avg_pnl"] and is_significant:
+            elif (
+                treatment_metrics["avg_pnl"] < control_metrics["avg_pnl"]
+                and is_significant
+            ):
                 recommendation = "keep_control"
             else:
                 recommendation = "continue_testing"
@@ -153,7 +176,9 @@ class ABTestManager:
 
         logging.info(
             "Experiment %s: recommendation=%s, improvement=%.2f%%",
-            experiment_id, recommendation, (improvement or 0) * 100,
+            experiment_id,
+            recommendation,
+            (improvement or 0) * 100,
         )
         return result
 
@@ -182,10 +207,12 @@ class ABTestManager:
                     (
                         str(uuid.uuid4()),
                         "ab_test_result",
-                        json.dumps({
-                            "experiment_id": experiment_id,
-                            "recommendation": recommendation,
-                        }),
+                        json.dumps(
+                            {
+                                "experiment_id": experiment_id,
+                                "recommendation": recommendation,
+                            }
+                        ),
                     ),
                 )
             self._conn.commit()
@@ -212,8 +239,11 @@ class ABTestManager:
 
     def _compute_variant_metrics(self, observations):
         """Compute aggregate metrics for a variant's observations."""
-        pnls = [float(o["pnl_percent"]) for o in observations
-                if o.get("pnl_percent") is not None]
+        pnls = [
+            float(o["pnl_percent"])
+            for o in observations
+            if o.get("pnl_percent") is not None
+        ]
         if not pnls:
             return {
                 "count": 0,
@@ -258,10 +288,16 @@ class ABTestManager:
 
         Returns True if the difference is statistically significant.
         """
-        c_pnls = [float(o["pnl_percent"]) for o in control_obs
-                   if o.get("pnl_percent") is not None]
-        t_pnls = [float(o["pnl_percent"]) for o in treatment_obs
-                   if o.get("pnl_percent") is not None]
+        c_pnls = [
+            float(o["pnl_percent"])
+            for o in control_obs
+            if o.get("pnl_percent") is not None
+        ]
+        t_pnls = [
+            float(o["pnl_percent"])
+            for o in treatment_obs
+            if o.get("pnl_percent") is not None
+        ]
 
         if len(c_pnls) < 5 or len(t_pnls) < 5:
             return False

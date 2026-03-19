@@ -14,14 +14,14 @@ from absl import logging
 
 # Default optimizer configuration.
 DEFAULT_CONFIG = {
-    "min_weight": 0.05,          # Minimum strategy weight (never fully zero out)
-    "max_weight": 3.0,           # Maximum weight multiplier
-    "smoothing_factor": 0.3,     # How fast weights adjust (0=no change, 1=instant)
-    "sharpe_weight": 0.4,        # Importance of Sharpe ratio in scoring
-    "win_rate_weight": 0.3,      # Importance of win rate
-    "pnl_weight": 0.3,           # Importance of average PnL
-    "min_trades_required": 5,    # Minimum trades before adjusting weight
-    "default_weight": 1.0,       # Starting weight for new strategies
+    "min_weight": 0.05,  # Minimum strategy weight (never fully zero out)
+    "max_weight": 3.0,  # Maximum weight multiplier
+    "smoothing_factor": 0.3,  # How fast weights adjust (0=no change, 1=instant)
+    "sharpe_weight": 0.4,  # Importance of Sharpe ratio in scoring
+    "win_rate_weight": 0.3,  # Importance of win rate
+    "pnl_weight": 0.3,  # Importance of average PnL
+    "min_trades_required": 5,  # Minimum trades before adjusting weight
+    "default_weight": 1.0,  # Starting weight for new strategies
 }
 
 
@@ -52,20 +52,24 @@ class WeightOptimizer:
         scored = []
         for perf in strategy_performances:
             if perf.get("trade_count", 0) < self._config["min_trades_required"]:
-                scored.append({
-                    "strategy_spec_id": perf["strategy_spec_id"],
-                    "score": 0.0,
-                    "has_data": False,
-                })
+                scored.append(
+                    {
+                        "strategy_spec_id": perf["strategy_spec_id"],
+                        "score": 0.0,
+                        "has_data": False,
+                    }
+                )
                 continue
 
             score = self._score_strategy(perf)
-            scored.append({
-                "strategy_spec_id": perf["strategy_spec_id"],
-                "score": score,
-                "has_data": True,
-                "metrics": perf,
-            })
+            scored.append(
+                {
+                    "strategy_spec_id": perf["strategy_spec_id"],
+                    "score": score,
+                    "has_data": True,
+                    "metrics": perf,
+                }
+            )
 
         # Normalize scores to weights
         weights = self._normalize_to_weights(scored)
@@ -91,7 +95,9 @@ class WeightOptimizer:
 
         logging.info(
             "Optimized weights for %d strategies in %s regime for %s",
-            len(results), regime_type, instrument,
+            len(results),
+            regime_type,
+            instrument,
         )
         return results
 
@@ -110,9 +116,9 @@ class WeightOptimizer:
         pnl_norm = max(0, min(1, (avg_pnl + 5) / 10))
 
         score = (
-            self._config["sharpe_weight"] * sharpe_norm +
-            self._config["win_rate_weight"] * wr_norm +
-            self._config["pnl_weight"] * pnl_norm
+            self._config["sharpe_weight"] * sharpe_norm
+            + self._config["win_rate_weight"] * wr_norm
+            + self._config["pnl_weight"] * pnl_norm
         )
         return score
 
@@ -133,18 +139,22 @@ class WeightOptimizer:
                     self._config["min_weight"],
                     min(self._config["max_weight"], raw_weight),
                 )
-                weights.append({
-                    "strategy_spec_id": s["strategy_spec_id"],
-                    "weight": round(weight, 4),
-                    "reason": f"score={s['score']:.3f}, raw_weight={raw_weight:.3f}",
-                })
+                weights.append(
+                    {
+                        "strategy_spec_id": s["strategy_spec_id"],
+                        "weight": round(weight, 4),
+                        "reason": f"score={s['score']:.3f}, raw_weight={raw_weight:.3f}",
+                    }
+                )
 
         for s in no_data:
-            weights.append({
-                "strategy_spec_id": s["strategy_spec_id"],
-                "weight": self._config["default_weight"],
-                "reason": "insufficient trade data, using default weight",
-            })
+            weights.append(
+                {
+                    "strategy_spec_id": s["strategy_spec_id"],
+                    "weight": self._config["default_weight"],
+                    "reason": "insufficient trade data, using default weight",
+                }
+            )
 
         return weights
 
@@ -163,12 +173,14 @@ class WeightOptimizer:
                 self._config["min_weight"],
                 min(self._config["max_weight"], smoothed_weight),
             )
-            smoothed.append({
-                "strategy_spec_id": sid,
-                "weight": round(smoothed_weight, 4),
-                "previous_weight": float(prev),
-                "reason": w["reason"],
-            })
+            smoothed.append(
+                {
+                    "strategy_spec_id": sid,
+                    "weight": round(smoothed_weight, 4),
+                    "previous_weight": float(prev),
+                    "reason": w["reason"],
+                }
+            )
         return smoothed
 
     # ── Database Operations ─────────────────────────────────────────────
@@ -228,8 +240,7 @@ class WeightOptimizer:
             if not cur.description:
                 return []
             return [
-                {"strategy_spec_id": row[0], "weight": row[1]}
-                for row in cur.fetchall()
+                {"strategy_spec_id": row[0], "weight": row[1]} for row in cur.fetchall()
             ]
 
     def get_all_active_weights(self, instrument):

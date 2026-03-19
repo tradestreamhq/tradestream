@@ -18,8 +18,14 @@ class RegimeAlerter:
     def __init__(self, db_connection=None):
         self._conn = db_connection
 
-    def check_regime_change(self, instrument, new_regime, previous_regime,
-                             favored_strategies=None, unfavored_strategies=None):
+    def check_regime_change(
+        self,
+        instrument,
+        new_regime,
+        previous_regime,
+        favored_strategies=None,
+        unfavored_strategies=None,
+    ):
         """Check if a regime change has occurred and create an alert.
 
         Args:
@@ -60,7 +66,10 @@ class RegimeAlerter:
 
         logging.warning(
             "REGIME CHANGE: %s → %s for %s (confidence=%.2f)",
-            prev_type, new_type, instrument, alert["confidence"],
+            prev_type,
+            new_type,
+            instrument,
+            alert["confidence"],
         )
         return alert
 
@@ -100,13 +109,15 @@ class RegimeAlerter:
                     str(uuid.uuid4()),
                     "regime_change",
                     alert["instrument"],
-                    json.dumps({
-                        "previous_regime": alert["previous_regime"],
-                        "new_regime": alert["new_regime"],
-                        "confidence": alert["confidence"],
-                        "favored_count": len(alert["favored_strategies"]),
-                        "unfavored_count": len(alert["unfavored_strategies"]),
-                    }),
+                    json.dumps(
+                        {
+                            "previous_regime": alert["previous_regime"],
+                            "new_regime": alert["new_regime"],
+                            "confidence": alert["confidence"],
+                            "favored_count": len(alert["favored_strategies"]),
+                            "unfavored_count": len(alert["unfavored_strategies"]),
+                        }
+                    ),
                 ),
             )
         self._conn.commit()

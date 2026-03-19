@@ -141,8 +141,13 @@ def main(argv):
         instruments=instruments,
         interval_seconds=FLAGS.interval_seconds,
         components=[
-            "regime_detector", "performance_tracker", "weight_optimizer",
-            "parameter_adapter", "regime_alerter", "ab_testing", "dashboard",
+            "regime_detector",
+            "performance_tracker",
+            "weight_optimizer",
+            "parameter_adapter",
+            "regime_alerter",
+            "ab_testing",
+            "dashboard",
         ],
     )
 
