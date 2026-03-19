@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+  }
+
+  ::selection {
+    background-color: rgba(99, 102, 241, 0.3);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-surface;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-slate-600 px-6 py-3 text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-surface;
+  }
+
+  .card {
+    @apply rounded-xl border border-slate-700/50 bg-surface-card p-6;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-slate-600 bg-surface px-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .badge-buy {
+    @apply badge bg-emerald-500/20 text-emerald-400;
+  }
+
+  .badge-sell {
+    @apply badge bg-red-500/20 text-red-400;
+  }
+
+  .badge-hold {
+    @apply badge bg-slate-500/20 text-slate-400;
+  }
+
+  .badge-hot {
+    @apply badge bg-orange-500/20 text-orange-400;
+  }
+
+  .badge-good {
+    @apply badge bg-blue-500/20 text-blue-400;
+  }
+}
