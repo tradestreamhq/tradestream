@@ -65,6 +65,7 @@ class ScoreBreakdown:
     consensus_contribution: float
 
     volatility_value: float
+    volatility_percentile: float
     volatility_contribution: float
 
     freshness_value: int  # minutes_ago at scoring time
@@ -102,6 +103,7 @@ class ScoredOpportunity:
     strategies_agreeing: int
     top_strategy: Optional[str]
     market_regime: str
+    reasoning: str = ""
     status: str = OpportunityStatus.SCORED.value
     scored_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     entered_at: Optional[datetime] = None
@@ -120,22 +122,26 @@ class ScoredOpportunity:
         return self.display_age_minutes >= 60
 
     def to_dict(self) -> dict:
-        """Serialize to dict for API responses."""
+        """Serialize to dict for API responses.
+
+        Field names follow the spec (opportunity_tier, opportunity_score_cached_at).
+        """
         return {
             "opportunity_id": self.opportunity_id,
             "symbol": self.symbol,
             "direction": self.direction,
             "opportunity_score": self.opportunity_score,
-            "tier": self.tier,
+            "opportunity_tier": self.tier,
+            "opportunity_score_cached_at": self.scored_at.isoformat(),
             "status": self.status,
             "market_regime": self.market_regime,
             "strategies_analyzed": self.strategies_analyzed,
             "strategies_agreeing": self.strategies_agreeing,
             "top_strategy": self.top_strategy,
-            "scored_at": self.scored_at.isoformat(),
+            "reasoning": self.reasoning,
             "display_age_minutes": self.display_age_minutes,
             "is_stale": self.is_stale,
-            "score_breakdown": {
+            "opportunity_factors": {
                 "confidence": {
                     "value": self.score_breakdown.confidence_value,
                     "contribution": self.score_breakdown.confidence_contribution,
@@ -152,6 +158,7 @@ class ScoredOpportunity:
                 },
                 "volatility": {
                     "value": self.score_breakdown.volatility_value,
+                    "percentile": self.score_breakdown.volatility_percentile,
                     "contribution": self.score_breakdown.volatility_contribution,
                 },
                 "freshness": {
