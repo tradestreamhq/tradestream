@@ -7,7 +7,6 @@ import com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
@@ -95,8 +94,7 @@ public class Phase1StrategySpecsSeedTest {
         assertFalse(
             "Config for " + name + " should have at least one exit condition",
             config.getExitConditions().isEmpty());
-        assertNotNull(
-            "Config for " + name + " should have parameters", config.getParameters());
+        assertNotNull("Config for " + name + " should have parameters", config.getParameters());
         assertFalse(
             "Config for " + name + " should have at least one parameter",
             config.getParameters().isEmpty());
@@ -254,10 +252,10 @@ public class Phase1StrategySpecsSeedTest {
       if (PHASE1_STRATEGIES.contains(name)) {
         StrategyConfig config = configStrategy.get();
         for (ParameterDefinition param : config.getParameters()) {
-          assertNotNull(name + " parameter " + param.getName() + " should have a name",
-              param.getName());
-          assertNotNull(name + " parameter " + param.getName() + " should have a type",
-              param.getType());
+          assertNotNull(
+              name + " parameter " + param.getName() + " should have a name", param.getName());
+          assertNotNull(
+              name + " parameter " + param.getName() + " should have a type", param.getType());
           assertTrue(
               name + " parameter " + param.getName() + " min should be < max",
               param.getMin().doubleValue() < param.getMax().doubleValue());
