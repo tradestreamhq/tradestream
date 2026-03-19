@@ -44,7 +44,9 @@ class CircuitBreaker:
         if self.state == self.OPEN:
             if time.time() - self.last_failure_time >= self.recovery_seconds:
                 self.state = self.HALF_OPEN
-                logging.info("CircuitBreaker[%s]: transitioning to HALF_OPEN", self.name)
+                logging.info(
+                    "CircuitBreaker[%s]: transitioning to HALF_OPEN", self.name
+                )
                 return True
             return False
         # HALF_OPEN: allow one probe
@@ -135,9 +137,7 @@ def retry_with_backoff(
                 time.sleep(delay)
                 delay = min(delay * backoff_multiplier, max_delay)
             else:
-                logging.error(
-                    "All %d retries exhausted: %s", max_attempts, exc
-                )
+                logging.error("All %d retries exhausted: %s", max_attempts, exc)
         except Exception as exc:
             # Non-transient exception — fail immediately
             if circuit_breaker:

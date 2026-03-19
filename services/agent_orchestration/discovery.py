@@ -196,15 +196,15 @@ def run_discovery(api_key, mcp_urls, candidates_per_cycle=None, existing_names=N
             if fn_name == "create_spec" and "name" in fn_args:
                 spec_name = fn_args["name"]
                 if spec_name in existing_names or spec_name in created_names:
-                    logging.info(
-                        "Discovery: skipping duplicate spec %s", spec_name
-                    )
+                    logging.info("Discovery: skipping duplicate spec %s", spec_name)
                     messages.append(
                         {
                             "role": "tool",
                             "tool_call_id": tool_call.id,
                             "content": json.dumps(
-                                {"error": f"Strategy '{spec_name}' already exists. Generate a different name."}
+                                {
+                                    "error": f"Strategy '{spec_name}' already exists. Generate a different name."
+                                }
                             ),
                         }
                     )

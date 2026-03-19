@@ -107,12 +107,8 @@ class TestRetryWithBackoff:
 
     @patch("services.agent_orchestration.resilience.time.sleep")
     def test_exponential_backoff_delays(self, mock_sleep):
-        fn = MagicMock(
-            side_effect=[ConnectionError(), ConnectionError(), "ok"]
-        )
-        retry_with_backoff(
-            fn, max_attempts=3, base_delay=1.0, backoff_multiplier=2.0
-        )
+        fn = MagicMock(side_effect=[ConnectionError(), ConnectionError(), "ok"])
+        retry_with_backoff(fn, max_attempts=3, base_delay=1.0, backoff_multiplier=2.0)
         assert mock_sleep.call_count == 2
         delays = [call.args[0] for call in mock_sleep.call_args_list]
         assert delays[0] == 1.0
@@ -120,9 +116,7 @@ class TestRetryWithBackoff:
 
     @patch("services.agent_orchestration.resilience.time.sleep")
     def test_respects_max_delay(self, mock_sleep):
-        fn = MagicMock(
-            side_effect=[ConnectionError(), ConnectionError(), "ok"]
-        )
+        fn = MagicMock(side_effect=[ConnectionError(), ConnectionError(), "ok"])
         retry_with_backoff(
             fn,
             max_attempts=3,

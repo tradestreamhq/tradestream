@@ -8,7 +8,10 @@ from services.agent_orchestration import config
 from services.agent_orchestration.discovery import run_discovery
 from services.agent_orchestration.monitoring import monitor_promoted_strategies
 from services.agent_orchestration.promotion import promote_winners
-from services.agent_orchestration.resilience import CircuitBreaker, CircuitBreakerOpenError
+from services.agent_orchestration.resilience import (
+    CircuitBreaker,
+    CircuitBreakerOpenError,
+)
 from services.agent_orchestration.state import OrchestrationState
 from services.agent_orchestration.validation import validate_candidates
 
@@ -49,7 +52,9 @@ def run_cycle(api_key, mcp_urls, state, circuit_breakers=None):
     logging.info("[Cycle %d] Phase 1: Discovery", cycle_num)
     cb_strategy = circuit_breakers.get("strategy")
     if cb_strategy and not cb_strategy.allow_request():
-        logging.warning("[Cycle %d] Discovery skipped: strategy circuit breaker open", cycle_num)
+        logging.warning(
+            "[Cycle %d] Discovery skipped: strategy circuit breaker open", cycle_num
+        )
         stats["skipped_phases"].append("discovery")
         discovered_names = []
     else:
@@ -76,7 +81,9 @@ def run_cycle(api_key, mcp_urls, state, circuit_breakers=None):
     logging.info("[Cycle %d] Phase 2: Validation", cycle_num)
     cb_backtest = circuit_breakers.get("backtest")
     if cb_backtest and not cb_backtest.allow_request():
-        logging.warning("[Cycle %d] Validation skipped: backtest circuit breaker open", cycle_num)
+        logging.warning(
+            "[Cycle %d] Validation skipped: backtest circuit breaker open", cycle_num
+        )
         stats["skipped_phases"].append("validation")
         validated = []
     else:
@@ -85,7 +92,9 @@ def run_cycle(api_key, mcp_urls, state, circuit_breakers=None):
             stats["validated"] = len(validated)
             for name, metrics in validated:
                 state.advance_to_validation(name, metrics)
-            logging.info("[Cycle %d] Validated %d candidates", cycle_num, len(validated))
+            logging.info(
+                "[Cycle %d] Validated %d candidates", cycle_num, len(validated)
+            )
             if cb_backtest:
                 cb_backtest.record_success()
         except Exception as e:
@@ -98,7 +107,9 @@ def run_cycle(api_key, mcp_urls, state, circuit_breakers=None):
     logging.info("[Cycle %d] Phase 3: Promotion", cycle_num)
     cb_signal = circuit_breakers.get("signal")
     if cb_signal and not cb_signal.allow_request():
-        logging.warning("[Cycle %d] Promotion skipped: signal circuit breaker open", cycle_num)
+        logging.warning(
+            "[Cycle %d] Promotion skipped: signal circuit breaker open", cycle_num
+        )
         stats["skipped_phases"].append("promotion")
     else:
         try:
@@ -115,7 +126,9 @@ def run_cycle(api_key, mcp_urls, state, circuit_breakers=None):
     # Phase 4: Monitoring (all promoted strategies, not just this cycle's)
     logging.info("[Cycle %d] Phase 4: Monitoring", cycle_num)
     if cb_signal and not cb_signal.allow_request():
-        logging.warning("[Cycle %d] Monitoring skipped: signal circuit breaker open", cycle_num)
+        logging.warning(
+            "[Cycle %d] Monitoring skipped: signal circuit breaker open", cycle_num
+        )
         stats["skipped_phases"].append("monitoring")
     else:
         try:
@@ -171,9 +184,7 @@ def run_orchestration_loop(
     shutdown_check = shutdown_check or (lambda: False)
 
     # Create circuit breakers for each MCP service
-    circuit_breakers = {
-        name: CircuitBreaker(name=name) for name in mcp_urls
-    }
+    circuit_breakers = {name: CircuitBreaker(name=name) for name in mcp_urls}
 
     logging.info(
         "Orchestration loop starting (interval=%ds, state_file=%s, circuit_breakers=%s)",
