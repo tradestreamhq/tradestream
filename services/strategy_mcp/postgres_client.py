@@ -322,6 +322,115 @@ class PostgresClient:
             )
             return {"spec_id": str(row["id"])}
 
+    async def get_strategy_signal(
+        self,
+        strategy_id: str,
+        symbol: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Get the current signal from a specific strategy for a symbol."""
+        if not self.pool:
+            raise RuntimeError("PostgreSQL connection not established")
+
+        query = """
+        SELECT
+            s.signal AS signal,
+            s.confidence AS confidence,
+            s.triggered_at AS triggered_at,
+            si.parameters AS parameters
+        FROM Strategies st
+        JOIN strategy_specs ss ON st.strategy_type = ss.name
+        JOIN strategy_implementations si ON si.spec_id = ss.id
+        LEFT JOIN LATERAL (
+            SELECT signal, confidence, triggered_at
+            FROM signals
+            WHERE strategy_id = st.strategy_id
+              AND symbol = $2
+            ORDER BY triggered_at DESC
+            LIMIT 1
+        ) s ON true
+        WHERE st.strategy_id = $1::integer
+          AND st.symbol = $2
+        LIMIT 1
+        """
+
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(query, int(strategy_id), symbol)
+            if not row or row["signal"] is None:
+                return None
+
+            return {
+                "signal": row["signal"],
+                "confidence": float(row["confidence"]) if row["confidence"] else 0.0,
+                "triggered_at": str(row["triggered_at"]),
+                "parameters": (
+                    json.loads(row["parameters"])
+                    if isinstance(row["parameters"], str)
+                    else row["parameters"]
+                ),
+            }
+
+    async def get_strategy_consensus(
+        self,
+        symbol: str,
+    ) -> Dict[str, Any]:
+        """Get aggregated consensus across all active strategies for a symbol."""
+        if not self.pool:
+            raise RuntimeError("PostgreSQL connection not established")
+
+        query = """
+        SELECT
+            COUNT(*) FILTER (WHERE s.signal = 'BUY') AS bullish_count,
+            COUNT(*) FILTER (WHERE s.signal = 'SELL') AS bearish_count,
+            COUNT(*) FILTER (WHERE s.signal = 'HOLD' OR s.signal IS NULL) AS neutral_count,
+            AVG(s.confidence) AS avg_confidence
+        FROM Strategies st
+        JOIN strategy_specs ss ON st.strategy_type = ss.name
+        JOIN strategy_implementations si ON si.spec_id = ss.id
+        LEFT JOIN LATERAL (
+            SELECT signal, confidence
+            FROM signals
+            WHERE strategy_id = st.strategy_id
+              AND symbol = $1
+            ORDER BY triggered_at DESC
+            LIMIT 1
+        ) s ON true
+        WHERE st.symbol = $1
+          AND si.status IN ('VALIDATED', 'DEPLOYED')
+        """
+
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(query, symbol)
+
+            bullish = int(row["bullish_count"] or 0)
+            bearish = int(row["bearish_count"] or 0)
+            neutral = int(row["neutral_count"] or 0)
+            total = bullish + bearish + neutral
+            confidence = float(row["avg_confidence"]) if row["avg_confidence"] else 0.0
+
+            if total == 0:
+                consensus = "NEUTRAL"
+            else:
+                bull_pct = bullish / total
+                bear_pct = bearish / total
+                if bull_pct >= 0.7:
+                    consensus = "STRONG_BUY"
+                elif bull_pct >= 0.5:
+                    consensus = "BUY"
+                elif bear_pct >= 0.7:
+                    consensus = "STRONG_SELL"
+                elif bear_pct >= 0.5:
+                    consensus = "SELL"
+                else:
+                    consensus = "NEUTRAL"
+
+            return {
+                "bullish_count": bullish,
+                "bearish_count": bearish,
+                "neutral_count": neutral,
+                "consensus": consensus,
+                "confidence": round(confidence, 4),
+            }
+
     async def get_walk_forward(self, impl_id: str) -> Optional[Dict[str, Any]]:
         """Get walk-forward validation results for a strategy implementation.
 
