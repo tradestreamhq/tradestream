@@ -212,7 +212,11 @@ class PostgresClient:
 
         # Risk validation rules
         max_position_pct = 0.1  # Max 10% of balance per position
-        max_size = available * max_position_pct / (price or 1.0) if price else available * max_position_pct
+        max_size = (
+            available * max_position_pct / (price or 1.0)
+            if price
+            else available * max_position_pct
+        )
 
         reasons = []
         valid = True
@@ -230,7 +234,9 @@ class PostgresClient:
             reasons.append(f"Size exceeds max allowed ({max_size:.4f})")
 
         # Calculate risk score (0-1, higher = riskier)
-        risk_score = min(1.0, (price or 1.0) * size / available) if available > 0 else 1.0
+        risk_score = (
+            min(1.0, (price or 1.0) * size / available) if available > 0 else 1.0
+        )
 
         return {
             "valid": valid,

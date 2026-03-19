@@ -122,7 +122,9 @@ class PostgresClient:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(query, strategy_id, symbol)
             if not row:
-                return {"error": "No backtest results found for this strategy and symbol"}
+                return {
+                    "error": "No backtest results found for this strategy and symbol"
+                }
 
             metrics = row["backtest_metrics"] or {}
             if isinstance(metrics, str):
@@ -182,7 +184,9 @@ class PostgresClient:
                     all_metrics[env] = m
 
             # Use best available metrics
-            best = all_metrics.get("live", all_metrics.get("paper", all_metrics.get("backtest", {})))
+            best = all_metrics.get(
+                "live", all_metrics.get("paper", all_metrics.get("backtest", {}))
+            )
 
             return {
                 "total_signals": best.get("total_trades", 0),

@@ -201,7 +201,9 @@ class TestStrategyDbMcpServer:
         postgres_client.submit_new_spec.return_value = {
             "spec_id": "spec-existing",
             "created": False,
-            "validation_errors": ["A spec with name 'existing_strategy' already exists"],
+            "validation_errors": [
+                "A spec with name 'existing_strategy' already exists"
+            ],
         }
 
         call_tool_handler = server.request_handlers.get("tools/call")

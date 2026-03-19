@@ -133,7 +133,7 @@ class PostgresClient:
 
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *params)
-            total = await conn.fetchval(count_query, *params[:param_idx - 1])
+            total = await conn.fetchval(count_query, *params[: param_idx - 1])
 
         items = []
         for row in rows:
@@ -264,7 +264,9 @@ class PostgresClient:
                 }
 
             indicators_json = (
-                json.dumps(indicators) if not isinstance(indicators, str) else indicators
+                json.dumps(indicators)
+                if not isinstance(indicators, str)
+                else indicators
             )
             entry_json = (
                 json.dumps(entry_conditions)
@@ -277,7 +279,9 @@ class PostgresClient:
                 else exit_conditions
             )
             params_json = (
-                json.dumps(parameters) if not isinstance(parameters, str) else parameters
+                json.dumps(parameters)
+                if not isinstance(parameters, str)
+                else parameters
             )
 
             desc = description or reasoning or ""

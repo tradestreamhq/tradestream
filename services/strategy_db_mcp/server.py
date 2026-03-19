@@ -57,7 +57,13 @@ def create_server(postgres_client: PostgresClient) -> Server:
                         },
                         "status": {
                             "type": "string",
-                            "enum": ["CANDIDATE", "VALIDATED", "DEPLOYED", "RETIRED", "ALL"],
+                            "enum": [
+                                "CANDIDATE",
+                                "VALIDATED",
+                                "DEPLOYED",
+                                "RETIRED",
+                                "ALL",
+                            ],
                             "default": "VALIDATED",
                             "description": "Filter by implementation status.",
                         },
@@ -111,7 +117,13 @@ def create_server(postgres_client: PostgresClient) -> Server:
                             "description": "LLM reasoning behind the strategy design.",
                         },
                     },
-                    "required": ["name", "indicators", "entry_conditions", "exit_conditions", "parameters"],
+                    "required": [
+                        "name",
+                        "indicators",
+                        "entry_conditions",
+                        "exit_conditions",
+                        "parameters",
+                    ],
                 },
             ),
         ]

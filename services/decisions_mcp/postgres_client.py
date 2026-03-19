@@ -135,7 +135,7 @@ class PostgresClient:
 
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *params)
-            total = await conn.fetchval(count_query, *params[:param_idx - 1])
+            total = await conn.fetchval(count_query, *params[: param_idx - 1])
 
         items = []
         for row in rows:
@@ -149,7 +149,11 @@ class PostgresClient:
                     "symbol": row["symbol"],
                     "action": row["action"],
                     "confidence": float(row["confidence"]),
-                    "opportunity_score": float(row["opportunity_score"]) if row["opportunity_score"] else None,
+                    "opportunity_score": (
+                        float(row["opportunity_score"])
+                        if row["opportunity_score"]
+                        else None
+                    ),
                     "reasoning": row["reasoning"],
                     "tool_calls": tool_calls,
                     "created_at": str(row["created_at"]),

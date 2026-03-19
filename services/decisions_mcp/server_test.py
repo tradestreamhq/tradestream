@@ -79,7 +79,9 @@ class TestDecisionsMcpServer:
         assert response["items"][0]["confidence"] == 0.85
 
     @pytest.mark.asyncio
-    async def test_get_recent_decisions_with_action_filter(self, server, postgres_client):
+    async def test_get_recent_decisions_with_action_filter(
+        self, server, postgres_client
+    ):
         """Test get_recent_decisions with action filter."""
         postgres_client.get_recent_decisions.return_value = {
             "items": [],
