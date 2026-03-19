@@ -159,7 +159,9 @@ class SearchClient:
         }
 
         try:
-            resp = requests.get(url, params=params, headers=headers, timeout=self.timeout)
+            resp = requests.get(
+                url, params=params, headers=headers, timeout=self.timeout
+            )
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as e:
@@ -174,13 +176,15 @@ class SearchClient:
             if domains and not any(d in item_url for d in domains):
                 continue
             self._seen_urls.add(item_url)
-            results.append({
-                "title": item.get("title", ""),
-                "url": item_url,
-                "snippet": item.get("description", ""),
-                "source": _extract_domain(item_url),
-                "published_at": item.get("age", None),
-            })
+            results.append(
+                {
+                    "title": item.get("title", ""),
+                    "url": item_url,
+                    "snippet": item.get("description", ""),
+                    "source": _extract_domain(item_url),
+                    "published_at": item.get("age", None),
+                }
+            )
             if len(results) >= max_results:
                 break
 
@@ -224,13 +228,15 @@ class SearchClient:
             if item_url in self._seen_urls:
                 continue
             self._seen_urls.add(item_url)
-            results.append({
-                "title": item.get("title", ""),
-                "url": item_url,
-                "snippet": item.get("snippet", ""),
-                "source": _extract_domain(item_url),
-                "published_at": None,
-            })
+            results.append(
+                {
+                    "title": item.get("title", ""),
+                    "url": item_url,
+                    "snippet": item.get("snippet", ""),
+                    "source": _extract_domain(item_url),
+                    "published_at": None,
+                }
+            )
             if len(results) >= max_results:
                 break
 

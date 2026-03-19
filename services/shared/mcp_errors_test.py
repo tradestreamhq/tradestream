@@ -45,7 +45,5 @@ class TestErrorResponse:
         assert resp["_metadata"]["latency_ms"] == 42
 
     def test_with_details(self):
-        resp = error_response(
-            STRATEGY_NOT_FOUND, "Not found", details={"id": "abc"}
-        )
+        resp = error_response(STRATEGY_NOT_FOUND, "Not found", details={"id": "abc"})
         assert resp["error"]["details"]["id"] == "abc"

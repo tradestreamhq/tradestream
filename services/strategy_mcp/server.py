@@ -382,6 +382,4 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             )
     except Exception as e:
         logging.exception("Tool call %s failed", name)
-        return wrap_error(
-            McpError(DATABASE_ERROR, str(e)).to_dict(), start_time=start
-        )
+        return wrap_error(McpError(DATABASE_ERROR, str(e)).to_dict(), start_time=start)

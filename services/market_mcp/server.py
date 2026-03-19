@@ -202,7 +202,9 @@ def create_server(
                 return wrap_response(result, start_time=start, source="influxdb")
 
             elif name == "get_volatility":
-                cache_key = f"vol:{arguments['symbol']}:{arguments.get('period_minutes', 60)}"
+                cache_key = (
+                    f"vol:{arguments['symbol']}:{arguments.get('period_minutes', 60)}"
+                )
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:

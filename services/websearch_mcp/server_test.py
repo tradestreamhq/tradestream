@@ -193,7 +193,9 @@ class TestWebSearchMcpServer:
 
     @pytest.mark.asyncio
     async def test_rate_limited_error(self, server, search_client):
-        search_client.search.side_effect = RuntimeError("Rate limit exceeded: 10 requests per minute")
+        search_client.search.side_effect = RuntimeError(
+            "Rate limit exceeded: 10 requests per minute"
+        )
 
         call_tool_handler = server.request_handlers.get("tools/call")
         request = MagicMock()

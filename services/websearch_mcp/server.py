@@ -171,7 +171,9 @@ def create_server(search_client: SearchClient) -> Server:
                 recency_hours = arguments.get("recency_hours", 24)
 
                 query = build_financial_query(instrument, topic)
-                cache_key = f"financial:{instrument}:{topic}:{max_results}:{recency_hours}"
+                cache_key = (
+                    f"financial:{instrument}:{topic}:{max_results}:{recency_hours}"
+                )
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:

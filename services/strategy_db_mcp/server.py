@@ -197,9 +197,7 @@ def create_server(postgres_client: PostgresClient) -> Server:
                     limit=arguments.get("limit", 10),
                     offset=arguments.get("offset", 0),
                 )
-                cache.set(
-                    cache_key, result, ttl=_CACHE_TTLS["get_implementations"]
-                )
+                cache.set(cache_key, result, ttl=_CACHE_TTLS["get_implementations"])
                 return wrap_response(result, start_time=start, source="postgresql")
 
             elif name == "submit_new_spec":

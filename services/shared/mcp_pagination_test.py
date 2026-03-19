@@ -22,9 +22,7 @@ class TestPaginatedResponse:
         assert resp["pagination"]["has_more"] is True
 
     def test_last_page(self):
-        resp = paginated_response(
-            [{"id": 21}], offset=20, limit=10, total=21
-        )
+        resp = paginated_response([{"id": 21}], offset=20, limit=10, total=21)
         assert resp["pagination"]["has_more"] is False
 
     def test_empty(self):
