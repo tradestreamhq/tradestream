@@ -1,0 +1,94 @@
+{{- if .Values.portfolioState.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-portfolio-state
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: portfolio-state
+spec:
+  replicas: {{ .Values.portfolioState.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: portfolio-state
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: portfolio-state
+    spec:
+      containers:
+        - name: portfolio-state
+          image: "{{ .Values.portfolioState.image.repository }}:{{ .Values.portfolioState.image.tag }}"
+          imagePullPolicy: {{ .Values.portfolioState.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.portfolioState.service.port | default 8095 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: MCP_MARKET_URL
+              value: "http://{{ include "tradestream.fullname" . }}-market-mcp:8080"
+            - name: INITIAL_CAPITAL
+              value: "{{ .Values.portfolioState.config.initialCapital | default 10000 }}"
+            - name: PORT
+              value: "{{ .Values.portfolioState.service.port | default 8095 }}"
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+            - "--mcp_market_url=$(MCP_MARKET_URL)"
+            - "--initial_capital=$(INITIAL_CAPITAL)"
+            - "--port=$(PORT)"
+          resources:
+            {{- toYaml .Values.portfolioState.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-portfolio-state
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: portfolio-state
+spec:
+  type: {{ .Values.portfolioState.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.portfolioState.service.port | default 8095 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: portfolio-state
+{{- end }}

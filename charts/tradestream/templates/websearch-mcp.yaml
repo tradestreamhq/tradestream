@@ -1,0 +1,72 @@
+{{- if .Values.websearchMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-websearch-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: websearch-mcp
+spec:
+  replicas: {{ .Values.websearchMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: websearch-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: websearch-mcp
+    spec:
+      containers:
+        - name: websearch-mcp
+          image: "{{ .Values.websearchMcp.image.repository }}:{{ .Values.websearchMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.websearchMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.websearchMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: BRAVE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.websearchMcp.secrets.braveApiKey.name }}
+                  key: {{ .Values.websearchMcp.secrets.braveApiKey.key }}
+                  optional: true
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.websearchMcp.secrets.googleApiKey.name }}
+                  key: {{ .Values.websearchMcp.secrets.googleApiKey.key }}
+                  optional: true
+            - name: GOOGLE_CX
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.websearchMcp.secrets.googleCx.name }}
+                  key: {{ .Values.websearchMcp.secrets.googleCx.key }}
+                  optional: true
+            - name: MCP_TRANSPORT
+              value: "{{ .Values.websearchMcp.config.mcpTransport }}"
+            - name: MCP_PORT
+              value: {{ .Values.websearchMcp.service.port | quote }}
+          resources:
+            {{- toYaml .Values.websearchMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-websearch-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: websearch-mcp
+spec:
+  type: {{ .Values.websearchMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.websearchMcp.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: websearch-mcp
+{{- end }}

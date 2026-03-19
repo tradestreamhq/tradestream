@@ -1,0 +1,65 @@
+{{- if .Values.backtesting.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-backtesting
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backtesting
+spec:
+  replicas: {{ .Values.backtesting.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backtesting
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backtesting
+    spec:
+      containers:
+        - name: backtesting
+          image: "{{ .Values.backtesting.image.repository }}:{{ .Values.backtesting.image.tag }}"
+          imagePullPolicy: {{ .Values.backtesting.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.backtesting.service.port | default 50051 }}
+              protocol: TCP
+          args:
+            - "--port={{ .Values.backtesting.service.port | default 50051 }}"
+          resources:
+            {{- toYaml .Values.backtesting.resources | nindent 12 }}
+          livenessProbe:
+            grpc:
+              port: {{ .Values.backtesting.service.port | default 50051 }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            grpc:
+              port: {{ .Values.backtesting.service.port | default 50051 }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-backtesting
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backtesting
+spec:
+  type: {{ .Values.backtesting.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.backtesting.service.port | default 50051 }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backtesting
+{{- end }}

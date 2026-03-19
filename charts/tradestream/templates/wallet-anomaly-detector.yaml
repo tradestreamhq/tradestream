@@ -1,0 +1,34 @@
+{{- if .Values.walletAnomalyDetector.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-wallet-anomaly-detector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: wallet-anomaly-detector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: wallet-anomaly-detector
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: wallet-anomaly-detector
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: wallet-anomaly-detector
+          image: "{{ .Values.walletAnomalyDetector.image.repository }}:{{ .Values.walletAnomalyDetector.image.tag }}"
+          imagePullPolicy: {{ .Values.walletAnomalyDetector.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: DRY_RUN
+              value: "{{ .Values.walletAnomalyDetector.config.dryRun | default false }}"
+            - name: ALERT_THRESHOLD
+              value: "{{ .Values.walletAnomalyDetector.config.alertThreshold | default 0.7 }}"
+          resources:
+            {{- toYaml .Values.walletAnomalyDetector.resources | nindent 12 }}
+{{- end }}

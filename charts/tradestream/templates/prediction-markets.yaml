@@ -1,0 +1,42 @@
+{{- if .Values.predictionMarkets.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-prediction-markets
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: prediction-markets
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: prediction-markets
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: prediction-markets
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: prediction-markets
+          image: "{{ .Values.predictionMarkets.image.repository }}:{{ .Values.predictionMarkets.image.tag }}"
+          imagePullPolicy: {{ .Values.predictionMarkets.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: RUN_MODE
+              value: "{{ .Values.predictionMarkets.config.runMode | default "wet" }}"
+            - name: POLL_INTERVAL_SECONDS
+              value: "{{ .Values.predictionMarkets.config.pollIntervalSeconds | default 300 }}"
+            - name: CACHE_TTL_SECONDS
+              value: "{{ .Values.predictionMarkets.config.cacheTtlSeconds | default 600 }}"
+            - name: BULLISH_THRESHOLD
+              value: "{{ .Values.predictionMarkets.config.bullishThreshold | default 0.7 }}"
+            - name: BEARISH_THRESHOLD
+              value: "{{ .Values.predictionMarkets.config.bearishThreshold | default 0.3 }}"
+            - name: SPIKE_THRESHOLD
+              value: "{{ .Values.predictionMarkets.config.spikeThreshold | default 0.1 }}"
+          resources:
+            {{- toYaml .Values.predictionMarkets.resources | nindent 12 }}
+{{- end }}

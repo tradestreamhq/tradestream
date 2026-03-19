@@ -1,0 +1,53 @@
+{{- if .Values.strategyTimeFilter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-time-filter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-time-filter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: strategy-time-filter
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: strategy-time-filter
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: strategy-time-filter
+          image: "{{ .Values.strategyTimeFilter.image.repository }}:{{ .Values.strategyTimeFilter.image.tag }}"
+          imagePullPolicy: {{ .Values.strategyTimeFilter.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: MAX_STRATEGY_AGE_DAYS
+              value: "{{ .Values.strategyTimeFilter.config.maxStrategyAgeDays | default 365 }}"
+            - name: TIME_DECAY_FACTOR
+              value: "{{ .Values.strategyTimeFilter.config.timeDecayFactor | default 0.95 }}"
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+          resources:
+            {{- toYaml .Values.strategyTimeFilter.resources | nindent 12 }}
+{{- end }}

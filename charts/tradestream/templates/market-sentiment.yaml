@@ -1,0 +1,70 @@
+{{- if .Values.marketSentiment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-market-sentiment
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: market-sentiment
+spec:
+  replicas: {{ .Values.marketSentiment.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: market-sentiment
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: market-sentiment
+    spec:
+      containers:
+        - name: market-sentiment
+          image: "{{ .Values.marketSentiment.image.repository }}:{{ .Values.marketSentiment.image.tag }}"
+          imagePullPolicy: {{ .Values.marketSentiment.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.marketSentiment.service.port | default 8090 }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.marketSentiment.service.port | default 8090 }}"
+            - name: HOST
+              value: "{{ .Values.marketSentiment.service.host | default "0.0.0.0" }}"
+          resources:
+            {{- toYaml .Values.marketSentiment.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-market-sentiment
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: market-sentiment
+spec:
+  type: {{ .Values.marketSentiment.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.marketSentiment.service.port | default 8090 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: market-sentiment
+{{- end }}
