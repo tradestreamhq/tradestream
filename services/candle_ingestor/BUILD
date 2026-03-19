@@ -15,6 +15,7 @@ py_library(
 
 py_library(
     name = "ccxt_client_lib",
+    visibility = ["//visibility:public"],
     srcs = ["ccxt_client.py"],
     deps = [
         "//third_party/python:absl_py",
