@@ -6,7 +6,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from services.billing.gating import (
+    FREE_TIER_MIN_GRADES,
     SIGNAL_DELAY_SECONDS_FREE,
+    check_quality_gate,
     check_signal_quota,
     get_customer_tier,
     record_signal_delivery,
@@ -144,3 +146,68 @@ class TestShouldDeliverSignal:
         assert result["deliver"] is True
         assert result["delay_seconds"] == SIGNAL_DELAY_SECONDS_FREE
         assert result["tier"] == "free"
+
+    async def test_free_user_low_quality_blocked(self):
+        pool, conn = _make_pool()
+        conn.fetchrow.return_value = None  # no customer record
+
+        result = await should_deliver_signal(
+            pool, telegram_chat_id="free-user", quality_grade="D"
+        )
+        assert result["deliver"] is False
+        assert "quality grade" in result["reason"]
+
+    async def test_free_user_high_quality_allowed(self):
+        pool, conn = _make_pool()
+        conn.fetchrow.return_value = None  # no customer record
+
+        result = await should_deliver_signal(
+            pool, telegram_chat_id="free-user", quality_grade="A"
+        )
+        assert result["deliver"] is True
+
+    async def test_pro_user_low_quality_allowed(self):
+        pool, conn = _make_pool()
+        conn.fetchrow.return_value = FakeRecord(id="cust-pro", tier="pro")
+
+        result = await should_deliver_signal(
+            pool, telegram_chat_id="pro-user", quality_grade="D"
+        )
+        assert result["deliver"] is True
+        assert result["delay_seconds"] == 0
+
+
+class TestCheckQualityGate:
+    def test_pro_passes_all_grades(self):
+        for grade in ("A", "B", "C", "D", "F"):
+            result = check_quality_gate("pro", grade)
+            assert result["passed"] is True
+
+    def test_enterprise_passes_all_grades(self):
+        result = check_quality_gate("enterprise", "F")
+        assert result["passed"] is True
+
+    def test_free_passes_a_grade(self):
+        result = check_quality_gate("free", "A")
+        assert result["passed"] is True
+
+    def test_free_passes_b_grade(self):
+        result = check_quality_gate("free", "B")
+        assert result["passed"] is True
+
+    def test_free_blocks_c_grade(self):
+        result = check_quality_gate("free", "C")
+        assert result["passed"] is False
+        assert "quality grade" in result["reason"]
+
+    def test_free_blocks_d_grade(self):
+        result = check_quality_gate("free", "D")
+        assert result["passed"] is False
+
+    def test_free_blocks_f_grade(self):
+        result = check_quality_gate("free", "F")
+        assert result["passed"] is False
+
+    def test_none_grade_passes(self):
+        result = check_quality_gate("free", None)
+        assert result["passed"] is True
