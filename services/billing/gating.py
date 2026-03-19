@@ -52,9 +52,7 @@ async def get_customer_tier(
         return "free", None
 
 
-async def check_signal_quota(
-    db_pool: asyncpg.Pool, customer_id: str
-) -> Dict:
+async def check_signal_quota(db_pool: asyncpg.Pool, customer_id: str) -> Dict:
     """Check whether a customer can receive another signal today.
 
     Returns dict with 'allowed', 'remaining', 'limit' keys.
@@ -81,9 +79,7 @@ async def check_signal_quota(
     }
 
 
-async def record_signal_delivery(
-    db_pool: asyncpg.Pool, customer_id: str
-) -> None:
+async def record_signal_delivery(db_pool: asyncpg.Pool, customer_id: str) -> None:
     """Increment the daily signal counter for a customer."""
     async with db_pool.acquire() as conn:
         await conn.execute(

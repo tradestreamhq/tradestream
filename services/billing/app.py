@@ -40,9 +40,7 @@ class CheckoutRequest(BaseModel):
     success_url: str = Field(
         ..., description="URL to redirect after successful checkout"
     )
-    cancel_url: str = Field(
-        ..., description="URL to redirect if checkout is cancelled"
-    )
+    cancel_url: str = Field(..., description="URL to redirect if checkout is cancelled")
     telegram_chat_id: Optional[str] = Field(
         None, description="Telegram chat ID to link subscription"
     )
@@ -96,7 +94,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         plan = get_plan(body.tier)
         price_id = os.environ.get(plan.stripe_price_id_env, "")
         if not price_id:
-            return validation_error(f"Stripe price not configured for tier '{body.tier}'")
+            return validation_error(
+                f"Stripe price not configured for tier '{body.tier}'"
+            )
 
         if not stripe.api_key:
             return server_error("Stripe is not configured")
@@ -144,11 +144,14 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                     payload, sig_header, webhook_secret
                 )
             except stripe.SignatureVerificationError:
-                return error_response("INVALID_SIGNATURE", "Invalid webhook signature", 400)
+                return error_response(
+                    "INVALID_SIGNATURE", "Invalid webhook signature", 400
+                )
             except ValueError:
                 return error_response("INVALID_PAYLOAD", "Invalid payload", 400)
         else:
             import json
+
             event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
 
         event_type = event["type"]
@@ -160,7 +163,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 "SELECT id FROM billing_events WHERE stripe_event_id = $1", event_id
             )
             if existing:
-                return success_response({"status": "already_processed"}, "webhook_result")
+                return success_response(
+                    {"status": "already_processed"}, "webhook_result"
+                )
 
         handlers = {
             "customer.subscription.created": _handle_subscription_created,
@@ -190,7 +195,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
                 str(payload.decode("utf-8")),
             )
 
-        return success_response({"status": "processed", "event_type": event_type}, "webhook_result")
+        return success_response(
+            {"status": "processed", "event_type": event_type}, "webhook_result"
+        )
 
     # ------------------------------------------------------------------
     # Subscription Management
@@ -279,7 +286,9 @@ async def _handle_checkout_completed(db_pool: asyncpg.Pool, event):
     """Handle checkout.session.completed — create customer record."""
     session = event["data"]["object"]
     customer_id = session.get("customer")
-    email = session.get("customer_email") or session.get("customer_details", {}).get("email", "")
+    email = session.get("customer_email") or session.get("customer_details", {}).get(
+        "email", ""
+    )
     metadata = session.get("metadata", {})
     telegram_chat_id = metadata.get("telegram_chat_id")
 

@@ -65,16 +65,22 @@ class TestCheckout:
         mock_session.id = "cs_test_123"
         mock_stripe.checkout.Session.create.return_value = mock_session
 
-        with patch.dict("os.environ", {
-            "STRIPE_SECRET_KEY": "sk-test",
-            "STRIPE_PRO_PRICE_ID": "price_pro_test",
-        }):
-            resp = tc.post("/checkout", json={
-                "tier": "pro",
-                "email": "user@example.com",
-                "success_url": "https://tradestream.io/success",
-                "cancel_url": "https://tradestream.io/cancel",
-            })
+        with patch.dict(
+            "os.environ",
+            {
+                "STRIPE_SECRET_KEY": "sk-test",
+                "STRIPE_PRO_PRICE_ID": "price_pro_test",
+            },
+        ):
+            resp = tc.post(
+                "/checkout",
+                json={
+                    "tier": "pro",
+                    "email": "user@example.com",
+                    "success_url": "https://tradestream.io/success",
+                    "cancel_url": "https://tradestream.io/cancel",
+                },
+            )
 
         assert resp.status_code == 201
         body = resp.json()
@@ -82,12 +88,15 @@ class TestCheckout:
 
     def test_checkout_invalid_tier(self, client):
         tc, _, _ = client
-        resp = tc.post("/checkout", json={
-            "tier": "free",
-            "email": "user@example.com",
-            "success_url": "https://tradestream.io/success",
-            "cancel_url": "https://tradestream.io/cancel",
-        })
+        resp = tc.post(
+            "/checkout",
+            json={
+                "tier": "free",
+                "email": "user@example.com",
+                "success_url": "https://tradestream.io/success",
+                "cancel_url": "https://tradestream.io/cancel",
+            },
+        )
         assert resp.status_code == 422
 
 
@@ -210,10 +219,13 @@ class TestPortal:
         mock_session.url = "https://billing.stripe.com/portal/test"
         mock_stripe.billing_portal.Session.create.return_value = mock_session
 
-        resp = tc.post("/portal", json={
-            "customer_id": str(uuid.uuid4()),
-            "return_url": "https://tradestream.io/account",
-        })
+        resp = tc.post(
+            "/portal",
+            json={
+                "customer_id": str(uuid.uuid4()),
+                "return_url": "https://tradestream.io/account",
+            },
+        )
         assert resp.status_code == 201
         body = resp.json()
         assert "portal_url" in body["data"]["attributes"]
@@ -222,8 +234,11 @@ class TestPortal:
         tc, conn, _ = client
         conn.fetchrow.return_value = None
 
-        resp = tc.post("/portal", json={
-            "customer_id": str(uuid.uuid4()),
-            "return_url": "https://tradestream.io/account",
-        })
+        resp = tc.post(
+            "/portal",
+            json={
+                "customer_id": str(uuid.uuid4()),
+                "return_url": "https://tradestream.io/account",
+            },
+        )
         assert resp.status_code == 404
