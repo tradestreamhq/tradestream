@@ -329,6 +329,21 @@ message VariablePeriodEmaParameters {
   int32 maxPeriod = 2;
 }
 
+// Sentiment regime parameters for strategies that factor in market sentiment.
+// Allows strategies to adjust behaviour based on sentiment conditions.
+message SentimentParameters {
+  // Sentiment score threshold for extreme fear (contrarian buy zone).
+  double extreme_fear_threshold = 1;
+  // Sentiment score threshold for extreme greed (contrarian sell zone).
+  double extreme_greed_threshold = 2;
+  // Weight given to sentiment in the overall signal (0.0 - 1.0).
+  double sentiment_weight = 3;
+  // Enable sentiment divergence detection (price vs sentiment disagreement).
+  bool enable_divergence = 4;
+  // Enable sentiment momentum as a leading indicator.
+  bool enable_momentum = 5;
+}
+
 // Generic strategy parameters for configurable strategies.
 // Allows dynamic parameter passing from config-based strategies.
 message ConfigurableStrategyParameters {

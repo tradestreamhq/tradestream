@@ -1,0 +1,5 @@
+schemaVersion: "2.0.0"
+metadataTest:
+  user: "nobody"
+  workdir: "/services/market_sentiment"
+  entrypoint: ["/services/market_sentiment/app"]
