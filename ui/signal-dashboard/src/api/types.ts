@@ -73,3 +73,64 @@ export interface AuthTokens {
   access_token: string;
   refresh_token: string;
 }
+
+export type StrategyCategory =
+  | "trend_following"
+  | "mean_reversion"
+  | "momentum"
+  | "breakout"
+  | "multi_indicator"
+  | "volatility"
+  | "statistical";
+
+export interface MarketplaceListing {
+  id: string;
+  strategy_id: string;
+  name: string;
+  author: string;
+  description: string;
+  category: StrategyCategory;
+  tags: string[];
+  performance_stats: Record<string, number>;
+  price: number;
+  subscribers_count: number;
+  avg_rating: number;
+  rating_count: number;
+  created_at: string;
+  live_metrics?: {
+    total_return_pct: number;
+    sharpe_ratio: number;
+    win_rate: number;
+    max_drawdown_pct: number;
+    trade_count: number;
+    consistency_score: number;
+  };
+}
+
+export interface LeaderboardEntry {
+  strategy_id: string;
+  period: string;
+  rank: number;
+  total_return_pct: number;
+  sharpe_ratio: number;
+  win_rate: number;
+  max_drawdown_pct: number;
+  trade_count: number;
+  consistency_score: number;
+  snapshot_date: string;
+  name?: string;
+  category?: string;
+  author?: string;
+}
+
+export interface CategoryInfo {
+  name: string;
+  label: string;
+  description: string;
+}
+
+export interface MarketplaceFilters {
+  category?: string;
+  search?: string;
+  order_by?: string;
+}
