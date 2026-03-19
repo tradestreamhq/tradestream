@@ -65,6 +65,52 @@ py_library(
     ],
 )
 
+
+py_library(
+    name = "channel_lib",
+    srcs = ["channel.py"],
+)
+
+py_library(
+    name = "sms_sender_lib",
+    srcs = ["sms_sender.py"],
+    deps = [
+        "//third_party/python:absl_py",
+        "//third_party/python:requests",
+    ],
+)
+
+py_library(
+    name = "deduplicator_lib",
+    srcs = ["deduplicator.py"],
+)
+
+py_library(
+    name = "rate_limiter_lib",
+    srcs = ["rate_limiter.py"],
+)
+
+py_library(
+    name = "user_preferences_lib",
+    srcs = ["user_preferences.py"],
+)
+
+py_library(
+    name = "delivery_router_lib",
+    srcs = ["delivery_router.py"],
+    deps = [
+        ":deduplicator_lib",
+        ":rate_limiter_lib",
+        ":user_preferences_lib",
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
+    name = "delivery_tracker_lib",
+    srcs = ["delivery_tracker.py"],
+)
+
 py_library(
     name = "main_lib",
     srcs = ["main.py"],
@@ -75,6 +121,7 @@ py_library(
         ":notification_history_lib",
         ":slack_sender_lib",
         ":telegram_sender_lib",
+        ":sms_sender_lib",
         ":webhook_sender_lib",
         "//services/shared:structured_logger",
         "//third_party/python:absl_py",
@@ -101,6 +148,7 @@ py_test(
         ":main_lib",
         ":notification_history_lib",
         ":slack_sender_lib",
+        ":sms_sender_lib",
         ":telegram_sender_lib",
         ":webhook_sender_lib",
         "//third_party/python:absl_py",
@@ -108,6 +156,24 @@ py_test(
         "//third_party/python:redis",
         "//third_party/python:requests",
         "//third_party/python:tenacity",
+    ],
+)
+
+
+py_test(
+    name = "multi_channel_test",
+    srcs = ["multi_channel_test.py"],
+    deps = [
+        ":channel_lib",
+        ":deduplicator_lib",
+        ":delivery_router_lib",
+        ":delivery_tracker_lib",
+        ":rate_limiter_lib",
+        ":sms_sender_lib",
+        ":user_preferences_lib",
+        "//third_party/python:absl_py",
+        "//third_party/python:pytest",
+        "//third_party/python:requests",
     ],
 )
 
