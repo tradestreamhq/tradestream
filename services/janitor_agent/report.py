@@ -10,6 +10,7 @@ from typing import Optional
 
 from services.janitor_agent.db_maintenance import MaintenanceResult
 from services.janitor_agent.health_checker import ServiceHealth
+from services.janitor_agent.log_rotator import RotationResult
 from services.janitor_agent.retirement_criteria import RetirementDecision
 from services.janitor_agent.state_repair import RepairResult
 
@@ -32,6 +33,8 @@ class JanitorReport:
     health_results: list[ServiceHealth] = field(default_factory=list)
     # State repair results
     repair_results: list[RepairResult] = field(default_factory=list)
+    # Log rotation results
+    log_rotation_results: list[RotationResult] = field(default_factory=list)
     # Timing
     duration_seconds: float = 0.0
 
@@ -150,6 +153,18 @@ class JanitorReport:
                 lines.append(
                     f"| {r.check_name} | {r.inconsistencies_found} | {r.repaired} | {r.details} |"
                 )
+            lines.append("")
+
+        # Log rotation
+        if self.log_rotation_results:
+            rotated = [r for r in self.log_rotation_results if r.action == "rotated" and r.success]
+            deleted = [r for r in self.log_rotation_results if r.action == "deleted" and r.success]
+            total_freed = sum(r.size_bytes for r in rotated + deleted)
+            lines.append("## Log Rotation")
+            lines.append("")
+            lines.append(f"- Files rotated: {len(rotated)}")
+            lines.append(f"- Files deleted: {len(deleted)}")
+            lines.append(f"- Space freed: {total_freed / (1024 * 1024):.1f} MB")
             lines.append("")
 
         return "\n".join(lines)

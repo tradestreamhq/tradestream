@@ -1,7 +1,7 @@
 """Janitor Agent — orchestrates all maintenance tasks.
 
 Coordinates retirement evaluation, database maintenance, health checks,
-state repair, and report generation into a single run cycle.
+state repair, log rotation, and report generation into a single run cycle.
 """
 
 import time
@@ -11,12 +11,14 @@ from typing import Optional
 
 from absl import logging
 
+from services.janitor_agent.dashboard import DashboardProvider
 from services.janitor_agent.db_maintenance import (
     InfluxDBMaintenance,
     MaintenanceConfig,
     PostgreSQLMaintenance,
 )
 from services.janitor_agent.health_checker import HealthCheckConfig, HealthChecker
+from services.janitor_agent.log_rotator import LogRotationConfig, LogRotator
 from services.janitor_agent.notifier import (
     NotificationConfig,
     ReportDistributionConfig,
@@ -46,12 +48,15 @@ class JanitorConfig:
     health_check: HealthCheckConfig
     notification: NotificationConfig = None
     report_distribution: ReportDistributionConfig = None
+    log_rotation: LogRotationConfig = None
 
     def __post_init__(self):
         if self.notification is None:
             self.notification = NotificationConfig()
         if self.report_distribution is None:
             self.report_distribution = ReportDistributionConfig()
+        if self.log_rotation is None:
+            self.log_rotation = LogRotationConfig()
 
 
 class JanitorAgent:
@@ -64,6 +69,8 @@ class JanitorAgent:
         self._repairer = StateRepairer(config.maintenance.pg_connection_string)
         self._notifier = RetirementNotifier(config.notification)
         self._distributor = ReportDistributor(config.report_distribution)
+        self._log_rotator = LogRotator(config.log_rotation)
+        self._dashboard = DashboardProvider(config.maintenance.pg_connection_string)
         self._influx: Optional[InfluxDBMaintenance] = None
 
         if config.maintenance.influx_url and config.maintenance.influx_token:
@@ -313,6 +320,21 @@ class JanitorAgent:
         )
         return results
 
+    def run_log_rotation(self) -> list:
+        """Run log rotation and cleanup."""
+        logging.info("Starting log rotation")
+        results = self._log_rotator.run()
+        rotated = sum(1 for r in results if r.action == "rotated" and r.success)
+        deleted = sum(1 for r in results if r.action == "deleted" and r.success)
+        logging.info(
+            "Log rotation complete: %d rotated, %d deleted", rotated, deleted
+        )
+        return results
+
+    def get_dashboard_data(self) -> dict:
+        """Get dashboard data for the admin UI."""
+        return self._dashboard.get_dashboard_json()
+
     def run_full_cycle(self) -> JanitorReport:
         """Run a full janitor maintenance cycle and generate a report."""
         start = time.time()
@@ -349,6 +371,12 @@ class JanitorAgent:
             report.repair_results = self.run_state_repairs()
         except Exception as e:
             logging.error("State repairs failed: %s", e)
+
+        # 5. Log rotation
+        try:
+            report.log_rotation_results = self.run_log_rotation()
+        except Exception as e:
+            logging.error("Log rotation failed: %s", e)
 
         report.duration_seconds = time.time() - start
 

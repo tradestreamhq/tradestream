@@ -126,6 +126,11 @@ def main(argv):
         frequency=TaskFrequency.DAILY,
         run_fn=agent.run_state_repairs,
     )
+    scheduler.register_task(
+        name="log_rotation",
+        frequency=TaskFrequency.DAILY,
+        run_fn=agent.run_log_rotation,
+    )
 
     logging.info("Janitor Agent starting")
     scheduler.run_loop(lambda: _shutdown)
