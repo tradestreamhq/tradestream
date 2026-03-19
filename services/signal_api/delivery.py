@@ -207,17 +207,20 @@ class SignalDeliveryService:
         logger.info("Listening for signals on %s", patterns)
         loop = asyncio.new_event_loop()
 
-        for message in pubsub.listen():
-            if message["type"] not in ("pmessage", "message"):
-                continue
-            try:
-                data = message.get("data")
-                if isinstance(data, bytes):
-                    data = data.decode("utf-8")
-                signal = json.loads(data)
-                loop.run_until_complete(self.deliver_signal(signal))
-            except (json.JSONDecodeError, Exception) as e:
-                logger.error("Error processing signal message: %s", e)
+        try:
+            for message in pubsub.listen():
+                if message["type"] not in ("pmessage", "message"):
+                    continue
+                try:
+                    data = message.get("data")
+                    if isinstance(data, bytes):
+                        data = data.decode("utf-8")
+                    signal = json.loads(data)
+                    loop.run_until_complete(self.deliver_signal(signal))
+                except (json.JSONDecodeError, Exception) as e:
+                    logger.error("Error processing signal message: %s", e)
+        finally:
+            loop.close()
 
 
 def _build_summary(signal: Dict[str, Any]) -> str:

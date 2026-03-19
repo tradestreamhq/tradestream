@@ -153,6 +153,7 @@ py_test(
     srcs = ["dead_letter_queue_test.py"],
     deps = [
         ":dead_letter_queue",
+        ":pipeline_metrics",
         "//third_party/python:pytest",
     ],
 )

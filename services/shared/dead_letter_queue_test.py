@@ -11,6 +11,7 @@ from services.shared.dead_letter_queue import (
     DLQ_PROCESSING_KEY,
     DeadLetterQueue,
 )
+from services.shared.pipeline_metrics import PipelineMetrics
 
 
 class TestDeadLetterQueue:
@@ -151,3 +152,50 @@ class TestDeadLetterQueue:
         assert d["pending"] == 3
         assert d["processing"] == 1
         assert d["max_retries"] == 3
+
+
+class TestDeadLetterQueueMetrics:
+    @pytest.fixture
+    def redis_mock(self):
+        return MagicMock()
+
+    @pytest.fixture
+    def metrics(self):
+        return PipelineMetrics()
+
+    @pytest.fixture
+    def dlq(self, redis_mock, metrics):
+        return DeadLetterQueue(redis_mock, max_retries=3, metrics=metrics)
+
+    def test_ack_increments_dlq_retried(self, dlq, redis_mock, metrics):
+        dlq.ack("dlq:sub-1:123")
+        assert metrics.dlq_retried.value == 1
+
+    def test_nack_exhausted_increments_dlq_exhausted(self, dlq, redis_mock, metrics):
+        entry = {
+            "dlq_id": "dlq:sub-1:123",
+            "signal": {},
+            "subscriber_id": "sub-1",
+            "channel": "telegram",
+            "endpoint": "12345",
+            "retry_count": 2,
+            "max_retries": 3,
+        }
+        redis_mock.hget.return_value = json.dumps(entry)
+        dlq.nack("dlq:sub-1:123")
+        assert metrics.dlq_exhausted.value == 1
+
+    def test_dequeue_exhausted_increments_metric(self, dlq, redis_mock, metrics):
+        entry = {
+            "dlq_id": "dlq:sub-1:123",
+            "signal": {},
+            "subscriber_id": "sub-1",
+            "channel": "telegram",
+            "endpoint": "12345",
+            "retry_count": 3,
+            "max_retries": 3,
+            "next_retry_at": time.time() - 10,
+        }
+        redis_mock.rpop.side_effect = [json.dumps(entry), None]
+        dlq.dequeue_batch(10)
+        assert metrics.dlq_exhausted.value == 1

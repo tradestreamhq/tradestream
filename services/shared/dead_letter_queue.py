@@ -30,10 +30,13 @@ class DeadLetterQueue:
                 dlq.nack(item["dlq_id"])
     """
 
-    def __init__(self, redis_client, max_retries: int = 3, base_delay: float = 30.0):
+    def __init__(
+        self, redis_client, max_retries: int = 3, base_delay: float = 30.0, metrics=None
+    ):
         self.redis = redis_client
         self.max_retries = max_retries
         self.base_delay = base_delay
+        self.metrics = metrics
 
     def enqueue(
         self,
@@ -101,6 +104,8 @@ class DeadLetterQueue:
                     "DLQ: exhausted retries for subscriber=%s, discarding",
                     entry.get("subscriber_id"),
                 )
+                if self.metrics:
+                    self.metrics.dlq_exhausted.inc()
                 continue
 
             # Move to processing
@@ -114,6 +119,8 @@ class DeadLetterQueue:
     def ack(self, dlq_id: str):
         """Acknowledge successful retry — remove from processing set."""
         self.redis.hdel(DLQ_PROCESSING_KEY, dlq_id)
+        if self.metrics:
+            self.metrics.dlq_retried.inc()
         logger.info("DLQ ack: %s", dlq_id)
 
     def nack(self, dlq_id: str):
@@ -136,6 +143,8 @@ class DeadLetterQueue:
                 dlq_id,
                 entry["retry_count"],
             )
+            if self.metrics:
+                self.metrics.dlq_exhausted.inc()
             return  # Discard
 
         # Exponential backoff
