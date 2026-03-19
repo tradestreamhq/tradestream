@@ -113,7 +113,10 @@ class SignalDeliveryService:
 
         logger.info(
             "Signal delivery complete: %d delivered, %d failed for %s %s",
-            delivered, failed, strategy, instrument,
+            delivered,
+            failed,
+            strategy,
+            instrument,
         )
         return {"delivered": delivered, "failed": failed}
 

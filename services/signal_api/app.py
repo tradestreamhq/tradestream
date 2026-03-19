@@ -110,7 +110,11 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             )
 
         return success_response(
-            {"subscription_id": sub_id, "channel": body.channel, "endpoint": body.endpoint},
+            {
+                "subscription_id": sub_id,
+                "channel": body.channel,
+                "endpoint": body.endpoint,
+            },
             "subscription",
             resource_id=sub_id,
             status_code=201,
@@ -246,7 +250,9 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             rows = await conn.fetch(data_query, *params_with_paging)
 
         items = [_format_signal(row) for row in rows]
-        return collection_response(items, "signal", total=total, limit=limit, offset=offset)
+        return collection_response(
+            items, "signal", total=total, limit=limit, offset=offset
+        )
 
     # ------------------------------------------------------------------
     # Performance tracking
@@ -289,7 +295,12 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         items = []
         for row in rows:
             item = dict(row)
-            for key in ("win_rate_pct", "avg_return_pct", "max_drawdown_pct", "total_pnl"):
+            for key in (
+                "win_rate_pct",
+                "avg_return_pct",
+                "max_drawdown_pct",
+                "total_pnl",
+            ):
                 if item.get(key) is not None:
                     item[key] = float(item[key])
             items.append(item)

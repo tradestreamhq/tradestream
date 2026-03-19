@@ -44,7 +44,9 @@ class TelegramSignalBot:
             logger.error("Failed to send Telegram message: %s", e)
             return False
 
-    def get_updates(self, offset: Optional[int] = None, timeout: int = 30) -> List[Dict]:
+    def get_updates(
+        self, offset: Optional[int] = None, timeout: int = 30
+    ) -> List[Dict]:
         """Long-poll for new messages."""
         params: Dict[str, Any] = {"timeout": timeout}
         if offset is not None:
@@ -82,9 +84,7 @@ class TelegramSignalBot:
         handler = handlers.get(command)
         if handler:
             return await handler(chat_id, parts[1:])
-        return (
-            "Unknown command. Use /start to see available commands."
-        )
+        return "Unknown command. Use /start to see available commands."
 
     async def _handle_start(self, chat_id: str, _args: List[str]) -> str:
         return (
@@ -111,6 +111,7 @@ class TelegramSignalBot:
                 return "You are already subscribed to signals."
 
             import uuid
+
             sub_id = str(uuid.uuid4())
             await conn.execute(
                 """INSERT INTO signal_subscriptions

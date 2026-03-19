@@ -191,6 +191,7 @@ class TestSendMessage:
     def test_send_network_error(self, mock_post, bot):
         b, _ = bot
         import requests
+
         mock_post.side_effect = requests.RequestException("timeout")
 
         assert b.send_message("123", "Hello") is False
