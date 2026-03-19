@@ -222,16 +222,28 @@ class TestCalculateOpportunityScore:
 
     def test_freshness_decay(self):
         score_fresh, _ = calculate_opportunity_score(
-            confidence=0.0, expected_return=0.0, return_stddev=0.0,
-            consensus_pct=0.0, volatility=0.0, minutes_ago=0,
+            confidence=0.0,
+            expected_return=0.0,
+            return_stddev=0.0,
+            consensus_pct=0.0,
+            volatility=0.0,
+            minutes_ago=0,
         )
         score_30, _ = calculate_opportunity_score(
-            confidence=0.0, expected_return=0.0, return_stddev=0.0,
-            consensus_pct=0.0, volatility=0.0, minutes_ago=30,
+            confidence=0.0,
+            expected_return=0.0,
+            return_stddev=0.0,
+            consensus_pct=0.0,
+            volatility=0.0,
+            minutes_ago=30,
         )
         score_60, _ = calculate_opportunity_score(
-            confidence=0.0, expected_return=0.0, return_stddev=0.0,
-            consensus_pct=0.0, volatility=0.0, minutes_ago=60,
+            confidence=0.0,
+            expected_return=0.0,
+            return_stddev=0.0,
+            consensus_pct=0.0,
+            volatility=0.0,
+            minutes_ago=60,
         )
         assert score_fresh == 10.0
         assert score_30 == 5.0
@@ -240,33 +252,56 @@ class TestCalculateOpportunityScore:
     def test_regime_affects_return_cap(self):
         """In extreme regime, same return gets a lower score (wider cap)."""
         _, breakdown_normal = calculate_opportunity_score(
-            confidence=0.0, expected_return=0.05, return_stddev=0.0,
-            consensus_pct=0.0, volatility=0.0, minutes_ago=60,
+            confidence=0.0,
+            expected_return=0.05,
+            return_stddev=0.0,
+            consensus_pct=0.0,
+            volatility=0.0,
+            minutes_ago=60,
             market_regime="normal",
         )
         _, breakdown_extreme = calculate_opportunity_score(
-            confidence=0.0, expected_return=0.05, return_stddev=0.0,
-            consensus_pct=0.0, volatility=0.0, minutes_ago=60,
+            confidence=0.0,
+            expected_return=0.05,
+            return_stddev=0.0,
+            consensus_pct=0.0,
+            volatility=0.0,
+            minutes_ago=60,
             market_regime="extreme",
         )
-        assert breakdown_normal.expected_return_contribution > breakdown_extreme.expected_return_contribution
+        assert (
+            breakdown_normal.expected_return_contribution
+            > breakdown_extreme.expected_return_contribution
+        )
 
     def test_sharpe_adjustment_affects_score(self):
         """High stddev should lower the score vs low stddev."""
         score_consistent, _ = calculate_opportunity_score(
-            confidence=0.0, expected_return=0.03, return_stddev=0.01,
-            consensus_pct=0.0, volatility=0.0, minutes_ago=60,
+            confidence=0.0,
+            expected_return=0.03,
+            return_stddev=0.01,
+            consensus_pct=0.0,
+            volatility=0.0,
+            minutes_ago=60,
         )
         score_volatile, _ = calculate_opportunity_score(
-            confidence=0.0, expected_return=0.03, return_stddev=0.06,
-            consensus_pct=0.0, volatility=0.0, minutes_ago=60,
+            confidence=0.0,
+            expected_return=0.03,
+            return_stddev=0.06,
+            consensus_pct=0.0,
+            volatility=0.0,
+            minutes_ago=60,
         )
         assert score_consistent > score_volatile
 
     def test_breakdown_populated(self):
         _, breakdown = calculate_opportunity_score(
-            confidence=0.82, expected_return=0.032, return_stddev=0.015,
-            consensus_pct=0.80, volatility=0.021, minutes_ago=0,
+            confidence=0.82,
+            expected_return=0.032,
+            return_stddev=0.015,
+            consensus_pct=0.80,
+            volatility=0.021,
+            minutes_ago=0,
             market_regime="normal",
         )
         assert breakdown.confidence_value == 0.82
@@ -332,8 +367,12 @@ class TestConsensus:
 class TestExpectedReturn:
     def test_weighted_by_confidence(self):
         signals = [
-            ContributingSignal("tech", "s1", "BUY", 0.8, expected_return=0.04, return_stddev=0.01),
-            ContributingSignal("sentiment", "s2", "BUY", 0.2, expected_return=0.02, return_stddev=0.02),
+            ContributingSignal(
+                "tech", "s1", "BUY", 0.8, expected_return=0.04, return_stddev=0.01
+            ),
+            ContributingSignal(
+                "sentiment", "s2", "BUY", 0.2, expected_return=0.02, return_stddev=0.02
+            ),
         ]
         ret, std = calculate_expected_return(signals, "BUY")
         # (0.04*0.8 + 0.02*0.2) / (0.8+0.2) = 0.036
@@ -360,7 +399,9 @@ class TestAggregateSignals:
     def test_basic_aggregation(self):
         signals = [
             ContributingSignal("tech", "s1", "BUY", 0.9, "RSI_REVERSAL", 0.03, 0.01),
-            ContributingSignal("sentiment", "s2", "BUY", 0.7, "NEWS_SENTIMENT", 0.02, 0.005),
+            ContributingSignal(
+                "sentiment", "s2", "BUY", 0.7, "NEWS_SENTIMENT", 0.02, 0.005
+            ),
         ]
         opp = aggregate_signals("BTC/USD", signals, volatility=0.02)
         assert opp is not None
@@ -411,8 +452,12 @@ class TestAggregateSignals:
 class TestRankOpportunities:
     def _make_opp(self, score, tier="GOOD", symbol="BTC/USD", minutes_old=0):
         _, breakdown = calculate_opportunity_score(
-            confidence=0.5, expected_return=0.02, return_stddev=0.01,
-            consensus_pct=0.5, volatility=0.01, minutes_ago=0,
+            confidence=0.5,
+            expected_return=0.02,
+            return_stddev=0.01,
+            consensus_pct=0.5,
+            volatility=0.01,
+            minutes_ago=0,
         )
         opp = ScoredOpportunity(
             opportunity_id=f"opp-{score}",
@@ -471,14 +516,25 @@ class TestRankOpportunities:
 class TestOpportunityTracker:
     def _make_opp(self, opp_id="opp-1"):
         _, breakdown = calculate_opportunity_score(
-            confidence=0.8, expected_return=0.03, return_stddev=0.01,
-            consensus_pct=0.8, volatility=0.02, minutes_ago=0,
+            confidence=0.8,
+            expected_return=0.03,
+            return_stddev=0.01,
+            consensus_pct=0.8,
+            volatility=0.02,
+            minutes_ago=0,
         )
         return ScoredOpportunity(
-            opportunity_id=opp_id, symbol="BTC/USD", direction="BUY",
-            opportunity_score=85.0, tier="HOT", score_breakdown=breakdown,
-            contributing_signals=[], strategies_analyzed=3,
-            strategies_agreeing=2, top_strategy="RSI", market_regime="normal",
+            opportunity_id=opp_id,
+            symbol="BTC/USD",
+            direction="BUY",
+            opportunity_score=85.0,
+            tier="HOT",
+            score_breakdown=breakdown,
+            contributing_signals=[],
+            strategies_analyzed=3,
+            strategies_agreeing=2,
+            top_strategy="RSI",
+            market_regime="normal",
         )
 
     def test_track_and_get(self):
@@ -686,9 +742,7 @@ class TestOpportunityAPI:
         tracker.track(opp)
 
         # Can't go directly from scored to closed
-        resp = client.patch(
-            f"/{opp.opportunity_id}/status", json={"status": "closed"}
-        )
+        resp = client.patch(f"/{opp.opportunity_id}/status", json={"status": "closed"})
         assert resp.status_code == 422
 
     def test_stats(self, client, tracker):
@@ -707,12 +761,19 @@ class TestOpportunityAPI:
             json={
                 "symbol": "BTC/USD",
                 "signals": [
-                    {"source": "tech", "signal_id": "s1", "direction": "HOLD", "confidence": 0.9},
+                    {
+                        "source": "tech",
+                        "signal_id": "s1",
+                        "direction": "HOLD",
+                        "confidence": 0.9,
+                    },
                 ],
             },
         )
         assert resp.status_code == 200
-        assert "No actionable opportunity" in resp.json()["data"]["attributes"]["message"]
+        assert (
+            "No actionable opportunity" in resp.json()["data"]["attributes"]["message"]
+        )
 
 
 # ─── Model Tests ──────────────────────────────────────────────
@@ -721,15 +782,26 @@ class TestOpportunityAPI:
 class TestScoredOpportunityModel:
     def test_to_dict(self):
         _, breakdown = calculate_opportunity_score(
-            confidence=0.8, expected_return=0.03, return_stddev=0.01,
-            consensus_pct=0.8, volatility=0.02, minutes_ago=0,
+            confidence=0.8,
+            expected_return=0.03,
+            return_stddev=0.01,
+            consensus_pct=0.8,
+            volatility=0.02,
+            minutes_ago=0,
         )
         signals = [ContributingSignal("tech", "s1", "BUY", 0.9, "RSI")]
         opp = ScoredOpportunity(
-            opportunity_id="test-id", symbol="BTC/USD", direction="BUY",
-            opportunity_score=85.0, tier="HOT", score_breakdown=breakdown,
-            contributing_signals=signals, strategies_analyzed=3,
-            strategies_agreeing=2, top_strategy="RSI", market_regime="normal",
+            opportunity_id="test-id",
+            symbol="BTC/USD",
+            direction="BUY",
+            opportunity_score=85.0,
+            tier="HOT",
+            score_breakdown=breakdown,
+            contributing_signals=signals,
+            strategies_analyzed=3,
+            strategies_agreeing=2,
+            top_strategy="RSI",
+            market_regime="normal",
         )
         d = opp.to_dict()
         assert d["opportunity_id"] == "test-id"
@@ -741,14 +813,25 @@ class TestScoredOpportunityModel:
 
     def test_is_stale(self):
         _, breakdown = calculate_opportunity_score(
-            confidence=0.5, expected_return=0.01, return_stddev=0.0,
-            consensus_pct=0.5, volatility=0.01, minutes_ago=0,
+            confidence=0.5,
+            expected_return=0.01,
+            return_stddev=0.0,
+            consensus_pct=0.5,
+            volatility=0.01,
+            minutes_ago=0,
         )
         opp = ScoredOpportunity(
-            opportunity_id="stale", symbol="ETH/USD", direction="BUY",
-            opportunity_score=50.0, tier="NEUTRAL", score_breakdown=breakdown,
-            contributing_signals=[], strategies_analyzed=1,
-            strategies_agreeing=1, top_strategy=None, market_regime="normal",
+            opportunity_id="stale",
+            symbol="ETH/USD",
+            direction="BUY",
+            opportunity_score=50.0,
+            tier="NEUTRAL",
+            score_breakdown=breakdown,
+            contributing_signals=[],
+            strategies_analyzed=1,
+            strategies_agreeing=1,
+            top_strategy=None,
+            market_regime="normal",
             scored_at=datetime.now(timezone.utc) - timedelta(minutes=61),
         )
         assert opp.is_stale is True

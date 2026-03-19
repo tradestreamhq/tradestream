@@ -112,7 +112,8 @@ class OpportunityTracker:
         return [
             opp
             for opp in self._opportunities.values()
-            if opp.status not in (
+            if opp.status
+            not in (
                 OpportunityStatus.CLOSED.value,
                 OpportunityStatus.EXPIRED.value,
             )

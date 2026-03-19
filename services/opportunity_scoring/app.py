@@ -42,11 +42,17 @@ def create_app(tracker: Optional[OpportunityTracker] = None) -> FastAPI:
 
     @app.get("/", tags=["Opportunities"])
     async def list_opportunities(
-        min_score: float = Query(0.0, ge=0, le=100, description="Minimum opportunity score"),
-        min_tier: Optional[str] = Query(None, description="Minimum tier: HOT, GOOD, NEUTRAL, LOW"),
+        min_score: float = Query(
+            0.0, ge=0, le=100, description="Minimum opportunity score"
+        ),
+        min_tier: Optional[str] = Query(
+            None, description="Minimum tier: HOT, GOOD, NEUTRAL, LOW"
+        ),
         symbol: Optional[str] = Query(None, description="Filter by trading pair"),
         status: Optional[str] = Query(None, description="Filter by lifecycle status"),
-        exclude_stale: bool = Query(True, description="Exclude stale (>60 min) opportunities"),
+        exclude_stale: bool = Query(
+            True, description="Exclude stale (>60 min) opportunities"
+        ),
         limit: int = Query(50, ge=1, le=200, description="Max results"),
         offset: int = Query(0, ge=0, description="Pagination offset"),
     ):

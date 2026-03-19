@@ -32,7 +32,8 @@ def calculate_expected_return(
         Tuple of (weighted_avg_return, weighted_stddev).
     """
     agreeing = [
-        s for s in signals
+        s
+        for s in signals
         if s.direction == direction
         and s.expected_return is not None
         and s.confidence > 0
@@ -45,13 +46,13 @@ def calculate_expected_return(
     if total_weight <= 0:
         return DEFAULTS["expected_return"], DEFAULTS["return_stddev"]
 
-    weighted_return = sum(
-        (s.expected_return or 0.0) * s.confidence for s in agreeing
-    ) / total_weight
+    weighted_return = (
+        sum((s.expected_return or 0.0) * s.confidence for s in agreeing) / total_weight
+    )
 
-    weighted_stddev = sum(
-        (s.return_stddev or 0.0) * s.confidence for s in agreeing
-    ) / total_weight
+    weighted_stddev = (
+        sum((s.return_stddev or 0.0) * s.confidence for s in agreeing) / total_weight
+    )
 
     return weighted_return, weighted_stddev
 

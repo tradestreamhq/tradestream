@@ -128,10 +128,14 @@ def calculate_opportunity_score(
 
     # Risk-adjusted return
     risk_adjusted = apply_sharpe_adjustment(expected_return, return_stddev)
-    return_score = min(risk_adjusted / caps.max_return, 1.0) if caps.max_return > 0 else 0.0
+    return_score = (
+        min(risk_adjusted / caps.max_return, 1.0) if caps.max_return > 0 else 0.0
+    )
 
     # Normalize volatility
-    vol_score = min(volatility / caps.max_volatility, 1.0) if caps.max_volatility > 0 else 0.0
+    vol_score = (
+        min(volatility / caps.max_volatility, 1.0) if caps.max_volatility > 0 else 0.0
+    )
 
     # Freshness decay: 100% at 0 min, 50% at 30 min, 0% at 60 min
     freshness_score = max(0.0, 1.0 - (minutes_ago / 60))
@@ -143,7 +147,13 @@ def calculate_opportunity_score(
     vol_contribution = WEIGHTS["volatility"] * vol_score * 100
     fresh_contribution = WEIGHTS["freshness"] * freshness_score * 100
 
-    total = conf_contribution + ret_contribution + cons_contribution + vol_contribution + fresh_contribution
+    total = (
+        conf_contribution
+        + ret_contribution
+        + cons_contribution
+        + vol_contribution
+        + fresh_contribution
+    )
     total = round(total, 1)
 
     breakdown = ScoreBreakdown(
