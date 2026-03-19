@@ -106,7 +106,8 @@ public class Phase1Batch2StrategySpecsSeedTest {
         count++;
       }
     }
-    assertEquals("All 15 Phase 1 Batch 2 strategies should be present in ConfigStrategy enum", 15, count);
+    assertEquals(
+        "All 15 Phase 1 Batch 2 strategies should be present in ConfigStrategy enum", 15, count);
   }
 
   @Test
@@ -140,7 +141,8 @@ public class Phase1Batch2StrategySpecsSeedTest {
     StrategyConfig config = StrategyConfigLoader.ConfigStrategy.ADX_DMI.get();
     assertNotNull(config);
     assertEquals("ADX_DMI should have 3 indicators", 3, config.getIndicators().size());
-    assertEquals("ADX_DMI should have 2 entry conditions (compound)", 2, config.getEntryConditions().size());
+    assertEquals(
+        "ADX_DMI should have 2 entry conditions (compound)", 2, config.getEntryConditions().size());
 
     ConfigurableStrategyFactory factory = new ConfigurableStrategyFactory(config);
     ConfigurableStrategyParameters params =
@@ -156,8 +158,10 @@ public class Phase1Batch2StrategySpecsSeedTest {
   public void testAdxStochasticCompoundEntry() throws Exception {
     StrategyConfig config = StrategyConfigLoader.ConfigStrategy.ADX_STOCHASTIC.get();
     assertNotNull(config);
-    assertEquals("ADX_STOCHASTIC should have 2 entry conditions", 2, config.getEntryConditions().size());
-    assertEquals("ADX_STOCHASTIC should have 2 exit conditions", 2, config.getExitConditions().size());
+    assertEquals(
+        "ADX_STOCHASTIC should have 2 entry conditions", 2, config.getEntryConditions().size());
+    assertEquals(
+        "ADX_STOCHASTIC should have 2 exit conditions", 2, config.getExitConditions().size());
 
     ConfigurableStrategyFactory factory = new ConfigurableStrategyFactory(config);
     ConfigurableStrategyParameters params =
@@ -212,7 +216,8 @@ public class Phase1Batch2StrategySpecsSeedTest {
     StrategyConfig config = StrategyConfigLoader.ConfigStrategy.BBAND_WILLIAMS_R.get();
     assertNotNull(config);
     assertEquals("BBAND_WILLIAMS_R should have 4 indicators", 4, config.getIndicators().size());
-    assertEquals("BBAND_WILLIAMS_R should have 2 entry conditions", 2, config.getEntryConditions().size());
+    assertEquals(
+        "BBAND_WILLIAMS_R should have 2 entry conditions", 2, config.getEntryConditions().size());
 
     ConfigurableStrategyFactory factory = new ConfigurableStrategyFactory(config);
     ConfigurableStrategyParameters params =
@@ -266,8 +271,10 @@ public class Phase1Batch2StrategySpecsSeedTest {
     StrategyConfig config = StrategyConfigLoader.ConfigStrategy.MOMENTUM_PINBALL.get();
     assertNotNull(config);
     assertEquals("MOMENTUM_PINBALL should have 2 indicators", 2, config.getIndicators().size());
-    assertEquals("MOMENTUM_PINBALL should have 2 entry conditions", 2, config.getEntryConditions().size());
-    assertEquals("MOMENTUM_PINBALL should have 2 exit conditions", 2, config.getExitConditions().size());
+    assertEquals(
+        "MOMENTUM_PINBALL should have 2 entry conditions", 2, config.getEntryConditions().size());
+    assertEquals(
+        "MOMENTUM_PINBALL should have 2 exit conditions", 2, config.getExitConditions().size());
 
     ConfigurableStrategyFactory factory = new ConfigurableStrategyFactory(config);
     ConfigurableStrategyParameters params =
@@ -287,9 +294,7 @@ public class Phase1Batch2StrategySpecsSeedTest {
 
     ConfigurableStrategyFactory factory = new ConfigurableStrategyFactory(config);
     ConfigurableStrategyParameters params =
-        ConfigurableStrategyParameters.newBuilder()
-            .putIntValues("donchianPeriod", 20)
-            .build();
+        ConfigurableStrategyParameters.newBuilder().putIntValues("donchianPeriod", 20).build();
     Strategy strategy = factory.createStrategy(testSeries, params);
     assertNotNull("DONCHIAN_BREAKOUT strategy should be created", strategy);
   }
@@ -317,10 +322,21 @@ public class Phase1Batch2StrategySpecsSeedTest {
   public void testTotalPhase1StrategiesReaches30() {
     List<String> phase1Batch1 =
         Arrays.asList(
-            "SMA_EMA_CROSSOVER", "DOUBLE_EMA_CROSSOVER", "MACD_CROSSOVER", "RSI_EMA_CROSSOVER",
-            "DPO_CROSSOVER", "ROC_MA_CROSSOVER", "TRIPLE_EMA_CROSSOVER", "DEMA_TEMA_CROSSOVER",
-            "MOMENTUM_SMA_CROSSOVER", "VWAP_CROSSOVER", "AWESOME_OSCILLATOR", "OBV_EMA",
-            "PVT", "VPT", "CHAIKIN_OSCILLATOR");
+            "SMA_EMA_CROSSOVER",
+            "DOUBLE_EMA_CROSSOVER",
+            "MACD_CROSSOVER",
+            "RSI_EMA_CROSSOVER",
+            "DPO_CROSSOVER",
+            "ROC_MA_CROSSOVER",
+            "TRIPLE_EMA_CROSSOVER",
+            "DEMA_TEMA_CROSSOVER",
+            "MOMENTUM_SMA_CROSSOVER",
+            "VWAP_CROSSOVER",
+            "AWESOME_OSCILLATOR",
+            "OBV_EMA",
+            "PVT",
+            "VPT",
+            "CHAIKIN_OSCILLATOR");
 
     int totalPhase1 = phase1Batch1.size() + PHASE1_BATCH2_STRATEGIES.size();
     assertEquals("Phase 1 total should be 30 strategies (15 + 15)", 30, totalPhase1);
@@ -328,8 +344,7 @@ public class Phase1Batch2StrategySpecsSeedTest {
     // Verify no overlap between batches
     for (String strategy : PHASE1_BATCH2_STRATEGIES) {
       assertFalse(
-          strategy + " should not be in both batch 1 and batch 2",
-          phase1Batch1.contains(strategy));
+          strategy + " should not be in both batch 1 and batch 2", phase1Batch1.contains(strategy));
     }
   }
 }
