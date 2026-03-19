@@ -40,17 +40,26 @@ class TradingViewWebhookPayload(BaseModel):
 
     ticker: str = Field(..., description="Trading pair/symbol (e.g., BTCUSD, AAPL)")
     action: str = Field(
-        ..., description="Trade action: buy, sell, long, short, close, exit_long, exit_short"
+        ...,
+        description="Trade action: buy, sell, long, short, close, exit_long, exit_short",
     )
     price: Optional[float] = Field(None, description="Price at signal time")
-    stop_loss: Optional[float] = Field(None, alias="stoploss", description="Stop loss price")
-    take_profit: Optional[float] = Field(None, alias="takeprofit", description="Take profit price")
+    stop_loss: Optional[float] = Field(
+        None, alias="stoploss", description="Stop loss price"
+    )
+    take_profit: Optional[float] = Field(
+        None, alias="takeprofit", description="Take profit price"
+    )
     quantity: Optional[float] = Field(None, description="Position size / quantity")
     strategy: Optional[str] = Field(None, description="Strategy name from TradingView")
     message: Optional[str] = Field(None, description="Custom alert message")
     time: Optional[str] = Field(None, description="Alert timestamp from TradingView")
-    interval: Optional[str] = Field(None, description="Chart timeframe (e.g., 1H, 4H, 1D)")
-    exchange: Optional[str] = Field(None, description="Exchange name (e.g., BINANCE, NYSE)")
+    interval: Optional[str] = Field(
+        None, description="Chart timeframe (e.g., 1H, 4H, 1D)"
+    )
+    exchange: Optional[str] = Field(
+        None, description="Exchange name (e.g., BINANCE, NYSE)"
+    )
 
     model_config = {"populate_by_name": True}
 
@@ -80,10 +89,18 @@ class PineScriptConfig(BaseModel):
 
     strategy_name: str = Field(..., description="Strategy name for the Pine Script")
     webhook_url: str = Field(..., description="Full webhook URL to send alerts to")
-    ticker: Optional[str] = Field(None, description="Symbol override (defaults to chart symbol)")
-    include_stop_loss: bool = Field(True, description="Include stop_loss in alert payload")
-    include_take_profit: bool = Field(True, description="Include take_profit in alert payload")
-    include_quantity: bool = Field(True, description="Include quantity in alert payload")
+    ticker: Optional[str] = Field(
+        None, description="Symbol override (defaults to chart symbol)"
+    )
+    include_stop_loss: bool = Field(
+        True, description="Include stop_loss in alert payload"
+    )
+    include_take_profit: bool = Field(
+        True, description="Include take_profit in alert payload"
+    )
+    include_quantity: bool = Field(
+        True, description="Include quantity in alert payload"
+    )
 
 
 def normalize_ticker(ticker: str) -> str:
@@ -127,7 +144,9 @@ def tradingview_payload_to_signal(
             signal_type = action_lower.upper()
 
     # Determine instrument
-    instrument = (connection or {}).get("instrument") or normalize_ticker(payload.ticker)
+    instrument = (connection or {}).get("instrument") or normalize_ticker(
+        payload.ticker
+    )
 
     # Determine strategy name
     strategy_name = (

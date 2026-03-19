@@ -87,11 +87,13 @@ class TestPublishSignal:
         mock_post.return_value = mock_resp
 
         publisher = TradingViewAlertPublisher("https://example.com/hook")
-        result = publisher.publish_signal({
-            "instrument": "BTC/USD",
-            "signal_type": "BUY",
-            "price": 65000.0,
-        })
+        result = publisher.publish_signal(
+            {
+                "instrument": "BTC/USD",
+                "signal_type": "BUY",
+                "price": 65000.0,
+            }
+        )
 
         assert result is True
         mock_post.assert_called_once()
@@ -106,10 +108,12 @@ class TestPublishSignal:
         mock_post.return_value = mock_resp
 
         publisher = TradingViewAlertPublisher("https://example.com/hook")
-        result = publisher.publish_signal({
-            "instrument": "BTC/USD",
-            "signal_type": "BUY",
-            "price": 65000.0,
-        })
+        result = publisher.publish_signal(
+            {
+                "instrument": "BTC/USD",
+                "signal_type": "BUY",
+                "price": 65000.0,
+            }
+        )
 
         assert result is False

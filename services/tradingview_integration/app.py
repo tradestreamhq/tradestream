@@ -49,8 +49,12 @@ logger = logging.getLogger(__name__)
 
 class CreateConnectionRequest(BaseModel):
     name: str = Field(..., description="Connection name")
-    strategy_name: Optional[str] = Field(None, description="Map to this TradeStream strategy")
-    instrument: Optional[str] = Field(None, description="Override instrument (e.g., BTC/USD)")
+    strategy_name: Optional[str] = Field(
+        None, description="Map to this TradeStream strategy"
+    )
+    instrument: Optional[str] = Field(
+        None, description="Override instrument (e.g., BTC/USD)"
+    )
     alert_mapping: Optional[Dict[str, str]] = Field(
         None, description="Custom action-to-signal mappings"
     )
@@ -151,11 +155,15 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
             )
 
         if not row:
-            return error_response("UNAUTHORIZED", "Invalid webhook token", status_code=401)
+            return error_response(
+                "UNAUTHORIZED", "Invalid webhook token", status_code=401
+            )
 
         if not row["active"]:
             return error_response(
-                "CONNECTION_DISABLED", "This TradingView connection is disabled", status_code=403
+                "CONNECTION_DISABLED",
+                "This TradingView connection is disabled",
+                status_code=403,
             )
 
         # Parse request body
