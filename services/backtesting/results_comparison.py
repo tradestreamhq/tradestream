@@ -62,9 +62,7 @@ class ResultsComparator:
     # Minimum required match ratio to consider overall match
     MIN_MATCH_RATIO = 0.70
 
-    def __init__(
-        self, tolerances: Optional[Dict[str, float]] = None
-    ):
+    def __init__(self, tolerances: Optional[Dict[str, float]] = None):
         self.tolerances = tolerances or self.DEFAULT_TOLERANCES
 
     def compare(
@@ -76,19 +74,39 @@ class ResultsComparator:
         """Compare VectorBT and Ta4j results for a strategy."""
         comparisons = {}
         metrics_to_compare = [
-            ("cumulative_return", vectorbt_result.cumulative_return, ta4j_result.cumulative_return),
-            ("annualized_return", vectorbt_result.annualized_return, ta4j_result.annualized_return),
+            (
+                "cumulative_return",
+                vectorbt_result.cumulative_return,
+                ta4j_result.cumulative_return,
+            ),
+            (
+                "annualized_return",
+                vectorbt_result.annualized_return,
+                ta4j_result.annualized_return,
+            ),
             ("sharpe_ratio", vectorbt_result.sharpe_ratio, ta4j_result.sharpe_ratio),
             ("sortino_ratio", vectorbt_result.sortino_ratio, ta4j_result.sortino_ratio),
             ("max_drawdown", vectorbt_result.max_drawdown, ta4j_result.max_drawdown),
             ("volatility", vectorbt_result.volatility, ta4j_result.volatility),
             ("win_rate", vectorbt_result.win_rate, ta4j_result.win_rate),
             ("profit_factor", vectorbt_result.profit_factor, ta4j_result.profit_factor),
-            ("number_of_trades", float(vectorbt_result.number_of_trades), float(ta4j_result.number_of_trades)),
-            ("average_trade_duration", vectorbt_result.average_trade_duration, ta4j_result.average_trade_duration),
+            (
+                "number_of_trades",
+                float(vectorbt_result.number_of_trades),
+                float(ta4j_result.number_of_trades),
+            ),
+            (
+                "average_trade_duration",
+                vectorbt_result.average_trade_duration,
+                ta4j_result.average_trade_duration,
+            ),
             ("alpha", vectorbt_result.alpha, ta4j_result.alpha),
             ("beta", vectorbt_result.beta, ta4j_result.beta),
-            ("strategy_score", vectorbt_result.strategy_score, ta4j_result.strategy_score),
+            (
+                "strategy_score",
+                vectorbt_result.strategy_score,
+                ta4j_result.strategy_score,
+            ),
         ]
 
         for name, vbt_val, ta4j_val in metrics_to_compare:

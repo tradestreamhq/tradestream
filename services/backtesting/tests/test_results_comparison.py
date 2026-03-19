@@ -87,10 +87,12 @@ class TestResultsComparator:
         m1 = _make_metrics()
         m2 = _make_metrics(cumulative_return=0.20)
 
-        results = comparator.compare_batch({
-            "STRATEGY_A": (m1, m1),
-            "STRATEGY_B": (m2, _make_metrics(cumulative_return=-0.5)),
-        })
+        results = comparator.compare_batch(
+            {
+                "STRATEGY_A": (m1, m1),
+                "STRATEGY_B": (m2, _make_metrics(cumulative_return=-0.5)),
+            }
+        )
 
         assert results["STRATEGY_A"].overall_match is True
         assert results["STRATEGY_B"].overall_match is False

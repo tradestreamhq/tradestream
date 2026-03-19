@@ -41,10 +41,15 @@ def small_ohlcv():
     np.random.seed(42)
     n = 100
     close = 100 + np.cumsum(np.random.randn(n) * 0.5)
-    df = pd.DataFrame({
-        "open": close, "high": close + 1, "low": close - 1,
-        "close": close, "volume": np.full(n, 1000.0),
-    })
+    df = pd.DataFrame(
+        {
+            "open": close,
+            "high": close + 1,
+            "low": close - 1,
+            "close": close,
+            "volume": np.full(n, 1000.0),
+        }
+    )
     df.index = pd.date_range(start="2020-01-01", periods=n, freq="1min")
     return df
 
@@ -58,7 +63,8 @@ class TestWalkForwardOptimizer:
     def test_insufficient_data(self, optimizer, small_ohlcv):
         """Test that insufficient data returns INSUFFICIENT_DATA status."""
         result = optimizer.run(
-            small_ohlcv, "DOUBLE_EMA_CROSSOVER",
+            small_ohlcv,
+            "DOUBLE_EMA_CROSSOVER",
             {"shortEmaPeriod": 10, "longEmaPeriod": 20},
         )
         assert result.status == "INSUFFICIENT_DATA"
@@ -73,7 +79,8 @@ class TestWalkForwardOptimizer:
             min_windows=2,
         )
         result = optimizer.run(
-            sample_ohlcv, "DOUBLE_EMA_CROSSOVER",
+            sample_ohlcv,
+            "DOUBLE_EMA_CROSSOVER",
             {"shortEmaPeriod": 10, "longEmaPeriod": 20},
             config=config,
         )
@@ -91,7 +98,8 @@ class TestWalkForwardOptimizer:
             min_windows=2,
         )
         result = optimizer.run(
-            sample_ohlcv, "DOUBLE_EMA_CROSSOVER",
+            sample_ohlcv,
+            "DOUBLE_EMA_CROSSOVER",
             {"shortEmaPeriod": 10, "longEmaPeriod": 20},
             config=config,
         )
@@ -111,7 +119,8 @@ class TestWalkForwardOptimizer:
             min_windows=2,
         )
         result = optimizer.run(
-            sample_ohlcv, "DOUBLE_EMA_CROSSOVER",
+            sample_ohlcv,
+            "DOUBLE_EMA_CROSSOVER",
             {"shortEmaPeriod": 10, "longEmaPeriod": 20},
             config=config,
         )
@@ -128,7 +137,8 @@ class TestWalkForwardOptimizer:
             min_windows=100,  # Impossible to satisfy
         )
         result = optimizer.run(
-            sample_ohlcv, "DOUBLE_EMA_CROSSOVER",
+            sample_ohlcv,
+            "DOUBLE_EMA_CROSSOVER",
             {"shortEmaPeriod": 10, "longEmaPeriod": 20},
             config=config,
         )

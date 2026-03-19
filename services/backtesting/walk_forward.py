@@ -134,12 +134,8 @@ class WalkForwardOptimizer:
                 start="2020-01-01", periods=len(test_data), freq="1min"
             )
 
-            is_result = self.runner.run_strategy(
-                train_data, strategy_name, parameters
-            )
-            oos_result = self.runner.run_strategy(
-                test_data, strategy_name, parameters
-            )
+            is_result = self.runner.run_strategy(train_data, strategy_name, parameters)
+            oos_result = self.runner.run_strategy(test_data, strategy_name, parameters)
 
             window_results.append(
                 WindowResult(

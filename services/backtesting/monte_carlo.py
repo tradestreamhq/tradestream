@@ -98,7 +98,9 @@ class MonteCarloSimulator:
                 best_case_result=original_result,
                 num_simulations=0,
                 confidence_level=confidence_level,
-                probability_of_profit=1.0 if original_result.cumulative_return > 0 else 0.0,
+                probability_of_profit=(
+                    1.0 if original_result.cumulative_return > 0 else 0.0
+                ),
                 expected_max_drawdown=original_result.max_drawdown,
                 expected_sharpe=original_result.sharpe_ratio,
                 sharpe_std_dev=0.0,
@@ -155,9 +157,7 @@ class MonteCarloSimulator:
             drawdown_distribution=sim_drawdowns.tolist(),
         )
 
-    def _build_equity_curve(
-        self, init_cash: float, pnls: np.ndarray
-    ) -> np.ndarray:
+    def _build_equity_curve(self, init_cash: float, pnls: np.ndarray) -> np.ndarray:
         """Build equity curve from sequence of trade PnLs."""
         equity = np.empty(len(pnls) + 1)
         equity[0] = init_cash
@@ -171,9 +171,7 @@ class MonteCarloSimulator:
         drawdown = (peak - equity) / np.where(peak > 0, peak, 1.0)
         return float(np.max(drawdown))
 
-    def _calc_sharpe_from_pnls(
-        self, pnls: np.ndarray, init_cash: float
-    ) -> float:
+    def _calc_sharpe_from_pnls(self, pnls: np.ndarray, init_cash: float) -> float:
         """Approximate Sharpe ratio from trade PnLs."""
         if len(pnls) == 0 or np.std(pnls) == 0:
             return 0.0

@@ -67,7 +67,11 @@ class TestPortfolioBacktester:
             ),
             StrategyAllocation(
                 strategy_name="MACD_CROSSOVER",
-                parameters={"shortEmaPeriod": 12, "longEmaPeriod": 26, "signalPeriod": 9},
+                parameters={
+                    "shortEmaPeriod": 12,
+                    "longEmaPeriod": 26,
+                    "signalPeriod": 9,
+                },
                 weight=0.5,
             ),
         ]
@@ -87,7 +91,11 @@ class TestPortfolioBacktester:
             ),
             StrategyAllocation(
                 strategy_name="MACD_CROSSOVER",
-                parameters={"shortEmaPeriod": 12, "longEmaPeriod": 26, "signalPeriod": 9},
+                parameters={
+                    "shortEmaPeriod": 12,
+                    "longEmaPeriod": 26,
+                    "signalPeriod": 9,
+                },
                 weight=0.3,
             ),
         ]
@@ -109,7 +117,11 @@ class TestPortfolioBacktester:
             ),
             StrategyAllocation(
                 strategy_name="MACD_CROSSOVER",
-                parameters={"shortEmaPeriod": 12, "longEmaPeriod": 26, "signalPeriod": 9},
+                parameters={
+                    "shortEmaPeriod": 12,
+                    "longEmaPeriod": 26,
+                    "signalPeriod": 9,
+                },
                 weight=0.5,
             ),
         ]
@@ -128,7 +140,11 @@ class TestPortfolioBacktester:
             ),
             StrategyAllocation(
                 strategy_name="MACD_CROSSOVER",
-                parameters={"shortEmaPeriod": 12, "longEmaPeriod": 26, "signalPeriod": 9},
+                parameters={
+                    "shortEmaPeriod": 12,
+                    "longEmaPeriod": 26,
+                    "signalPeriod": 9,
+                },
                 weight=0.5,
             ),
         ]
@@ -147,7 +163,11 @@ class TestPortfolioBacktester:
             ),
             StrategyAllocation(
                 strategy_name="MACD_CROSSOVER",
-                parameters={"shortEmaPeriod": 12, "longEmaPeriod": 26, "signalPeriod": 9},
+                parameters={
+                    "shortEmaPeriod": 12,
+                    "longEmaPeriod": 26,
+                    "signalPeriod": 9,
+                },
                 weight=0.4,
             ),
         ]

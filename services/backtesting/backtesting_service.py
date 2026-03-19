@@ -177,7 +177,9 @@ class BacktestingServicer:
             seed = request.random_seed
 
             result = self.monte_carlo.run(
-                ohlcv, strategy_name, parameters,
+                ohlcv,
+                strategy_name,
+                parameters,
                 num_simulations=num_sims,
                 confidence_level=confidence,
                 random_seed=seed,
@@ -325,7 +327,9 @@ class BacktestingServicer:
                 backtesting_pb2.WindowResult(
                     window_index=wr.window_index,
                     in_sample_result=self._metrics_to_proto(wr.in_sample_result),
-                    out_of_sample_result=self._metrics_to_proto(wr.out_of_sample_result),
+                    out_of_sample_result=self._metrics_to_proto(
+                        wr.out_of_sample_result
+                    ),
                     train_start_bar=wr.train_start_bar,
                     train_end_bar=wr.train_end_bar,
                     test_start_bar=wr.test_start_bar,

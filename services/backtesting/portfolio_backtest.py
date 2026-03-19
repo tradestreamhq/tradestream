@@ -213,9 +213,7 @@ class PortfolioBacktester:
         DR > 1 means the portfolio benefits from diversification.
         """
         weights = np.array([a.weight for a in allocations])
-        vols = np.array([
-            strategy_returns[a.strategy_name].std() for a in allocations
-        ])
+        vols = np.array([strategy_returns[a.strategy_name].std() for a in allocations])
 
         weighted_vol_sum = float(np.dot(weights, vols))
 
