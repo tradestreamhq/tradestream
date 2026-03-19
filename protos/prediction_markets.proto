@@ -1,0 +1,98 @@
+edition = "2023";
+
+package prediction_markets;
+
+option java_multiple_files = true;
+option java_package = "com.verlumen.tradestream.prediction_markets";
+
+import "google/protobuf/timestamp.proto";
+
+// Prediction market event with probability data
+message PredictionMarketEvent {
+  string event_id = 1;
+  string source = 2;              // "polymarket", "kalshi"
+  string question = 3;
+  string category = 4;            // "monetary_policy", "regulatory", "crypto_specific"
+  double probability = 5;         // Current YES probability (0.0 - 1.0)
+  double previous_probability = 6;
+  double volume = 7;
+  double liquidity = 8;
+  google.protobuf.Timestamp end_date = 9;
+  google.protobuf.Timestamp last_updated = 10;
+  EventStatus status = 11;
+
+  enum EventStatus {
+    ACTIVE = 0;
+    CLOSED = 1;
+    RESOLVED = 2;
+  }
+}
+
+// Insider activity alert from polymarket-insider-tracker
+message InsiderAlert {
+  string alert_id = 1;
+  string wallet_address = 2;
+  string market_id = 3;
+  string market_question = 4;
+  string side = 5;                // "BUY" or "SELL"
+  double position_size = 6;
+  double price = 7;               // Entry price (implied probability)
+  InsiderConfidence confidence = 8;
+  google.protobuf.Timestamp detected_at = 9;
+
+  enum InsiderConfidence {
+    LOW = 0;
+    MEDIUM = 1;
+    HIGH = 2;
+    CRITICAL = 3;
+  }
+}
+
+// Signal emitted when prediction market data crosses thresholds
+message PredictionMarketSignal {
+  string signal_id = 1;
+  SignalType type = 2;
+  string source_event_id = 3;
+  string category = 4;
+  double probability = 5;
+  double probability_change = 6;  // Change that triggered signal
+  string affected_asset = 7;      // e.g. "BTC/USD"
+  double signal_strength = 8;     // 0.0 - 1.0
+  string reasoning = 9;
+  google.protobuf.Timestamp timestamp = 10;
+
+  enum SignalType {
+    PROBABILITY_THRESHOLD = 0;    // Probability crossed key level
+    PROBABILITY_SPIKE = 1;        // Rapid probability change
+    INSIDER_ACTIVITY = 2;         // Insider tracker alert
+    VOLUME_ANOMALY = 3;           // Unusual volume detected
+    CROSS_MARKET_DIVERGENCE = 4;  // Different markets disagree
+  }
+}
+
+// Correlation record between prediction market events and asset prices
+message PredictionCorrelation {
+  string event_id = 1;
+  string asset_symbol = 2;
+  double correlation_coefficient = 3;  // Pearson correlation
+  int32 sample_count = 4;
+  double lag_hours = 5;                // How far prediction leads price
+  google.protobuf.Timestamp computed_at = 6;
+}
+
+// Alpha check result (output of the skill)
+message PredictionMarketAlphaCheck {
+  DataFreshness polymarket_freshness = 1;
+  DataFreshness kalshi_freshness = 2;
+  repeated InsiderAlert insider_alerts = 3;
+  repeated PredictionMarketEvent market_events = 4;
+  string synthesis = 5;
+  string recommendation = 6;
+  google.protobuf.Timestamp checked_at = 7;
+
+  enum DataFreshness {
+    LIVE = 0;
+    CACHED = 1;
+    UNAVAILABLE = 2;
+  }
+}
