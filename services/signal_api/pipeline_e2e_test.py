@@ -178,9 +178,7 @@ class TestSignalPipelineE2E:
     @pytest.mark.asyncio
     @patch("services.signal_api.delivery.TelegramSender")
     @patch("services.signal_api.delivery.WebhookSender")
-    async def test_mixed_channel_delivery(
-        self, mock_wh_cls, mock_tg_cls, pipeline
-    ):
+    async def test_mixed_channel_delivery(self, mock_wh_cls, mock_tg_cls, pipeline):
         svc, conn, metrics, cb, dlq = pipeline
         mock_tg = MagicMock()
         mock_tg.send_signal.return_value = True
@@ -220,9 +218,7 @@ class TestSignalPipelineE2E:
 
     @pytest.mark.asyncio
     @patch("services.signal_api.delivery.TelegramSender")
-    async def test_alerting_fires_on_high_failure_rate(
-        self, mock_sender_cls, pipeline
-    ):
+    async def test_alerting_fires_on_high_failure_rate(self, mock_sender_cls, pipeline):
         svc, conn, metrics, cb, dlq = pipeline
         mock_sender = MagicMock()
         mock_sender_cls.return_value = mock_sender

@@ -6,7 +6,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from services.shared.dead_letter_queue import DLQ_KEY, DLQ_PROCESSING_KEY, DeadLetterQueue
+from services.shared.dead_letter_queue import (
+    DLQ_KEY,
+    DLQ_PROCESSING_KEY,
+    DeadLetterQueue,
+)
 
 
 class TestDeadLetterQueue:

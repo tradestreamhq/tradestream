@@ -104,7 +104,9 @@ class DeadLetterQueue:
                 continue
 
             # Move to processing
-            self.redis.hset(DLQ_PROCESSING_KEY, entry["dlq_id"], json.dumps(entry, default=str))
+            self.redis.hset(
+                DLQ_PROCESSING_KEY, entry["dlq_id"], json.dumps(entry, default=str)
+            )
             items.append(entry)
 
         return items

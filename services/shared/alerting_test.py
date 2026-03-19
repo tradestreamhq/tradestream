@@ -19,15 +19,11 @@ from services.shared.alerting import (
 
 class TestAlertRuleChecks:
     def test_signal_generation_stopped_fires_when_zero(self):
-        result = _check_signal_generation_stopped(
-            {"signal_generation": {"total": 0}}
-        )
+        result = _check_signal_generation_stopped({"signal_generation": {"total": 0}})
         assert result == (0, 1)
 
     def test_signal_generation_ok(self):
-        result = _check_signal_generation_stopped(
-            {"signal_generation": {"total": 10}}
-        )
+        result = _check_signal_generation_stopped({"signal_generation": {"total": 10}})
         assert result is None
 
     def test_delivery_failure_rate_fires(self):

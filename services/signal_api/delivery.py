@@ -124,9 +124,7 @@ class SignalDeliveryService:
         sender = WebhookSender(url, signing_secret)
         return sender.send_signal(signal)
 
-    def _enqueue_to_dlq(
-        self, signal: Dict[str, Any], sub: Dict[str, Any], error: str
-    ):
+    def _enqueue_to_dlq(self, signal: Dict[str, Any], sub: Dict[str, Any], error: str):
         """Enqueue a failed delivery to the dead letter queue."""
         if not self.dlq:
             return
