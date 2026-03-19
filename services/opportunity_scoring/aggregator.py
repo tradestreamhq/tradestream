@@ -109,7 +109,9 @@ def _generate_reasoning(
     if consensus_pct >= 0.8:
         parts.append(f"Strong strategy consensus ({agreeing}/{total} strategies agree)")
     elif consensus_pct >= 0.6:
-        parts.append(f"Moderate strategy consensus ({agreeing}/{total} strategies agree)")
+        parts.append(
+            f"Moderate strategy consensus ({agreeing}/{total} strategies agree)"
+        )
     else:
         parts.append(f"Weak consensus ({agreeing}/{total} strategies agree)")
 

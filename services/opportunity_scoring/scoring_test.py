@@ -467,7 +467,9 @@ class TestAggregateSignals:
     def test_spec_compliant_json_fields(self):
         """Verify JSON output uses spec field names."""
         signals = [ContributingSignal("tech", "s1", "BUY", 0.9, "RSI", 0.03, 0.01)]
-        opp = aggregate_signals("BTC/USD", signals, volatility=0.02, volatility_percentile=0.65)
+        opp = aggregate_signals(
+            "BTC/USD", signals, volatility=0.02, volatility_percentile=0.65
+        )
         d = opp.to_dict()
         # Spec-required field names
         assert "opportunity_tier" in d
