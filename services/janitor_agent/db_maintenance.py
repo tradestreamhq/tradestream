@@ -19,14 +19,16 @@ class MaintenanceConfig:
 
     # PostgreSQL
     pg_connection_string: str = ""
-    vacuum_tables: list[str] = field(default_factory=lambda: [
-        "strategy_implementations",
-        "strategy_specs",
-        "implementation_signals",
-        "retirement_log",
-        "reactivation_log",
-        "janitor_reports",
-    ])
+    vacuum_tables: list[str] = field(
+        default_factory=lambda: [
+            "strategy_implementations",
+            "strategy_specs",
+            "implementation_signals",
+            "retirement_log",
+            "reactivation_log",
+            "janitor_reports",
+        ]
+    )
     stale_signal_days: int = 365
     stale_backtest_days: int = 180
 
@@ -59,6 +61,7 @@ class PostgreSQLMaintenance:
 
     def _get_connection(self):
         import psycopg2
+
         return psycopg2.connect(self._conn_string)
 
     def vacuum_analyze(self, tables: list[str]) -> list[MaintenanceResult]:
@@ -73,34 +76,46 @@ class PostgreSQLMaintenance:
                 start = datetime.now(timezone.utc)
                 try:
                     cur.execute(f"VACUUM ANALYZE {table}")
-                    elapsed = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
-                    results.append(MaintenanceResult(
-                        operation=f"vacuum_analyze:{table}",
-                        success=True,
-                        details=f"VACUUM ANALYZE completed for {table}",
-                        duration_ms=elapsed,
-                    ))
-                    logging.info("VACUUM ANALYZE completed for %s in %dms", table, elapsed)
+                    elapsed = int(
+                        (datetime.now(timezone.utc) - start).total_seconds() * 1000
+                    )
+                    results.append(
+                        MaintenanceResult(
+                            operation=f"vacuum_analyze:{table}",
+                            success=True,
+                            details=f"VACUUM ANALYZE completed for {table}",
+                            duration_ms=elapsed,
+                        )
+                    )
+                    logging.info(
+                        "VACUUM ANALYZE completed for %s in %dms", table, elapsed
+                    )
                 except Exception as e:
-                    elapsed = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
-                    results.append(MaintenanceResult(
-                        operation=f"vacuum_analyze:{table}",
-                        success=False,
-                        details=f"Failed to vacuum {table}",
-                        duration_ms=elapsed,
-                        error=str(e),
-                    ))
+                    elapsed = int(
+                        (datetime.now(timezone.utc) - start).total_seconds() * 1000
+                    )
+                    results.append(
+                        MaintenanceResult(
+                            operation=f"vacuum_analyze:{table}",
+                            success=False,
+                            details=f"Failed to vacuum {table}",
+                            duration_ms=elapsed,
+                            error=str(e),
+                        )
+                    )
                     logging.error("VACUUM ANALYZE failed for %s: %s", table, e)
 
             cur.close()
             conn.close()
         except Exception as e:
-            results.append(MaintenanceResult(
-                operation="vacuum_analyze:connection",
-                success=False,
-                details="Failed to connect to database",
-                error=str(e),
-            ))
+            results.append(
+                MaintenanceResult(
+                    operation="vacuum_analyze:connection",
+                    success=False,
+                    details="Failed to connect to database",
+                    error=str(e),
+                )
+            )
         return results
 
     def cleanup_stale_signals(self, days: int) -> MaintenanceResult:
@@ -153,7 +168,9 @@ class PostgreSQLMaintenance:
             conn.commit()
             cur.close()
             conn.close()
-            logging.info("Cleaned up %d stale backtest results older than %d days", rows, days)
+            logging.info(
+                "Cleaned up %d stale backtest results older than %d days", rows, days
+            )
             return MaintenanceResult(
                 operation="cleanup_stale_backtests",
                 success=True,
@@ -580,9 +597,7 @@ class InfluxDBMaintenance:
             client.close()
 
             record_count = sum(
-                record.get_value()
-                for table in result
-                for record in table.records
+                record.get_value() for table in result for record in table.records
             )
 
             if record_count > 0:

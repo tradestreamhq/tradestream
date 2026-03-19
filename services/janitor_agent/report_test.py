@@ -52,8 +52,16 @@ class TestJanitorReport:
                 ),
             ],
             health_results=[
-                ServiceHealth("market-data-api", "url", healthy=True, response_time_ms=15),
-                ServiceHealth("strategy-api", "url", healthy=False, status_code=503, response_time_ms=100),
+                ServiceHealth(
+                    "market-data-api", "url", healthy=True, response_time_ms=15
+                ),
+                ServiceHealth(
+                    "strategy-api",
+                    "url",
+                    healthy=False,
+                    status_code=503,
+                    response_time_ms=100,
+                ),
             ],
             repair_results=[
                 RepairResult(

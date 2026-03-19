@@ -64,9 +64,7 @@ class TestEvaluateImplementation:
         assert "Insufficient signals" in decision.reason
 
     def test_rejects_too_young(self):
-        impl = _make_impl(
-            created_at=datetime.now(timezone.utc) - timedelta(days=90)
-        )
+        impl = _make_impl(created_at=datetime.now(timezone.utc) - timedelta(days=90))
         config = _default_config()
         decision = evaluate_implementation(impl, config, better_alternative_exists=True)
         assert decision.should_retire is False
@@ -120,9 +118,7 @@ class TestEvaluateImplementation:
         assert decision.should_retire is True
 
     def test_respects_modification_grace_period(self):
-        impl = _make_impl(
-            updated_at=datetime.now(timezone.utc) - timedelta(days=5)
-        )
+        impl = _make_impl(updated_at=datetime.now(timezone.utc) - timedelta(days=5))
         config = _default_config()
         decision = evaluate_implementation(impl, config, better_alternative_exists=True)
         assert decision.should_retire is False
@@ -224,7 +220,9 @@ class TestApplyBatchLimits:
     def test_respects_absolute_limit(self):
         config = RetirementConfig(max_retirements_per_run=3)
         candidates = [self._make_decision(f"impl-{i}") for i in range(5)]
-        approved, skipped = apply_batch_limits(candidates, total_active=1000, config=config)
+        approved, skipped = apply_batch_limits(
+            candidates, total_active=1000, config=config
+        )
         assert len(approved) == 3
         assert len(skipped) == 2
 
@@ -235,7 +233,9 @@ class TestApplyBatchLimits:
         )
         candidates = [self._make_decision(f"impl-{i}") for i in range(10)]
         # 10% of 20 active = 2
-        approved, skipped = apply_batch_limits(candidates, total_active=20, config=config)
+        approved, skipped = apply_batch_limits(
+            candidates, total_active=20, config=config
+        )
         assert len(approved) == 2
         assert len(skipped) == 8
 
@@ -245,7 +245,9 @@ class TestApplyBatchLimits:
             RetirementDecision(should_retire=False, reason="Skip", impl_id="impl-1"),
             self._make_decision("impl-2"),
         ]
-        approved, skipped = apply_batch_limits(candidates, total_active=100, config=config)
+        approved, skipped = apply_batch_limits(
+            candidates, total_active=100, config=config
+        )
         assert len(approved) == 1
         assert approved[0].impl_id == "impl-2"
 
@@ -256,5 +258,7 @@ class TestApplyBatchLimits:
         )
         candidates = [self._make_decision("impl-1")]
         # 1% of 5 = 0, but we allow at least 1
-        approved, skipped = apply_batch_limits(candidates, total_active=5, config=config)
+        approved, skipped = apply_batch_limits(
+            candidates, total_active=5, config=config
+        )
         assert len(approved) == 1

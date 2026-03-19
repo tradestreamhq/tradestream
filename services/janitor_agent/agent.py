@@ -207,9 +207,7 @@ class JanitorAgent:
 
         # InfluxDB maintenance
         if self._influx:
-            results.append(
-                self._influx.check_retention_policies(config.influx_bucket)
-            )
+            results.append(self._influx.check_retention_policies(config.influx_bucket))
             results.append(
                 self._influx.downsample_old_data(
                     config.influx_bucket,
@@ -253,7 +251,9 @@ class JanitorAgent:
         try:
             retirement_results = self.run_retirement_cycle()
             report.evaluated_count = retirement_results["evaluated_count"]
-            report.retired_implementations = retirement_results["retired_implementations"]
+            report.retired_implementations = retirement_results[
+                "retired_implementations"
+            ]
             report.retired_specs = retirement_results["retired_specs"]
             report.protected_canonical = retirement_results["protected_canonical"]
             report.skipped_batch_limit = retirement_results["skipped_batch_limit"]

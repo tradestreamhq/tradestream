@@ -31,19 +31,21 @@ class HealthCheckConfig:
     """Configuration for health check aggregation."""
 
     timeout_seconds: int = 5
-    services: dict[str, str] = field(default_factory=lambda: {
-        "market-data-api": "http://market-data-api:8080/health",
-        "strategy-api": "http://strategy-api:8080/health",
-        "signal-quality": "http://signal-quality:8080/health",
-        "opportunity-scoring": "http://opportunity-scoring:8080/health",
-        "learning-engine": "http://learning-engine:8080/health",
-        "notification-service": "http://notification-service:8080/health",
-        "backtesting": "http://backtesting:8080/health",
-        "paper-trading": "http://paper-trading:8080/health",
-        "strategy-db-mcp": "http://strategy-db-mcp:8080/health",
-        "market-mcp": "http://market-mcp:8080/health",
-        "signal-mcp": "http://signal-mcp:8080/health",
-    })
+    services: dict[str, str] = field(
+        default_factory=lambda: {
+            "market-data-api": "http://market-data-api:8080/health",
+            "strategy-api": "http://strategy-api:8080/health",
+            "signal-quality": "http://signal-quality:8080/health",
+            "opportunity-scoring": "http://opportunity-scoring:8080/health",
+            "learning-engine": "http://learning-engine:8080/health",
+            "notification-service": "http://notification-service:8080/health",
+            "backtesting": "http://backtesting:8080/health",
+            "paper-trading": "http://paper-trading:8080/health",
+            "strategy-db-mcp": "http://strategy-db-mcp:8080/health",
+            "market-mcp": "http://market-mcp:8080/health",
+            "signal-mcp": "http://signal-mcp:8080/health",
+        }
+    )
 
 
 class HealthChecker:
@@ -104,12 +106,12 @@ class HealthChecker:
         for name, url in self._config.services.items():
             result = self.check_service(name, url)
             if result.healthy:
-                logging.info(
-                    "Service %s healthy (%dms)", name, result.response_time_ms
-                )
+                logging.info("Service %s healthy (%dms)", name, result.response_time_ms)
             else:
                 logging.warning(
-                    "Service %s unhealthy: %s", name, result.error or f"HTTP {result.status_code}"
+                    "Service %s unhealthy: %s",
+                    name,
+                    result.error or f"HTTP {result.status_code}",
                 )
             results.append(result)
         return results

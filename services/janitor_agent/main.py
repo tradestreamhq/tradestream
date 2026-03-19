@@ -23,7 +23,9 @@ flags.DEFINE_string("influx_org", "tradestream", "InfluxDB organization")
 flags.DEFINE_string("influx_bucket", "tradestream", "InfluxDB bucket")
 
 # Retirement criteria
-flags.DEFINE_integer("min_signals", 100, "Minimum forward-test signals before evaluation")
+flags.DEFINE_integer(
+    "min_signals", 100, "Minimum forward-test signals before evaluation"
+)
 flags.DEFINE_integer("min_age_days", 180, "Minimum age in days before evaluation")
 flags.DEFINE_float("max_sharpe", 0.5, "Maximum Sharpe ratio threshold for retirement")
 flags.DEFINE_float("max_accuracy", 0.45, "Maximum accuracy threshold for retirement")
@@ -35,8 +37,12 @@ flags.DEFINE_boolean("run_on_startup", True, "Run all tasks immediately on start
 flags.DEFINE_boolean("run_once", False, "Run one cycle and exit (for testing/cron)")
 
 # Stale data cleanup
-flags.DEFINE_integer("stale_signal_days", 365, "Days before signals are considered stale")
-flags.DEFINE_integer("stale_backtest_days", 180, "Days before backtests are considered stale")
+flags.DEFINE_integer(
+    "stale_signal_days", 365, "Days before signals are considered stale"
+)
+flags.DEFINE_integer(
+    "stale_backtest_days", 180, "Days before backtests are considered stale"
+)
 
 _shutdown = False
 

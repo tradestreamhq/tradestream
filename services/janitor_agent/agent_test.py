@@ -77,7 +77,9 @@ class TestJanitorAgent:
         mock_pg.execute_retirement.return_value = MaintenanceResult(
             operation="retire", success=True, details="OK", rows_affected=1
         )
-        mock_pg._get_connection.return_value.cursor.return_value.fetchone.return_value = None
+        mock_pg._get_connection.return_value.cursor.return_value.fetchone.return_value = (
+            None
+        )
         mock_pg_cls.return_value = mock_pg
 
         agent = JanitorAgent(_make_config())
@@ -126,9 +128,7 @@ class TestJanitorAgent:
     @patch("services.janitor_agent.agent.PostgreSQLMaintenance")
     @patch("services.janitor_agent.agent.HealthChecker")
     @patch("services.janitor_agent.agent.StateRepairer")
-    def test_run_db_maintenance(
-        self, mock_repairer_cls, mock_health_cls, mock_pg_cls
-    ):
+    def test_run_db_maintenance(self, mock_repairer_cls, mock_health_cls, mock_pg_cls):
         mock_pg = MagicMock()
         mock_pg.vacuum_analyze.return_value = [
             MaintenanceResult(operation="vacuum", success=True, details="OK")
@@ -153,9 +153,7 @@ class TestJanitorAgent:
     @patch("services.janitor_agent.agent.PostgreSQLMaintenance")
     @patch("services.janitor_agent.agent.HealthChecker")
     @patch("services.janitor_agent.agent.StateRepairer")
-    def test_run_full_cycle(
-        self, mock_repairer_cls, mock_health_cls, mock_pg_cls
-    ):
+    def test_run_full_cycle(self, mock_repairer_cls, mock_health_cls, mock_pg_cls):
         mock_pg = MagicMock()
         mock_pg.get_retirement_candidates.return_value = []
         mock_pg.get_active_implementation_count.return_value = 100

@@ -94,7 +94,9 @@ class TestSummarize:
     def test_some_unhealthy(self):
         results = [
             ServiceHealth("svc1", "url", healthy=True, response_time_ms=10),
-            ServiceHealth("svc2", "url", healthy=False, status_code=503, response_time_ms=20),
+            ServiceHealth(
+                "svc2", "url", healthy=False, status_code=503, response_time_ms=20
+            ),
         ]
         summary = HealthChecker.summarize(results)
         assert summary["unhealthy"] == 1

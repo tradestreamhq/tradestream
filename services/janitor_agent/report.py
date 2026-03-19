@@ -74,8 +74,12 @@ class JanitorReport:
             lines.append("| Impl ID | Sharpe | Accuracy | Signals | Age | Reason |")
             lines.append("|---------|--------|----------|---------|-----|--------|")
             for d in self.retired_implementations:
-                sharpe = f"{d.final_sharpe:.2f}" if d.final_sharpe is not None else "N/A"
-                acc = f"{d.final_accuracy:.0%}" if d.final_accuracy is not None else "N/A"
+                sharpe = (
+                    f"{d.final_sharpe:.2f}" if d.final_sharpe is not None else "N/A"
+                )
+                acc = (
+                    f"{d.final_accuracy:.0%}" if d.final_accuracy is not None else "N/A"
+                )
                 signals = str(d.signal_count) if d.signal_count is not None else "N/A"
                 age = f"{d.age_days}d" if d.age_days is not None else "N/A"
                 lines.append(
@@ -109,9 +113,7 @@ class JanitorReport:
             lines.append("")
             healthy = [h for h in self.health_results if h.healthy]
             unhealthy = [h for h in self.health_results if not h.healthy]
-            lines.append(
-                f"- Healthy: {len(healthy)}/{len(self.health_results)}"
-            )
+            lines.append(f"- Healthy: {len(healthy)}/{len(self.health_results)}")
             if unhealthy:
                 lines.append("")
                 lines.append("### Unhealthy Services")

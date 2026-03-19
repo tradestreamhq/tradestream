@@ -33,6 +33,7 @@ class StateRepairer:
 
     def _get_connection(self):
         import psycopg2
+
         return psycopg2.connect(self._conn_string)
 
     def repair_orphaned_implementations(self) -> RepairResult:
@@ -180,7 +181,8 @@ class StateRepairer:
 
             # This is a detection-only check; routing fix requires signal-router restart
             logging.info(
-                "Signal-impl mismatches: %d retired impls still receiving signals", count
+                "Signal-impl mismatches: %d retired impls still receiving signals",
+                count,
             )
             return RepairResult(
                 check_name="signal_impl_mismatch",

@@ -47,15 +47,24 @@ class TestScheduledTask:
         assert task.is_due() is False
 
     def test_interval_seconds(self):
-        assert ScheduledTask(
-            name="h", frequency=TaskFrequency.HOURLY, run_fn=lambda: None
-        ).interval_seconds == 3600
-        assert ScheduledTask(
-            name="d", frequency=TaskFrequency.DAILY, run_fn=lambda: None
-        ).interval_seconds == 86400
-        assert ScheduledTask(
-            name="w", frequency=TaskFrequency.WEEKLY, run_fn=lambda: None
-        ).interval_seconds == 604800
+        assert (
+            ScheduledTask(
+                name="h", frequency=TaskFrequency.HOURLY, run_fn=lambda: None
+            ).interval_seconds
+            == 3600
+        )
+        assert (
+            ScheduledTask(
+                name="d", frequency=TaskFrequency.DAILY, run_fn=lambda: None
+            ).interval_seconds
+            == 86400
+        )
+        assert (
+            ScheduledTask(
+                name="w", frequency=TaskFrequency.WEEKLY, run_fn=lambda: None
+            ).interval_seconds
+            == 604800
+        )
 
 
 class TestScheduler:

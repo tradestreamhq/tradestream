@@ -264,7 +264,10 @@ def can_reactivate(
         return False, "Implementation marked as non-reactivatable"
 
     if reactivation_count >= config.max_reactivation_attempts:
-        return False, f"Maximum reactivation attempts ({config.max_reactivation_attempts}) exceeded"
+        return (
+            False,
+            f"Maximum reactivation attempts ({config.max_reactivation_attempts}) exceeded",
+        )
 
     if days_since_retirement < config.reactivation_cooldown_days:
         remaining = config.reactivation_cooldown_days - days_since_retirement

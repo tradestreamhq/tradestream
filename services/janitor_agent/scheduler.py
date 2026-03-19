@@ -105,23 +105,25 @@ class Scheduler:
                     result = task.run_fn()
                     elapsed = time.time() - start
                     task.last_run = datetime.now(timezone.utc)
-                    results.append({
-                        "task": task.name,
-                        "success": True,
-                        "duration_seconds": round(elapsed, 2),
-                        "result": result,
-                    })
-                    logging.info(
-                        "Task %s completed in %.2fs", task.name, elapsed
+                    results.append(
+                        {
+                            "task": task.name,
+                            "success": True,
+                            "duration_seconds": round(elapsed, 2),
+                            "result": result,
+                        }
                     )
+                    logging.info("Task %s completed in %.2fs", task.name, elapsed)
                 except Exception as e:
                     elapsed = time.time() - start
-                    results.append({
-                        "task": task.name,
-                        "success": False,
-                        "duration_seconds": round(elapsed, 2),
-                        "error": str(e),
-                    })
+                    results.append(
+                        {
+                            "task": task.name,
+                            "success": False,
+                            "duration_seconds": round(elapsed, 2),
+                            "error": str(e),
+                        }
+                    )
                     logging.error(
                         "Task %s failed after %.2fs: %s", task.name, elapsed, e
                     )
