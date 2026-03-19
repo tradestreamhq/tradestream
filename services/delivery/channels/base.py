@@ -17,7 +17,9 @@ class DeliveryResult:
 
     @staticmethod
     def ok(channel: str, external_id: str = "") -> "DeliveryResult":
-        return DeliveryResult(success=True, channel=channel, external_message_id=external_id)
+        return DeliveryResult(
+            success=True, channel=channel, external_message_id=external_id
+        )
 
     @staticmethod
     def fail(channel: str, error: str, retryable: bool = True) -> "DeliveryResult":

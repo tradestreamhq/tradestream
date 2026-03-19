@@ -228,7 +228,11 @@ class TestSMSDeliveryChannel:
 
     def test_send_non_critical_signal_blocked(self):
         ch = SMSDeliveryChannel("sid", "token", "+1234567890")
-        low_signal = {**SAMPLE_SIGNAL, "opportunity_score": 50, "opportunity_tier": "LOW"}
+        low_signal = {
+            **SAMPLE_SIGNAL,
+            "opportunity_score": 50,
+            "opportunity_tier": "LOW",
+        }
         result = ch.send(low_signal, "+14155551234")
         assert result.success is False
         assert result.retryable is False
@@ -236,15 +240,24 @@ class TestSMSDeliveryChannel:
 
     def test_is_critical_hot_tier(self):
         ch = SMSDeliveryChannel("sid", "token", "+1234567890")
-        assert ch._is_critical({"opportunity_tier": "HOT", "opportunity_score": 50}) is True
+        assert (
+            ch._is_critical({"opportunity_tier": "HOT", "opportunity_score": 50})
+            is True
+        )
 
     def test_is_critical_high_score(self):
         ch = SMSDeliveryChannel("sid", "token", "+1234567890")
-        assert ch._is_critical({"opportunity_tier": "GOOD", "opportunity_score": 85}) is True
+        assert (
+            ch._is_critical({"opportunity_tier": "GOOD", "opportunity_score": 85})
+            is True
+        )
 
     def test_is_critical_low(self):
         ch = SMSDeliveryChannel("sid", "token", "+1234567890")
-        assert ch._is_critical({"opportunity_tier": "LOW", "opportunity_score": 40}) is False
+        assert (
+            ch._is_critical({"opportunity_tier": "LOW", "opportunity_score": 40})
+            is False
+        )
 
     def test_format(self):
         ch = SMSDeliveryChannel("sid", "token", "+1234567890")
@@ -315,13 +328,17 @@ class TestCrossChannelDeduplicator:
 
     def test_primary_only_first_delivery(self):
         dedup = CrossChannelDeduplicator(self._mock_redis())
-        assert dedup.should_deliver("sig-1", "user-1", "telegram", "primary_only") is True
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "telegram", "primary_only") is True
+        )
 
     def test_primary_only_blocks_second_channel(self):
         r = self._mock_redis()
         dedup = CrossChannelDeduplicator(r)
         dedup.mark_delivered("sig-1", "user-1", "telegram")
-        assert dedup.should_deliver("sig-1", "user-1", "discord", "primary_only") is False
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "discord", "primary_only") is False
+        )
 
     def test_all_enabled_allows_all(self):
         r = self._mock_redis()
@@ -334,7 +351,9 @@ class TestCrossChannelDeduplicator:
         dedup = CrossChannelDeduplicator(r)
         dedup.mark_delivered("sig-1", "user-1", "telegram")
         dedup.mark_failed("sig-1", "user-1", "telegram")
-        assert dedup.should_deliver("sig-1", "user-1", "email", "fallback_chain") is True
+        assert (
+            dedup.should_deliver("sig-1", "user-1", "email", "fallback_chain") is True
+        )
 
 
 # ---- Rate Limiter Tests ----
@@ -425,9 +444,7 @@ class TestPreferenceStore:
                 "telegram": ChannelPreference(
                     channel="telegram", channel_id="12345", is_primary=True
                 ),
-                "email": ChannelPreference(
-                    channel="email", channel_id="user@test.com"
-                ),
+                "email": ChannelPreference(channel="email", channel_id="user@test.com"),
             },
         )
         ps.save_preferences(prefs)
@@ -445,14 +462,20 @@ class TestPreferenceStore:
     def test_set_channel(self):
         r = self._mock_redis()
         ps = PreferenceStore(r)
-        ps.set_channel("user-1", ChannelPreference(channel="discord", channel_id="https://discord.webhook"))
+        ps.set_channel(
+            "user-1",
+            ChannelPreference(channel="discord", channel_id="https://discord.webhook"),
+        )
         prefs = ps.get_preferences("user-1")
         assert "discord" in prefs.channels
 
     def test_remove_channel(self):
         r = self._mock_redis()
         ps = PreferenceStore(r)
-        ps.set_channel("user-1", ChannelPreference(channel="slack", channel_id="https://slack.webhook"))
+        ps.set_channel(
+            "user-1",
+            ChannelPreference(channel="slack", channel_id="https://slack.webhook"),
+        )
         ps.remove_channel("user-1", "slack")
         prefs = ps.get_preferences("user-1")
         assert "slack" not in prefs.channels
@@ -463,8 +486,12 @@ class TestPreferenceStore:
         prefs = UserDeliveryPreferences(
             user_id="user-1",
             channels={
-                "telegram": ChannelPreference(channel="telegram", channel_id="123", enabled=True),
-                "email": ChannelPreference(channel="email", channel_id="a@b.com", enabled=False),
+                "telegram": ChannelPreference(
+                    channel="telegram", channel_id="123", enabled=True
+                ),
+                "email": ChannelPreference(
+                    channel="email", channel_id="a@b.com", enabled=False
+                ),
             },
         )
         ps.save_preferences(prefs)
@@ -667,9 +694,7 @@ class TestDeliveryRouter:
                 "telegram": ChannelPreference(
                     channel="telegram", channel_id="12345", is_primary=True
                 ),
-                "email": ChannelPreference(
-                    channel="email", channel_id="user@test.com"
-                ),
+                "email": ChannelPreference(channel="email", channel_id="user@test.com"),
             },
         )
         router.preference_store.save_preferences(prefs)
@@ -691,9 +716,7 @@ class TestDeliveryRouter:
                 "telegram": ChannelPreference(
                     channel="telegram", channel_id="12345", is_primary=True
                 ),
-                "email": ChannelPreference(
-                    channel="email", channel_id="user@test.com"
-                ),
+                "email": ChannelPreference(channel="email", channel_id="user@test.com"),
             },
         )
         router.preference_store.save_preferences(prefs)
@@ -800,7 +823,9 @@ class TestRouterMatchesFilters:
 
     def test_blocks_below_min_score(self):
         router = DeliveryRouter.__new__(DeliveryRouter)
-        ch_pref = ChannelPreference(channel="telegram", channel_id="123", min_opportunity_score=95)
+        ch_pref = ChannelPreference(
+            channel="telegram", channel_id="123", min_opportunity_score=95
+        )
         assert router._matches_filters(ch_pref, SAMPLE_SIGNAL) is False
 
     def test_blocks_wrong_symbol(self):

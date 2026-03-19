@@ -26,7 +26,9 @@ class SlackDeliveryChannel(DeliveryChannel):
             if resp.status_code == 200 and resp.text == "ok":
                 return DeliveryResult.ok(self.name)
             if resp.status_code == 404:
-                return DeliveryResult.fail(self.name, "Webhook not found", retryable=False)
+                return DeliveryResult.fail(
+                    self.name, "Webhook not found", retryable=False
+                )
             return DeliveryResult.fail(
                 self.name,
                 f"Slack {resp.status_code}: {resp.text}",
@@ -49,7 +51,10 @@ class SlackDeliveryChannel(DeliveryChannel):
         }.get(action, ":grey_question:")
 
         blocks = [
-            {"type": "header", "text": {"type": "plain_text", "text": f"{symbol} Signal"}},
+            {
+                "type": "header",
+                "text": {"type": "plain_text", "text": f"{symbol} Signal"},
+            },
             {
                 "type": "section",
                 "fields": [
@@ -65,6 +70,8 @@ class SlackDeliveryChannel(DeliveryChannel):
             )
 
         if summary:
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": summary}})
+            blocks.append(
+                {"type": "section", "text": {"type": "mrkdwn", "text": summary}}
+            )
 
         return blocks

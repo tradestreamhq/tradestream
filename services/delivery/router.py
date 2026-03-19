@@ -1,6 +1,5 @@
 """Delivery router: routes signals to channels based on user preferences."""
 
-import time
 from datetime import datetime, timezone
 
 from absl import logging
@@ -98,9 +97,7 @@ class DeliveryRouter:
                 )
             else:
                 self.deduplicator.mark_failed(signal_id, user_id, channel_name)
-                self.tracker.mark_failed(
-                    signal_id, user_id, channel_name, result.error
-                )
+                self.tracker.mark_failed(signal_id, user_id, channel_name, result.error)
 
         return results
 
@@ -150,9 +147,7 @@ class DeliveryRouter:
         # all_enabled: return all candidates
         return candidates
 
-    def _matches_filters(
-        self, ch_pref: ChannelPreference, signal: dict
-    ) -> bool:
+    def _matches_filters(self, ch_pref: ChannelPreference, signal: dict) -> bool:
         """Check if a signal matches channel preference filters."""
         score = signal.get("opportunity_score", 0)
         if score and score < ch_pref.min_opportunity_score:
@@ -214,8 +209,9 @@ class DeliveryRouter:
                 return result
 
             if attempt < self.MAX_RETRY_ATTEMPTS - 1:
-                delay = self.BASE_RETRY_DELAY * (2 ** attempt)
-                import time as time_mod
-                time_mod.sleep(min(delay, 16.0))
+                delay = self.BASE_RETRY_DELAY * (2**attempt)
+                import time
+
+                time.sleep(min(delay, 16.0))
 
         return last_result

@@ -50,11 +50,16 @@ class TelegramDeliveryChannel(DeliveryChannel):
         score = signal.get("opportunity_score", 0)
         summary = signal.get("summary", "")
 
-        emoji = {"BUY": "\u2b06\ufe0f", "SELL": "\u2b07\ufe0f", "HOLD": "\u23f8\ufe0f"}.get(
-            action, "\u2753"
-        )
+        emoji = {
+            "BUY": "\u2b06\ufe0f",
+            "SELL": "\u2b07\ufe0f",
+            "HOLD": "\u23f8\ufe0f",
+        }.get(action, "\u2753")
 
-        lines = [f"{emoji} <b>{action}</b> {symbol}", f"Confidence: <b>{confidence:.0%}</b>"]
+        lines = [
+            f"{emoji} <b>{action}</b> {symbol}",
+            f"Confidence: <b>{confidence:.0%}</b>",
+        ]
         if score:
             lines.append(f"Opportunity Score: <b>{score}</b>")
         if summary:

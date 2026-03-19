@@ -111,7 +111,9 @@ class DeliveryTracker:
 
     def _store(self, receipt: DeliveryReceipt) -> None:
         """Store receipt in Redis."""
-        key = f"{self.KEY_PREFIX}:{receipt.signal_id}:{receipt.user_id}:{receipt.channel}"
+        key = (
+            f"{self.KEY_PREFIX}:{receipt.signal_id}:{receipt.user_id}:{receipt.channel}"
+        )
         data = json.dumps(asdict(receipt), default=str)
         pipe = self.redis.pipeline()
         pipe.setex(key, self.TTL_SECONDS, data)

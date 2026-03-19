@@ -99,7 +99,10 @@ class EmailDeliveryChannel(DeliveryChannel):
         score = signal.get("opportunity_score", 0)
         summary = signal.get("summary", "")
 
-        lines = [f"TradeStream Signal: {action} {symbol}", f"Confidence: {confidence:.0%}"]
+        lines = [
+            f"TradeStream Signal: {action} {symbol}",
+            f"Confidence: {confidence:.0%}",
+        ]
         if score:
             lines.append(f"Opportunity Score: {score}")
         if summary:
@@ -113,7 +116,9 @@ class EmailDeliveryChannel(DeliveryChannel):
         score = signal.get("opportunity_score", 0)
         summary = signal.get("summary", "")
 
-        color = {"BUY": "#00CC00", "SELL": "#CC0000", "HOLD": "#FFAA00"}.get(action, "#808080")
+        color = {"BUY": "#00CC00", "SELL": "#CC0000", "HOLD": "#FFAA00"}.get(
+            action, "#808080"
+        )
 
         score_row = ""
         if score:

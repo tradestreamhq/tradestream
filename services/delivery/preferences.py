@@ -75,15 +75,11 @@ class PreferenceStore:
             "primary_channel": prefs.primary_channel,
             "fallback_order": prefs.fallback_order,
             "tier": prefs.tier,
-            "channels": {
-                name: asdict(ch) for name, ch in prefs.channels.items()
-            },
+            "channels": {name: asdict(ch) for name, ch in prefs.channels.items()},
         }
         self.redis.set(key, json.dumps(data))
 
-    def set_channel(
-        self, user_id: str, channel_pref: ChannelPreference
-    ) -> None:
+    def set_channel(self, user_id: str, channel_pref: ChannelPreference) -> None:
         """Add or update a channel for a user."""
         prefs = self.get_preferences(user_id)
         if prefs is None:

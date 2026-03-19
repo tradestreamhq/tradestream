@@ -59,7 +59,11 @@ class SMSDeliveryChannel(DeliveryChannel):
 
     def validate_recipient(self, recipient: str) -> bool:
         """Validate E.164 phone number format."""
-        return recipient.startswith("+") and len(recipient) >= 8 and recipient[1:].isdigit()
+        return (
+            recipient.startswith("+")
+            and len(recipient) >= 8
+            and recipient[1:].isdigit()
+        )
 
     def _is_critical(self, signal: dict) -> bool:
         """Check if signal meets SMS criticality threshold."""

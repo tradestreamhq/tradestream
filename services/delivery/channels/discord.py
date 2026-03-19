@@ -43,14 +43,18 @@ class DiscordDeliveryChannel(DeliveryChannel):
         score = signal.get("opportunity_score", 0)
         summary = signal.get("summary", "")
 
-        color = {"BUY": 0x00CC00, "SELL": 0xCC0000, "HOLD": 0xFFAA00}.get(action, 0x808080)
+        color = {"BUY": 0x00CC00, "SELL": 0xCC0000, "HOLD": 0xFFAA00}.get(
+            action, 0x808080
+        )
 
         fields = [
             {"name": "Action", "value": action, "inline": True},
             {"name": "Confidence", "value": f"{confidence:.0%}", "inline": True},
         ]
         if score:
-            fields.append({"name": "Opportunity Score", "value": str(score), "inline": True})
+            fields.append(
+                {"name": "Opportunity Score", "value": str(score), "inline": True}
+            )
 
         embed = {"title": f"{symbol} Signal", "color": color, "fields": fields}
         if summary:

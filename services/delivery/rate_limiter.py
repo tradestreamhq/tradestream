@@ -40,7 +40,11 @@ class DeliveryRateLimiter:
 
         if "per_symbol_seconds" in channel_limits:
             return self._check_per_symbol(
-                user_id, channel, symbol, channel_limits["per_symbol_seconds"], multiplier
+                user_id,
+                channel,
+                symbol,
+                channel_limits["per_symbol_seconds"],
+                multiplier,
             )
         elif "per_hour" in channel_limits:
             return self._check_per_hour(
