@@ -68,10 +68,10 @@ The YAML strategy loader interprets strategy definitions and produces entry/exit
 - [x] Indicator registry supports 30+ indicator types matching ta4j coverage
 - [x] gRPC service implements `RunBacktest` and `RunBatchBacktest` RPCs
 - [x] Unit tests cover core runner, indicator calculations, and strategy execution
-- [ ] YAML strategy loader can read strategy specs and generate entry/exit signals
-- [ ] Integration test demonstrates end-to-end: YAML spec → VectorBT backtest → metrics
+- [x] YAML strategy loader can read strategy specs and generate entry/exit signals
+- [x] Integration test demonstrates end-to-end: YAML spec → VectorBT backtest → metrics
 - [x] Bazel build targets defined for all components
-- [ ] OCI image configured for deployment
+- [x] OCI image configured for deployment
 
 ## Implementing Issues
 
