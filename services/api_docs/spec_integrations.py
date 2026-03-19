@@ -74,7 +74,10 @@ INTEGRATIONS_SCHEMAS = {
         "type": "object",
         "properties": {
             "id": {"type": "string", "format": "uuid"},
-            "chat_id": {"type": "string", "description": "Telegram chat ID for notifications"},
+            "chat_id": {
+                "type": "string",
+                "description": "Telegram chat ID for notifications",
+            },
             "bot_connected": {"type": "boolean"},
             "verification_code": {
                 "type": "string",
@@ -116,7 +119,11 @@ INTEGRATIONS_SCHEMAS = {
         "properties": {
             "id": {"type": "string", "format": "uuid"},
             "name": {"type": "string", "example": "Production Signal Handler"},
-            "url": {"type": "string", "format": "uri", "example": "https://your-app.com/signals"},
+            "url": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://your-app.com/signals",
+            },
             "secret": {
                 "type": "string",
                 "description": "HMAC-SHA256 signing secret for payload verification",
@@ -218,7 +225,9 @@ INTEGRATIONS_PATHS = {
                     "description": "TradingView configuration",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/TradingViewConfig"},
+                            "schema": {
+                                "$ref": "#/components/schemas/TradingViewConfig"
+                            },
                         },
                     },
                 },
@@ -252,7 +261,9 @@ INTEGRATIONS_PATHS = {
                     "description": "Updated config",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/TradingViewConfig"},
+                            "schema": {
+                                "$ref": "#/components/schemas/TradingViewConfig"
+                            },
                         },
                     },
                 },
@@ -304,7 +315,10 @@ INTEGRATIONS_PATHS = {
                                 "type": "object",
                                 "properties": {
                                     "signal_id": {"type": "string"},
-                                    "status": {"type": "string", "example": "processed"},
+                                    "status": {
+                                        "type": "string",
+                                        "example": "processed",
+                                    },
                                 },
                             },
                         },
@@ -428,7 +442,10 @@ INTEGRATIONS_PATHS = {
                                         "example": "@TradeStreamBot",
                                     },
                                     "instructions": {"type": "string"},
-                                    "expires_in_minutes": {"type": "integer", "example": 10},
+                                    "expires_in_minutes": {
+                                        "type": "integer",
+                                        "example": 10,
+                                    },
                                 },
                             },
                         },
@@ -564,7 +581,9 @@ INTEGRATIONS_PATHS = {
                                 "properties": {
                                     "data": {
                                         "type": "array",
-                                        "items": {"$ref": "#/components/schemas/WebhookConfig"},
+                                        "items": {
+                                            "$ref": "#/components/schemas/WebhookConfig"
+                                        },
                                     },
                                 },
                             },
@@ -653,8 +672,14 @@ INTEGRATIONS_PATHS = {
                             "properties": {
                                 "name": {"type": "string"},
                                 "url": {"type": "string", "format": "uri"},
-                                "events": {"type": "array", "items": {"type": "string"}},
-                                "headers": {"type": "object", "additionalProperties": {"type": "string"}},
+                                "events": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                },
+                                "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {"type": "string"},
+                                },
                                 "enabled": {"type": "boolean"},
                             },
                         },
@@ -706,16 +731,25 @@ INTEGRATIONS_PATHS = {
                 {
                     "name": "status",
                     "in": "query",
-                    "schema": {"type": "string", "enum": ["success", "failed", "pending"]},
+                    "schema": {
+                        "type": "string",
+                        "enum": ["success", "failed", "pending"],
+                    },
                 },
-                {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 20}},
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 20},
+                },
             ],
             "responses": {
                 "200": {
                     "description": "Delivery history",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                         },
                     },
                 },

@@ -79,32 +79,32 @@ This returns a Pine Script pre-configured with the correct alert JSON format.
 
 ## Alert JSON Format
 
-| Field          | Required | Description                           |
-|----------------|----------|---------------------------------------|
-| `ticker`       | Yes      | TradingView ticker symbol             |
-| `exchange`     | No       | Exchange name                         |
-| `action`       | Yes      | `buy`, `sell`, or `close`             |
-| `price`        | No       | Alert trigger price                   |
-| `volume`       | No       | Current volume                        |
-| `timeframe`    | No       | Chart timeframe (e.g., `240` for 4h)  |
-| `strategy_name`| No       | Strategy identifier                   |
-| `comment`      | No       | Free-text context from Pine Script    |
+| Field           | Required | Description                          |
+| --------------- | -------- | ------------------------------------ |
+| `ticker`        | Yes      | TradingView ticker symbol            |
+| `exchange`      | No       | Exchange name                        |
+| `action`        | Yes      | `buy`, `sell`, or `close`            |
+| `price`         | No       | Alert trigger price                  |
+| `volume`        | No       | Current volume                       |
+| `timeframe`     | No       | Chart timeframe (e.g., `240` for 4h) |
+| `strategy_name` | No       | Strategy identifier                  |
+| `comment`       | No       | Free-text context from Pine Script   |
 
 ## TradingView Variables
 
 Use these in your alert message for dynamic values:
 
-| Variable        | Value                    |
-|-----------------|--------------------------|
-| `{{ticker}}`    | Symbol (e.g., BTCUSD)    |
-| `{{exchange}}`  | Exchange name             |
-| `{{close}}`     | Close price at trigger    |
-| `{{open}}`      | Open price                |
-| `{{high}}`      | High price                |
-| `{{low}}`       | Low price                 |
-| `{{volume}}`    | Volume                    |
-| `{{interval}}`  | Timeframe                 |
-| `{{time}}`      | Alert time (Unix)         |
+| Variable       | Value                  |
+| -------------- | ---------------------- |
+| `{{ticker}}`   | Symbol (e.g., BTCUSD)  |
+| `{{exchange}}` | Exchange name          |
+| `{{close}}`    | Close price at trigger |
+| `{{open}}`     | Open price             |
+| `{{high}}`     | High price             |
+| `{{low}}`      | Low price              |
+| `{{volume}}`   | Volume                 |
+| `{{interval}}` | Timeframe              |
+| `{{time}}`     | Alert time (Unix)      |
 
 ## Troubleshooting
 

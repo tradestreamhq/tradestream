@@ -29,12 +29,12 @@ curl -X PUT https://api.tradestream.io/api/v1/integrations/discord \
   }'
 ```
 
-| Option           | Description                                       |
-|------------------|---------------------------------------------------|
-| `webhook_url`    | Discord webhook URL from server settings          |
-| `embed_format`   | `true` for rich embeds, `false` for plain text    |
-| `mention_role_id`| Discord role ID to @mention on S/A-tier signals   |
-| `enabled`        | Toggle delivery on/off                            |
+| Option            | Description                                     |
+| ----------------- | ----------------------------------------------- |
+| `webhook_url`     | Discord webhook URL from server settings        |
+| `embed_format`    | `true` for rich embeds, `false` for plain text  |
+| `mention_role_id` | Discord role ID to @mention on S/A-tier signals |
+| `enabled`         | Toggle delivery on/off                          |
 
 ### Step 3: Test the integration
 

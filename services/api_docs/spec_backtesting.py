@@ -88,22 +88,37 @@ BACKTESTING_SCHEMAS = {
             },
             "created_at": {"type": "string", "format": "date-time"},
             "completed_at": {"type": "string", "format": "date-time"},
-            "duration_ms": {"type": "integer", "description": "Execution time in milliseconds"},
+            "duration_ms": {
+                "type": "integer",
+                "description": "Execution time in milliseconds",
+            },
         },
     },
     "BacktestMetrics": {
         "type": "object",
         "properties": {
             "total_return_pct": {"type": "number", "format": "double", "example": 42.3},
-            "annualized_return_pct": {"type": "number", "format": "double", "example": 38.7},
+            "annualized_return_pct": {
+                "type": "number",
+                "format": "double",
+                "example": 38.7,
+            },
             "sharpe_ratio": {"type": "number", "format": "double", "example": 1.85},
             "sortino_ratio": {"type": "number", "format": "double", "example": 2.31},
-            "max_drawdown_pct": {"type": "number", "format": "double", "example": -12.5},
+            "max_drawdown_pct": {
+                "type": "number",
+                "format": "double",
+                "example": -12.5,
+            },
             "calmar_ratio": {"type": "number", "format": "double", "example": 3.1},
             "win_rate": {"type": "number", "format": "double", "example": 0.62},
             "profit_factor": {"type": "number", "format": "double", "example": 1.73},
             "total_trades": {"type": "integer", "example": 312},
-            "avg_trade_return_pct": {"type": "number", "format": "double", "example": 0.14},
+            "avg_trade_return_pct": {
+                "type": "number",
+                "format": "double",
+                "example": 0.14,
+            },
             "avg_win_pct": {"type": "number", "format": "double", "example": 1.8},
             "avg_loss_pct": {"type": "number", "format": "double", "example": -1.04},
             "avg_trade_duration_hours": {"type": "number", "format": "double"},
@@ -209,7 +224,13 @@ BACKTESTING_SCHEMAS = {
                 "default": 1000,
             },
         },
-        "required": ["strategy_id", "instrument", "start_date", "end_date", "parameter_ranges"],
+        "required": [
+            "strategy_id",
+            "instrument",
+            "start_date",
+            "end_date",
+            "parameter_ranges",
+        ],
     },
     "OptimizationResponse": {
         "type": "object",
@@ -242,22 +263,39 @@ BACKTESTING_PATHS = {
             "operationId": "listBacktests",
             "tags": ["Backtesting"],
             "parameters": [
-                {"name": "strategy_id", "in": "query", "schema": {"type": "string", "format": "uuid"}},
+                {
+                    "name": "strategy_id",
+                    "in": "query",
+                    "schema": {"type": "string", "format": "uuid"},
+                },
                 {"name": "instrument", "in": "query", "schema": {"type": "string"}},
                 {
                     "name": "status",
                     "in": "query",
-                    "schema": {"type": "string", "enum": ["queued", "running", "completed", "failed"]},
+                    "schema": {
+                        "type": "string",
+                        "enum": ["queued", "running", "completed", "failed"],
+                    },
                 },
-                {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 20}},
-                {"name": "offset", "in": "query", "schema": {"type": "integer", "default": 0}},
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 20},
+                },
+                {
+                    "name": "offset",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 0},
+                },
             ],
             "responses": {
                 "200": {
                     "description": "Paginated backtest list",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                         },
                     },
                 },
@@ -399,11 +437,18 @@ BACKTESTING_PATHS = {
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "strategy": {"$ref": "#/components/schemas/BacktestMetrics"},
-                                    "benchmark": {"$ref": "#/components/schemas/BacktestMetrics"},
+                                    "strategy": {
+                                        "$ref": "#/components/schemas/BacktestMetrics"
+                                    },
+                                    "benchmark": {
+                                        "$ref": "#/components/schemas/BacktestMetrics"
+                                    },
                                     "alpha": {"type": "number", "format": "double"},
                                     "beta": {"type": "number", "format": "double"},
-                                    "information_ratio": {"type": "number", "format": "double"},
+                                    "information_ratio": {
+                                        "type": "number",
+                                        "format": "double",
+                                    },
                                 },
                             },
                         },
@@ -466,7 +511,9 @@ BACKTESTING_PATHS = {
                     "description": "Walk-forward results",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/WalkForwardResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/WalkForwardResponse"
+                            },
                         },
                     },
                 },
@@ -525,7 +572,9 @@ BACKTESTING_PATHS = {
                     "description": "Optimization results",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/OptimizationResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/OptimizationResponse"
+                            },
                         },
                     },
                 },

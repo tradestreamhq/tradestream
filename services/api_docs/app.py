@@ -19,9 +19,7 @@ from services.api_docs.openapi_spec import get_spec
 logger = logging.getLogger(__name__)
 
 # Path to static docs directory (relative to repo root)
-_DOCS_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "..", "docs", "api"
-)
+_DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "api")
 
 
 def _read_doc_file(filename: str) -> str | None:
@@ -68,7 +66,9 @@ def create_app() -> FastAPI:
             import yaml
 
             return PlainTextResponse(
-                content=yaml.dump(get_spec(), default_flow_style=False, sort_keys=False),
+                content=yaml.dump(
+                    get_spec(), default_flow_style=False, sort_keys=False
+                ),
                 media_type="application/x-yaml",
             )
         except ImportError:
@@ -83,6 +83,7 @@ def create_app() -> FastAPI:
             return HTMLResponse(content=content)
         # Redirect to Swagger UI if no index page
         from fastapi.responses import RedirectResponse
+
         return RedirectResponse(url="/api/docs")
 
     # Override FastAPI's auto-generated schema with our unified one

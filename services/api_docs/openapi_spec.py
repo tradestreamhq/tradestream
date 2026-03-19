@@ -597,9 +597,18 @@ _BASE_SPEC = {
             "DecisionCreate": {
                 "type": "object",
                 "properties": {
-                    "signal_id": {"type": "string", "description": "Associated signal UUID"},
-                    "agent_name": {"type": "string", "description": "Name of the deciding agent"},
-                    "decision_type": {"type": "string", "description": "Decision category"},
+                    "signal_id": {
+                        "type": "string",
+                        "description": "Associated signal UUID",
+                    },
+                    "agent_name": {
+                        "type": "string",
+                        "description": "Name of the deciding agent",
+                    },
+                    "decision_type": {
+                        "type": "string",
+                        "description": "Decision category",
+                    },
                     "score": {
                         "type": "number",
                         "format": "double",
@@ -608,14 +617,20 @@ _BASE_SPEC = {
                         "description": "Decision score (0-1)",
                     },
                     "tier": {"type": "string", "description": "Decision tier"},
-                    "reasoning": {"type": "string", "description": "Decision reasoning text"},
+                    "reasoning": {
+                        "type": "string",
+                        "description": "Decision reasoning text",
+                    },
                     "tool_calls": {
                         "type": "array",
                         "items": {"type": "object"},
                         "description": "Tool calls made",
                     },
                     "model_used": {"type": "string", "description": "LLM model used"},
-                    "latency_ms": {"type": "integer", "description": "Processing latency in ms"},
+                    "latency_ms": {
+                        "type": "integer",
+                        "description": "Processing latency in ms",
+                    },
                     "tokens_used": {"type": "integer", "description": "Token count"},
                 },
                 "required": [
@@ -663,8 +678,15 @@ _BASE_SPEC = {
             "MarketContext": {
                 "type": "object",
                 "properties": {
-                    "instrument": {"type": "string", "description": "Trading instrument"},
-                    "price": {"type": "number", "format": "double", "description": "Current price"},
+                    "instrument": {
+                        "type": "string",
+                        "description": "Trading instrument",
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "double",
+                        "description": "Current price",
+                    },
                     "volatility": {"type": "number", "format": "double"},
                     "volume": {"type": "number", "format": "double"},
                 },
@@ -808,9 +830,15 @@ _BASE_SPEC = {
                             "properties": {
                                 "symbol": {"type": "string"},
                                 "quantity": {"type": "number", "format": "double"},
-                                "avg_entry_price": {"type": "number", "format": "double"},
+                                "avg_entry_price": {
+                                    "type": "number",
+                                    "format": "double",
+                                },
                                 "current_price": {"type": "number", "format": "double"},
-                                "unrealized_pnl": {"type": "number", "format": "double"},
+                                "unrealized_pnl": {
+                                    "type": "number",
+                                    "format": "double",
+                                },
                             },
                         },
                     },
@@ -840,7 +868,10 @@ _BASE_SPEC = {
                             "margin_used": {"type": "number", "format": "double"},
                             "margin_available": {"type": "number", "format": "double"},
                             "unrealized_pnl": {"type": "number", "format": "double"},
-                            "realized_pnl_today": {"type": "number", "format": "double"},
+                            "realized_pnl_today": {
+                                "type": "number",
+                                "format": "double",
+                            },
                         },
                     },
                     "positions": {
@@ -919,7 +950,9 @@ _BASE_SPEC = {
                         "description": "Service is healthy",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/HealthResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                },
                             },
                         },
                     },
@@ -937,7 +970,9 @@ _BASE_SPEC = {
                         "description": "Service is ready",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ReadyResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReadyResponse"
+                                },
                             },
                         },
                     },
@@ -957,7 +992,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -978,7 +1015,9 @@ _BASE_SPEC = {
                         "description": "Unauthorized",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -986,7 +1025,9 @@ _BASE_SPEC = {
                         "description": "Internal server error",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1004,7 +1045,9 @@ _BASE_SPEC = {
                         "description": "Collection of open positions",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -1012,7 +1055,9 @@ _BASE_SPEC = {
                         "description": "Unauthorized",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1039,7 +1084,9 @@ _BASE_SPEC = {
                         "description": "Position details",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -1047,7 +1094,9 @@ _BASE_SPEC = {
                         "description": "Position not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1067,7 +1116,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -1100,7 +1151,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -1130,7 +1183,9 @@ _BASE_SPEC = {
                     "required": True,
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/TradeValidationRequest"},
+                            "schema": {
+                                "$ref": "#/components/schemas/TradeValidationRequest"
+                            },
                         },
                     },
                 },
@@ -1141,7 +1196,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -1162,7 +1219,9 @@ _BASE_SPEC = {
                         "description": "Validation error",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1183,7 +1242,9 @@ _BASE_SPEC = {
                         "description": "Service is healthy",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/HealthResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                },
                             },
                         },
                     },
@@ -1201,7 +1262,9 @@ _BASE_SPEC = {
                         "description": "Service is ready",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ReadyResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReadyResponse"
+                                },
                             },
                         },
                     },
@@ -1231,7 +1294,12 @@ _BASE_SPEC = {
                         "name": "limit",
                         "in": "query",
                         "description": "Maximum items to return",
-                        "schema": {"type": "integer", "default": 50, "minimum": 1, "maximum": 1000},
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 1000,
+                        },
                     },
                     {
                         "name": "offset",
@@ -1245,7 +1313,9 @@ _BASE_SPEC = {
                         "description": "Paginated list of strategy specs",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -1260,7 +1330,9 @@ _BASE_SPEC = {
                     "required": True,
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/StrategySpecCreate"},
+                            "schema": {
+                                "$ref": "#/components/schemas/StrategySpecCreate"
+                            },
                         },
                     },
                 },
@@ -1269,7 +1341,9 @@ _BASE_SPEC = {
                         "description": "Spec created",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -1277,7 +1351,9 @@ _BASE_SPEC = {
                         "description": "Spec name already exists",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1285,7 +1361,9 @@ _BASE_SPEC = {
                         "description": "Internal server error",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1311,7 +1389,9 @@ _BASE_SPEC = {
                         "description": "Strategy spec details",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -1319,7 +1399,9 @@ _BASE_SPEC = {
                         "description": "Spec not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1342,7 +1424,9 @@ _BASE_SPEC = {
                     "required": True,
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/StrategySpecUpdate"},
+                            "schema": {
+                                "$ref": "#/components/schemas/StrategySpecUpdate"
+                            },
                         },
                     },
                 },
@@ -1351,7 +1435,9 @@ _BASE_SPEC = {
                         "description": "Updated spec",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -1359,7 +1445,9 @@ _BASE_SPEC = {
                         "description": "Spec not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1367,7 +1455,9 @@ _BASE_SPEC = {
                         "description": "No fields to update",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1394,7 +1484,9 @@ _BASE_SPEC = {
                         "description": "Spec not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1430,7 +1522,9 @@ _BASE_SPEC = {
                         "description": "Paginated list of implementations",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -1454,7 +1548,9 @@ _BASE_SPEC = {
                         "description": "Implementation created",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -1462,7 +1558,9 @@ _BASE_SPEC = {
                         "description": "Spec not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1513,7 +1611,9 @@ _BASE_SPEC = {
                         "description": "Paginated list of implementations",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -1539,7 +1639,9 @@ _BASE_SPEC = {
                         "description": "Implementation details",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -1547,7 +1649,9 @@ _BASE_SPEC = {
                         "description": "Implementation not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1574,7 +1678,9 @@ _BASE_SPEC = {
                         "description": "Implementation not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1610,7 +1716,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -1631,7 +1739,9 @@ _BASE_SPEC = {
                         "description": "Implementation not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1666,7 +1776,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -1687,7 +1799,9 @@ _BASE_SPEC = {
                         "description": "Implementation or signal not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1708,7 +1822,9 @@ _BASE_SPEC = {
                         "description": "Service is healthy",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/HealthResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                },
                             },
                         },
                     },
@@ -1726,7 +1842,9 @@ _BASE_SPEC = {
                         "description": "Service is ready",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ReadyResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReadyResponse"
+                                },
                             },
                         },
                     },
@@ -1744,7 +1862,9 @@ _BASE_SPEC = {
                         "description": "Collection of instruments",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -1779,7 +1899,12 @@ _BASE_SPEC = {
                         "name": "limit",
                         "in": "query",
                         "description": "Max candles to return",
-                        "schema": {"type": "integer", "default": 100, "minimum": 1, "maximum": 1000},
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "minimum": 1,
+                            "maximum": 1000,
+                        },
                     },
                     {
                         "name": "from",
@@ -1793,7 +1918,9 @@ _BASE_SPEC = {
                         "description": "Candle data",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -1822,7 +1949,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -1843,7 +1972,9 @@ _BASE_SPEC = {
                         "description": "Price not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -1867,7 +1998,12 @@ _BASE_SPEC = {
                         "name": "depth",
                         "in": "query",
                         "description": "Order book depth",
-                        "schema": {"type": "integer", "default": 10, "minimum": 1, "maximum": 100},
+                        "schema": {
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                        },
                     },
                 ],
                 "responses": {
@@ -1877,7 +2013,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -1911,7 +2049,9 @@ _BASE_SPEC = {
                         "description": "Service is healthy",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/HealthResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                },
                             },
                         },
                     },
@@ -1929,7 +2069,9 @@ _BASE_SPEC = {
                         "description": "Service is ready",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ReadyResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReadyResponse"
+                                },
                             },
                         },
                     },
@@ -1971,7 +2113,9 @@ _BASE_SPEC = {
                         "description": "Paginated list of decisions",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -1995,7 +2139,9 @@ _BASE_SPEC = {
                         "description": "Decision created",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -2003,7 +2149,9 @@ _BASE_SPEC = {
                         "description": "Internal server error",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2029,7 +2177,9 @@ _BASE_SPEC = {
                         "description": "Decision details",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -2037,7 +2187,9 @@ _BASE_SPEC = {
                         "description": "Decision not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2071,7 +2223,9 @@ _BASE_SPEC = {
                         "description": "Outcome recorded",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/SuccessResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                },
                             },
                         },
                     },
@@ -2079,7 +2233,9 @@ _BASE_SPEC = {
                         "description": "Decision not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2097,7 +2253,9 @@ _BASE_SPEC = {
                         "description": "Performance patterns",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -2135,7 +2293,9 @@ _BASE_SPEC = {
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {"$ref": "#/components/schemas/SuccessResponse"},
+                                        {
+                                            "$ref": "#/components/schemas/SuccessResponse"
+                                        },
                                         {
                                             "properties": {
                                                 "data": {
@@ -2174,7 +2334,9 @@ _BASE_SPEC = {
                         "description": "Similar historical situations",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollectionResponse"
+                                },
                             },
                         },
                     },
@@ -2260,7 +2422,12 @@ _BASE_SPEC = {
                         "name": "limit",
                         "in": "query",
                         "description": "Number of events to return",
-                        "schema": {"type": "integer", "default": 50, "minimum": 1, "maximum": 500},
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 500,
+                        },
                     },
                     {
                         "name": "agent_name",
@@ -2288,7 +2455,9 @@ _BASE_SPEC = {
                                     "properties": {
                                         "events": {
                                             "type": "array",
-                                            "items": {"$ref": "#/components/schemas/AgentEvent"},
+                                            "items": {
+                                                "$ref": "#/components/schemas/AgentEvent"
+                                            },
                                         },
                                         "count": {"type": "integer"},
                                     },
@@ -2310,7 +2479,9 @@ _BASE_SPEC = {
                         "description": "Dashboard summary",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/DashboardSummary"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/DashboardSummary"
+                                },
                             },
                         },
                     },
@@ -2362,13 +2533,23 @@ _BASE_SPEC = {
                         "name": "hours",
                         "in": "query",
                         "description": "Lookback period in hours",
-                        "schema": {"type": "integer", "default": 24, "minimum": 1, "maximum": 168},
+                        "schema": {
+                            "type": "integer",
+                            "default": 24,
+                            "minimum": 1,
+                            "maximum": 168,
+                        },
                     },
                     {
                         "name": "limit",
                         "in": "query",
                         "description": "Max signals to return",
-                        "schema": {"type": "integer", "default": 100, "minimum": 1, "maximum": 500},
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "minimum": 1,
+                            "maximum": 500,
+                        },
                     },
                 ],
                 "responses": {
@@ -2381,7 +2562,9 @@ _BASE_SPEC = {
                                     "properties": {
                                         "signals": {
                                             "type": "array",
-                                            "items": {"$ref": "#/components/schemas/AgentEvent"},
+                                            "items": {
+                                                "$ref": "#/components/schemas/AgentEvent"
+                                            },
                                         },
                                         "count": {"type": "integer"},
                                         "hours": {"type": "integer"},
@@ -2438,7 +2621,9 @@ _BASE_SPEC = {
                                     "properties": {
                                         "strategies": {
                                             "type": "array",
-                                            "items": {"$ref": "#/components/schemas/MonitoredStrategy"},
+                                            "items": {
+                                                "$ref": "#/components/schemas/MonitoredStrategy"
+                                            },
                                         },
                                         "count": {"type": "integer"},
                                     },
@@ -2468,7 +2653,9 @@ _BASE_SPEC = {
                         "description": "Strategy details",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/MonitoredStrategy"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/MonitoredStrategy"
+                                },
                             },
                         },
                     },
@@ -2476,7 +2663,9 @@ _BASE_SPEC = {
                         "description": "Strategy not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2494,7 +2683,9 @@ _BASE_SPEC = {
                         "description": "Aggregated metrics",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/StrategyMetrics"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/StrategyMetrics"
+                                },
                             },
                         },
                     },
@@ -2564,7 +2755,9 @@ _BASE_SPEC = {
                         "description": "Service is healthy",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/HealthResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                },
                             },
                         },
                     },
@@ -2585,7 +2778,9 @@ _BASE_SPEC = {
                         "description": "Service is healthy",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/HealthResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                },
                             },
                         },
                     },
@@ -2602,7 +2797,9 @@ _BASE_SPEC = {
                     "required": True,
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/PaperTradeRequest"},
+                            "schema": {
+                                "$ref": "#/components/schemas/PaperTradeRequest"
+                            },
                         },
                     },
                 },
@@ -2619,7 +2816,9 @@ _BASE_SPEC = {
                         "description": "Invalid request (missing fields or invalid signal action)",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2627,7 +2826,9 @@ _BASE_SPEC = {
                         "description": "Signal not found",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2635,7 +2836,9 @@ _BASE_SPEC = {
                         "description": "Could not get market price",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2653,7 +2856,9 @@ _BASE_SPEC = {
                         "description": "Portfolio positions",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/PaperPortfolio"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaperPortfolio"
+                                },
                             },
                         },
                     },
@@ -2661,7 +2866,9 @@ _BASE_SPEC = {
                         "description": "Internal server error",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2704,7 +2911,9 @@ _BASE_SPEC = {
                                     "properties": {
                                         "trades": {
                                             "type": "array",
-                                            "items": {"$ref": "#/components/schemas/PaperTrade"},
+                                            "items": {
+                                                "$ref": "#/components/schemas/PaperTrade"
+                                            },
                                         },
                                         "count": {"type": "integer"},
                                     },
@@ -2755,7 +2964,9 @@ _BASE_SPEC = {
                         "description": "Service is healthy",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/HealthResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                },
                             },
                         },
                     },
@@ -2773,7 +2984,9 @@ _BASE_SPEC = {
                         "description": "Full portfolio state",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/FullPortfolioState"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/FullPortfolioState"
+                                },
                             },
                         },
                     },
@@ -2781,7 +2994,9 @@ _BASE_SPEC = {
                         "description": "Internal server error",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },
@@ -2803,7 +3018,10 @@ _BASE_SPEC = {
                                     "type": "object",
                                     "properties": {
                                         "context": {"type": "string"},
-                                        "as_of": {"type": "string", "format": "date-time"},
+                                        "as_of": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                        },
                                     },
                                 },
                             },
@@ -2828,7 +3046,9 @@ _BASE_SPEC = {
                                     "properties": {
                                         "positions": {
                                             "type": "array",
-                                            "items": {"$ref": "#/components/schemas/DetailedPosition"},
+                                            "items": {
+                                                "$ref": "#/components/schemas/DetailedPosition"
+                                            },
                                         },
                                         "count": {"type": "integer"},
                                     },
@@ -2850,7 +3070,9 @@ _BASE_SPEC = {
                         "description": "Risk metrics",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/FullRiskMetrics"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/FullRiskMetrics"
+                                },
                             },
                         },
                     },
@@ -2867,7 +3089,9 @@ _BASE_SPEC = {
                     "required": True,
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/DecisionValidateRequest"},
+                            "schema": {
+                                "$ref": "#/components/schemas/DecisionValidateRequest"
+                            },
                         },
                     },
                 },
@@ -2897,7 +3121,9 @@ _BASE_SPEC = {
                         "description": "Missing required fields",
                         "content": {
                             "application/json": {
-                                "schema": {"$ref": "#/components/schemas/ErrorResponse"},
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                             },
                         },
                     },

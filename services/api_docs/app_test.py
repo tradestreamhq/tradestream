@@ -107,9 +107,7 @@ class TestOpenAPISpecValidity:
         spec = get_spec()
         for path, methods in spec["paths"].items():
             for method, operation in methods.items():
-                assert (
-                    "tags" in operation
-                ), f"Missing tags for {method.upper()} {path}"
+                assert "tags" in operation, f"Missing tags for {method.upper()} {path}"
                 assert len(operation["tags"]) > 0
 
     def test_all_operations_have_unique_operation_ids(self):
@@ -273,7 +271,12 @@ class TestOpenAPISpecValidity:
         """Verify signal-related schemas are defined."""
         spec = get_spec()
         schemas = spec["components"]["schemas"]
-        for name in ["Signal", "SignalSubscription", "SignalFilter", "SignalDeliveryLog"]:
+        for name in [
+            "Signal",
+            "SignalSubscription",
+            "SignalFilter",
+            "SignalDeliveryLog",
+        ]:
             assert name in schemas, f"Missing schema: {name}"
 
     def test_marketplace_schemas_present(self):
@@ -281,8 +284,11 @@ class TestOpenAPISpecValidity:
         spec = get_spec()
         schemas = spec["components"]["schemas"]
         for name in [
-            "MarketplaceListing", "ListingPricing", "ListingPerformance",
-            "MarketplaceReview", "LeaderboardEntry",
+            "MarketplaceListing",
+            "ListingPricing",
+            "ListingPerformance",
+            "MarketplaceReview",
+            "LeaderboardEntry",
         ]:
             assert name in schemas, f"Missing schema: {name}"
 
@@ -290,7 +296,13 @@ class TestOpenAPISpecValidity:
         """Verify billing schemas are defined."""
         spec = get_spec()
         schemas = spec["components"]["schemas"]
-        for name in ["BillingAccount", "Plan", "Invoice", "PaymentMethod", "UsageMetrics"]:
+        for name in [
+            "BillingAccount",
+            "Plan",
+            "Invoice",
+            "PaymentMethod",
+            "UsageMetrics",
+        ]:
             assert name in schemas, f"Missing schema: {name}"
 
     def test_backtesting_schemas_present(self):
@@ -298,8 +310,11 @@ class TestOpenAPISpecValidity:
         spec = get_spec()
         schemas = spec["components"]["schemas"]
         for name in [
-            "BacktestRequest", "BacktestResponse", "BacktestMetrics",
-            "WalkForwardRequest", "OptimizationRequest",
+            "BacktestRequest",
+            "BacktestResponse",
+            "BacktestMetrics",
+            "WalkForwardRequest",
+            "OptimizationRequest",
         ]:
             assert name in schemas, f"Missing schema: {name}"
 
@@ -315,8 +330,12 @@ class TestOpenAPISpecValidity:
         spec = get_spec()
         schemas = spec["components"]["schemas"]
         for name in [
-            "TradingViewAlert", "TradingViewConfig", "TelegramConfig",
-            "DiscordConfig", "WebhookConfig", "WebhookDelivery",
+            "TradingViewAlert",
+            "TradingViewConfig",
+            "TelegramConfig",
+            "DiscordConfig",
+            "WebhookConfig",
+            "WebhookDelivery",
         ]:
             assert name in schemas, f"Missing schema: {name}"
 
@@ -356,6 +375,6 @@ class TestOpenAPISpecValidity:
         for path in public_paths:
             if path in spec["paths"]:
                 for method, op in spec["paths"][path].items():
-                    assert op.get("security") == [], (
-                        f"{method.upper()} {path} should have security: [] (public)"
-                    )
+                    assert (
+                        op.get("security") == []
+                    ), f"{method.upper()} {path} should have security: [] (public)"

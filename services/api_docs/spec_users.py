@@ -20,14 +20,21 @@ USERS_SCHEMAS = {
         "type": "object",
         "properties": {
             "id": {"type": "string", "format": "uuid"},
-            "email": {"type": "string", "format": "email", "example": "trader@example.com"},
+            "email": {
+                "type": "string",
+                "format": "email",
+                "example": "trader@example.com",
+            },
             "display_name": {"type": "string", "example": "AlgoTrader99"},
             "role": {
                 "type": "string",
                 "enum": ["user", "publisher", "admin"],
                 "example": "user",
             },
-            "plan": {"type": "string", "enum": ["free", "starter", "pro", "enterprise"]},
+            "plan": {
+                "type": "string",
+                "enum": ["free", "starter", "pro", "enterprise"],
+            },
             "email_verified": {"type": "boolean"},
             "two_factor_enabled": {"type": "boolean"},
             "timezone": {"type": "string", "example": "America/New_York"},
@@ -59,10 +66,20 @@ USERS_SCHEMAS = {
     "AuthTokens": {
         "type": "object",
         "properties": {
-            "access_token": {"type": "string", "description": "JWT access token (15 min TTL)"},
-            "refresh_token": {"type": "string", "description": "Refresh token (30 day TTL)"},
+            "access_token": {
+                "type": "string",
+                "description": "JWT access token (15 min TTL)",
+            },
+            "refresh_token": {
+                "type": "string",
+                "description": "Refresh token (30 day TTL)",
+            },
             "token_type": {"type": "string", "example": "Bearer"},
-            "expires_in": {"type": "integer", "description": "Access token TTL in seconds", "example": 900},
+            "expires_in": {
+                "type": "integer",
+                "description": "Access token TTL in seconds",
+                "example": 900,
+            },
         },
     },
     "UpdateProfileRequest": {
@@ -384,7 +401,9 @@ USERS_PATHS = {
                                 "properties": {
                                     "data": {
                                         "type": "array",
-                                        "items": {"$ref": "#/components/schemas/ApiKey"},
+                                        "items": {
+                                            "$ref": "#/components/schemas/ApiKey"
+                                        },
                                     },
                                 },
                             },
@@ -419,7 +438,9 @@ USERS_PATHS = {
                     "description": "API key created — full key shown only once",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CreateApiKeyResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateApiKeyResponse"
+                            },
                         },
                     },
                 },
@@ -472,7 +493,9 @@ USERS_PATHS = {
                     "description": "New key secret — shown only once",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CreateApiKeyResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateApiKeyResponse"
+                            },
                         },
                     },
                 },
@@ -490,7 +513,9 @@ USERS_PATHS = {
                     "description": "Notification preferences",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/NotificationPreferences"},
+                            "schema": {
+                                "$ref": "#/components/schemas/NotificationPreferences"
+                            },
                         },
                     },
                 },
@@ -505,7 +530,9 @@ USERS_PATHS = {
                 "required": True,
                 "content": {
                     "application/json": {
-                        "schema": {"$ref": "#/components/schemas/NotificationPreferences"},
+                        "schema": {
+                            "$ref": "#/components/schemas/NotificationPreferences"
+                        },
                     },
                 },
             },
@@ -514,7 +541,9 @@ USERS_PATHS = {
                     "description": "Updated preferences",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/NotificationPreferences"},
+                            "schema": {
+                                "$ref": "#/components/schemas/NotificationPreferences"
+                            },
                         },
                     },
                 },

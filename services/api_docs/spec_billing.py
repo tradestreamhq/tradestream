@@ -251,7 +251,10 @@ BILLING_PATHS = {
                                 "type": "object",
                                 "properties": {
                                     "cancelled": {"type": "boolean", "example": True},
-                                    "access_until": {"type": "string", "format": "date-time"},
+                                    "access_until": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                    },
                                 },
                             },
                         },
@@ -267,8 +270,16 @@ BILLING_PATHS = {
             "operationId": "listInvoices",
             "tags": ["Billing"],
             "parameters": [
-                {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 20}},
-                {"name": "offset", "in": "query", "schema": {"type": "integer", "default": 0}},
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 20},
+                },
+                {
+                    "name": "offset",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 0},
+                },
                 {
                     "name": "status",
                     "in": "query",
@@ -280,7 +291,9 @@ BILLING_PATHS = {
                     "description": "Invoice list",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                         },
                     },
                 },
@@ -337,7 +350,9 @@ BILLING_PATHS = {
                                 "properties": {
                                     "data": {
                                         "type": "array",
-                                        "items": {"$ref": "#/components/schemas/PaymentMethod"},
+                                        "items": {
+                                            "$ref": "#/components/schemas/PaymentMethod"
+                                        },
                                     },
                                 },
                             },

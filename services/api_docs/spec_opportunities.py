@@ -72,7 +72,13 @@ OPPORTUNITIES_SCHEMAS = {
             "name": {"type": "string", "example": "RSI Oversold"},
             "category": {
                 "type": "string",
-                "enum": ["technical", "sentiment", "fundamental", "flow", "correlation"],
+                "enum": [
+                    "technical",
+                    "sentiment",
+                    "fundamental",
+                    "flow",
+                    "correlation",
+                ],
             },
             "weight": {"type": "number", "format": "double", "example": 0.15},
             "signal": {
@@ -80,7 +86,10 @@ OPPORTUNITIES_SCHEMAS = {
                 "enum": ["bullish", "bearish", "neutral"],
             },
             "value": {"type": "number", "format": "double", "example": 28.5},
-            "description": {"type": "string", "example": "RSI at 28.5, below oversold threshold of 30"},
+            "description": {
+                "type": "string",
+                "example": "RSI at 28.5, below oversold threshold of 30",
+            },
         },
     },
     "OpportunityScan": {
@@ -142,15 +151,25 @@ OPPORTUNITIES_PATHS = {
                     "in": "query",
                     "schema": {"type": "string"},
                 },
-                {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 20}},
-                {"name": "offset", "in": "query", "schema": {"type": "integer", "default": 0}},
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 20},
+                },
+                {
+                    "name": "offset",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 0},
+                },
             ],
             "responses": {
                 "200": {
                     "description": "Paginated opportunities sorted by score descending",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                             "example": {
                                 "data": [
                                     {
@@ -163,8 +182,14 @@ OPPORTUNITIES_PATHS = {
                                             "tier": "A",
                                             "risk_reward_ratio": 2.5,
                                             "confluence_factors": [
-                                                {"name": "RSI Oversold", "signal": "bullish"},
-                                                {"name": "MACD Crossover", "signal": "bullish"},
+                                                {
+                                                    "name": "RSI Oversold",
+                                                    "signal": "bullish",
+                                                },
+                                                {
+                                                    "name": "MACD Crossover",
+                                                    "signal": "bullish",
+                                                },
                                             ],
                                         },
                                     }
@@ -268,7 +293,11 @@ OPPORTUNITIES_PATHS = {
                 {
                     "name": "period",
                     "in": "query",
-                    "schema": {"type": "string", "enum": ["7d", "30d", "90d"], "default": "30d"},
+                    "schema": {
+                        "type": "string",
+                        "enum": ["7d", "30d", "90d"],
+                        "default": "30d",
+                    },
                 },
                 {"name": "min_score", "in": "query", "schema": {"type": "number"}},
             ],
@@ -282,7 +311,10 @@ OPPORTUNITIES_PATHS = {
                                 "properties": {
                                     "total_opportunities": {"type": "integer"},
                                     "hit_rate": {"type": "number", "format": "double"},
-                                    "avg_return_pct": {"type": "number", "format": "double"},
+                                    "avg_return_pct": {
+                                        "type": "number",
+                                        "format": "double",
+                                    },
                                     "by_tier": {
                                         "type": "object",
                                         "additionalProperties": {

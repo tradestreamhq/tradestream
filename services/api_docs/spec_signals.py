@@ -60,7 +60,14 @@ SIGNAL_SCHEMAS = {
                 "example": "active",
             },
         },
-        "required": ["id", "strategy_id", "instrument", "direction", "strength", "created_at"],
+        "required": [
+            "id",
+            "strategy_id",
+            "instrument",
+            "direction",
+            "strength",
+            "created_at",
+        ],
     },
     "SignalSubscription": {
         "type": "object",
@@ -141,7 +148,10 @@ SIGNAL_SCHEMAS = {
             "id": {"type": "string", "format": "uuid"},
             "signal_id": {"type": "string", "format": "uuid"},
             "subscription_id": {"type": "string", "format": "uuid"},
-            "channel": {"type": "string", "enum": ["webhook", "email", "telegram", "discord"]},
+            "channel": {
+                "type": "string",
+                "enum": ["webhook", "email", "telegram", "discord"],
+            },
             "status": {
                 "type": "string",
                 "enum": ["delivered", "failed", "pending", "retrying"],
@@ -203,7 +213,12 @@ SIGNAL_PATHS = {
                 {
                     "name": "limit",
                     "in": "query",
-                    "schema": {"type": "integer", "default": 50, "minimum": 1, "maximum": 200},
+                    "schema": {
+                        "type": "integer",
+                        "default": 50,
+                        "minimum": 1,
+                        "maximum": 200,
+                    },
                 },
                 {
                     "name": "offset",
@@ -216,7 +231,9 @@ SIGNAL_PATHS = {
                     "description": "Paginated list of signals",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                             "example": {
                                 "data": [
                                     {
@@ -336,7 +353,9 @@ SIGNAL_PATHS = {
                     "description": "List of subscriptions",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                         },
                     },
                 },
@@ -354,7 +373,9 @@ SIGNAL_PATHS = {
                 "required": True,
                 "content": {
                     "application/json": {
-                        "schema": {"$ref": "#/components/schemas/CreateSubscriptionRequest"},
+                        "schema": {
+                            "$ref": "#/components/schemas/CreateSubscriptionRequest"
+                        },
                         "example": {
                             "strategy_id": "strat_xyz789",
                             "delivery_channels": ["webhook", "telegram"],
@@ -373,7 +394,9 @@ SIGNAL_PATHS = {
                     "description": "Subscription created",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/SignalSubscription"},
+                            "schema": {
+                                "$ref": "#/components/schemas/SignalSubscription"
+                            },
                         },
                     },
                 },
@@ -407,7 +430,9 @@ SIGNAL_PATHS = {
                     "description": "Subscription details",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/SignalSubscription"},
+                            "schema": {
+                                "$ref": "#/components/schemas/SignalSubscription"
+                            },
                         },
                     },
                 },
@@ -446,7 +471,9 @@ SIGNAL_PATHS = {
                                     "items": {"type": "string"},
                                 },
                                 "webhook_url": {"type": "string", "format": "uri"},
-                                "filters": {"$ref": "#/components/schemas/SignalFilter"},
+                                "filters": {
+                                    "$ref": "#/components/schemas/SignalFilter"
+                                },
                                 "active": {"type": "boolean"},
                             },
                         },
@@ -458,7 +485,9 @@ SIGNAL_PATHS = {
                     "description": "Updated subscription",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/SignalSubscription"},
+                            "schema": {
+                                "$ref": "#/components/schemas/SignalSubscription"
+                            },
                         },
                     },
                 },
@@ -514,7 +543,9 @@ SIGNAL_PATHS = {
                     "description": "Delivery logs",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                         },
                     },
                 },
@@ -556,8 +587,14 @@ SIGNAL_PATHS = {
                                 },
                                 "example": {
                                     "results": {
-                                        "webhook": {"success": True, "message": "200 OK"},
-                                        "telegram": {"success": True, "message": "Message sent"},
+                                        "webhook": {
+                                            "success": True,
+                                            "message": "200 OK",
+                                        },
+                                        "telegram": {
+                                            "success": True,
+                                            "message": "Message sent",
+                                        },
                                     },
                                 },
                             },

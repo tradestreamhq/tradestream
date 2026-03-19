@@ -47,8 +47,8 @@ curl -X PUT https://api.tradestream.io/api/v1/integrations/telegram \
 Signal format options:
 
 | Format     | Description                                         |
-|------------|-----------------------------------------------------|
-| `compact`  | One-line: `BUY BTC/USD @ 67,500 (strength: 0.85)`  |
+| ---------- | --------------------------------------------------- |
+| `compact`  | One-line: `BUY BTC/USD @ 67,500 (strength: 0.85)`   |
 | `detailed` | Full card with entry, SL, TP, indicators, timeframe |
 | `custom`   | User-defined template (coming soon)                 |
 
@@ -61,16 +61,16 @@ curl -X POST https://api.tradestream.io/api/v1/integrations/telegram/test \
 
 ## Bot Commands
 
-| Command         | Description                          |
-|-----------------|--------------------------------------|
-| `/start`        | Start the bot and see welcome info   |
-| `/status`       | View active subscriptions            |
-| `/signals`      | List recent signals                  |
-| `/portfolio`    | Quick portfolio summary              |
-| `/opportunities`| Top active opportunities             |
-| `/mute 1h`      | Mute notifications for 1 hour        |
-| `/unmute`       | Resume notifications                 |
-| `/help`         | List all commands                    |
+| Command          | Description                        |
+| ---------------- | ---------------------------------- |
+| `/start`         | Start the bot and see welcome info |
+| `/status`        | View active subscriptions          |
+| `/signals`       | List recent signals                |
+| `/portfolio`     | Quick portfolio summary            |
+| `/opportunities` | Top active opportunities           |
+| `/mute 1h`       | Mute notifications for 1 hour      |
+| `/unmute`        | Resume notifications               |
+| `/help`          | List all commands                  |
 
 ## Disconnect
 

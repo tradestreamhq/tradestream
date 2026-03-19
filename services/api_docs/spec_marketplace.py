@@ -29,7 +29,14 @@ MARKETPLACE_SCHEMAS = {
             },
             "category": {
                 "type": "string",
-                "enum": ["trend_following", "mean_reversion", "momentum", "volatility", "arbitrage", "multi_strategy"],
+                "enum": [
+                    "trend_following",
+                    "mean_reversion",
+                    "momentum",
+                    "volatility",
+                    "arbitrage",
+                    "multi_strategy",
+                ],
                 "example": "mean_reversion",
             },
             "pricing": {"$ref": "#/components/schemas/ListingPricing"},
@@ -94,10 +101,18 @@ MARKETPLACE_SCHEMAS = {
         "properties": {
             "sharpe_ratio": {"type": "number", "format": "double", "example": 1.85},
             "total_return_pct": {"type": "number", "format": "double", "example": 42.3},
-            "max_drawdown_pct": {"type": "number", "format": "double", "example": -12.5},
+            "max_drawdown_pct": {
+                "type": "number",
+                "format": "double",
+                "example": -12.5,
+            },
             "win_rate": {"type": "number", "format": "double", "example": 0.62},
             "total_trades": {"type": "integer", "example": 312},
-            "avg_trade_duration_hours": {"type": "number", "format": "double", "example": 18.5},
+            "avg_trade_duration_hours": {
+                "type": "number",
+                "format": "double",
+                "example": 18.5,
+            },
             "profit_factor": {"type": "number", "format": "double", "example": 1.73},
             "backtest_period_start": {"type": "string", "format": "date"},
             "backtest_period_end": {"type": "string", "format": "date"},
@@ -112,7 +127,14 @@ MARKETPLACE_SCHEMAS = {
             "description": {"type": "string", "maxLength": 5000},
             "category": {
                 "type": "string",
-                "enum": ["trend_following", "mean_reversion", "momentum", "volatility", "arbitrage", "multi_strategy"],
+                "enum": [
+                    "trend_following",
+                    "mean_reversion",
+                    "momentum",
+                    "volatility",
+                    "arbitrage",
+                    "multi_strategy",
+                ],
             },
             "pricing": {"$ref": "#/components/schemas/ListingPricing"},
             "tags": {"type": "array", "items": {"type": "string"}, "maxItems": 10},
@@ -146,7 +168,11 @@ MARKETPLACE_SCHEMAS = {
         "properties": {
             "rank": {"type": "integer", "example": 1},
             "listing": {"$ref": "#/components/schemas/MarketplaceListing"},
-            "period_return_pct": {"type": "number", "format": "double", "example": 15.3},
+            "period_return_pct": {
+                "type": "number",
+                "format": "double",
+                "example": 15.3,
+            },
             "period_sharpe": {"type": "number", "format": "double", "example": 2.1},
         },
     },
@@ -168,7 +194,14 @@ MARKETPLACE_PATHS = {
                     "in": "query",
                     "schema": {
                         "type": "string",
-                        "enum": ["trend_following", "mean_reversion", "momentum", "volatility", "arbitrage", "multi_strategy"],
+                        "enum": [
+                            "trend_following",
+                            "mean_reversion",
+                            "momentum",
+                            "volatility",
+                            "arbitrage",
+                            "multi_strategy",
+                        ],
                     },
                 },
                 {
@@ -192,7 +225,10 @@ MARKETPLACE_PATHS = {
                 {
                     "name": "pricing_model",
                     "in": "query",
-                    "schema": {"type": "string", "enum": ["free", "one_time", "monthly", "annual"]},
+                    "schema": {
+                        "type": "string",
+                        "enum": ["free", "one_time", "monthly", "annual"],
+                    },
                 },
                 {
                     "name": "sort_by",
@@ -225,7 +261,9 @@ MARKETPLACE_PATHS = {
                     "description": "Paginated marketplace listings",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                         },
                     },
                 },
@@ -249,7 +287,9 @@ MARKETPLACE_PATHS = {
                     "description": "Listing created (pending review)",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/MarketplaceListing"},
+                            "schema": {
+                                "$ref": "#/components/schemas/MarketplaceListing"
+                            },
                         },
                     },
                 },
@@ -283,7 +323,9 @@ MARKETPLACE_PATHS = {
                     "description": "Listing details",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/MarketplaceListing"},
+                            "schema": {
+                                "$ref": "#/components/schemas/MarketplaceListing"
+                            },
                         },
                     },
                 },
@@ -319,7 +361,9 @@ MARKETPLACE_PATHS = {
                             "properties": {
                                 "name": {"type": "string"},
                                 "description": {"type": "string"},
-                                "pricing": {"$ref": "#/components/schemas/ListingPricing"},
+                                "pricing": {
+                                    "$ref": "#/components/schemas/ListingPricing"
+                                },
                                 "tags": {"type": "array", "items": {"type": "string"}},
                             },
                         },
@@ -331,7 +375,9 @@ MARKETPLACE_PATHS = {
                     "description": "Updated listing",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/MarketplaceListing"},
+                            "schema": {
+                                "$ref": "#/components/schemas/MarketplaceListing"
+                            },
                         },
                     },
                 },
@@ -378,7 +424,15 @@ MARKETPLACE_PATHS = {
                             "properties": {
                                 "delivery_channels": {
                                     "type": "array",
-                                    "items": {"type": "string", "enum": ["webhook", "email", "telegram", "discord"]},
+                                    "items": {
+                                        "type": "string",
+                                        "enum": [
+                                            "webhook",
+                                            "email",
+                                            "telegram",
+                                            "discord",
+                                        ],
+                                    },
                                 },
                                 "webhook_url": {"type": "string", "format": "uri"},
                             },
@@ -395,13 +449,19 @@ MARKETPLACE_PATHS = {
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "subscription_id": {"type": "string", "format": "uuid"},
+                                    "subscription_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                    },
                                     "checkout_url": {
                                         "type": "string",
                                         "format": "uri",
                                         "description": "Stripe checkout URL (paid listings only)",
                                     },
-                                    "status": {"type": "string", "enum": ["active", "pending_payment"]},
+                                    "status": {
+                                        "type": "string",
+                                        "enum": ["active", "pending_payment"],
+                                    },
                                 },
                             },
                         },
@@ -423,15 +483,25 @@ MARKETPLACE_PATHS = {
                     "required": True,
                     "schema": {"type": "string", "format": "uuid"},
                 },
-                {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 20}},
-                {"name": "offset", "in": "query", "schema": {"type": "integer", "default": 0}},
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 20},
+                },
+                {
+                    "name": "offset",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 0},
+                },
             ],
             "responses": {
                 "200": {
                     "description": "Paginated reviews",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/CollectionResponse"},
+                            "schema": {
+                                "$ref": "#/components/schemas/CollectionResponse"
+                            },
                         },
                     },
                 },
@@ -463,7 +533,9 @@ MARKETPLACE_PATHS = {
                     "description": "Review submitted",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/MarketplaceReview"},
+                            "schema": {
+                                "$ref": "#/components/schemas/MarketplaceReview"
+                            },
                         },
                     },
                 },
@@ -508,7 +580,11 @@ MARKETPLACE_PATHS = {
                     "in": "query",
                     "schema": {"type": "string"},
                 },
-                {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 25, "maximum": 100}},
+                {
+                    "name": "limit",
+                    "in": "query",
+                    "schema": {"type": "integer", "default": 25, "maximum": 100},
+                },
             ],
             "responses": {
                 "200": {
@@ -520,10 +596,15 @@ MARKETPLACE_PATHS = {
                                 "properties": {
                                     "data": {
                                         "type": "array",
-                                        "items": {"$ref": "#/components/schemas/LeaderboardEntry"},
+                                        "items": {
+                                            "$ref": "#/components/schemas/LeaderboardEntry"
+                                        },
                                     },
                                     "period": {"type": "string"},
-                                    "updated_at": {"type": "string", "format": "date-time"},
+                                    "updated_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                    },
                                 },
                             },
                         },

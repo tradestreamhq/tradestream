@@ -9,7 +9,7 @@ through authentication, your first signal subscription, and webhook setup.
 ## Base URL
 
 | Environment | URL                                  |
-|-------------|--------------------------------------|
+| ----------- | ------------------------------------ |
 | Production  | `https://api.tradestream.io`         |
 | Staging     | `https://staging-api.tradestream.io` |
 | Local dev   | `http://localhost:8080`              |
@@ -91,16 +91,16 @@ curl -X POST https://api.tradestream.io/api/v1/auth/refresh \
 
 ### API Key Scopes
 
-| Scope                | Description                        |
-|----------------------|------------------------------------|
-| `signals:read`       | Read signals and subscriptions     |
-| `signals:write`      | Create/update signal subscriptions |
-| `strategies:read`    | Read strategy specs and impls      |
-| `strategies:write`   | Create/update strategies           |
-| `portfolio:read`     | Read portfolio and positions       |
-| `backtests:run`      | Submit backtest jobs               |
-| `marketplace:read`   | Browse marketplace listings        |
-| `marketplace:publish`| Publish strategies to marketplace  |
+| Scope                 | Description                        |
+| --------------------- | ---------------------------------- |
+| `signals:read`        | Read signals and subscriptions     |
+| `signals:write`       | Create/update signal subscriptions |
+| `strategies:read`     | Read strategy specs and impls      |
+| `strategies:write`    | Create/update strategies           |
+| `portfolio:read`      | Read portfolio and positions       |
+| `backtests:run`       | Submit backtest jobs               |
+| `marketplace:read`    | Browse marketplace listings        |
+| `marketplace:publish` | Publish strategies to marketplace  |
 
 ## Quick Start: Subscribe to Signals
 
@@ -185,9 +185,9 @@ def verify_signature(payload_bytes, signature, secret):
     "instrument": "BTC/USD",
     "direction": "BUY",
     "strength": 0.85,
-    "entry_price": 67500.00,
-    "stop_loss": 66000.00,
-    "take_profit": 70000.00,
+    "entry_price": 67500.0,
+    "stop_loss": 66000.0,
+    "take_profit": 70000.0,
     "timeframe": "4h",
     "strategy_id": "strat_xyz789"
   }
@@ -196,18 +196,18 @@ def verify_signature(payload_bytes, signature, secret):
 
 ### Webhook events
 
-| Event                    | Description                              |
-|--------------------------|------------------------------------------|
-| `signal.created`         | New trading signal generated             |
-| `signal.expired`         | Signal has expired                       |
-| `opportunity.created`    | New high-score opportunity identified    |
-| `backtest.completed`     | Backtest job finished                    |
-| `subscription.changed`   | Billing subscription status changed      |
+| Event                  | Description                           |
+| ---------------------- | ------------------------------------- |
+| `signal.created`       | New trading signal generated          |
+| `signal.expired`       | Signal has expired                    |
+| `opportunity.created`  | New high-score opportunity identified |
+| `backtest.completed`   | Backtest job finished                 |
+| `subscription.changed` | Billing subscription status changed   |
 
 ## Rate Limits
 
 | Plan       | Requests/min | Requests/day |
-|------------|-------------:|-------------:|
+| ---------- | -----------: | -----------: |
 | Free       |           30 |        1,000 |
 | Starter    |          120 |       10,000 |
 | Pro        |          600 |       50,000 |
@@ -252,15 +252,13 @@ All errors return a consistent JSON structure:
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Invalid instrument symbol",
-    "details": [
-      {"field": "instrument", "message": "Unknown symbol: INVALID"}
-    ]
+    "details": [{ "field": "instrument", "message": "Unknown symbol: INVALID" }]
   }
 }
 ```
 
 | HTTP Code | Error Code         | Description                    |
-|-----------|--------------------|--------------------------------|
+| --------- | ------------------ | ------------------------------ |
 | 400       | `VALIDATION_ERROR` | Invalid request parameters     |
 | 401       | `UNAUTHORIZED`     | Missing/invalid authentication |
 | 403       | `FORBIDDEN`        | Insufficient scopes            |
