@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/decisions_mcp"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Decisions MCP binary exists"
+    path: "/services/decisions_mcp/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
