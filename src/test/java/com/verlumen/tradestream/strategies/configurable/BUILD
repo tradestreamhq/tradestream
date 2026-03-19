@@ -109,6 +109,20 @@ java_test(
     ],
 )
 
+java_test(
+    name = "Phase1Batch2StrategySpecsSeedTest",
+    srcs = ["Phase1Batch2StrategySpecsSeedTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.Phase1Batch2StrategySpecsSeedTest",
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:configurable_strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:strategy_config_loader",
+        "//third_party/java:junit",
+        "//third_party/java:ta4j_core",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
@@ -116,6 +130,7 @@ test_suite(
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
         ":IndicatorRegistryTest",
+        ":Phase1Batch2StrategySpecsSeedTest",
         ":Phase1StrategySpecsSeedTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
