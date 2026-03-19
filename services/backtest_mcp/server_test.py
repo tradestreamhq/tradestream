@@ -38,7 +38,7 @@ class TestBacktestMcpServer:
 
     @pytest.mark.asyncio
     async def test_run_backtest(self, server, postgres_client):
-        """Test run_backtest tool."""
+        """Test run_backtest tool returns data with metadata."""
         postgres_client.run_backtest.return_value = {
             "impl_id": "abc-123",
             "total_return": 0.25,
@@ -65,8 +65,12 @@ class TestBacktestMcpServer:
             end_date=None,
         )
         response = json.loads(result.content[0].text)
-        assert response["sharpe_ratio"] == 1.8
-        assert response["trades"] == 150
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["sharpe_ratio"] == 1.8
+        assert response["data"]["trades"] == 150
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_run_backtest_with_dates(self, server, postgres_client):
@@ -100,8 +104,29 @@ class TestBacktestMcpServer:
         )
 
     @pytest.mark.asyncio
+    async def test_run_backtest_not_found(self, server, postgres_client):
+        """Test run_backtest returns structured error when not found."""
+        postgres_client.run_backtest.return_value = {
+            "error": "No backtest results found for this strategy and symbol"
+        }
+
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "run_backtest"
+        request.params.arguments = {
+            "strategy_id": "missing",
+            "symbol": "BTC/USD",
+        }
+
+        result = await call_tool_handler(request)
+        response = json.loads(result.content[0].text)
+        assert "error" in response
+        assert response["error"]["code"] == "STRATEGY_NOT_FOUND"
+        assert "_metadata" in response
+
+    @pytest.mark.asyncio
     async def test_get_historical_performance(self, server, postgres_client):
-        """Test get_historical_performance tool."""
+        """Test get_historical_performance tool with metadata."""
         postgres_client.get_historical_performance.return_value = {
             "total_signals": 200,
             "accuracy": 0.65,
@@ -127,8 +152,9 @@ class TestBacktestMcpServer:
             period="3m",
         )
         response = json.loads(result.content[0].text)
-        assert response["total_signals"] == 200
-        assert response["sharpe"] == 1.5
+        assert response["data"]["total_signals"] == 200
+        assert response["data"]["sharpe"] == 1.5
+        assert response["_metadata"]["cached"] is False
 
     @pytest.mark.asyncio
     async def test_get_historical_performance_defaults(self, server, postgres_client):
@@ -157,7 +183,7 @@ class TestBacktestMcpServer:
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self, server):
-        """Test calling an unknown tool returns error."""
+        """Test calling an unknown tool returns structured error."""
         call_tool_handler = server.request_handlers.get("tools/call")
         request = MagicMock()
         request.params.name = "nonexistent_tool"
@@ -167,3 +193,4 @@ class TestBacktestMcpServer:
 
         response = json.loads(result.content[0].text)
         assert "error" in response
+        assert response["error"]["code"] == "UNKNOWN_TOOL"

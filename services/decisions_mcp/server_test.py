@@ -74,9 +74,13 @@ class TestDecisionsMcpServer:
             offset=0,
         )
         response = json.loads(result.content[0].text)
-        assert len(response["items"]) == 1
-        assert response["items"][0]["action"] == "BUY"
-        assert response["items"][0]["confidence"] == 0.85
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]["items"]) == 1
+        assert response["data"]["items"][0]["action"] == "BUY"
+        assert response["data"]["items"][0]["confidence"] == 0.85
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_recent_decisions_with_action_filter(
@@ -136,8 +140,12 @@ class TestDecisionsMcpServer:
             tool_calls=None,
         )
         response = json.loads(result.content[0].text)
-        assert response["saved"] is True
-        assert response["decision_id"] == "dec-002"
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["saved"] is True
+        assert response["data"]["decision_id"] == "dec-002"
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_save_decision_with_tool_calls(self, server, postgres_client):
@@ -183,3 +191,5 @@ class TestDecisionsMcpServer:
 
         response = json.loads(result.content[0].text)
         assert "error" in response
+        assert response["error"]["code"] == "UNKNOWN_TOOL"
+        assert "_metadata" in response

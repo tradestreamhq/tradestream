@@ -31,6 +31,9 @@ py_library(
     deps = [
         ":influxdb_client_lib",
         ":redis_client_lib",
+        "//services/shared:mcp_cache",
+        "//services/shared:mcp_errors",
+        "//services/shared:mcp_metadata",
         "//third_party/python:mcp",
     ],
 )

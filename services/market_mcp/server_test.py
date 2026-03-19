@@ -77,8 +77,12 @@ class TestMarketMcpServer:
             limit=50,
         )
         response = json.loads(result.content[0].text)
-        assert len(response) == 1
-        assert response[0]["close"] == 50050.0
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]) == 1
+        assert response["data"][0]["close"] == 50050.0
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "influxdb"
 
     @pytest.mark.asyncio
     async def test_get_candles_defaults(self, server, influxdb_client):
@@ -144,9 +148,13 @@ class TestMarketMcpServer:
 
         influxdb_client.get_latest_price.assert_called_once_with(symbol="BTC/USD")
         response = json.loads(result.content[0].text)
-        assert response["symbol"] == "BTC/USD"
-        assert response["price"] == 50050.0
-        assert response["change_24h"] == 2.5
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["symbol"] == "BTC/USD"
+        assert response["data"]["price"] == 50050.0
+        assert response["data"]["change_24h"] == 2.5
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "influxdb"
 
     @pytest.mark.asyncio
     async def test_get_volatility(self, server, influxdb_client):
@@ -170,8 +178,12 @@ class TestMarketMcpServer:
             period_minutes=60,
         )
         response = json.loads(result.content[0].text)
-        assert response["volatility"] == 0.0025
-        assert response["atr"] == 150.0
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["volatility"] == 0.0025
+        assert response["data"]["atr"] == 150.0
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "influxdb"
 
     @pytest.mark.asyncio
     async def test_get_volatility_defaults(self, server, influxdb_client):
@@ -224,9 +236,13 @@ class TestMarketMcpServer:
 
         redis_client.get_symbols.assert_called_once()
         response = json.loads(result.content[0].text)
-        assert len(response) == 2
-        assert response[0]["base"] == "BTC"
-        assert response[1]["base"] == "ETH"
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]) == 2
+        assert response["data"][0]["base"] == "BTC"
+        assert response["data"][1]["base"] == "ETH"
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "redis"
 
     @pytest.mark.asyncio
     async def test_get_market_summary(self, server, influxdb_client):
@@ -252,10 +268,14 @@ class TestMarketMcpServer:
 
         influxdb_client.get_market_summary.assert_called_once_with(symbol="BTC/USD")
         response = json.loads(result.content[0].text)
-        assert response["symbol"] == "BTC/USD"
-        assert response["price"] == 50050.0
-        assert response["vwap"] == 50025.0
-        assert response["high_24h"] == 51000.0
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["symbol"] == "BTC/USD"
+        assert response["data"]["price"] == 50050.0
+        assert response["data"]["vwap"] == 50025.0
+        assert response["data"]["high_24h"] == 51000.0
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "influxdb"
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self, server):
@@ -269,3 +289,5 @@ class TestMarketMcpServer:
 
         response = json.loads(result.content[0].text)
         assert "error" in response
+        assert response["error"]["code"] == "UNKNOWN_TOOL"
+        assert "_metadata" in response

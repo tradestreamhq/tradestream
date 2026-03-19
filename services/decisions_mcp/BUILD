@@ -21,6 +21,9 @@ py_library(
     srcs = ["server.py"],
     deps = [
         ":postgres_client_lib",
+        "//services/shared:mcp_cache",
+        "//services/shared:mcp_errors",
+        "//services/shared:mcp_metadata",
         "//third_party/python:mcp",
     ],
 )
