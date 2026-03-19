@@ -4,12 +4,18 @@ Exposes tools for signal emission, decision logging, and analytics.
 """
 
 import asyncio
+import json
+import logging
+import time
 from typing import Any, Dict, List, Optional
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
+from services.shared.mcp_cache import TtlCache
+from services.shared.mcp_errors import McpError, DATABASE_ERROR
+from services.shared.mcp_metadata import wrap_response, wrap_error
 from services.signal_mcp.postgres_client import PostgresClient
 from services.signal_mcp.redis_client import RedisClient
 
@@ -20,6 +26,7 @@ def create_server(
 ) -> Server:
     """Create and configure the MCP server with all tools."""
     server = Server("signal-mcp")
+    cache = TtlCache(default_ttl=30.0)
 
     @server.list_tools()
     async def list_tools() -> List[Tool]:
@@ -142,6 +149,11 @@ def create_server(
                             "type": "number",
                             "description": "Minimum decision score filter (optional)",
                         },
+                        "force_refresh": {
+                            "type": "boolean",
+                            "default": False,
+                            "description": "Bypass cache and fetch fresh data",
+                        },
                     },
                 },
             ),
@@ -176,97 +188,91 @@ def create_server(
 
     @server.call_tool()
     async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
-        import json
+        start = time.monotonic()
+        force_refresh = arguments.get("force_refresh", False)
 
-        if name == "emit_signal":
-            signal_id = await postgres_client.insert_signal(
-                symbol=arguments["symbol"],
-                action=arguments["action"],
-                confidence=arguments["confidence"],
-                reasoning=arguments["reasoning"],
-                strategy_breakdown=arguments["strategy_breakdown"],
+        try:
+            if name == "emit_signal":
+                signal_id = await postgres_client.insert_signal(
+                    symbol=arguments["symbol"],
+                    action=arguments["action"],
+                    confidence=arguments["confidence"],
+                    reasoning=arguments["reasoning"],
+                    strategy_breakdown=arguments["strategy_breakdown"],
+                )
+                signal_data = {
+                    "signal_id": signal_id,
+                    "symbol": arguments["symbol"],
+                    "action": arguments["action"],
+                    "confidence": arguments["confidence"],
+                    "reasoning": arguments["reasoning"],
+                    "strategy_breakdown": arguments["strategy_breakdown"],
+                }
+                redis_client.publish_signal(arguments["symbol"], signal_data)
+                return wrap_response(
+                    {"signal_id": signal_id},
+                    start_time=start,
+                    source="postgresql",
+                )
+
+            elif name == "log_decision":
+                decision_id = await postgres_client.insert_decision(
+                    signal_id=arguments["signal_id"],
+                    score=arguments["score"],
+                    tier=arguments["tier"],
+                    reasoning=arguments["reasoning"],
+                    tool_calls=arguments["tool_calls"],
+                    model_used=arguments["model_used"],
+                    latency_ms=arguments["latency_ms"],
+                    tokens_used=arguments["tokens"],
+                )
+                return wrap_response(
+                    {"decision_id": decision_id},
+                    start_time=start,
+                    source="postgresql",
+                )
+
+            elif name == "get_recent_signals":
+                cache_key = f"signals:{arguments.get('symbol', '')}:{arguments.get('limit', 20)}:{arguments.get('min_score', '')}"
+                if not force_refresh:
+                    cached = cache.get(cache_key)
+                    if cached:
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
+                signals = await postgres_client.get_recent_signals(
+                    symbol=arguments.get("symbol"),
+                    limit=arguments.get("limit", 20),
+                    min_score=arguments.get("min_score"),
+                )
+                cache.set(cache_key, signals, ttl=30.0)
+                return wrap_response(signals, start_time=start, source="postgresql")
+
+            elif name == "get_paper_pnl":
+                pnl = await postgres_client.get_paper_pnl(
+                    symbol=arguments.get("symbol"),
+                )
+                return wrap_response(pnl, start_time=start, source="postgresql")
+
+            elif name == "get_signal_accuracy":
+                accuracy = await postgres_client.get_signal_accuracy(
+                    lookback_hours=arguments.get("lookback_hours", 24),
+                )
+                return wrap_response(accuracy, start_time=start, source="postgresql")
+
+            else:
+                return wrap_error(
+                    McpError("UNKNOWN_TOOL", f"Unknown tool: {name}").to_dict(),
+                    start_time=start,
+                )
+        except Exception as e:
+            logging.exception("Tool call %s failed", name)
+            return wrap_error(
+                McpError(DATABASE_ERROR, str(e)).to_dict(), start_time=start
             )
-
-            signal_data = {
-                "signal_id": signal_id,
-                "symbol": arguments["symbol"],
-                "action": arguments["action"],
-                "confidence": arguments["confidence"],
-                "reasoning": arguments["reasoning"],
-                "strategy_breakdown": arguments["strategy_breakdown"],
-            }
-            redis_client.publish_signal(arguments["symbol"], signal_data)
-
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps({"signal_id": signal_id}),
-                )
-            ]
-
-        elif name == "log_decision":
-            decision_id = await postgres_client.insert_decision(
-                signal_id=arguments["signal_id"],
-                score=arguments["score"],
-                tier=arguments["tier"],
-                reasoning=arguments["reasoning"],
-                tool_calls=arguments["tool_calls"],
-                model_used=arguments["model_used"],
-                latency_ms=arguments["latency_ms"],
-                tokens_used=arguments["tokens"],
-            )
-
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps({"decision_id": decision_id}),
-                )
-            ]
-
-        elif name == "get_recent_signals":
-            signals = await postgres_client.get_recent_signals(
-                symbol=arguments.get("symbol"),
-                limit=arguments.get("limit", 20),
-                min_score=arguments.get("min_score"),
-            )
-
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps(signals, default=str),
-                )
-            ]
-
-        elif name == "get_paper_pnl":
-            pnl = await postgres_client.get_paper_pnl(
-                symbol=arguments.get("symbol"),
-            )
-
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps(pnl),
-                )
-            ]
-
-        elif name == "get_signal_accuracy":
-            accuracy = await postgres_client.get_signal_accuracy(
-                lookback_hours=arguments.get("lookback_hours", 24),
-            )
-
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps(accuracy),
-                )
-            ]
-
-        else:
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps({"error": f"Unknown tool: {name}"}),
-                )
-            ]
 
     return server

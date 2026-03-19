@@ -80,7 +80,11 @@ class TestSignalMcpServer:
         )
         redis_client.publish_signal.assert_called_once()
         response = json.loads(result.content[0].text)
-        assert response["signal_id"] == "test-signal-uuid"
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["signal_id"] == "test-signal-uuid"
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_log_decision(self, server, postgres_client):
@@ -114,7 +118,11 @@ class TestSignalMcpServer:
             tokens_used=2000,
         )
         response = json.loads(result.content[0].text)
-        assert response["decision_id"] == "test-decision-uuid"
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["decision_id"] == "test-decision-uuid"
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_recent_signals(self, server, postgres_client):
@@ -145,8 +153,12 @@ class TestSignalMcpServer:
             min_score=None,
         )
         response = json.loads(result.content[0].text)
-        assert len(response) == 1
-        assert response[0]["symbol"] == "BTC/USD"
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]) == 1
+        assert response["data"][0]["symbol"] == "BTC/USD"
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_recent_signals_defaults(self, server, postgres_client):
@@ -185,8 +197,12 @@ class TestSignalMcpServer:
 
         postgres_client.get_paper_pnl.assert_called_once_with(symbol="BTC/USD")
         response = json.loads(result.content[0].text)
-        assert response["total_pnl"] == 1500.50
-        assert response["win_rate"] == 65.0
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["total_pnl"] == 1500.50
+        assert response["data"]["win_rate"] == 65.0
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_paper_pnl_no_symbol(self, server, postgres_client):
@@ -229,8 +245,12 @@ class TestSignalMcpServer:
             lookback_hours=48,
         )
         response = json.loads(result.content[0].text)
-        assert response["total"] == 100
-        assert response["accuracy"] == 72.0
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["total"] == 100
+        assert response["data"]["accuracy"] == 72.0
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_signal_accuracy_defaults(self, server, postgres_client):
@@ -266,3 +286,5 @@ class TestSignalMcpServer:
 
         response = json.loads(result.content[0].text)
         assert "error" in response
+        assert response["error"]["code"] == "UNKNOWN_TOOL"
+        assert "_metadata" in response

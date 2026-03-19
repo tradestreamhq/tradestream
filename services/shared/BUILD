@@ -197,3 +197,75 @@ py_test(
         "//third_party/python:pytest",
     ],
 )
+
+py_library(
+    name = "mcp_errors",
+    srcs = [
+        "__init__.py",
+        "mcp_errors.py",
+    ],
+)
+
+py_library(
+    name = "mcp_pagination",
+    srcs = [
+        "__init__.py",
+        "mcp_pagination.py",
+    ],
+)
+
+py_library(
+    name = "mcp_cache",
+    srcs = [
+        "__init__.py",
+        "mcp_cache.py",
+    ],
+)
+
+py_library(
+    name = "mcp_metadata",
+    srcs = [
+        "__init__.py",
+        "mcp_metadata.py",
+    ],
+    deps = [
+        "//third_party/python:mcp",
+    ],
+)
+
+py_test(
+    name = "mcp_errors_test",
+    srcs = ["mcp_errors_test.py"],
+    deps = [
+        ":mcp_errors",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "mcp_pagination_test",
+    srcs = ["mcp_pagination_test.py"],
+    deps = [
+        ":mcp_pagination",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "mcp_cache_test",
+    srcs = ["mcp_cache_test.py"],
+    deps = [
+        ":mcp_cache",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "mcp_metadata_test",
+    srcs = ["mcp_metadata_test.py"],
+    deps = [
+        ":mcp_metadata",
+        "//third_party/python:mcp",
+        "//third_party/python:pytest",
+    ],
+)

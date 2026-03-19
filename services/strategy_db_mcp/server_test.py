@@ -71,9 +71,13 @@ class TestStrategyDbMcpServer:
             source="ALL",
         )
         response = json.loads(result.content[0].text)
-        assert len(response["items"]) == 1
-        assert response["items"][0]["name"] == "momentum_crossover"
-        assert response["items"][0]["avg_sharpe"] == 2.1
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]["items"]) == 1
+        assert response["data"]["items"][0]["name"] == "momentum_crossover"
+        assert response["data"]["items"][0]["avg_sharpe"] == 2.1
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_top_specs_with_source_filter(self, server, postgres_client):
@@ -132,8 +136,12 @@ class TestStrategyDbMcpServer:
             offset=0,
         )
         response = json.loads(result.content[0].text)
-        assert len(response["items"]) == 1
-        assert response["items"][0]["forward_sharpe"] == 1.8
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]["items"]) == 1
+        assert response["data"]["items"][0]["forward_sharpe"] == 1.8
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_implementations_all_status(self, server, postgres_client):
@@ -191,9 +199,13 @@ class TestStrategyDbMcpServer:
             reasoning="Historical analysis shows RSI extremes provide good entry points",
         )
         response = json.loads(result.content[0].text)
-        assert response["created"] is True
-        assert response["spec_id"] == "spec-new-001"
-        assert response["validation_errors"] == []
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["created"] is True
+        assert response["data"]["spec_id"] == "spec-new-001"
+        assert response["data"]["validation_errors"] == []
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_submit_new_spec_duplicate(self, server, postgres_client):
@@ -220,8 +232,10 @@ class TestStrategyDbMcpServer:
         result = await call_tool_handler(request)
 
         response = json.loads(result.content[0].text)
-        assert response["created"] is False
-        assert len(response["validation_errors"]) > 0
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["created"] is False
+        assert len(response["data"]["validation_errors"]) > 0
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self, server):
@@ -235,3 +249,5 @@ class TestStrategyDbMcpServer:
 
         response = json.loads(result.content[0].text)
         assert "error" in response
+        assert response["error"]["code"] == "UNKNOWN_TOOL"
+        assert "_metadata" in response

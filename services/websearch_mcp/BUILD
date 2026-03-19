@@ -6,13 +6,11 @@ load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
 
 py_library(
-    name = "postgres_client_lib",
-    srcs = ["postgres_client.py"],
+    name = "search_client_lib",
+    srcs = ["search_client.py"],
     visibility = ["//visibility:public"],
     deps = [
-        "//third_party/python:absl_py",
-        "//third_party/python:asyncpg",
-        "//third_party/python:tenacity",
+        "//third_party/python:requests",
     ],
 )
 
@@ -20,7 +18,7 @@ py_library(
     name = "server_lib",
     srcs = ["server.py"],
     deps = [
-        ":postgres_client_lib",
+        ":search_client_lib",
         "//services/shared:mcp_cache",
         "//services/shared:mcp_errors",
         "//services/shared:mcp_metadata",
@@ -33,9 +31,8 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [
-        ":postgres_client_lib",
+        ":search_client_lib",
         ":server_lib",
-        "//services/shared:auth",
         "//third_party/python:absl_py",
         "//third_party/python:mcp",
     ],
@@ -46,6 +43,7 @@ py_test(
     name = "server_test",
     srcs = ["server_test.py"],
     deps = [
+        ":search_client_lib",
         ":server_lib",
         "//third_party/python:mcp",
         "//third_party/python:pytest",
@@ -62,10 +60,10 @@ py_image_layer(
 oci_image(
     name = "image",
     base = "@python_3_13_slim",
-    entrypoint = ["/services/decisions_mcp/app"],
+    entrypoint = ["/services/websearch_mcp/app"],
     tars = [":layers"],
     user = "nobody",
-    workdir = "/services/decisions_mcp",
+    workdir = "/services/websearch_mcp",
 )
 
 oci_image_index(
@@ -76,20 +74,20 @@ oci_image_index(
 )
 
 oci_push(
-    name = "push_decisions_mcp_image",
+    name = "push_websearch_mcp_image",
     image = ":images",
-    repository = "ghcr.io/tradestreamhq/decisions-mcp",
+    repository = "ghcr.io/tradestreamhq/websearch-mcp",
 )
 
 oci_load(
-    name = "load_decisions_mcp_image",
+    name = "load_websearch_mcp_image",
     image = ":image",
-    repo_tags = ["decisions-mcp:latest"],
+    repo_tags = ["websearch-mcp:latest"],
 )
 
 filegroup(
-    name = "decisions_mcp_tarball",
-    srcs = [":load_decisions_mcp_image"],
+    name = "websearch_mcp_tarball",
+    srcs = [":load_websearch_mcp_image"],
     output_group = "tarball",
 )
 

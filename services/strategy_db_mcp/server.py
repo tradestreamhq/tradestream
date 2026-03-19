@@ -4,17 +4,32 @@ Exposes tools for the Learning Agent to query and submit strategy specs.
 """
 
 import json
+import logging
+import time
 from typing import Any, Dict, List
 
 from mcp.server import Server
 from mcp.types import TextContent, Tool
 
+from services.shared.mcp_cache import TtlCache
+from services.shared.mcp_errors import (
+    McpError,
+    SPEC_NOT_FOUND,
+    DATABASE_ERROR,
+)
+from services.shared.mcp_metadata import wrap_response, wrap_error
 from services.strategy_db_mcp.postgres_client import PostgresClient
+
+_CACHE_TTLS = {
+    "get_top_specs": 60.0,
+    "get_implementations": 30.0,
+}
 
 
 def create_server(postgres_client: PostgresClient) -> Server:
     """Create and configure the strategy database MCP server with all tools."""
     server = Server("strategy-db-mcp")
+    cache = TtlCache(default_ttl=60.0)
 
     @server.list_tools()
     async def list_tools() -> List[Tool]:
@@ -41,6 +56,11 @@ def create_server(postgres_client: PostgresClient) -> Server:
                             "enum": ["CANONICAL", "LLM_GENERATED", "ALL"],
                             "default": "ALL",
                             "description": "Filter by spec source.",
+                        },
+                        "force_refresh": {
+                            "type": "boolean",
+                            "default": False,
+                            "description": "Bypass cache and fetch fresh data",
                         },
                     },
                 },
@@ -77,6 +97,11 @@ def create_server(postgres_client: PostgresClient) -> Server:
                             "type": "integer",
                             "default": 0,
                             "description": "Number of implementations to skip.",
+                        },
+                        "force_refresh": {
+                            "type": "boolean",
+                            "default": False,
+                            "description": "Bypass cache and fetch fresh data",
                         },
                     },
                     "required": ["spec_id"],
@@ -130,41 +155,72 @@ def create_server(postgres_client: PostgresClient) -> Server:
 
     @server.call_tool()
     async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
-        if name == "get_top_specs":
-            result = await postgres_client.get_top_specs(
-                limit=arguments.get("limit", 10),
-                offset=arguments.get("offset", 0),
-                source=arguments.get("source", "ALL"),
-            )
-            return [TextContent(type="text", text=json.dumps(result, default=str))]
+        start = time.monotonic()
+        force_refresh = arguments.get("force_refresh", False)
 
-        elif name == "get_implementations":
-            result = await postgres_client.get_implementations(
-                spec_id=arguments["spec_id"],
-                status=arguments.get("status", "VALIDATED"),
-                limit=arguments.get("limit", 10),
-                offset=arguments.get("offset", 0),
-            )
-            return [TextContent(type="text", text=json.dumps(result, default=str))]
-
-        elif name == "submit_new_spec":
-            result = await postgres_client.submit_new_spec(
-                name=arguments["name"],
-                indicators=arguments["indicators"],
-                entry_conditions=arguments["entry_conditions"],
-                exit_conditions=arguments["exit_conditions"],
-                parameters=arguments["parameters"],
-                description=arguments.get("description"),
-                reasoning=arguments.get("reasoning"),
-            )
-            return [TextContent(type="text", text=json.dumps(result, default=str))]
-
-        else:
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps({"error": f"Unknown tool: {name}"}),
+        try:
+            if name == "get_top_specs":
+                cache_key = f"specs:{arguments.get('limit', 10)}:{arguments.get('offset', 0)}:{arguments.get('source', 'ALL')}"
+                if not force_refresh:
+                    cached = cache.get(cache_key)
+                    if cached:
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
+                result = await postgres_client.get_top_specs(
+                    limit=arguments.get("limit", 10),
+                    offset=arguments.get("offset", 0),
+                    source=arguments.get("source", "ALL"),
                 )
-            ]
+                cache.set(cache_key, result, ttl=_CACHE_TTLS["get_top_specs"])
+                return wrap_response(result, start_time=start, source="postgresql")
+
+            elif name == "get_implementations":
+                cache_key = f"impls:{arguments['spec_id']}:{arguments.get('status', 'VALIDATED')}:{arguments.get('limit', 10)}:{arguments.get('offset', 0)}"
+                if not force_refresh:
+                    cached = cache.get(cache_key)
+                    if cached:
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
+                result = await postgres_client.get_implementations(
+                    spec_id=arguments["spec_id"],
+                    status=arguments.get("status", "VALIDATED"),
+                    limit=arguments.get("limit", 10),
+                    offset=arguments.get("offset", 0),
+                )
+                cache.set(cache_key, result, ttl=_CACHE_TTLS["get_implementations"])
+                return wrap_response(result, start_time=start, source="postgresql")
+
+            elif name == "submit_new_spec":
+                result = await postgres_client.submit_new_spec(
+                    name=arguments["name"],
+                    indicators=arguments["indicators"],
+                    entry_conditions=arguments["entry_conditions"],
+                    exit_conditions=arguments["exit_conditions"],
+                    parameters=arguments["parameters"],
+                    description=arguments.get("description"),
+                    reasoning=arguments.get("reasoning"),
+                )
+                return wrap_response(result, start_time=start, source="postgresql")
+
+            else:
+                return wrap_error(
+                    McpError("UNKNOWN_TOOL", f"Unknown tool: {name}").to_dict(),
+                    start_time=start,
+                )
+        except Exception as e:
+            logging.exception("Tool call %s failed", name)
+            return wrap_error(
+                McpError(DATABASE_ERROR, str(e)).to_dict(), start_time=start
+            )
 
     return server

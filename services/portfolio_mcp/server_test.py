@@ -73,9 +73,13 @@ class TestPortfolioMcpServer:
             offset=0,
         )
         response = json.loads(result.content[0].text)
-        assert len(response["items"]) == 1
-        assert response["items"][0]["symbol"] == "BTC/USD"
-        assert response["items"][0]["unrealized_pnl"] == 500.0
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]["items"]) == 1
+        assert response["data"]["items"][0]["symbol"] == "BTC/USD"
+        assert response["data"]["items"][0]["unrealized_pnl"] == 500.0
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_get_positions_no_filter(self, server, postgres_client):
@@ -117,8 +121,12 @@ class TestPortfolioMcpServer:
 
         postgres_client.get_balance.assert_called_once()
         response = json.loads(result.content[0].text)
-        assert response["total_balance"] == 100000.0
-        assert response["available_balance"] == 75000.0
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["total_balance"] == 100000.0
+        assert response["data"]["available_balance"] == 75000.0
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_validate_trade(self, server, postgres_client):
@@ -149,8 +157,12 @@ class TestPortfolioMcpServer:
             price=50000.0,
         )
         response = json.loads(result.content[0].text)
-        assert response["valid"] is True
-        assert response["risk_score"] == 0.33
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["valid"] is True
+        assert response["data"]["risk_score"] == 0.33
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
     async def test_validate_trade_no_price(self, server, postgres_client):
@@ -192,3 +204,5 @@ class TestPortfolioMcpServer:
 
         response = json.loads(result.content[0].text)
         assert "error" in response
+        assert response["error"]["code"] == "UNKNOWN_TOOL"
+        assert "_metadata" in response
