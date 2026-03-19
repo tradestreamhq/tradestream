@@ -56,8 +56,7 @@ public final class BacktestPipeline {
       Num vsBuyHoldRatio = vsBuyHold.calculate(barSeries, tradingRecord);
 
       // Approximate Sharpe as gross return / (1 - winRate + 0.01) to avoid div by zero
-      double sharpeApprox =
-          (grossReturn.doubleValue() - 1.0) / Math.max(0.01, 1.0 - winRate);
+      double sharpeApprox = (grossReturn.doubleValue() - 1.0) / Math.max(0.01, 1.0 - winRate);
 
       return new BacktestResult(
           config.getName(),

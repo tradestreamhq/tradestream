@@ -11,15 +11,16 @@ import java.util.List;
 public final class StrategySpecPromptTemplate {
 
   private static final String SYSTEM_PROMPT =
-      "You are an expert quantitative trading strategy designer. Your task is to generate novel "
-          + "trading strategy specifications in YAML format.\n\n"
-          + "You have deep knowledge of technical analysis indicators and how to combine them "
-          + "effectively. You understand:\n"
+      "You are an expert quantitative trading strategy designer. Your task is to generate novel"
+          + " trading strategy specifications in YAML format.\n\n"
+          + "You have deep knowledge of technical analysis indicators and how to combine them"
+          + " effectively. You understand:\n"
           + "- Moving averages (SMA, EMA, DEMA, TEMA, WMA, ZLEMA) for trend following\n"
           + "- Oscillators (RSI, Stochastic, MACD, CCI, CMO, Williams %R, ROC) for momentum\n"
           + "- Volume indicators (OBV, CMF, MFI, Klinger, Chaikin) for volume confirmation\n"
           + "- Trend indicators (ADX, DMI, Aroon, Parabolic SAR) for trend strength\n"
-          + "- Volatility indicators (ATR, Bollinger Bands, Keltner Channels) for range/breakout\n\n"
+          + "- Volatility indicators (ATR, Bollinger Bands, Keltner Channels) for"
+          + " range/breakout\n\n"
           + "When generating strategies:\n"
           + "1. Combine 2-4 indicators that complement each other\n"
           + "2. Use clear entry and exit conditions\n"
@@ -97,8 +98,7 @@ public final class StrategySpecPromptTemplate {
     return SYSTEM_PROMPT;
   }
 
-  public static String buildUserPrompt(
-      List<StrategyConfig> fewShotExamples, int creativityIndex) {
+  public static String buildUserPrompt(List<StrategyConfig> fewShotExamples, int creativityIndex) {
     StringBuilder sb = new StringBuilder();
     sb.append("Generate a NOVEL trading strategy specification in YAML format.\n\n");
     sb.append(SCHEMA_DOCS).append("\n\n");

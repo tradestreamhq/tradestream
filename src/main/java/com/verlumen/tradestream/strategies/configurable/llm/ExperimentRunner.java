@@ -100,8 +100,7 @@ public final class ExperimentRunner {
 
     try {
       String systemPrompt = StrategySpecPromptTemplate.getSystemPrompt();
-      String userPrompt =
-          StrategySpecPromptTemplate.buildUserPrompt(fewShotExamples, index);
+      String userPrompt = StrategySpecPromptTemplate.buildUserPrompt(fewShotExamples, index);
 
       rawYaml = llmClient.chatCompletion(systemPrompt, userPrompt, temperature, 2000);
     } catch (IOException | InterruptedException e) {
@@ -133,7 +132,12 @@ public final class ExperimentRunner {
     logger.info(
         String.format(
             "  [%d] %s %s (syntax=%b, logic=%b, novel=%b) in %dms",
-            index, status, name, report.isSyntaxValid(), report.isLogicValid(), report.isNovel(),
+            index,
+            status,
+            name,
+            report.isSyntaxValid(),
+            report.isLogicValid(),
+            report.isNovel(),
             genTimeMs));
 
     return new GenerationAttempt(
@@ -292,7 +296,8 @@ public final class ExperimentRunner {
     }
 
     public int getSuccessfulBacktestCount() {
-      return (int) backtestResults.stream().filter(BacktestPipeline.BacktestResult::isSuccessful).count();
+      return (int)
+          backtestResults.stream().filter(BacktestPipeline.BacktestResult::isSuccessful).count();
     }
 
     public double getSyntaxValidRate() {
@@ -309,30 +314,44 @@ public final class ExperimentRunner {
 
     public String generateReport() {
       StringBuilder sb = new StringBuilder();
-      sb.append("=" .repeat(60)).append("\n");
+      sb.append("=".repeat(60)).append("\n");
       sb.append("PHASE 2 VALIDATION: LLM Spec Generation + Backtesting\n");
-      sb.append("=" .repeat(60)).append("\n\n");
+      sb.append("=".repeat(60)).append("\n\n");
 
       int total = getTotalGenerated();
       sb.append(String.format("Total Generated: %d%n", total));
-      sb.append(String.format("Syntax Valid: %d/%d (%.1f%%) %s (target: 80%%)%n",
-          getSyntaxValidCount(), total, getSyntaxValidRate() * 100,
-          getSyntaxValidRate() >= 0.80 ? "PASS" : "FAIL"));
-      sb.append(String.format("Logic Valid:  %d/%d (%.1f%%) %s (target: 60%%)%n",
-          getLogicValidCount(), total, getLogicValidRate() * 100,
-          getLogicValidRate() >= 0.60 ? "PASS" : "FAIL"));
-      sb.append(String.format("Novel:        %d/%d (%.1f%%) %s (target: 70%%)%n",
-          getNovelCount(), total, getNovelRate() * 100,
-          getNovelRate() >= 0.70 ? "PASS" : "FAIL"));
-      sb.append(String.format("Fully Valid:  %d/%d (%.1f%%)%n",
-          getFullyValidCount(), total,
-          total > 0 ? (double) getFullyValidCount() / total * 100 : 0));
+      sb.append(
+          String.format(
+              "Syntax Valid: %d/%d (%.1f%%) %s (target: 80%%)%n",
+              getSyntaxValidCount(),
+              total,
+              getSyntaxValidRate() * 100,
+              getSyntaxValidRate() >= 0.80 ? "PASS" : "FAIL"));
+      sb.append(
+          String.format(
+              "Logic Valid:  %d/%d (%.1f%%) %s (target: 60%%)%n",
+              getLogicValidCount(),
+              total,
+              getLogicValidRate() * 100,
+              getLogicValidRate() >= 0.60 ? "PASS" : "FAIL"));
+      sb.append(
+          String.format(
+              "Novel:        %d/%d (%.1f%%) %s (target: 70%%)%n",
+              getNovelCount(),
+              total,
+              getNovelRate() * 100,
+              getNovelRate() >= 0.70 ? "PASS" : "FAIL"));
+      sb.append(
+          String.format(
+              "Fully Valid:  %d/%d (%.1f%%)%n",
+              getFullyValidCount(),
+              total,
+              total > 0 ? (double) getFullyValidCount() / total * 100 : 0));
       sb.append(String.format("Backtested:   %d%n", backtestResults.size()));
       sb.append(String.format("Successful:   %d%n", getSuccessfulBacktestCount()));
 
-      boolean overallPass = getSyntaxValidRate() >= 0.80
-          && getLogicValidRate() >= 0.60
-          && getNovelRate() >= 0.70;
+      boolean overallPass =
+          getSyntaxValidRate() >= 0.80 && getLogicValidRate() >= 0.60 && getNovelRate() >= 0.70;
       sb.append(String.format("%nOVERALL: %s%n", overallPass ? "GO" : "NO-GO"));
 
       if (!rankedStrategies.isEmpty()) {
@@ -340,15 +359,16 @@ public final class ExperimentRunner {
         int rank = 1;
         for (RankedStrategy rs : rankedStrategies) {
           if (!rs.backtestResult.isSuccessful()) continue;
-          sb.append(String.format(
-              "#%d %s: return=%.4f sharpe=%.4f winRate=%.1f%% trades=%d vs_b&h=%.4f%n",
-              rank++,
-              rs.backtestResult.getStrategyName(),
-              rs.backtestResult.getGrossReturn(),
-              rs.backtestResult.getSharpeApprox(),
-              rs.backtestResult.getWinRate() * 100,
-              rs.backtestResult.getNumTrades(),
-              rs.backtestResult.getVsBuyHoldRatio()));
+          sb.append(
+              String.format(
+                  "#%d %s: return=%.4f sharpe=%.4f winRate=%.1f%% trades=%d vs_b&h=%.4f%n",
+                  rank++,
+                  rs.backtestResult.getStrategyName(),
+                  rs.backtestResult.getGrossReturn(),
+                  rs.backtestResult.getSharpeApprox(),
+                  rs.backtestResult.getWinRate() * 100,
+                  rs.backtestResult.getNumTrades(),
+                  rs.backtestResult.getVsBuyHoldRatio()));
           if (rank > 10) break;
         }
       }

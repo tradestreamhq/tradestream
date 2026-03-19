@@ -23,18 +23,9 @@ public final class LlmSpecGenerationExperiment {
   private static final double TEMPERATURE = 0.8;
 
   public static void main(String[] args) {
-    String strategiesDir =
-        args.length > 0
-            ? args[0]
-            : "src/main/resources/strategies";
-    String outputDir =
-        args.length > 1
-            ? args[1]
-            : "experiments/llm_validation/results";
-    int numSpecs =
-        args.length > 2
-            ? Integer.parseInt(args[2])
-            : DEFAULT_NUM_SPECS;
+    String strategiesDir = args.length > 0 ? args[0] : "src/main/resources/strategies";
+    String outputDir = args.length > 1 ? args[1] : "experiments/llm_validation/results";
+    int numSpecs = args.length > 2 ? Integer.parseInt(args[2]) : DEFAULT_NUM_SPECS;
 
     try {
       runExperiment(strategiesDir, outputDir, numSpecs);

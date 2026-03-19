@@ -10,12 +10,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Client for the OpenRouter API. Sends chat completion requests and returns the generated text.
- */
+/** Client for the OpenRouter API. Sends chat completion requests and returns the generated text. */
 public final class OpenRouterClient {
   private static final Logger logger = Logger.getLogger(OpenRouterClient.class.getName());
   private static final String API_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -28,8 +25,7 @@ public final class OpenRouterClient {
   public OpenRouterClient(String apiKey, String model) {
     this.apiKey = apiKey;
     this.model = model;
-    this.httpClient =
-        HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
+    this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
   }
 
   public OpenRouterClient(String apiKey) {
@@ -77,8 +73,7 @@ public final class OpenRouterClient {
             .timeout(Duration.ofSeconds(60))
             .build();
 
-    HttpResponse<String> response =
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
     if (response.statusCode() != 200) {
       throw new IOException(

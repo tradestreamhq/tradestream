@@ -4,7 +4,6 @@ import com.verlumen.tradestream.strategies.configurable.ConditionConfig;
 import com.verlumen.tradestream.strategies.configurable.IndicatorConfig;
 import com.verlumen.tradestream.strategies.configurable.IndicatorRegistry;
 import com.verlumen.tradestream.strategies.configurable.ParameterDefinition;
-import com.verlumen.tradestream.strategies.configurable.ParameterType;
 import com.verlumen.tradestream.strategies.configurable.RuleRegistry;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
@@ -162,8 +161,7 @@ public final class GeneratedSpecValidator {
     return valid;
   }
 
-  private boolean validateLogic(
-      StrategyConfig config, List<String> errors, List<String> warnings) {
+  private boolean validateLogic(StrategyConfig config, List<String> errors, List<String> warnings) {
     boolean valid = true;
 
     Set<String> indicatorIds = new HashSet<>();
