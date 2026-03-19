@@ -95,6 +95,42 @@ jobs:
           - name: notification-service
             target: "//services/notification_service:notification_service_tarball"
             repo: notification-service
+          - name: agent-orchestration
+            target: "//services/agent_orchestration:agent_orchestration_tarball"
+            repo: agent-orchestration
+          - name: backtesting
+            target: "//services/backtesting:backtesting_tarball"
+            repo: backtesting
+          - name: backtest-mcp
+            target: "//services/backtest_mcp:backtest_mcp_tarball"
+            repo: backtest-mcp
+          - name: decisions-mcp
+            target: "//services/decisions_mcp:decisions_mcp_tarball"
+            repo: decisions-mcp
+          - name: janitor-agent
+            target: "//services/janitor_agent:janitor_agent_tarball"
+            repo: janitor-agent
+          - name: learning-engine
+            target: "//services/learning_engine:learning_engine_tarball"
+            repo: learning-engine
+          - name: market-sentiment
+            target: "//services/market_sentiment:market_sentiment_tarball"
+            repo: market-sentiment
+          - name: portfolio-mcp
+            target: "//services/portfolio_mcp:portfolio_mcp_tarball"
+            repo: portfolio-mcp
+          - name: portfolio-state
+            target: "//services/portfolio_state:portfolio_state_tarball"
+            repo: portfolio-state
+          - name: prediction-markets
+            target: "//services/prediction_markets:prediction_markets_tarball"
+            repo: prediction-markets
+          - name: strategy-db-mcp
+            target: "//services/strategy_db_mcp:strategy_db_mcp_tarball"
+            repo: strategy-db-mcp
+          - name: websearch-mcp
+            target: "//services/websearch_mcp:websearch_mcp_tarball"
+            repo: websearch-mcp
 
     steps:
       - name: Checkout Code
@@ -147,6 +183,42 @@ jobs:
               ;;
             "notification-service")
               cp bazel-bin/services/notification_service/load_notification_service_image/tarball.tar images/notification-service.tar
+              ;;
+            "agent-orchestration")
+              cp bazel-bin/services/agent_orchestration/load_agent_orchestration_image/tarball.tar images/agent-orchestration.tar
+              ;;
+            "backtesting")
+              cp bazel-bin/services/backtesting/load_backtesting_image/tarball.tar images/backtesting.tar
+              ;;
+            "backtest-mcp")
+              cp bazel-bin/services/backtest_mcp/load_backtest_mcp_image/tarball.tar images/backtest-mcp.tar
+              ;;
+            "decisions-mcp")
+              cp bazel-bin/services/decisions_mcp/load_decisions_mcp_image/tarball.tar images/decisions-mcp.tar
+              ;;
+            "janitor-agent")
+              cp bazel-bin/services/janitor_agent/load_janitor_agent_image/tarball.tar images/janitor-agent.tar
+              ;;
+            "learning-engine")
+              cp bazel-bin/services/learning_engine/load_learning_engine_image/tarball.tar images/learning-engine.tar
+              ;;
+            "market-sentiment")
+              cp bazel-bin/services/market_sentiment/load_market_sentiment_image/tarball.tar images/market-sentiment.tar
+              ;;
+            "portfolio-mcp")
+              cp bazel-bin/services/portfolio_mcp/load_portfolio_mcp_image/tarball.tar images/portfolio-mcp.tar
+              ;;
+            "portfolio-state")
+              cp bazel-bin/services/portfolio_state/load_portfolio_state_image/tarball.tar images/portfolio-state.tar
+              ;;
+            "prediction-markets")
+              cp bazel-bin/services/prediction_markets/load_prediction_markets_image/tarball.tar images/prediction-markets.tar
+              ;;
+            "strategy-db-mcp")
+              cp bazel-bin/services/strategy_db_mcp/load_strategy_db_mcp_image/tarball.tar images/strategy-db-mcp.tar
+              ;;
+            "websearch-mcp")
+              cp bazel-bin/services/websearch_mcp/load_websearch_mcp_image/tarball.tar images/websearch-mcp.tar
               ;;
             *)
               echo "❌ Unknown matrix name: ${{ matrix.name }}"
