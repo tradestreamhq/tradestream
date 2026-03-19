@@ -7,6 +7,13 @@ py_library(
     srcs = [
         "__init__.py",
         "openapi_spec.py",
+        "spec_backtesting.py",
+        "spec_billing.py",
+        "spec_integrations.py",
+        "spec_marketplace.py",
+        "spec_opportunities.py",
+        "spec_signals.py",
+        "spec_users.py",
     ],
     visibility = ["//visibility:public"],
 )

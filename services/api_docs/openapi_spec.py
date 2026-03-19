@@ -5,7 +5,45 @@ Aggregates endpoint definitions from all microservices into a single
 spec that can be served via Swagger UI or exported as JSON/YAML.
 """
 
-OPENAPI_SPEC = {
+import copy
+
+from services.api_docs.spec_backtesting import (
+    BACKTESTING_PATHS,
+    BACKTESTING_SCHEMAS,
+    BACKTESTING_TAGS,
+)
+from services.api_docs.spec_billing import (
+    BILLING_PATHS,
+    BILLING_SCHEMAS,
+    BILLING_TAGS,
+)
+from services.api_docs.spec_integrations import (
+    INTEGRATIONS_PATHS,
+    INTEGRATIONS_SCHEMAS,
+    INTEGRATIONS_TAGS,
+)
+from services.api_docs.spec_marketplace import (
+    MARKETPLACE_PATHS,
+    MARKETPLACE_SCHEMAS,
+    MARKETPLACE_TAGS,
+)
+from services.api_docs.spec_opportunities import (
+    OPPORTUNITIES_PATHS,
+    OPPORTUNITIES_SCHEMAS,
+    OPPORTUNITIES_TAGS,
+)
+from services.api_docs.spec_signals import (
+    SIGNAL_PATHS,
+    SIGNAL_SCHEMAS,
+    SIGNAL_TAGS,
+)
+from services.api_docs.spec_users import (
+    USERS_PATHS,
+    USERS_SCHEMAS,
+    USERS_TAGS,
+)
+
+_BASE_SPEC = {
     "openapi": "3.0.3",
     "info": {
         "title": "TradeStream API",
@@ -16,9 +54,19 @@ OPENAPI_SPEC = {
             "paper trading, and agent monitoring capabilities."
         ),
         "version": "1.0.0",
-        "contact": {"name": "TradeStream"},
+        "contact": {"name": "TradeStream", "email": "support@tradestream.io"},
+        "license": {"name": "Proprietary"},
+        "x-logo": {"url": "/assets/logo.png"},
     },
     "servers": [
+        {
+            "url": "https://api.tradestream.io",
+            "description": "Production",
+        },
+        {
+            "url": "https://staging-api.tradestream.io",
+            "description": "Staging",
+        },
         {
             "url": "http://localhost:8080",
             "description": "Local development",
@@ -88,7 +136,20 @@ OPENAPI_SPEC = {
                 "type": "apiKey",
                 "in": "header",
                 "name": "X-API-Key",
-                "description": "API key for authentication",
+                "description": (
+                    "API key for programmatic access. Create keys at /api/v1/api-keys. "
+                    "Include as `X-API-Key: ts_live_sk_...` header."
+                ),
+            },
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": (
+                    "JWT access token obtained via /api/v1/auth/login. "
+                    "Include as `Authorization: Bearer <token>` header. "
+                    "Tokens expire after 15 minutes — use /api/v1/auth/refresh to renew."
+                ),
             },
         },
         "schemas": {
@@ -767,7 +828,7 @@ OPENAPI_SPEC = {
             },
         },
     },
-    "security": [{"ApiKeyAuth": []}],
+    # Global security is set in get_spec() to include both ApiKeyAuth and BearerAuth
     "paths": {
         # ===================================================================
         # Portfolio API — /api/v1/portfolio
@@ -2773,5 +2834,49 @@ OPENAPI_SPEC = {
 
 
 def get_spec() -> dict:
-    """Return the complete OpenAPI spec as a dict."""
-    return OPENAPI_SPEC
+    """Return the complete OpenAPI spec as a dict, merging all module specs."""
+    spec = copy.deepcopy(_BASE_SPEC)
+
+    # Merge tags from all modules
+    for module_tags in [
+        SIGNAL_TAGS,
+        MARKETPLACE_TAGS,
+        BILLING_TAGS,
+        BACKTESTING_TAGS,
+        OPPORTUNITIES_TAGS,
+        USERS_TAGS,
+        INTEGRATIONS_TAGS,
+    ]:
+        spec["tags"].extend(module_tags)
+
+    # Merge schemas from all modules
+    for module_schemas in [
+        SIGNAL_SCHEMAS,
+        MARKETPLACE_SCHEMAS,
+        BILLING_SCHEMAS,
+        BACKTESTING_SCHEMAS,
+        OPPORTUNITIES_SCHEMAS,
+        USERS_SCHEMAS,
+        INTEGRATIONS_SCHEMAS,
+    ]:
+        spec["components"]["schemas"].update(module_schemas)
+
+    # Merge paths from all modules
+    for module_paths in [
+        SIGNAL_PATHS,
+        MARKETPLACE_PATHS,
+        BILLING_PATHS,
+        BACKTESTING_PATHS,
+        OPPORTUNITIES_PATHS,
+        USERS_PATHS,
+        INTEGRATIONS_PATHS,
+    ]:
+        spec["paths"].update(module_paths)
+
+    # Set global security — applies to all operations unless overridden
+    spec["security"] = [
+        {"ApiKeyAuth": []},
+        {"BearerAuth": []},
+    ]
+
+    return spec
