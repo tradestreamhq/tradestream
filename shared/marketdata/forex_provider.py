@@ -26,13 +26,18 @@ from shared.marketdata.provider import (
 
 # Forex market hours (approximate – 24h Sun 5pm–Fri 5pm ET)
 _FX_TIMEZONE = "America/New_York"
-_FX_MARKET_OPEN = "17:00"   # Sunday
+_FX_MARKET_OPEN = "17:00"  # Sunday
 _FX_MARKET_CLOSE = "17:00"  # Friday
 
 # Common major forex pairs
 MAJOR_PAIRS = [
-    "EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF",
-    "AUD/USD", "USD/CAD", "NZD/USD",
+    "EUR/USD",
+    "GBP/USD",
+    "USD/JPY",
+    "USD/CHF",
+    "AUD/USD",
+    "USD/CAD",
+    "NZD/USD",
 ]
 
 _TIMEFRAME_MAP = {
@@ -151,10 +156,10 @@ class ForexMarketDataProvider(MarketDataProvider):
             market_open=_FX_MARKET_OPEN,
             market_close=_FX_MARKET_CLOSE,
             tick_size=pip_size,
-            lot_size=1000.0,     # Mini lot
+            lot_size=1000.0,  # Mini lot
             price_precision=5 if quote != "JPY" else 3,
             quantity_precision=0,
-            margin_requirement=0.02,   # 50:1 leverage
+            margin_requirement=0.02,  # 50:1 leverage
             maintenance_margin=0.01,
             base_currency=base,
             quote_currency=quote,

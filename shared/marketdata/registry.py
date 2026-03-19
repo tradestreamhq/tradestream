@@ -27,9 +27,7 @@ class MarketDataProviderRegistry:
         """Register a provider for its asset class."""
         ac = provider.get_asset_class()
         if ac in self._providers:
-            logging.warning(
-                f"Replacing existing provider for {ac.value}"
-            )
+            logging.warning(f"Replacing existing provider for {ac.value}")
         self._providers[ac] = provider
         logging.info(f"Registered {ac.value} market data provider")
 

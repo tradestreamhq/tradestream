@@ -32,12 +32,8 @@ class ForexMarketDataProviderTest(unittest.TestCase):
         self.assertFalse(self.provider.is_symbol_supported("USD/JPY"))
 
     def test_normalize_pair(self):
-        self.assertEqual(
-            ForexMarketDataProvider._normalize_pair("eurusd"), "EUR/USD"
-        )
-        self.assertEqual(
-            ForexMarketDataProvider._normalize_pair("EUR/USD"), "EUR/USD"
-        )
+        self.assertEqual(ForexMarketDataProvider._normalize_pair("eurusd"), "EUR/USD")
+        self.assertEqual(ForexMarketDataProvider._normalize_pair("EUR/USD"), "EUR/USD")
 
     def test_get_asset_metadata(self):
         meta = self.provider.get_asset_metadata("EUR/USD")

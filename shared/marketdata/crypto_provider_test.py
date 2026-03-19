@@ -41,9 +41,7 @@ class CryptoMarketDataProviderTest(unittest.TestCase):
             }
         ]
 
-        candles = self.provider.get_historical_candles(
-            "BTC/USD", "1h", 1699999000000
-        )
+        candles = self.provider.get_historical_candles("BTC/USD", "1h", 1699999000000)
         self.assertEqual(len(candles), 1)
         self.assertIsInstance(candles[0], NormalizedCandle)
         self.assertEqual(candles[0].asset_class, AssetClass.CRYPTO)
@@ -64,9 +62,7 @@ class CryptoMarketDataProviderTest(unittest.TestCase):
             }
         ]
 
-        candles = self.provider.get_historical_candles(
-            "BTC/USD", "1h", 1699999000000
-        )
+        candles = self.provider.get_historical_candles("BTC/USD", "1h", 1699999000000)
         self.assertEqual(len(candles), 0)
 
     def test_get_asset_metadata(self):

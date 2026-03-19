@@ -64,12 +64,8 @@ class MarketDataProviderRegistryTest(unittest.TestCase):
         self.registry.register(self.stocks)
 
     def test_get_provider(self):
-        self.assertIs(
-            self.registry.get_provider(AssetClass.CRYPTO), self.crypto
-        )
-        self.assertIs(
-            self.registry.get_provider(AssetClass.STOCKS), self.stocks
-        )
+        self.assertIs(self.registry.get_provider(AssetClass.CRYPTO), self.crypto)
+        self.assertIs(self.registry.get_provider(AssetClass.STOCKS), self.stocks)
         self.assertIsNone(self.registry.get_provider(AssetClass.FOREX))
 
     def test_registered_asset_classes(self):

@@ -14,6 +14,7 @@ from typing import List, Optional
 
 class AssetClass(Enum):
     """Asset class classification matching the protobuf AssetClass enum."""
+
     CRYPTO = "crypto"
     STOCKS = "stocks"
     FOREX = "forex"
@@ -27,15 +28,16 @@ class NormalizedCandle:
     All providers must normalize their data into this format so that
     strategies can operate on any asset class without modification.
     """
-    timestamp_ms: int       # Opening time in epoch milliseconds (UTC)
-    symbol: str             # Normalized symbol (e.g., "BTC/USD", "AAPL", "EUR/USD")
+
+    timestamp_ms: int  # Opening time in epoch milliseconds (UTC)
+    symbol: str  # Normalized symbol (e.g., "BTC/USD", "AAPL", "EUR/USD")
     open: float
     high: float
     low: float
     close: float
     volume: float
     asset_class: AssetClass
-    source: str             # Data source identifier (e.g., "binance", "alpha_vantage")
+    source: str  # Data source identifier (e.g., "binance", "alpha_vantage")
 
     def to_dict(self) -> dict:
         """Convert to dictionary format compatible with existing candle pipeline."""
@@ -70,6 +72,7 @@ class NormalizedCandle:
 @dataclass(frozen=True)
 class AssetMetadata:
     """Trading characteristics for a specific instrument."""
+
     symbol: str
     asset_class: AssetClass
     exchange: str
