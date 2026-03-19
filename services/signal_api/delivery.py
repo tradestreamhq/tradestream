@@ -3,34 +3,51 @@ Signal delivery service.
 
 Listens for new signals on Redis pub/sub and fans out to all active
 subscribers (Telegram chats and webhook endpoints).
+
+Integrates with pipeline metrics, circuit breaker, and dead letter queue
+for reliable delivery with observability.
 """
 
 import asyncio
 import json
 import logging
-from typing import Any, Dict, List
+import time
+from typing import Any, Dict, List, Optional
 
 import asyncpg
 import redis
 
 from services.notification_service.telegram_sender import TelegramSender
 from services.notification_service.webhook_sender import WebhookSender
+from services.shared.circuit_breaker import CircuitBreaker
+from services.shared.dead_letter_queue import DeadLetterQueue
+from services.shared.pipeline_metrics import PipelineMetrics
 
 logger = logging.getLogger(__name__)
 
 
 class SignalDeliveryService:
-    """Consumes signals from Redis and delivers to subscribers."""
+    """Consumes signals from Redis and delivers to subscribers.
+
+    Supports optional metrics collection, circuit breaking for Telegram,
+    and dead letter queue for failed deliveries.
+    """
 
     def __init__(
         self,
         db_pool: asyncpg.Pool,
         redis_client: redis.Redis,
         telegram_bot_token: str = "",
+        metrics: Optional[PipelineMetrics] = None,
+        telegram_circuit_breaker: Optional[CircuitBreaker] = None,
+        dlq: Optional[DeadLetterQueue] = None,
     ):
         self.db_pool = db_pool
         self.redis_client = redis_client
         self.telegram_bot_token = telegram_bot_token
+        self.metrics = metrics
+        self.telegram_cb = telegram_circuit_breaker
+        self.dlq = dlq
 
     async def get_active_subscriptions(
         self, strategy_name: str = None, instrument: str = None
@@ -59,12 +76,22 @@ class SignalDeliveryService:
         return subs
 
     def deliver_to_telegram(self, chat_id: str, signal: Dict[str, Any]) -> bool:
-        """Send signal to a Telegram subscriber."""
+        """Send signal to a Telegram subscriber, with circuit breaker protection."""
         if not self.telegram_bot_token:
             logger.warning("No Telegram bot token configured; skipping delivery")
             return False
+
+        # Check circuit breaker before calling Telegram API
+        if self.telegram_cb and not self.telegram_cb.allow_request():
+            logger.warning(
+                "Telegram circuit breaker OPEN, skipping delivery to %s", chat_id
+            )
+            if self.metrics:
+                self.metrics.telegram_circuit_breaker_trips.inc()
+            return False
+
+        start = time.monotonic()
         sender = TelegramSender(self.telegram_bot_token, chat_id)
-        # Map signal fields to what TelegramSender expects
         mapped = {
             "action": signal.get("direction") or signal.get("signal_type", "UNKNOWN"),
             "symbol": signal.get("instrument", "N/A"),
@@ -72,7 +99,23 @@ class SignalDeliveryService:
             "opportunity_score": 0,
             "summary": _build_summary(signal),
         }
-        return sender.send_signal(mapped)
+        ok = sender.send_signal(mapped)
+        elapsed_ms = (time.monotonic() - start) * 1000
+
+        if self.metrics:
+            self.metrics.telegram_api_calls.inc()
+            self.metrics.telegram_api_latency_ms.observe(elapsed_ms)
+
+        if ok:
+            if self.telegram_cb:
+                self.telegram_cb.record_success()
+        else:
+            if self.metrics:
+                self.metrics.telegram_api_errors.inc()
+            if self.telegram_cb:
+                self.telegram_cb.record_failure()
+
+        return ok
 
     def deliver_to_webhook(
         self, url: str, signal: Dict[str, Any], signing_secret: str = ""
@@ -80,6 +123,22 @@ class SignalDeliveryService:
         """Send signal to a webhook subscriber."""
         sender = WebhookSender(url, signing_secret)
         return sender.send_signal(signal)
+
+    def _enqueue_to_dlq(
+        self, signal: Dict[str, Any], sub: Dict[str, Any], error: str
+    ):
+        """Enqueue a failed delivery to the dead letter queue."""
+        if not self.dlq:
+            return
+        self.dlq.enqueue(
+            signal=signal,
+            subscriber_id=str(sub["id"]),
+            channel=sub["channel"],
+            endpoint=sub["endpoint"],
+            error=error,
+        )
+        if self.metrics:
+            self.metrics.dlq_enqueued.inc()
 
     async def deliver_signal(self, signal: Dict[str, Any]) -> Dict[str, int]:
         """Fan out a signal to all matching subscribers.
@@ -94,6 +153,10 @@ class SignalDeliveryService:
         failed = 0
 
         for sub in subs:
+            if self.metrics:
+                self.metrics.deliveries_attempted.inc()
+
+            start = time.monotonic()
             try:
                 if sub["channel"] == "telegram":
                     ok = self.deliver_to_telegram(sub["endpoint"], signal)
@@ -103,13 +166,27 @@ class SignalDeliveryService:
                     logger.warning("Unknown channel: %s", sub["channel"])
                     ok = False
 
+                elapsed_ms = (time.monotonic() - start) * 1000
+
                 if ok:
                     delivered += 1
+                    if self.metrics:
+                        self.metrics.deliveries_succeeded.inc()
+                        self.metrics.record_channel_success(sub["channel"])
+                        self.metrics.delivery_latency_ms.observe(elapsed_ms)
                 else:
                     failed += 1
+                    if self.metrics:
+                        self.metrics.deliveries_failed.inc()
+                        self.metrics.record_channel_failure(sub["channel"])
+                    self._enqueue_to_dlq(signal, sub, "delivery_returned_false")
             except Exception as e:
                 logger.error("Delivery failed for sub %s: %s", sub["id"], e)
                 failed += 1
+                if self.metrics:
+                    self.metrics.deliveries_failed.inc()
+                    self.metrics.record_channel_failure(sub["channel"])
+                self._enqueue_to_dlq(signal, sub, str(e))
 
         logger.info(
             "Signal delivery complete: %d delivered, %d failed for %s %s",
