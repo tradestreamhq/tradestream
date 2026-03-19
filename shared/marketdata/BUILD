@@ -91,11 +91,33 @@ py_test(
     ],
 )
 
+py_library(
+    name = "commodities_provider_lib",
+    srcs = ["commodities_provider.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":provider_lib",
+        "//third_party/python:absl_py",
+        "//third_party/python:requests",
+        "//third_party/python:tenacity",
+    ],
+)
+
 py_test(
     name = "registry_test",
     srcs = ["registry_test.py"],
     deps = [
         ":provider_lib",
         ":registry_lib",
+    ],
+)
+
+py_test(
+    name = "commodities_provider_test",
+    srcs = ["commodities_provider_test.py"],
+    deps = [
+        ":commodities_provider_lib",
+        ":provider_lib",
+        "//third_party/python:requests",
     ],
 )

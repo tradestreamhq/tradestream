@@ -37,6 +37,15 @@ kt_jvm_library(
 )
 
 java_library(
+    name = "instrument",
+    srcs = ["Instrument.java"],
+    deps = [
+        ":currency_pair",
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
     name = "instruments_module",
     srcs = ["InstrumentsModule.java"],
     deps = [
