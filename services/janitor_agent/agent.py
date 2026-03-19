@@ -17,6 +17,12 @@ from services.janitor_agent.db_maintenance import (
     PostgreSQLMaintenance,
 )
 from services.janitor_agent.health_checker import HealthCheckConfig, HealthChecker
+from services.janitor_agent.notifier import (
+    NotificationConfig,
+    ReportDistributionConfig,
+    ReportDistributor,
+    RetirementNotifier,
+)
 from services.janitor_agent.report import JanitorReport
 from services.janitor_agent.retirement_criteria import (
     Implementation,
@@ -24,6 +30,7 @@ from services.janitor_agent.retirement_criteria import (
     RetirementDecision,
     Spec,
     apply_batch_limits,
+    can_reactivate,
     evaluate_implementation,
     evaluate_spec,
 )
@@ -37,6 +44,14 @@ class JanitorConfig:
     retirement: RetirementConfig
     maintenance: MaintenanceConfig
     health_check: HealthCheckConfig
+    notification: NotificationConfig = None
+    report_distribution: ReportDistributionConfig = None
+
+    def __post_init__(self):
+        if self.notification is None:
+            self.notification = NotificationConfig()
+        if self.report_distribution is None:
+            self.report_distribution = ReportDistributionConfig()
 
 
 class JanitorAgent:
@@ -47,6 +62,8 @@ class JanitorAgent:
         self._pg = PostgreSQLMaintenance(config.maintenance.pg_connection_string)
         self._health = HealthChecker(config.health_check)
         self._repairer = StateRepairer(config.maintenance.pg_connection_string)
+        self._notifier = RetirementNotifier(config.notification)
+        self._distributor = ReportDistributor(config.report_distribution)
         self._influx: Optional[InfluxDBMaintenance] = None
 
         if config.maintenance.influx_url and config.maintenance.influx_token:
@@ -97,9 +114,12 @@ class JanitorAgent:
                 impl.spec_id, impl.symbol, config.min_alternative_sharpe
             )
 
+            # Detect current market regime for this symbol
+            current_regime = self._pg.detect_market_regime(impl.symbol)
+
             # Evaluate
             decision = evaluate_implementation(
-                impl, config, better_exists, current_regime=None
+                impl, config, better_exists, current_regime=current_regime
             )
 
             if decision.reason.startswith("CANONICAL"):
@@ -114,7 +134,7 @@ class JanitorAgent:
         to_retire = [d for d in decisions if d.should_retire]
         approved, skipped = apply_batch_limits(to_retire, total_active, config)
 
-        # Execute retirements
+        # Execute retirements and notify dependent systems
         executed = []
         for decision in approved:
             result = self._pg.execute_retirement(
@@ -124,6 +144,25 @@ class JanitorAgent:
             )
             if result.success:
                 executed.append(decision)
+                try:
+                    self._notifier.notify_retirement(
+                        impl_id=decision.impl_id,
+                        spec_id=decision.spec_id,
+                        symbol="",
+                        reason=decision.reason,
+                        metadata={
+                            "final_sharpe": decision.final_sharpe,
+                            "final_accuracy": decision.final_accuracy,
+                            "age_days": decision.age_days,
+                            "signal_count": decision.signal_count,
+                        },
+                    )
+                except Exception as e:
+                    logging.error(
+                        "Failed to send notifications for %s: %s",
+                        decision.impl_id,
+                        e,
+                    )
 
         # Check if any specs should be retired
         retired_specs = []
@@ -192,6 +231,38 @@ class JanitorAgent:
         except Exception as e:
             logging.error("Failed to check spec %s for retirement: %s", spec_id, e)
             return None
+
+    def reactivate_implementation(
+        self, impl_id: str, reason: str, requester: str
+    ) -> dict:
+        """Reactivate a retired implementation after validation checks."""
+        retirement_info = self._pg.get_retirement_info(impl_id)
+        if not retirement_info:
+            return {"success": False, "error": "No retirement record found"}
+
+        days_since = (
+            datetime.now(timezone.utc)
+            - retirement_info["retired_at"].replace(tzinfo=timezone.utc)
+        ).days
+        reactivation_count = self._pg.get_reactivation_count(impl_id)
+        config = self._config.retirement
+
+        eligible, msg = can_reactivate(
+            reactivation_count=reactivation_count,
+            days_since_retirement=days_since,
+            can_reactivate_flag=retirement_info["can_reactivate"],
+            config=config,
+        )
+
+        if not eligible:
+            return {"success": False, "error": msg}
+
+        result = self._pg.reactivate_implementation(impl_id, reason, requester)
+        return {
+            "success": result.success,
+            "details": result.details,
+            "error": result.error,
+        }
 
     def run_db_maintenance(self) -> list:
         """Run database maintenance tasks."""
@@ -286,6 +357,17 @@ class JanitorAgent:
             self._pg.save_report(report.to_dict())
         except Exception as e:
             logging.error("Failed to save report: %s", e)
+
+        # Distribute report to configured channels
+        try:
+            distribution_results = self._distributor.distribute(report)
+            if distribution_results:
+                logging.info(
+                    "Report distributed to: %s",
+                    ", ".join(distribution_results.keys()),
+                )
+        except Exception as e:
+            logging.error("Failed to distribute report: %s", e)
 
         logging.info(
             "Full janitor cycle complete in %.1fs: retired=%d impls, %d specs",
