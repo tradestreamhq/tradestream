@@ -46,7 +46,9 @@ class FakeChannel(DeliveryChannel):
         self.sent.append({"signal": signal, "recipient": recipient})
         if self._succeed:
             return DeliveryResult.ok(self._name, f"msg-{len(self.sent)}")
-        return DeliveryResult.fail(self._name, "delivery failed", retryable=self._retryable)
+        return DeliveryResult.fail(
+            self._name, "delivery failed", retryable=self._retryable
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -103,7 +105,9 @@ def router(channels, preference_store, deduplicator, rate_limiter, tracker):
     )
 
 
-def _setup_user_prefs(preference_store, user_id, channel_configs, dedup="all_enabled", tier="pro"):
+def _setup_user_prefs(
+    preference_store, user_id, channel_configs, dedup="all_enabled", tier="pro"
+):
     """Helper to set up user delivery preferences."""
     channels = {}
     primary = None
@@ -330,19 +334,37 @@ class TestDeduplicationE2E:
 
     def test_all_enabled_allows_duplicate_delivery(self, deduplicator):
         """all_enabled mode always allows delivery."""
-        assert deduplicator.should_deliver("sig-1", "u-1", "telegram", "all_enabled") is True
+        assert (
+            deduplicator.should_deliver("sig-1", "u-1", "telegram", "all_enabled")
+            is True
+        )
         deduplicator.mark_delivered("sig-1", "u-1", "telegram")
-        assert deduplicator.should_deliver("sig-1", "u-1", "discord", "all_enabled") is True
+        assert (
+            deduplicator.should_deliver("sig-1", "u-1", "discord", "all_enabled")
+            is True
+        )
 
     def test_primary_only_blocks_second_channel(self, deduplicator):
         """primary_only mode blocks delivery after first channel succeeds."""
-        assert deduplicator.should_deliver("sig-2", "u-1", "telegram", "primary_only") is True
+        assert (
+            deduplicator.should_deliver("sig-2", "u-1", "telegram", "primary_only")
+            is True
+        )
         deduplicator.mark_delivered("sig-2", "u-1", "telegram")
-        assert deduplicator.should_deliver("sig-2", "u-1", "discord", "primary_only") is False
+        assert (
+            deduplicator.should_deliver("sig-2", "u-1", "discord", "primary_only")
+            is False
+        )
 
     def test_fallback_chain_allows_after_failure(self, deduplicator):
         """fallback_chain allows next channel when previous failed."""
-        assert deduplicator.should_deliver("sig-3", "u-1", "telegram", "fallback_chain") is True
+        assert (
+            deduplicator.should_deliver("sig-3", "u-1", "telegram", "fallback_chain")
+            is True
+        )
         deduplicator.mark_delivered("sig-3", "u-1", "telegram")
         deduplicator.mark_failed("sig-3", "u-1", "telegram")
-        assert deduplicator.should_deliver("sig-3", "u-1", "discord", "fallback_chain") is True
+        assert (
+            deduplicator.should_deliver("sig-3", "u-1", "discord", "fallback_chain")
+            is True
+        )

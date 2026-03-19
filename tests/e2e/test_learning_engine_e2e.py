@@ -43,14 +43,22 @@ class TestRegimeDetectionE2E:
 
         assert result["regime_type"] in ("trending_down", "ranging")
         assert result["confidence"] > 0
-        assert result["indicators"]["trend_direction"] < 0 or result["regime_type"] == "ranging"
+        assert (
+            result["indicators"]["trend_direction"] < 0
+            or result["regime_type"] == "ranging"
+        )
 
     def test_volatile_regime_detected(self, sample_candles_volatile):
         """High-volatility no-trend candles produce volatile or ranging regime."""
         detector = RegimeDetector()
         result = detector.detect(sample_candles_volatile, instrument="DOGE/USD")
 
-        assert result["regime_type"] in ("volatile", "ranging", "trending_up", "trending_down")
+        assert result["regime_type"] in (
+            "volatile",
+            "ranging",
+            "trending_up",
+            "trending_down",
+        )
         assert result["confidence"] > 0
 
     def test_quiet_regime_detected(self):
@@ -59,13 +67,15 @@ class TestRegimeDetectionE2E:
         candles = []
         price = 100.0
         for i in range(30):
-            candles.append({
-                "open": price,
-                "high": price + 0.01,
-                "low": price - 0.01,
-                "close": price + 0.001 * (i % 2),
-                "volume": 10,
-            })
+            candles.append(
+                {
+                    "open": price,
+                    "high": price + 0.01,
+                    "low": price - 0.01,
+                    "close": price + 0.001 * (i % 2),
+                    "volume": 10,
+                }
+            )
         detector = RegimeDetector()
         result = detector.detect(candles, instrument="STABLE/USD")
 
@@ -86,7 +96,13 @@ class TestRegimeDetectionE2E:
         detector = RegimeDetector()
         result = detector.detect(sample_candles_uptrend, instrument="BTC/USD")
 
-        expected_keys = {"volatility", "trend_strength", "trend_direction", "volume_ratio", "atr_ratio"}
+        expected_keys = {
+            "volatility",
+            "trend_strength",
+            "trend_direction",
+            "volume_ratio",
+            "atr_ratio",
+        }
         assert expected_keys == set(result["indicators"].keys())
 
     def test_regime_types_are_valid(self, sample_candles_uptrend):
@@ -94,7 +110,14 @@ class TestRegimeDetectionE2E:
         detector = RegimeDetector()
         result = detector.detect(sample_candles_uptrend, instrument="BTC/USD")
 
-        valid_types = {"trending_up", "trending_down", "ranging", "volatile", "quiet", "unknown"}
+        valid_types = {
+            "trending_up",
+            "trending_down",
+            "ranging",
+            "volatile",
+            "quiet",
+            "unknown",
+        }
         assert result["regime_type"] in valid_types
 
     def test_custom_thresholds_change_classification(self):
@@ -118,7 +141,13 @@ class TestRegimeDetectionE2E:
         custom_result = custom_detector.detect(candles, instrument="TEST/USD")
 
         # With lower volatility_high threshold, the same data may be classified differently
-        assert custom_result["regime_type"] in {"volatile", "ranging", "trending_up", "trending_down", "quiet"}
+        assert custom_result["regime_type"] in {
+            "volatile",
+            "ranging",
+            "trending_up",
+            "trending_down",
+            "quiet",
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -133,9 +162,15 @@ class TestWeightOptimizationE2E:
         """Strategy with high Sharpe/win rate gets above-average weight."""
         optimizer = WeightOptimizer()
         performances = [
-            make_strategy_performance("strat-good", sharpe_ratio=2.5, win_rate=0.7, avg_pnl_percent=3.0),
-            make_strategy_performance("strat-avg", sharpe_ratio=0.5, win_rate=0.5, avg_pnl_percent=0.5),
-            make_strategy_performance("strat-bad", sharpe_ratio=-0.5, win_rate=0.3, avg_pnl_percent=-1.0),
+            make_strategy_performance(
+                "strat-good", sharpe_ratio=2.5, win_rate=0.7, avg_pnl_percent=3.0
+            ),
+            make_strategy_performance(
+                "strat-avg", sharpe_ratio=0.5, win_rate=0.5, avg_pnl_percent=0.5
+            ),
+            make_strategy_performance(
+                "strat-bad", sharpe_ratio=-0.5, win_rate=0.3, avg_pnl_percent=-1.0
+            ),
         ]
 
         weights = optimizer.optimize_weights(performances, "trending_up", "BTC/USD")
@@ -149,7 +184,9 @@ class TestWeightOptimizationE2E:
         optimizer = WeightOptimizer()
         performances = [
             make_strategy_performance("strat-new", trade_count=2),
-            make_strategy_performance("strat-seasoned", trade_count=50, sharpe_ratio=1.5),
+            make_strategy_performance(
+                "strat-seasoned", trade_count=50, sharpe_ratio=1.5
+            ),
         ]
 
         weights = optimizer.optimize_weights(performances, "ranging", "ETH/USD")
@@ -161,8 +198,20 @@ class TestWeightOptimizationE2E:
         """All weights respect min_weight and max_weight bounds."""
         optimizer = WeightOptimizer()
         performances = [
-            make_strategy_performance("strat-extreme", sharpe_ratio=10.0, win_rate=1.0, avg_pnl_percent=50.0, trade_count=20),
-            make_strategy_performance("strat-terrible", sharpe_ratio=-5.0, win_rate=0.0, avg_pnl_percent=-50.0, trade_count=20),
+            make_strategy_performance(
+                "strat-extreme",
+                sharpe_ratio=10.0,
+                win_rate=1.0,
+                avg_pnl_percent=50.0,
+                trade_count=20,
+            ),
+            make_strategy_performance(
+                "strat-terrible",
+                sharpe_ratio=-5.0,
+                win_rate=0.0,
+                avg_pnl_percent=-50.0,
+                trade_count=20,
+            ),
         ]
 
         weights = optimizer.optimize_weights(performances, "volatile", "BTC/USD")
@@ -181,7 +230,9 @@ class TestWeightOptimizationE2E:
         """Single strategy weight is normalized relative to itself."""
         optimizer = WeightOptimizer()
         performances = [
-            make_strategy_performance("strat-solo", sharpe_ratio=1.0, win_rate=0.6, avg_pnl_percent=1.5),
+            make_strategy_performance(
+                "strat-solo", sharpe_ratio=1.0, win_rate=0.6, avg_pnl_percent=1.5
+            ),
         ]
 
         weights = optimizer.optimize_weights(performances, "trending_up", "BTC/USD")
@@ -207,8 +258,12 @@ class TestWeightOptimizationE2E:
         # Strategy A: high Sharpe, low win rate
         # Strategy B: low Sharpe, high win rate
         performances = [
-            make_strategy_performance("strat-a", sharpe_ratio=3.0, win_rate=0.3, avg_pnl_percent=1.0),
-            make_strategy_performance("strat-b", sharpe_ratio=0.5, win_rate=0.9, avg_pnl_percent=1.0),
+            make_strategy_performance(
+                "strat-a", sharpe_ratio=3.0, win_rate=0.3, avg_pnl_percent=1.0
+            ),
+            make_strategy_performance(
+                "strat-b", sharpe_ratio=0.5, win_rate=0.9, avg_pnl_percent=1.0
+            ),
         ]
 
         opt_sharpe = WeightOptimizer(config=config_sharpe_heavy)
@@ -216,7 +271,9 @@ class TestWeightOptimizationE2E:
         map_sharpe = {w["strategy_spec_id"]: w["weight"] for w in weights_sharpe}
 
         opt_winrate = WeightOptimizer(config=config_winrate_heavy)
-        weights_winrate = opt_winrate.optimize_weights(performances, "ranging", "BTC/USD")
+        weights_winrate = opt_winrate.optimize_weights(
+            performances, "ranging", "BTC/USD"
+        )
         map_winrate = {w["strategy_spec_id"]: w["weight"] for w in weights_winrate}
 
         # When Sharpe is heavily weighted, strat-a should rank higher
@@ -244,11 +301,15 @@ class TestRegimeToWeightPipeline:
 
         # Create performances
         performances = [
-            make_strategy_performance("trend-follower", sharpe_ratio=2.0, win_rate=0.65),
+            make_strategy_performance(
+                "trend-follower", sharpe_ratio=2.0, win_rate=0.65
+            ),
             make_strategy_performance("mean-reverter", sharpe_ratio=0.3, win_rate=0.45),
         ]
 
-        weights = optimizer.optimize_weights(performances, regime["regime_type"], "BTC/USD")
+        weights = optimizer.optimize_weights(
+            performances, regime["regime_type"], "BTC/USD"
+        )
 
         assert len(weights) == 2
         for w in weights:

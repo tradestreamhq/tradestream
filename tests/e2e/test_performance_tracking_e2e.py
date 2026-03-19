@@ -72,7 +72,9 @@ def _make_risk_metrics(positions):
         )
     total_value = sum(p.current_price * p.quantity for p in positions)
     max_pos = max(positions, key=lambda p: p.current_price * p.quantity)
-    max_pct = (max_pos.current_price * max_pos.quantity) / total_value if total_value else 0
+    max_pct = (
+        (max_pos.current_price * max_pos.quantity) / total_value if total_value else 0
+    )
     return RiskMetrics(
         portfolio_heat=round(total_value / 10000 * 100, 2),
         max_position_pct=round(max_pct * 100, 2),
@@ -293,8 +295,12 @@ class TestSignalToPerformancePipeline:
     def test_multiple_signals_portfolio_performance(self):
         """Multiple signals → portfolio with multiple positions → aggregate metrics."""
         signals = [
-            make_signal(strategy_name="strat_a", instrument="BTC/USD", entry_price=65000),
-            make_signal(strategy_name="strat_b", instrument="ETH/USD", entry_price=3500),
+            make_signal(
+                strategy_name="strat_a", instrument="BTC/USD", entry_price=65000
+            ),
+            make_signal(
+                strategy_name="strat_b", instrument="ETH/USD", entry_price=3500
+            ),
             make_signal(strategy_name="strat_c", instrument="SOL/USD", entry_price=150),
         ]
         positions = [
@@ -322,9 +328,15 @@ class TestSignalToPerformancePipeline:
     def test_strategy_performance_attribution(self):
         """Strategy performance is tracked correctly across signals."""
         performances = [
-            make_strategy_performance("strat_a", sharpe_ratio=2.0, win_rate=0.7, trade_count=50),
-            make_strategy_performance("strat_b", sharpe_ratio=0.8, win_rate=0.45, trade_count=30),
-            make_strategy_performance("strat_c", sharpe_ratio=1.5, win_rate=0.6, trade_count=40),
+            make_strategy_performance(
+                "strat_a", sharpe_ratio=2.0, win_rate=0.7, trade_count=50
+            ),
+            make_strategy_performance(
+                "strat_b", sharpe_ratio=0.8, win_rate=0.45, trade_count=30
+            ),
+            make_strategy_performance(
+                "strat_c", sharpe_ratio=1.5, win_rate=0.6, trade_count=40
+            ),
         ]
         best = max(performances, key=lambda p: p["sharpe_ratio"])
         assert best["strategy_spec_id"] == "strat_a"

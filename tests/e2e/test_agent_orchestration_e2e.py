@@ -146,7 +146,9 @@ class TestOrchestrationStateE2E:
 class TestOrchestrationCycleE2E:
     """Test the full orchestration cycle with mocked service calls."""
 
-    @patch("services.agent_orchestration.orchestration_loop.monitor_promoted_strategies")
+    @patch(
+        "services.agent_orchestration.orchestration_loop.monitor_promoted_strategies"
+    )
     @patch("services.agent_orchestration.orchestration_loop.promote_winners")
     @patch("services.agent_orchestration.orchestration_loop.validate_candidates")
     @patch("services.agent_orchestration.orchestration_loop.run_discovery")
@@ -161,7 +163,10 @@ class TestOrchestrationCycleE2E:
         mock_promote.return_value = ["ema_btc"]
         mock_monitor.return_value = {"adjusted": [], "retired": []}
 
-        mcp_urls = {"strategy": "http://strategy:8080", "backtest": "http://backtest:8080"}
+        mcp_urls = {
+            "strategy": "http://strategy:8080",
+            "backtest": "http://backtest:8080",
+        }
         stats = run_cycle("test-key", mcp_urls, state)
 
         assert stats["discovered"] == 2
@@ -171,7 +176,9 @@ class TestOrchestrationCycleE2E:
         assert "ema_btc" in state.candidates
         assert state.candidates["ema_btc"].phase == config.PHASE_VALIDATION
 
-    @patch("services.agent_orchestration.orchestration_loop.monitor_promoted_strategies")
+    @patch(
+        "services.agent_orchestration.orchestration_loop.monitor_promoted_strategies"
+    )
     @patch("services.agent_orchestration.orchestration_loop.promote_winners")
     @patch("services.agent_orchestration.orchestration_loop.validate_candidates")
     @patch("services.agent_orchestration.orchestration_loop.run_discovery")
@@ -190,12 +197,20 @@ class TestOrchestrationCycleE2E:
         assert state.cycle_number == 1
         mock_validate.assert_called_once()
 
-    @patch("services.agent_orchestration.orchestration_loop.monitor_promoted_strategies")
+    @patch(
+        "services.agent_orchestration.orchestration_loop.monitor_promoted_strategies"
+    )
     @patch("services.agent_orchestration.orchestration_loop.promote_winners")
     @patch("services.agent_orchestration.orchestration_loop.validate_candidates")
     @patch("services.agent_orchestration.orchestration_loop.run_discovery")
     def test_circuit_breaker_skips_phase(
-        self, mock_discovery, mock_validate, mock_promote, mock_monitor, state, circuit_breakers
+        self,
+        mock_discovery,
+        mock_validate,
+        mock_promote,
+        mock_monitor,
+        state,
+        circuit_breakers,
     ):
         """Open circuit breaker skips the corresponding phase."""
         # Trip the strategy circuit breaker
@@ -212,7 +227,9 @@ class TestOrchestrationCycleE2E:
         assert "discovery" in stats["skipped_phases"]
         mock_discovery.assert_not_called()
 
-    @patch("services.agent_orchestration.orchestration_loop.monitor_promoted_strategies")
+    @patch(
+        "services.agent_orchestration.orchestration_loop.monitor_promoted_strategies"
+    )
     @patch("services.agent_orchestration.orchestration_loop.promote_winners")
     @patch("services.agent_orchestration.orchestration_loop.validate_candidates")
     @patch("services.agent_orchestration.orchestration_loop.run_discovery")
@@ -239,7 +256,9 @@ class TestOrchestrationCycleE2E:
         assert stats["monitored_adjusted"] == 1
         assert stats["monitored_retired"] == 1
 
-    @patch("services.agent_orchestration.orchestration_loop.monitor_promoted_strategies")
+    @patch(
+        "services.agent_orchestration.orchestration_loop.monitor_promoted_strategies"
+    )
     @patch("services.agent_orchestration.orchestration_loop.promote_winners")
     @patch("services.agent_orchestration.orchestration_loop.validate_candidates")
     @patch("services.agent_orchestration.orchestration_loop.run_discovery")

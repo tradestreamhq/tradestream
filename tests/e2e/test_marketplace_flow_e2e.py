@@ -32,8 +32,16 @@ class MarketplaceDB:
         self.subscriptions = []
         self.ratings = []
         self.categories = [
-            {"name": "momentum", "label": "Momentum", "description": "Momentum strategies"},
-            {"name": "trend_following", "label": "Trend Following", "description": "Trend strategies"},
+            {
+                "name": "momentum",
+                "label": "Momentum",
+                "description": "Momentum strategies",
+            },
+            {
+                "name": "trend_following",
+                "label": "Trend Following",
+                "description": "Trend strategies",
+            },
         ]
         self.leaderboard_snapshots = []
 
@@ -264,7 +272,11 @@ class TestMarketplaceFlowE2E:
         resp = marketplace_client.get(f"/strategies/{fake_id}")
         assert resp.status_code == 200  # Our API returns 200 with not_found body
         data = resp.json()
-        assert data.get("error") or "not_found" in str(data).lower() or data.get("data") is not None
+        assert (
+            data.get("error")
+            or "not_found" in str(data).lower()
+            or data.get("data") is not None
+        )
 
     def test_health_check(self, marketplace_client):
         """Health endpoint returns ok."""

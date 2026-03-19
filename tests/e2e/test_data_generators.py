@@ -32,8 +32,15 @@ class TestSignalFactory:
     def test_default_signal_has_required_fields(self):
         signal = make_signal()
         required = [
-            "signal_id", "strategy_name", "instrument", "direction",
-            "confidence", "entry_price", "stop_loss", "take_profit", "timestamp",
+            "signal_id",
+            "strategy_name",
+            "instrument",
+            "direction",
+            "confidence",
+            "entry_price",
+            "stop_loss",
+            "take_profit",
+            "timestamp",
         ]
         for field in required:
             assert field in signal, f"Missing field: {field}"
@@ -146,7 +153,13 @@ class TestStrategyPerformanceFactory:
 
     def test_default_performance_has_required_fields(self):
         perf = make_strategy_performance()
-        required = ["strategy_spec_id", "sharpe_ratio", "win_rate", "avg_pnl_percent", "trade_count"]
+        required = [
+            "strategy_spec_id",
+            "sharpe_ratio",
+            "win_rate",
+            "avg_pnl_percent",
+            "trade_count",
+        ]
         for field in required:
             assert field in perf
 

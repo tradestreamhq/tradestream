@@ -38,7 +38,9 @@ def _build_pipeline(failure_threshold=3, max_retries=3):
     pool, conn = _make_pool()
     redis_client = MagicMock()
     metrics = PipelineMetrics()
-    cb = CircuitBreaker("telegram-api", failure_threshold=failure_threshold, recovery_timeout=60)
+    cb = CircuitBreaker(
+        "telegram-api", failure_threshold=failure_threshold, recovery_timeout=60
+    )
     dlq = DeadLetterQueue(redis_client, max_retries=max_retries, base_delay=10)
 
     svc = SignalDeliveryService(
@@ -75,7 +77,9 @@ class TestSignalPipelineE2E:
         sub = make_subscription(channel="telegram", endpoint="chat-999")
         conn.fetch.return_value = [sub]
 
-        signal = make_signal(strategy_name="ema_crossover", direction="BUY", confidence=0.92)
+        signal = make_signal(
+            strategy_name="ema_crossover", direction="BUY", confidence=0.92
+        )
         result = await svc.deliver_signal(signal)
 
         assert result["delivered"] == 1
@@ -90,7 +94,9 @@ class TestSignalPipelineE2E:
     @pytest.mark.asyncio
     @patch("services.signal_api.delivery.WebhookSender")
     @patch("services.signal_api.delivery.TelegramSender")
-    async def test_signal_fans_out_to_multiple_subscribers(self, mock_tg_cls, mock_wh_cls):
+    async def test_signal_fans_out_to_multiple_subscribers(
+        self, mock_tg_cls, mock_wh_cls
+    ):
         """One signal → delivered to Telegram + webhook subscribers concurrently."""
         svc, conn, metrics, cb, dlq = _build_pipeline()
 
@@ -137,7 +143,9 @@ class TestSignalPipelineE2E:
 
         conn.fetch.return_value = [
             make_subscription(channel="telegram", endpoint="chat-ok"),
-            make_subscription(channel="webhook", endpoint="https://broken.example/hook"),
+            make_subscription(
+                channel="webhook", endpoint="https://broken.example/hook"
+            ),
         ]
 
         signal = make_signal()
@@ -161,7 +169,9 @@ class TestSignalPipelineE2E:
         mock_tg.send_signal.return_value = False
         mock_tg_cls.return_value = mock_tg
 
-        conn.fetch.return_value = [make_subscription(channel="telegram", endpoint="chat-1")]
+        conn.fetch.return_value = [
+            make_subscription(channel="telegram", endpoint="chat-1")
+        ]
         signal = make_signal()
 
         for _ in range(3):
@@ -198,7 +208,9 @@ class TestSignalPipelineE2E:
         mock_tg = MagicMock()
         mock_tg_cls.return_value = mock_tg
 
-        conn.fetch.return_value = [make_subscription(channel="telegram", endpoint="chat-1")]
+        conn.fetch.return_value = [
+            make_subscription(channel="telegram", endpoint="chat-1")
+        ]
         signal = make_signal()
 
         mock_tg.send_signal.return_value = True
@@ -229,8 +241,11 @@ class TestSignalPipelineE2E:
         sub_id = str(uuid.uuid4())
         conn.fetch.return_value = [
             FakeRow(
-                id=sub_id, channel="telegram", endpoint="chat-fail",
-                strategies=None, pairs=None,
+                id=sub_id,
+                channel="telegram",
+                endpoint="chat-fail",
+                strategies=None,
+                pairs=None,
             )
         ]
 
@@ -252,7 +267,9 @@ class TestSignalPipelineE2E:
         mock_tg.send_signal.return_value = True
         mock_tg_cls.return_value = mock_tg
 
-        conn.fetch.return_value = [make_subscription(channel="telegram", endpoint="chat-1")]
+        conn.fetch.return_value = [
+            make_subscription(channel="telegram", endpoint="chat-1")
+        ]
         await svc.deliver_signal(make_signal())
 
         snap = metrics.snapshot()

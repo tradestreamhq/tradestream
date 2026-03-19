@@ -200,7 +200,9 @@ class TestBillingFlowE2E:
         )
 
         pool = billing_db.make_pool()
-        tier, returned_id = await get_customer_tier(pool, telegram_chat_id="pro-user-456")
+        tier, returned_id = await get_customer_tier(
+            pool, telegram_chat_id="pro-user-456"
+        )
         assert tier == "pro"
         assert returned_id == cust_id
 
@@ -211,9 +213,7 @@ class TestBillingFlowE2E:
         billing_db.customers.append(
             {"id": cust_id, "telegram_chat_id": "free-user-789"}
         )
-        billing_db.signal_usage.append(
-            {"customer_id": cust_id, "signal_count": 3}
-        )
+        billing_db.signal_usage.append({"customer_id": cust_id, "signal_count": 3})
 
         pool = billing_db.make_pool()
         quota = await check_signal_quota(pool, cust_id)
@@ -238,9 +238,7 @@ class TestBillingFlowE2E:
     async def test_pro_user_gets_realtime_delivery(self, billing_db):
         """Pro subscriber receives signals with zero delay."""
         cust_id = "cust-pro-001"
-        billing_db.customers.append(
-            {"id": cust_id, "telegram_chat_id": "pro-rt-user"}
-        )
+        billing_db.customers.append({"id": cust_id, "telegram_chat_id": "pro-rt-user"})
         billing_db.subscriptions.append(
             {"customer_id": cust_id, "tier": "pro", "status": "active"}
         )
@@ -290,4 +288,7 @@ class TestBillingFlowE2E:
             pool, telegram_chat_id="unknown-user", quality_grade="C"
         )
         assert decision["deliver"] is False
-        assert "quality grade" in decision["reason"].lower() or "grade" in decision["reason"].lower()
+        assert (
+            "quality grade" in decision["reason"].lower()
+            or "grade" in decision["reason"].lower()
+        )
