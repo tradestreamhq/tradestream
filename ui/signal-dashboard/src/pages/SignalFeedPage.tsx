@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSignalStream } from "@/hooks/useSignalStream";
 import { SignalCard } from "@/components/signals/SignalCard";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import type { Signal } from "@/api/types";
 
 type ActionFilter = "ALL" | "BUY" | "SELL" | "HOLD";

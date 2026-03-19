@@ -1,5 +1,5 @@
 import type { Signal } from "@/api/types";
-import { cn, formatPrice, formatTime, formatPercent } from "@/lib/utils";
+import { cn, formatPrice, formatTime, formatPercent } from "@/utils/utils";
 
 interface SignalCardProps {
   signal: Signal;

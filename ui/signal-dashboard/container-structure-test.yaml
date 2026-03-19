@@ -1,0 +1,8 @@
+schemaVersion: "2.0.0"
+fileExistenceTests:
+  - name: "index.html exists"
+    path: "/usr/share/nginx/html/ui/signal-dashboard/dist/index.html"
+    shouldExist: true
+  - name: "nginx config exists"
+    path: "/ui/signal-dashboard/nginx.conf"
+    shouldExist: true

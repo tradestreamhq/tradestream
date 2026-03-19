@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { PerformanceStats, PricingPlan } from "@/api/types";
 import { fetchPerformanceStats } from "@/api/client";
-import { formatPercent } from "@/lib/utils";
+import { formatPercent } from "@/utils/utils";
 
 const PRICING_PLANS: PricingPlan[] = [
   {

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Signal, SignalFilters } from "@/api/types";
 import { fetchSignals } from "@/api/client";
-import { cn, formatPercent, formatPrice, formatDate, formatTime } from "@/lib/utils";
+import { cn, formatPercent, formatPrice, formatDate, formatTime } from "@/utils/utils";
 
 type OutcomeFilter = "ALL" | "WIN" | "LOSS" | "PENDING";
 

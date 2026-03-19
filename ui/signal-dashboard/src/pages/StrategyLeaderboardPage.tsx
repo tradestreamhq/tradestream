@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import type { Strategy } from "@/api/types";
 import { fetchStrategies } from "@/api/client";
-import { cn, formatPercent } from "@/lib/utils";
+import { cn, formatPercent } from "@/utils/utils";
 
 type SortKey =
   | "win_rate"

@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import { cn, formatPercent } from "@/lib/utils";
+import { cn, formatPercent } from "@/utils/utils";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",

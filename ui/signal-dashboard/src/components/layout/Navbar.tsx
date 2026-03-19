@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 
 const NAV_LINKS = [
   { to: "/signals", label: "Signals" },
