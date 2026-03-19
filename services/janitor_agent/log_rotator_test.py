@@ -30,9 +30,7 @@ class TestLogRotator:
         _create_log_file(temp_log_dir, "error.log", 100)
         _create_log_file(temp_log_dir, "not-a-log.txt", 100)
 
-        config = LogRotationConfig(
-            log_dirs=[temp_log_dir], patterns=["*.log"]
-        )
+        config = LogRotationConfig(log_dirs=[temp_log_dir], patterns=["*.log"])
         rotator = LogRotator(config)
         files = rotator.find_log_files()
 
@@ -41,26 +39,20 @@ class TestLogRotator:
         assert any("error.log" in f for f in files)
 
     def test_find_log_files_nonexistent_dir(self):
-        config = LogRotationConfig(
-            log_dirs=["/nonexistent/dir"], patterns=["*.log"]
-        )
+        config = LogRotationConfig(log_dirs=["/nonexistent/dir"], patterns=["*.log"])
         rotator = LogRotator(config)
         files = rotator.find_log_files()
         assert files == []
 
     def test_should_rotate_below_threshold(self, temp_log_dir):
         path = _create_log_file(temp_log_dir, "small.log", 100)
-        config = LogRotationConfig(
-            log_dirs=[temp_log_dir], max_size_bytes=1000
-        )
+        config = LogRotationConfig(log_dirs=[temp_log_dir], max_size_bytes=1000)
         rotator = LogRotator(config)
         assert not rotator.should_rotate(path)
 
     def test_should_rotate_above_threshold(self, temp_log_dir):
         path = _create_log_file(temp_log_dir, "big.log", 2000)
-        config = LogRotationConfig(
-            log_dirs=[temp_log_dir], max_size_bytes=1000
-        )
+        config = LogRotationConfig(log_dirs=[temp_log_dir], max_size_bytes=1000)
         rotator = LogRotator(config)
         assert rotator.should_rotate(path)
 
@@ -126,9 +118,7 @@ class TestLogRotator:
         for i in range(7):
             _create_log_file(temp_log_dir, f"cleanup.log.2026010{i}000000.gz", 10)
 
-        config = LogRotationConfig(
-            log_dirs=[temp_log_dir], max_rotated_files=3
-        )
+        config = LogRotationConfig(log_dirs=[temp_log_dir], max_rotated_files=3)
         rotator = LogRotator(config)
         results = rotator.cleanup_old_rotated_files(base_path)
 
@@ -158,9 +148,7 @@ class TestLogRotator:
         assert len(skipped) == 1
 
     def test_run_empty_dirs(self):
-        config = LogRotationConfig(
-            log_dirs=["/nonexistent"], patterns=["*.log"]
-        )
+        config = LogRotationConfig(log_dirs=["/nonexistent"], patterns=["*.log"])
         rotator = LogRotator(config)
         results = rotator.run()
         assert results == []

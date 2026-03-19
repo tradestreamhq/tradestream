@@ -326,9 +326,7 @@ class JanitorAgent:
         results = self._log_rotator.run()
         rotated = sum(1 for r in results if r.action == "rotated" and r.success)
         deleted = sum(1 for r in results if r.action == "deleted" and r.success)
-        logging.info(
-            "Log rotation complete: %d rotated, %d deleted", rotated, deleted
-        )
+        logging.info("Log rotation complete: %d rotated, %d deleted", rotated, deleted)
         return results
 
     def get_dashboard_data(self) -> dict:

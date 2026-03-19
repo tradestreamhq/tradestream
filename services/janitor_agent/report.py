@@ -157,8 +157,16 @@ class JanitorReport:
 
         # Log rotation
         if self.log_rotation_results:
-            rotated = [r for r in self.log_rotation_results if r.action == "rotated" and r.success]
-            deleted = [r for r in self.log_rotation_results if r.action == "deleted" and r.success]
+            rotated = [
+                r
+                for r in self.log_rotation_results
+                if r.action == "rotated" and r.success
+            ]
+            deleted = [
+                r
+                for r in self.log_rotation_results
+                if r.action == "deleted" and r.success
+            ]
             total_freed = sum(r.size_bytes for r in rotated + deleted)
             lines.append("## Log Rotation")
             lines.append("")

@@ -27,9 +27,7 @@ class LogRotationConfig:
         ]
     )
     # File patterns to rotate
-    patterns: list[str] = field(
-        default_factory=lambda: ["*.log", "*.json.log"]
-    )
+    patterns: list[str] = field(default_factory=lambda: ["*.log", "*.json.log"])
     # Maximum size in bytes before rotation (100MB default)
     max_size_bytes: int = 100 * 1024 * 1024
     # Maximum age in days before cleanup
@@ -239,9 +237,9 @@ class LogRotator:
                         action="skipped",
                         success=True,
                         details="Below size threshold",
-                        size_bytes=os.path.getsize(log_file)
-                        if os.path.exists(log_file)
-                        else 0,
+                        size_bytes=(
+                            os.path.getsize(log_file) if os.path.exists(log_file) else 0
+                        ),
                     )
                 )
 
@@ -251,7 +249,5 @@ class LogRotator:
 
         rotated = sum(1 for r in results if r.action == "rotated" and r.success)
         deleted = sum(1 for r in results if r.action == "deleted" and r.success)
-        logging.info(
-            "Log rotation complete: %d rotated, %d deleted", rotated, deleted
-        )
+        logging.info("Log rotation complete: %d rotated, %d deleted", rotated, deleted)
         return results

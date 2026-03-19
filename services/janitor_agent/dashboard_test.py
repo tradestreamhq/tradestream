@@ -52,7 +52,9 @@ class TestDashboardProvider:
             ("2026-03-18", 35, 8, 1, 2),
         ]
 
-        mock_conn.return_value.__enter__ = MagicMock(return_value=mock_conn.return_value)
+        mock_conn.return_value.__enter__ = MagicMock(
+            return_value=mock_conn.return_value
+        )
         mock_conn.return_value.__exit__ = MagicMock(return_value=False)
         mock_conn.return_value.cursor.return_value = cur
 
@@ -72,7 +74,9 @@ class TestDashboardProvider:
         cur.fetchone.side_effect = [None, (0, 0), (0,), (0,)]
         cur.fetchall.return_value = []
 
-        mock_conn.return_value.__enter__ = MagicMock(return_value=mock_conn.return_value)
+        mock_conn.return_value.__enter__ = MagicMock(
+            return_value=mock_conn.return_value
+        )
         mock_conn.return_value.__exit__ = MagicMock(return_value=False)
         mock_conn.return_value.cursor.return_value = cur
 
