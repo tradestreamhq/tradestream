@@ -309,6 +309,7 @@ class TestCalculateOpportunityScore:
         assert breakdown.expected_return_stddev == 0.015
         assert breakdown.consensus_value == 0.80
         assert breakdown.volatility_value == 0.021
+        assert breakdown.volatility_percentile == 0.5
         assert breakdown.freshness_value == 0
         assert breakdown.market_regime == "normal"
         assert breakdown.risk_adjusted_return > 0
@@ -444,6 +445,39 @@ class TestAggregateSignals:
         # Even if display age changes, the score is locked
         assert opp.score_breakdown.freshness_value == 0
         assert opp.opportunity_score == score_at_creation
+
+    def test_volatility_percentile_stored(self):
+        signals = [ContributingSignal("tech", "s1", "BUY", 0.9, expected_return=0.03)]
+        opp = aggregate_signals("BTC/USD", signals, volatility_percentile=0.65)
+        assert opp.score_breakdown.volatility_percentile == 0.65
+        d = opp.to_dict()
+        assert d["opportunity_factors"]["volatility"]["percentile"] == 0.65
+
+    def test_reasoning_generated(self):
+        signals = [
+            ContributingSignal("tech", "s1", "BUY", 0.9, "RSI_REVERSAL", 0.03, 0.01),
+            ContributingSignal("sentiment", "s2", "BUY", 0.8, "NEWS", 0.02, 0.005),
+        ]
+        opp = aggregate_signals("BTC/USD", signals, volatility=0.025)
+        assert opp.reasoning != ""
+        assert "consensus" in opp.reasoning.lower()
+        d = opp.to_dict()
+        assert d["reasoning"] != ""
+
+    def test_spec_compliant_json_fields(self):
+        """Verify JSON output uses spec field names."""
+        signals = [ContributingSignal("tech", "s1", "BUY", 0.9, "RSI", 0.03, 0.01)]
+        opp = aggregate_signals("BTC/USD", signals, volatility=0.02, volatility_percentile=0.65)
+        d = opp.to_dict()
+        # Spec-required field names
+        assert "opportunity_tier" in d
+        assert "opportunity_score_cached_at" in d
+        assert "opportunity_factors" in d
+        assert "reasoning" in d
+        # Old field names should NOT be present
+        assert "tier" not in d
+        assert "scored_at" not in d
+        assert "score_breakdown" not in d
 
 
 # ─── Ranking Tests ────────────────────────────────────────────
@@ -665,8 +699,11 @@ class TestOpportunityAPI:
         assert attrs["symbol"] == "BTC/USD"
         assert attrs["direction"] == "BUY"
         assert attrs["opportunity_score"] > 0
-        assert attrs["tier"] in ("HOT", "GOOD", "NEUTRAL", "LOW")
-        assert "score_breakdown" in attrs
+        assert attrs["opportunity_tier"] in ("HOT", "GOOD", "NEUTRAL", "LOW")
+        assert "opportunity_factors" in attrs
+        assert "reasoning" in attrs
+        assert "opportunity_score_cached_at" in attrs
+        assert "percentile" in attrs["opportunity_factors"]["volatility"]
 
     def test_score_signals_no_symbol(self, client):
         resp = client.post("/score", json={"signals": [{"direction": "BUY"}]})
@@ -806,8 +843,12 @@ class TestScoredOpportunityModel:
         d = opp.to_dict()
         assert d["opportunity_id"] == "test-id"
         assert d["symbol"] == "BTC/USD"
-        assert d["score_breakdown"]["confidence"]["value"] == 0.8
-        assert d["score_breakdown"]["freshness"]["cached"] is True
+        assert d["opportunity_tier"] == "HOT"
+        assert d["opportunity_score_cached_at"] is not None
+        assert d["reasoning"] == ""
+        assert d["opportunity_factors"]["confidence"]["value"] == 0.8
+        assert d["opportunity_factors"]["freshness"]["cached"] is True
+        assert d["opportunity_factors"]["volatility"]["percentile"] == 0.5
         assert len(d["contributing_signals"]) == 1
         assert d["contributing_signals"][0]["source"] == "tech"
 

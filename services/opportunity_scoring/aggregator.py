@@ -91,6 +91,49 @@ def compute_consensus(
     return winner, consensus_pct, agreeing, total
 
 
+def _generate_reasoning(
+    direction: str,
+    agreeing: int,
+    total: int,
+    consensus_pct: float,
+    avg_confidence: float,
+    exp_return: float,
+    ret_stddev: float,
+    vol: float,
+    regime: str,
+    top_strategy: Optional[str],
+) -> str:
+    """Generate human-readable reasoning for the opportunity score."""
+    parts = []
+
+    if consensus_pct >= 0.8:
+        parts.append(f"Strong strategy consensus ({agreeing}/{total} strategies agree)")
+    elif consensus_pct >= 0.6:
+        parts.append(f"Moderate strategy consensus ({agreeing}/{total} strategies agree)")
+    else:
+        parts.append(f"Weak consensus ({agreeing}/{total} strategies agree)")
+
+    if ret_stddev > 0 and exp_return / ret_stddev >= 1.5:
+        parts.append("Top strategies have consistent, low-variance returns")
+    elif ret_stddev > 0 and exp_return / ret_stddev < 0.5:
+        parts.append("Strategy returns show high variance, reducing confidence")
+
+    if vol >= 0.02:
+        parts.append("Current volatility offers meaningful upside potential")
+    elif vol < 0.01:
+        parts.append("Low volatility limits upside potential")
+
+    if regime != "normal":
+        parts.append(f"Market regime is {regime} — normalization caps adjusted")
+
+    if top_strategy:
+        parts.append(f"Top contributing strategy: {top_strategy}")
+
+    parts.append("Score was locked at creation for ranking stability")
+
+    return "; ".join(parts)
+
+
 def aggregate_signals(
     symbol: str,
     signals: list[ContributingSignal],
@@ -146,6 +189,7 @@ def aggregate_signals(
         volatility=vol,
         minutes_ago=0,  # Always fresh at creation — score is cached
         market_regime=regime,
+        volatility_percentile=vol_pct,
     )
 
     tier = assign_tier(score)
@@ -157,6 +201,19 @@ def aggregate_signals(
         if s.confidence > best_confidence and s.strategy_name:
             best_confidence = s.confidence
             top_strategy = s.strategy_name
+
+    reasoning = _generate_reasoning(
+        direction=direction,
+        agreeing=agreeing,
+        total=total,
+        consensus_pct=consensus_pct,
+        avg_confidence=avg_confidence,
+        exp_return=exp_return,
+        ret_stddev=ret_stddev,
+        vol=vol,
+        regime=regime,
+        top_strategy=top_strategy,
+    )
 
     return ScoredOpportunity(
         opportunity_id=str(uuid.uuid4()),
@@ -170,6 +227,7 @@ def aggregate_signals(
         strategies_agreeing=agreeing,
         top_strategy=top_strategy,
         market_regime=regime,
+        reasoning=reasoning,
     )
 
 

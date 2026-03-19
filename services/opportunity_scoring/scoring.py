@@ -107,6 +107,7 @@ def calculate_opportunity_score(
     volatility: float,
     minutes_ago: int,
     market_regime: str = "normal",
+    volatility_percentile: float = 0.5,
 ) -> tuple[float, ScoreBreakdown]:
     """Calculate opportunity score (0–100) for a trading signal.
 
@@ -120,6 +121,7 @@ def calculate_opportunity_score(
         volatility: Hourly volatility, e.g. 0.021.
         minutes_ago: Signal age in minutes (locked at creation for caching).
         market_regime: "normal", "high_volatility", or "extreme".
+        volatility_percentile: 30-day volatility percentile (0.0–1.0).
 
     Returns:
         Tuple of (score, ScoreBreakdown).
@@ -166,6 +168,7 @@ def calculate_opportunity_score(
         consensus_value=consensus_pct,
         consensus_contribution=round(cons_contribution, 1),
         volatility_value=volatility,
+        volatility_percentile=volatility_percentile,
         volatility_contribution=round(vol_contribution, 1),
         freshness_value=minutes_ago,
         freshness_contribution=round(fresh_contribution, 1),
