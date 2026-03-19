@@ -107,6 +107,74 @@ py_test(
 )
 
 py_library(
+    name = "pipeline_metrics",
+    srcs = [
+        "__init__.py",
+        "pipeline_metrics.py",
+    ],
+)
+
+py_test(
+    name = "pipeline_metrics_test",
+    srcs = ["pipeline_metrics_test.py"],
+    deps = [
+        ":pipeline_metrics",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "circuit_breaker",
+    srcs = [
+        "__init__.py",
+        "circuit_breaker.py",
+    ],
+)
+
+py_test(
+    name = "circuit_breaker_test",
+    srcs = ["circuit_breaker_test.py"],
+    deps = [
+        ":circuit_breaker",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "dead_letter_queue",
+    srcs = [
+        "__init__.py",
+        "dead_letter_queue.py",
+    ],
+)
+
+py_test(
+    name = "dead_letter_queue_test",
+    srcs = ["dead_letter_queue_test.py"],
+    deps = [
+        ":dead_letter_queue",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "alerting",
+    srcs = [
+        "__init__.py",
+        "alerting.py",
+    ],
+)
+
+py_test(
+    name = "alerting_test",
+    srcs = ["alerting_test.py"],
+    deps = [
+        ":alerting",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
     name = "strategy_parameter_registry",
     srcs = [
         "__init__.py",

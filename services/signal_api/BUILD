@@ -29,6 +29,9 @@ py_library(
     deps = [
         "//services/notification_service:telegram_sender_lib",
         "//services/notification_service:webhook_sender_lib",
+        "//services/shared:circuit_breaker",
+        "//services/shared:dead_letter_queue",
+        "//services/shared:pipeline_metrics",
         "//third_party/python:asyncpg",
         "//third_party/python:redis",
     ],
@@ -63,6 +66,22 @@ py_test(
         ":delivery_lib",
         "//services/notification_service:telegram_sender_lib",
         "//services/notification_service:webhook_sender_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "pipeline_e2e_test",
+    srcs = ["pipeline_e2e_test.py"],
+    deps = [
+        ":delivery_lib",
+        "//services/notification_service:telegram_sender_lib",
+        "//services/notification_service:webhook_sender_lib",
+        "//services/shared:alerting",
+        "//services/shared:circuit_breaker",
+        "//services/shared:dead_letter_queue",
+        "//services/shared:pipeline_metrics",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
     ],
