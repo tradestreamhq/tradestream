@@ -8,11 +8,12 @@ from services.agent_orchestration import config
 from services.agent_orchestration.discovery import run_discovery
 from services.agent_orchestration.monitoring import monitor_promoted_strategies
 from services.agent_orchestration.promotion import promote_winners
+from services.agent_orchestration.resilience import CircuitBreaker, CircuitBreakerOpenError
 from services.agent_orchestration.state import OrchestrationState
 from services.agent_orchestration.validation import validate_candidates
 
 
-def run_cycle(api_key, mcp_urls, state):
+def run_cycle(api_key, mcp_urls, state, circuit_breakers=None):
     """Execute one complete orchestration cycle.
 
     Phases:
@@ -25,10 +26,12 @@ def run_cycle(api_key, mcp_urls, state):
         api_key: LLM API key for discovery phase.
         mcp_urls: Dict of MCP server URLs.
         state: OrchestrationState instance.
+        circuit_breakers: Optional dict of service_name -> CircuitBreaker.
 
     Returns:
         Dict with cycle summary stats.
     """
+    circuit_breakers = circuit_breakers or {}
     state.cycle_number += 1
     cycle_num = state.cycle_number
     logging.info("=== Orchestration Cycle %d START ===", cycle_num)
@@ -39,57 +42,98 @@ def run_cycle(api_key, mcp_urls, state):
         "promoted": 0,
         "monitored_adjusted": 0,
         "monitored_retired": 0,
+        "skipped_phases": [],
     }
 
     # Phase 1: Discovery
     logging.info("[Cycle %d] Phase 1: Discovery", cycle_num)
-    try:
-        discovered_names = run_discovery(api_key, mcp_urls)
-        stats["discovered"] = len(discovered_names)
-        for name in discovered_names:
-            state.add_candidate(name, {"source": "discovery", "cycle": cycle_num})
-        logging.info(
-            "[Cycle %d] Discovered %d candidates", cycle_num, len(discovered_names)
-        )
-    except Exception as e:
-        logging.error("[Cycle %d] Discovery failed: %s", cycle_num, e)
+    cb_strategy = circuit_breakers.get("strategy")
+    if cb_strategy and not cb_strategy.allow_request():
+        logging.warning("[Cycle %d] Discovery skipped: strategy circuit breaker open", cycle_num)
+        stats["skipped_phases"].append("discovery")
         discovered_names = []
+    else:
+        try:
+            existing_names = set(state.candidates.keys())
+            discovered_names = run_discovery(
+                api_key, mcp_urls, existing_names=existing_names
+            )
+            stats["discovered"] = len(discovered_names)
+            for name in discovered_names:
+                state.add_candidate(name, {"source": "discovery", "cycle": cycle_num})
+            logging.info(
+                "[Cycle %d] Discovered %d candidates", cycle_num, len(discovered_names)
+            )
+            if cb_strategy:
+                cb_strategy.record_success()
+        except Exception as e:
+            logging.error("[Cycle %d] Discovery failed: %s", cycle_num, e)
+            if cb_strategy:
+                cb_strategy.record_failure()
+            discovered_names = []
 
     # Phase 2: Validation
     logging.info("[Cycle %d] Phase 2: Validation", cycle_num)
-    try:
-        validated = validate_candidates(discovered_names, mcp_urls)
-        stats["validated"] = len(validated)
-        for name, metrics in validated:
-            state.advance_to_validation(name, metrics)
-        logging.info("[Cycle %d] Validated %d candidates", cycle_num, len(validated))
-    except Exception as e:
-        logging.error("[Cycle %d] Validation failed: %s", cycle_num, e)
+    cb_backtest = circuit_breakers.get("backtest")
+    if cb_backtest and not cb_backtest.allow_request():
+        logging.warning("[Cycle %d] Validation skipped: backtest circuit breaker open", cycle_num)
+        stats["skipped_phases"].append("validation")
         validated = []
+    else:
+        try:
+            validated = validate_candidates(discovered_names, mcp_urls)
+            stats["validated"] = len(validated)
+            for name, metrics in validated:
+                state.advance_to_validation(name, metrics)
+            logging.info("[Cycle %d] Validated %d candidates", cycle_num, len(validated))
+            if cb_backtest:
+                cb_backtest.record_success()
+        except Exception as e:
+            logging.error("[Cycle %d] Validation failed: %s", cycle_num, e)
+            if cb_backtest:
+                cb_backtest.record_failure()
+            validated = []
 
     # Phase 3: Promotion
     logging.info("[Cycle %d] Phase 3: Promotion", cycle_num)
-    try:
-        promoted = promote_winners(validated, state, mcp_urls)
-        stats["promoted"] = len(promoted)
-        logging.info("[Cycle %d] Promoted %d strategies", cycle_num, len(promoted))
-    except Exception as e:
-        logging.error("[Cycle %d] Promotion failed: %s", cycle_num, e)
+    cb_signal = circuit_breakers.get("signal")
+    if cb_signal and not cb_signal.allow_request():
+        logging.warning("[Cycle %d] Promotion skipped: signal circuit breaker open", cycle_num)
+        stats["skipped_phases"].append("promotion")
+    else:
+        try:
+            promoted = promote_winners(validated, state, mcp_urls)
+            stats["promoted"] = len(promoted)
+            logging.info("[Cycle %d] Promoted %d strategies", cycle_num, len(promoted))
+            if cb_signal:
+                cb_signal.record_success()
+        except Exception as e:
+            logging.error("[Cycle %d] Promotion failed: %s", cycle_num, e)
+            if cb_signal:
+                cb_signal.record_failure()
 
     # Phase 4: Monitoring (all promoted strategies, not just this cycle's)
     logging.info("[Cycle %d] Phase 4: Monitoring", cycle_num)
-    try:
-        monitor_result = monitor_promoted_strategies(state, mcp_urls)
-        stats["monitored_adjusted"] = len(monitor_result.get("adjusted", []))
-        stats["monitored_retired"] = len(monitor_result.get("retired", []))
-        logging.info(
-            "[Cycle %d] Monitoring: %d adjusted, %d retired",
-            cycle_num,
-            stats["monitored_adjusted"],
-            stats["monitored_retired"],
-        )
-    except Exception as e:
-        logging.error("[Cycle %d] Monitoring failed: %s", cycle_num, e)
+    if cb_signal and not cb_signal.allow_request():
+        logging.warning("[Cycle %d] Monitoring skipped: signal circuit breaker open", cycle_num)
+        stats["skipped_phases"].append("monitoring")
+    else:
+        try:
+            monitor_result = monitor_promoted_strategies(state, mcp_urls)
+            stats["monitored_adjusted"] = len(monitor_result.get("adjusted", []))
+            stats["monitored_retired"] = len(monitor_result.get("retired", []))
+            logging.info(
+                "[Cycle %d] Monitoring: %d adjusted, %d retired",
+                cycle_num,
+                stats["monitored_adjusted"],
+                stats["monitored_retired"],
+            )
+            if cb_signal:
+                cb_signal.record_success()
+        except Exception as e:
+            logging.error("[Cycle %d] Monitoring failed: %s", cycle_num, e)
+            if cb_signal:
+                cb_signal.record_failure()
 
     # Record stats and persist
     state.last_cycle_time = time.time()
@@ -126,10 +170,16 @@ def run_orchestration_loop(
     interval = cycle_interval_seconds or config.DEFAULT_CYCLE_INTERVAL_SECONDS
     shutdown_check = shutdown_check or (lambda: False)
 
+    # Create circuit breakers for each MCP service
+    circuit_breakers = {
+        name: CircuitBreaker(name=name) for name in mcp_urls
+    }
+
     logging.info(
-        "Orchestration loop starting (interval=%ds, state_file=%s)",
+        "Orchestration loop starting (interval=%ds, state_file=%s, circuit_breakers=%s)",
         interval,
         state.state_file,
+        list(circuit_breakers.keys()),
     )
     state.load()
 
@@ -137,7 +187,7 @@ def run_orchestration_loop(
         cycle_start = time.time()
 
         try:
-            run_cycle(api_key, mcp_urls, state)
+            run_cycle(api_key, mcp_urls, state, circuit_breakers=circuit_breakers)
         except Exception as e:
             logging.error("Orchestration cycle failed: %s", e)
             state.save()

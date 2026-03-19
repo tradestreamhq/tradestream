@@ -118,12 +118,19 @@ TOOL_TO_SERVER = {
 }
 
 
-def run_discovery(api_key, mcp_urls, candidates_per_cycle=None):
+def run_discovery(api_key, mcp_urls, candidates_per_cycle=None, existing_names=None):
     """Run the discovery phase to generate N new strategy candidates.
+
+    Args:
+        api_key: LLM API key.
+        mcp_urls: Dict of MCP server URLs.
+        candidates_per_cycle: Override for number of candidates.
+        existing_names: Set of strategy names already in state (for dedup).
 
     Returns a list of created strategy names, or empty list on failure.
     """
     n = candidates_per_cycle or config.CANDIDATES_PER_CYCLE
+    existing_names = existing_names or set()
 
     client = OpenAI(api_key=api_key, base_url=OPENROUTER_BASE_URL)
 
@@ -185,9 +192,24 @@ def run_discovery(api_key, mcp_urls, candidates_per_cycle=None):
 
             logging.info("Discovery: calling %s(%s)", fn_name, fn_args)
 
-            # Track create_spec calls
+            # Track create_spec calls, skip duplicates
             if fn_name == "create_spec" and "name" in fn_args:
-                created_names.append(fn_args["name"])
+                spec_name = fn_args["name"]
+                if spec_name in existing_names or spec_name in created_names:
+                    logging.info(
+                        "Discovery: skipping duplicate spec %s", spec_name
+                    )
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "content": json.dumps(
+                                {"error": f"Strategy '{spec_name}' already exists. Generate a different name."}
+                            ),
+                        }
+                    )
+                    continue
+                created_names.append(spec_name)
 
             result = resolve_and_call(
                 fn_name,

@@ -67,6 +67,15 @@ py_library(
 )
 
 py_library(
+    name = "resilience_lib",
+    srcs = ["resilience.py"],
+    deps = [
+        ":config_lib",
+        "//third_party/python:absl_py",
+    ],
+)
+
+py_library(
     name = "orchestration_loop_lib",
     srcs = ["orchestration_loop.py"],
     deps = [
@@ -74,6 +83,7 @@ py_library(
         ":discovery_lib",
         ":monitoring_lib",
         ":promotion_lib",
+        ":resilience_lib",
         ":state_lib",
         ":validation_lib",
         "//third_party/python:absl_py",
@@ -178,6 +188,16 @@ py_test(
         ":dashboard_lib",
         ":state_lib",
         "//third_party/python:flask",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "test_resilience",
+    srcs = ["tests/test_resilience.py"],
+    deps = [
+        ":config_lib",
+        ":resilience_lib",
         "//third_party/python:pytest",
     ],
 )
