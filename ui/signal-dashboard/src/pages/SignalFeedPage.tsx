@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useSignalStream } from "@/hooks/useSignalStream";
 import { useSoundAlert } from "@/hooks/useSoundAlert";
+import { useDebounce } from "@/hooks/useDebounce";
 import { SignalCard } from "@/components/signals/SignalCard";
+import { SignalStreamErrorBoundary } from "@/components/signals/SignalStreamErrorBoundary";
 import { PerformanceSidebar } from "@/components/signals/PerformanceSidebar";
 import { PnLTracker } from "@/components/signals/PnLTracker";
 import { cn } from "@/utils/utils";
@@ -9,13 +11,17 @@ import type { Signal } from "@/api/types";
 
 type ActionFilter = "ALL" | "BUY" | "SELL" | "HOLD";
 
+const MAX_SIGNALS = 100;
+
 export function SignalFeedPage() {
   const { signals, isConnected, reconnect } = useSignalStream();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [actionFilter, setActionFilter] = useState<ActionFilter>("ALL");
   const [minScore, setMinScore] = useState(0);
+  const debouncedMinScore = useDebounce(minScore, 150);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
   const { triggerAlert } = useSoundAlert({ enabled: soundEnabled });
   const prevLengthRef = useRef(signals.length);
   const listRef = useRef<HTMLDivElement>(null);
@@ -31,18 +37,27 @@ export function SignalFeedPage() {
     prevLengthRef.current = signals.length;
   }, [signals.length, signals, triggerAlert]);
 
+  // Auto-scroll to top when new signals arrive (pauses on hover)
+  useEffect(() => {
+    if (!isHovered && listRef.current && listRef.current.scrollTo) {
+      listRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [signals.length, isHovered]);
+
   // Filter and sort signals
   const filtered = useMemo(() => {
-    let result = actionFilter === "ALL"
-      ? signals
-      : signals.filter((s) => s.action === actionFilter);
+    let result = signals.slice(0, MAX_SIGNALS);
 
-    if (minScore > 0) {
-      result = result.filter((s) => s.opportunity_score >= minScore);
+    if (actionFilter !== "ALL") {
+      result = result.filter((s) => s.action === actionFilter);
+    }
+
+    if (debouncedMinScore > 0) {
+      result = result.filter((s) => s.opportunity_score >= debouncedMinScore);
     }
 
     return result.sort((a, b) => b.opportunity_score - a.opportunity_score);
-  }, [signals, actionFilter, minScore]);
+  }, [signals, actionFilter, debouncedMinScore]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback(
@@ -73,143 +88,148 @@ export function SignalFeedPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Live Signal Feed</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Real-time trading signals sorted by opportunity score
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <PnLTracker signals={signals} />
-          <button
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-              soundEnabled
-                ? "bg-brand-500/20 text-brand-400"
-                : "text-slate-500 hover:text-slate-300"
-            )}
-            aria-label={soundEnabled ? "Mute sound alerts" : "Enable sound alerts"}
-          >
-            {soundEnabled ? "\uD83D\uDD0A Sound On" : "\uD83D\uDD07 Sound Off"}
-          </button>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 text-xs font-medium",
-              isConnected ? "text-emerald-400" : "text-red-400"
-            )}
-          >
+    <SignalStreamErrorBoundary>
+      <div className="mx-auto max-w-7xl px-2 py-4 sm:px-4 sm:py-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4 sm:mb-6">
+          <div>
+            <h1 className="text-xl font-bold text-white sm:text-2xl">Live Signal Feed</h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Real-time trading signals sorted by opportunity score
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <PnLTracker signals={signals} />
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                soundEnabled
+                  ? "bg-brand-500/20 text-brand-400"
+                  : "text-slate-500 hover:text-slate-300"
+              )}
+              aria-label={soundEnabled ? "Mute sound alerts" : "Enable sound alerts"}
+            >
+              {soundEnabled ? "\uD83D\uDD0A Sound On" : "\uD83D\uDD07 Sound Off"}
+            </button>
             <span
               className={cn(
-                "h-2 w-2 rounded-full",
-                isConnected ? "bg-emerald-400 animate-pulse" : "bg-red-400"
-              )}
-            />
-            {isConnected ? "Live" : "Disconnected"}
-          </span>
-          {!isConnected && (
-            <button
-              onClick={reconnect}
-              className="text-xs text-brand-400 hover:underline"
-            >
-              Reconnect
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="flex gap-2">
-          {(["ALL", "BUY", "SELL", "HOLD"] as const).map((action) => (
-            <button
-              key={action}
-              onClick={() => setActionFilter(action)}
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                actionFilter === action
-                  ? action === "BUY"
-                    ? "bg-emerald-500/20 text-emerald-400"
-                    : action === "SELL"
-                    ? "bg-red-500/20 text-red-400"
-                    : action === "HOLD"
-                    ? "bg-amber-500/20 text-amber-400"
-                    : "bg-brand-500/20 text-brand-400"
-                  : "text-slate-400 hover:text-white"
+                "inline-flex items-center gap-1.5 text-xs font-medium",
+                isConnected ? "text-emerald-400" : "text-red-400"
               )}
             >
-              {action}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <label htmlFor="min-score" className="text-xs text-slate-500">
-            Min score:
-          </label>
-          <input
-            id="min-score"
-            type="range"
-            min={0}
-            max={100}
-            value={minScore}
-            onChange={(e) => setMinScore(Number(e.target.value))}
-            className="h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-slate-700 accent-brand-500"
-          />
-          <span className="w-8 text-right text-xs font-medium text-slate-400">
-            {minScore}
-          </span>
-        </div>
-      </div>
-
-      {/* Main layout: signals + sidebar */}
-      <div className="flex flex-col gap-6 lg:flex-row">
-        {/* Signal list */}
-        <div
-          ref={listRef}
-          className="min-w-0 flex-1 space-y-4"
-          role="feed"
-          aria-label="Trading signals sorted by opportunity score"
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-        >
-          {filtered.length === 0 && (
-            <div className="card text-center text-slate-500">
-              {signals.length === 0
-                ? "Waiting for signals..."
-                : "No signals match the current filters."}
-            </div>
-          )}
-          {filtered.map((signal: Signal, index: number) => (
-            <SignalCard
-              key={signal.signal_id}
-              signal={signal}
-              expanded={expandedId === signal.signal_id}
-              isFocused={focusedIndex === index}
-              onToggle={() =>
-                setExpandedId(
-                  expandedId === signal.signal_id ? null : signal.signal_id
-                )
-              }
-            />
-          ))}
-
-          {/* Live region for screen reader */}
-          <div
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-            className="sr-only"
-          >
-            {filtered.length} signals available
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  isConnected ? "bg-emerald-400 animate-pulse" : "bg-red-400"
+                )}
+              />
+              {isConnected ? "Live" : "Disconnected"}
+            </span>
+            {!isConnected && (
+              <button
+                onClick={reconnect}
+                className="text-xs text-brand-400 hover:underline"
+              >
+                Reconnect
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Performance sidebar */}
-        <PerformanceSidebar signals={signals} />
+        {/* Filters — sticky on mobile */}
+        <div className="sticky top-0 z-10 -mx-2 mb-4 flex flex-wrap items-center gap-3 bg-surface/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mb-6 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+          <div className="flex gap-2">
+            {(["ALL", "BUY", "SELL", "HOLD"] as const).map((action) => (
+              <button
+                key={action}
+                onClick={() => setActionFilter(action)}
+                className={cn(
+                  "min-h-[44px] rounded-lg px-3 py-1.5 text-sm font-medium transition-colors sm:min-h-0",
+                  actionFilter === action
+                    ? action === "BUY"
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : action === "SELL"
+                      ? "bg-red-500/20 text-red-400"
+                      : action === "HOLD"
+                      ? "bg-amber-500/20 text-amber-400"
+                      : "bg-brand-500/20 text-brand-400"
+                    : "text-slate-400 hover:text-white"
+                )}
+              >
+                {action}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="min-score" className="text-xs text-slate-500">
+              Min score:
+            </label>
+            <input
+              id="min-score"
+              type="range"
+              min={0}
+              max={100}
+              value={minScore}
+              onChange={(e) => setMinScore(Number(e.target.value))}
+              className="h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-slate-700 accent-brand-500"
+            />
+            <span className="w-8 text-right text-xs font-medium text-slate-400">
+              {minScore}
+            </span>
+          </div>
+        </div>
+
+        {/* Main layout: signals + sidebar */}
+        <div className="flex flex-col gap-6 lg:flex-row">
+          {/* Signal list */}
+          <div
+            ref={listRef}
+            className="min-w-0 flex-1 space-y-4 overflow-y-auto"
+            style={{ maxHeight: "calc(100vh - 220px)" }}
+            role="feed"
+            aria-label="Trading signals sorted by opportunity score"
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {filtered.length === 0 && (
+              <div className="card text-center text-slate-500">
+                {signals.length === 0
+                  ? "Waiting for signals..."
+                  : "No signals match the current filters."}
+              </div>
+            )}
+            {filtered.map((signal: Signal, index: number) => (
+              <SignalCard
+                key={signal.signal_id}
+                signal={signal}
+                expanded={expandedId === signal.signal_id}
+                isFocused={focusedIndex === index}
+                onToggle={() =>
+                  setExpandedId(
+                    expandedId === signal.signal_id ? null : signal.signal_id
+                  )
+                }
+              />
+            ))}
+
+            {/* Live region for screen reader */}
+            <div
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              className="sr-only"
+            >
+              {filtered.length} signals available
+            </div>
+          </div>
+
+          {/* Performance sidebar */}
+          <PerformanceSidebar signals={signals} />
+        </div>
       </div>
-    </div>
+    </SignalStreamErrorBoundary>
   );
 }
