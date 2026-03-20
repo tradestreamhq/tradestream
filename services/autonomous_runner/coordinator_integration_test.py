@@ -32,8 +32,13 @@ def _make_coordinator(config=None) -> SignalCoordinator:
 
 BULLISH_STRATEGIES = {
     "strategies": [
-        {"name": "RSI_REVERSAL", "signal": "BUY", "score": 0.89, "confidence": 0.85,
-         "parameters": {"rsiPeriod": 14, "oversold": 30}},
+        {
+            "name": "RSI_REVERSAL",
+            "signal": "BUY",
+            "score": 0.89,
+            "confidence": 0.85,
+            "parameters": {"rsiPeriod": 14, "oversold": 30},
+        },
         {"name": "MACD_CROSS", "signal": "BUY", "score": 0.85, "confidence": 0.78},
         {"name": "EMA_TREND", "signal": "BUY", "score": 0.72, "confidence": 0.70},
         {"name": "VOLUME_BREAKOUT", "signal": "BUY", "score": 0.65, "confidence": 0.60},
@@ -88,7 +93,12 @@ RECENT_BUY_SIGNALS = {
     ]
 }
 
-ACCURACY_HIGH = {"accuracy": 0.78, "buy_accuracy": 0.82, "sell_accuracy": 0.55, "total": 100}
+ACCURACY_HIGH = {
+    "accuracy": 0.78,
+    "buy_accuracy": 0.82,
+    "sell_accuracy": 0.55,
+    "total": 100,
+}
 ACCURACY_LOW = {"accuracy": 0.35, "total": 2}
 
 
@@ -98,6 +108,7 @@ class TestFullPipelineBullish:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_bullish_consensus_generates_buy(self, mock_call):
         """When strategies + market + sentiment all agree bullish, emit BUY."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return BULLISH_STRATEGIES
@@ -125,6 +136,7 @@ class TestFullPipelineBullish:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_bullish_decision_has_complete_fields(self, mock_call):
         """Verify all spec-required fields are populated."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return BULLISH_STRATEGIES
@@ -186,6 +198,7 @@ class TestFullPipelineBearish:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_bearish_consensus_generates_sell(self, mock_call):
         """When strategies + market both point bearish, emit SELL."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return BEARISH_STRATEGIES
@@ -194,7 +207,12 @@ class TestFullPipelineBearish:
             elif tool == "get_recent_signals":
                 return {"signals": [{"action": "SELL"}, {"action": "SELL"}]}
             elif tool == "get_signal_accuracy":
-                return {"accuracy": 0.4, "buy_accuracy": 0.3, "sell_accuracy": 0.7, "total": 50}
+                return {
+                    "accuracy": 0.4,
+                    "buy_accuracy": 0.3,
+                    "sell_accuracy": 0.7,
+                    "total": 50,
+                }
             elif tool == "emit_signal":
                 return {"success": True}
             return {"error": "unknown"}
@@ -213,6 +231,7 @@ class TestConflictResolution:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_mixed_signals_resolve_by_fusion(self, mock_call):
         """When strategies disagree, fusion should resolve the conflict."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return MIXED_STRATEGIES
@@ -254,6 +273,7 @@ class TestDegradedMode:
     def test_partial_failure_applies_penalty(self, mock_call):
         """When some sources fail, confidence penalty is applied."""
         call_count = [0]
+
         def mock_responses(tool, params, *args, **kwargs):
             call_count[0] += 1
             if tool == "get_top_strategies":
@@ -274,7 +294,9 @@ class TestDegradedMode:
 
         # Should still generate a signal but with degraded confidence
         assert decision is not None
-        assert "Degraded" in decision.reasoning or decision.tool_calls.get("is_degraded")
+        assert "Degraded" in decision.reasoning or decision.tool_calls.get(
+            "is_degraded"
+        )
 
 
 class TestRiskManagement:
@@ -283,6 +305,7 @@ class TestRiskManagement:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_low_confidence_rejected(self, mock_call):
         """Signals below minimum confidence threshold are rejected."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return MIXED_STRATEGIES
@@ -305,6 +328,7 @@ class TestRiskManagement:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_max_concurrent_signals_enforced(self, mock_call):
         """Risk manager enforces maximum concurrent signal limit."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return BULLISH_STRATEGIES
@@ -339,6 +363,7 @@ class TestBatchProcessing:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_batch_processes_all_symbols(self, mock_call):
         """Process multiple symbols in batch."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return BULLISH_STRATEGIES
@@ -365,6 +390,7 @@ class TestBatchProcessing:
     def test_batch_with_partial_failures(self, mock_call):
         """Batch processing continues even if some symbols fail."""
         fail_symbols = {"FAIL-USD"}
+
         def mock_responses(tool, params, *args, **kwargs):
             symbol = params.get("symbol", "")
             if symbol in fail_symbols:
@@ -397,6 +423,7 @@ class TestDecisionRecording:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_decisions_appear_in_recent_list(self, mock_call):
         """Decisions are recorded in the in-memory log."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return BULLISH_STRATEGIES
@@ -442,6 +469,7 @@ class TestSignalEmission:
     def test_approved_signal_calls_emit(self, mock_call):
         """Approved BUY/SELL signals call emit_signal MCP tool."""
         emit_called = [False]
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "emit_signal":
                 emit_called[0] = True
@@ -473,7 +501,8 @@ class TestSignalEmission:
         assert decision.action == "HOLD"
         # emit_signal should not appear in tool calls for HOLD
         emit_calls = [
-            c for c in decision.tool_calls.get("calls", [])
+            c
+            for c in decision.tool_calls.get("calls", [])
             if c.get("tool") == "emit_signal"
         ]
         assert len(emit_calls) == 0
@@ -485,6 +514,7 @@ class TestPredictionMarketIntegration:
     @patch("services.autonomous_runner.coordinator.resolve_and_call")
     def test_prediction_market_contributes_to_fusion(self, mock_call):
         """Prediction market signals are included in fusion."""
+
         def mock_responses(tool, params, *args, **kwargs):
             if tool == "get_top_strategies":
                 return BULLISH_STRATEGIES
@@ -493,8 +523,14 @@ class TestPredictionMarketIntegration:
             elif tool == "get_recent_signals":
                 return {"signals": []}
             elif tool == "get_signal_accuracy":
-                return {"accuracy": 0.80, "buy_accuracy": 0.85, "sell_accuracy": 0.50,
-                        "win_rate": 0.80, "total_decisions": 50, "total": 50}
+                return {
+                    "accuracy": 0.80,
+                    "buy_accuracy": 0.85,
+                    "sell_accuracy": 0.50,
+                    "win_rate": 0.80,
+                    "total_decisions": 50,
+                    "total": 50,
+                }
             elif tool == "emit_signal":
                 return {"success": True}
             return {"error": "unknown"}
@@ -504,7 +540,11 @@ class TestPredictionMarketIntegration:
         decision = coord._process_symbol("BTC-USD", timeout=10.0)
 
         # Should have multiple source signals including prediction market
-        sources = {s.source for s in decision.source_signals} if decision.source_signals else set()
+        sources = (
+            {s.source for s in decision.source_signals}
+            if decision.source_signals
+            else set()
+        )
         assert "strategy_consensus" in sources
 
 
@@ -515,6 +555,7 @@ class TestLearningEngineIntegration:
     def test_learning_engine_with_sufficient_data(self, mock_call):
         """Learning engine contributes signal when sufficient history exists."""
         call_log = []
+
         def mock_responses(tool, params, *args, **kwargs):
             call_log.append(tool)
             if tool == "get_top_strategies":
@@ -524,8 +565,14 @@ class TestLearningEngineIntegration:
             elif tool == "get_recent_signals":
                 return {"signals": []}
             elif tool == "get_signal_accuracy":
-                return {"accuracy": 0.75, "buy_accuracy": 0.80, "sell_accuracy": 0.50,
-                        "win_rate": 0.75, "total_decisions": 50, "total": 50}
+                return {
+                    "accuracy": 0.75,
+                    "buy_accuracy": 0.80,
+                    "sell_accuracy": 0.50,
+                    "win_rate": 0.75,
+                    "total_decisions": 50,
+                    "total": 50,
+                }
             elif tool == "emit_signal":
                 return {"success": True}
             return {"error": "unknown"}

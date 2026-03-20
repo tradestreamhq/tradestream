@@ -86,8 +86,21 @@ class TestDecisionQueryServiceWithMockDB:
         svc, cursor = self._make_service()
         now = datetime.now(timezone.utc)
         cursor.fetchall.return_value = [
-            ("id-1", "ETH-USD", "SELL", 0.72, 65.0, "GOOD",
-             "Bearish", {}, {}, {}, True, 120, now),
+            (
+                "id-1",
+                "ETH-USD",
+                "SELL",
+                0.72,
+                65.0,
+                "GOOD",
+                "Bearish",
+                {},
+                {},
+                {},
+                True,
+                120,
+                now,
+            ),
         ]
         results = svc.get_decisions_by_symbol("ETH-USD", days=7, limit=10)
         assert len(results) == 1
@@ -154,7 +167,15 @@ class TestDecisionQueryServiceWithMockDB:
         svc, cursor = self._make_service()
         now = datetime.now(timezone.utc)
         cursor.fetchall.return_value = [
-            ("id-1", "BTC-USD", "BUY", 0.85, 78.5, {"top_strategy": "RSI_REVERSAL"}, now),
+            (
+                "id-1",
+                "BTC-USD",
+                "BUY",
+                0.85,
+                78.5,
+                {"top_strategy": "RSI_REVERSAL"},
+                now,
+            ),
         ]
         results = svc.find_decisions_by_strategy("RSI_REVERSAL")
         assert len(results) == 1

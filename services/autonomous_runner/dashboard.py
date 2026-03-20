@@ -417,7 +417,11 @@ def high_opportunity_decisions(
     query_svc = _get_query_service()
     if not query_svc:
         return {"error": "Database not available", "decisions": []}
-    return {"decisions": query_svc.get_high_opportunity_decisions(min_score=min_score, hours=hours)}
+    return {
+        "decisions": query_svc.get_high_opportunity_decisions(
+            min_score=min_score, hours=hours
+        )
+    }
 
 
 def _get_query_service():
@@ -426,6 +430,7 @@ def _get_query_service():
         return None
     try:
         from services.autonomous_runner.decision_queries import DecisionQueryService
+
         return DecisionQueryService(db_pool=_state.coordinator._db._pool)
     except Exception:
         return None

@@ -74,9 +74,15 @@ class DecisionQueryService:
                 return _rows_to_dicts(
                     cur.fetchall(),
                     [
-                        "decision_id", "symbol", "action", "confidence",
-                        "opportunity_score", "opportunity_tier",
-                        "reasoning", "strategy_breakdown", "created_at",
+                        "decision_id",
+                        "symbol",
+                        "action",
+                        "confidence",
+                        "opportunity_score",
+                        "opportunity_tier",
+                        "reasoning",
+                        "strategy_breakdown",
+                        "created_at",
                     ],
                 )
         except Exception as e:
@@ -114,10 +120,19 @@ class DecisionQueryService:
                 return _rows_to_dicts(
                     cur.fetchall(),
                     [
-                        "decision_id", "symbol", "action", "confidence",
-                        "opportunity_score", "opportunity_tier",
-                        "reasoning", "strategy_breakdown", "market_context",
-                        "tool_calls", "risk_approved", "latency_ms", "created_at",
+                        "decision_id",
+                        "symbol",
+                        "action",
+                        "confidence",
+                        "opportunity_score",
+                        "opportunity_tier",
+                        "reasoning",
+                        "strategy_breakdown",
+                        "market_context",
+                        "tool_calls",
+                        "risk_approved",
+                        "latency_ms",
+                        "created_at",
                     ],
                 )
         except Exception as e:
@@ -153,9 +168,14 @@ class DecisionQueryService:
                 return _rows_to_dicts(
                     cur.fetchall(),
                     [
-                        "decision_id", "symbol", "action", "confidence",
-                        "opportunity_score", "opportunity_tier",
-                        "reasoning", "created_at",
+                        "decision_id",
+                        "symbol",
+                        "action",
+                        "confidence",
+                        "opportunity_score",
+                        "opportunity_tier",
+                        "reasoning",
+                        "created_at",
                     ],
                 )
         except Exception as e:
@@ -225,8 +245,11 @@ class DecisionQueryService:
                 return _rows_to_dicts(
                     cur.fetchall(),
                     [
-                        "model_used", "agent_type", "decisions",
-                        "avg_latency_ms", "total_input_tokens",
+                        "model_used",
+                        "agent_type",
+                        "decisions",
+                        "avg_latency_ms",
+                        "total_input_tokens",
                         "total_output_tokens",
                     ],
                 )
@@ -270,9 +293,13 @@ class DecisionQueryService:
                 return _rows_to_dicts(
                     cur.fetchall(),
                     [
-                        "symbol", "action", "total_decisions",
-                        "correct_decisions", "accuracy",
-                        "avg_return", "avg_drawdown",
+                        "symbol",
+                        "action",
+                        "total_decisions",
+                        "correct_decisions",
+                        "accuracy",
+                        "avg_return",
+                        "avg_drawdown",
                     ],
                 )
         except Exception as e:
@@ -304,17 +331,20 @@ class DecisionQueryService:
                 return _rows_to_dicts(
                     cur.fetchall(),
                     [
-                        "decision_id", "symbol", "action", "confidence",
-                        "opportunity_score", "latency_ms", "created_at",
+                        "decision_id",
+                        "symbol",
+                        "action",
+                        "confidence",
+                        "opportunity_score",
+                        "latency_ms",
+                        "created_at",
                     ],
                 )
         except Exception as e:
             logger.error("Tool search query failed: %s", e)
             return []
 
-    def find_decisions_by_strategy(
-        self, strategy_name: str, limit: int = 20
-    ) -> list:
+    def find_decisions_by_strategy(self, strategy_name: str, limit: int = 20) -> list:
         """Find decisions that used a specific strategy (GIN index query).
 
         Uses strategy_breakdown JSONB containment for efficient lookup.
@@ -339,8 +369,13 @@ class DecisionQueryService:
                 return _rows_to_dicts(
                     cur.fetchall(),
                     [
-                        "decision_id", "symbol", "action", "confidence",
-                        "opportunity_score", "strategy_breakdown", "created_at",
+                        "decision_id",
+                        "symbol",
+                        "action",
+                        "confidence",
+                        "opportunity_score",
+                        "strategy_breakdown",
+                        "created_at",
                     ],
                 )
         except Exception as e:
