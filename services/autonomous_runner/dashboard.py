@@ -31,9 +31,7 @@ class DashboardState:
 _state = DashboardState()
 
 
-def set_dashboard_state(
-    coordinator=None, kill_switch=None, runner_started_at=None
-):
+def set_dashboard_state(coordinator=None, kill_switch=None, runner_started_at=None):
     """Set the shared state references (called from main runner)."""
     if coordinator:
         _state.coordinator = coordinator

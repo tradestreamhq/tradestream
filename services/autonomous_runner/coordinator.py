@@ -98,9 +98,7 @@ class SignalCoordinator:
 
         return all_signals
 
-    def _process_symbol(
-        self, symbol: str, timeout: float
-    ) -> Optional[AgentDecision]:
+    def _process_symbol(self, symbol: str, timeout: float) -> Optional[AgentDecision]:
         """Process a single symbol through the full pipeline."""
         start_time = time.time()
         tool_calls = []
@@ -114,9 +112,7 @@ class SignalCoordinator:
             source_signals.append(strategy_signal)
 
         # 1b. Market context for regime detection
-        market_context, regime_signal = self._fetch_market_regime(
-            symbol, tool_calls
-        )
+        market_context, regime_signal = self._fetch_market_regime(symbol, tool_calls)
         if regime_signal:
             source_signals.append(regime_signal)
 
@@ -198,7 +194,11 @@ class SignalCoordinator:
                     "tool": "get_top_strategies",
                     "server": "strategy",
                     "parameters": {"symbol": symbol, "limit": 10},
-                    "result": result if not isinstance(result, dict) or "error" not in result else result,
+                    "result": (
+                        result
+                        if not isinstance(result, dict) or "error" not in result
+                        else result
+                    ),
                     "latency_ms": call_ms,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
@@ -211,7 +211,9 @@ class SignalCoordinator:
             self.llm_circuit_breaker.record_success()
 
             # Parse strategy signals
-            strategies = result if isinstance(result, list) else result.get("strategies", [])
+            strategies = (
+                result if isinstance(result, list) else result.get("strategies", [])
+            )
             if not strategies:
                 return None
 
@@ -236,23 +238,27 @@ class SignalCoordinator:
             else:
                 action = SignalAction.HOLD
 
-            consensus_ratio = max(buy_count, sell_count, total - buy_count - sell_count) / total
+            consensus_ratio = (
+                max(buy_count, sell_count, total - buy_count - sell_count) / total
+            )
             confidence = min(0.95, max(0.30, consensus_ratio * (0.8 + 0.2 * avg_score)))
 
             return SourceSignal(
                 source="strategy_consensus",
                 action=action,
                 confidence=confidence,
-                metadata={"strategies_count": total, "buy": buy_count, "sell": sell_count},
+                metadata={
+                    "strategies_count": total,
+                    "buy": buy_count,
+                    "sell": sell_count,
+                },
             )
         except Exception as e:
             logger.warning("Strategy fetch failed for %s: %s", symbol, e)
             self.llm_circuit_breaker.record_failure()
             return None
 
-    def _fetch_market_regime(
-        self, symbol: str, tool_calls: list
-    ) -> tuple:
+    def _fetch_market_regime(self, symbol: str, tool_calls: list) -> tuple:
         """Fetch market data and detect regime."""
         call_start = time.time()
         market_context = {}
@@ -270,7 +276,11 @@ class SignalCoordinator:
                     "tool": "get_market_summary",
                     "server": "market",
                     "parameters": {"symbol": symbol},
-                    "result": result if not isinstance(result, dict) or "error" not in result else result,
+                    "result": (
+                        result
+                        if not isinstance(result, dict) or "error" not in result
+                        else result
+                    ),
                     "latency_ms": call_ms,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
@@ -280,7 +290,9 @@ class SignalCoordinator:
                 market_context = result
 
                 # Simple regime detection from market data
-                price_change = result.get("price_change_1h", result.get("change_pct", 0))
+                price_change = result.get(
+                    "price_change_1h", result.get("change_pct", 0)
+                )
                 volatility = result.get("volatility", result.get("volatility_1h", 0))
                 volume_ratio = result.get("volume_ratio", 1.0)
 
@@ -330,7 +342,11 @@ class SignalCoordinator:
                     "tool": "get_recent_signals",
                     "server": "signal",
                     "parameters": {"symbol": symbol, "limit": 10},
-                    "result": result if not isinstance(result, dict) or "error" not in result else result,
+                    "result": (
+                        result
+                        if not isinstance(result, dict) or "error" not in result
+                        else result
+                    ),
                     "latency_ms": call_ms,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }

@@ -19,24 +19,16 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL."
 )
-flags.DEFINE_string(
-    "mcp_market_url", "http://localhost:8081", "Market MCP server URL."
-)
-flags.DEFINE_string(
-    "mcp_signal_url", "http://localhost:8082", "Signal MCP server URL."
-)
+flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL.")
+flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL.")
 flags.DEFINE_string(
     "redis_url", "redis://localhost:6379", "Redis URL for locks and kill switch."
 )
 flags.DEFINE_integer(
     "interval_minutes", 1, "Interval between signal generation cycles."
 )
-flags.DEFINE_integer(
-    "dashboard_port", 8090, "Port for the pipeline dashboard API."
-)
-flags.DEFINE_boolean(
-    "enable_dashboard", True, "Enable the pipeline dashboard API."
-)
+flags.DEFINE_integer("dashboard_port", 8090, "Port for the pipeline dashboard API.")
+flags.DEFINE_boolean("enable_dashboard", True, "Enable the pipeline dashboard API.")
 
 flags.mark_flag_as_required("openrouter_api_key")
 
@@ -71,6 +63,7 @@ def main(argv):
 
     # Start dashboard in a separate thread if enabled
     if FLAGS.enable_dashboard:
+
         def run_dashboard():
             import uvicorn
 

@@ -159,12 +159,18 @@ class AgentDecision:
             "position_size_pct": self.position_size_pct,
             "fusion_agreement_ratio": self.fusion_agreement_ratio,
             "conflict_resolution": self.conflict_resolution,
-            "source_signals": [
-                {"source": s.source, "action": s.action.value, "confidence": s.confidence}
-                for s in self.source_signals
-            ]
-            if self.source_signals
-            else [],
+            "source_signals": (
+                [
+                    {
+                        "source": s.source,
+                        "action": s.action.value,
+                        "confidence": s.confidence,
+                    }
+                    for s in self.source_signals
+                ]
+                if self.source_signals
+                else []
+            ),
         }
 
 

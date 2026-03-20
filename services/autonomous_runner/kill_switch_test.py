@@ -25,7 +25,9 @@ class FakeRedis:
 class TestKillSwitch:
     def _make_switch(self) -> tuple:
         redis = FakeRedis()
-        config = KillSwitchConfig(redis_key="test:kill_switch", check_interval_seconds=0)
+        config = KillSwitchConfig(
+            redis_key="test:kill_switch", check_interval_seconds=0
+        )
         ks = KillSwitch(redis, config)
         return ks, redis
 

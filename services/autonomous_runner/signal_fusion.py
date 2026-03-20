@@ -77,9 +77,7 @@ def calculate_confidence(strategies: list) -> float:
     max_agreement = max(bullish, bearish, neutral)
     consensus_ratio = max_agreement / total if total > 0 else 0
 
-    avg_confidence = (
-        sum(s.confidence for s in strategies) / total if total > 0 else 0
-    )
+    avg_confidence = sum(s.confidence for s in strategies) / total if total > 0 else 0
 
     if consensus_ratio >= 0.8:
         base = 0.85
@@ -126,7 +124,11 @@ def fuse_signals(
         sig.weight = weights.get(sig.source, 0.10)
 
     # Weighted vote tally
-    vote_scores = {SignalAction.BUY: 0.0, SignalAction.SELL: 0.0, SignalAction.HOLD: 0.0}
+    vote_scores = {
+        SignalAction.BUY: 0.0,
+        SignalAction.SELL: 0.0,
+        SignalAction.HOLD: 0.0,
+    }
     total_weight = 0.0
 
     for sig in source_signals:
@@ -177,9 +179,7 @@ def fuse_signals(
     )
 
 
-def _resolve_weighted_majority(
-    vote_scores: dict, source_signals: list
-) -> tuple:
+def _resolve_weighted_majority(vote_scores: dict, source_signals: list) -> tuple:
     """Weighted majority wins. If tied, prefer HOLD."""
     sorted_actions = sorted(vote_scores.items(), key=lambda x: x[1], reverse=True)
     top = sorted_actions[0]
@@ -245,9 +245,7 @@ def _calculate_fused_confidence(
         agreement_bonus = 0.05
 
     # Average confidence of agreeing sources
-    agreeing_confidences = [
-        s.confidence for s in source_signals if s.action == action
-    ]
+    agreeing_confidences = [s.confidence for s in source_signals if s.action == action]
     avg_agree_conf = (
         sum(agreeing_confidences) / len(agreeing_confidences)
         if agreeing_confidences

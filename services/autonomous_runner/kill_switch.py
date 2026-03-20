@@ -59,9 +59,7 @@ class KillSwitch:
             }
             self.redis.set(self.config.redis_key, json.dumps(data))
             self._local_cache = True
-            logger.warning(
-                "Kill switch ACTIVATED by %s: %s", activated_by, reason
-            )
+            logger.warning("Kill switch ACTIVATED by %s: %s", activated_by, reason)
             return True
         except Exception as e:
             logger.error("Failed to activate kill switch: %s", e)

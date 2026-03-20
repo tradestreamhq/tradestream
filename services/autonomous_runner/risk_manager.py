@@ -78,11 +78,7 @@ class RiskManager:
         # 4. Per-symbol rate limit
         now = time.time()
         hour_ago = now - 3600
-        recent = [
-            ts
-            for ts in self._signal_history[signal.symbol]
-            if ts > hour_ago
-        ]
+        recent = [ts for ts in self._signal_history[signal.symbol] if ts > hour_ago]
         self._signal_history[signal.symbol] = recent
 
         if len(recent) >= self.config.max_signals_per_symbol_per_hour:
@@ -187,7 +183,9 @@ class RiskManager:
         confidence = signal.confidence
 
         # Penalize when approaching exposure limits
-        exposure_ratio = self._portfolio_exposure_pct / self.config.max_portfolio_exposure_pct
+        exposure_ratio = (
+            self._portfolio_exposure_pct / self.config.max_portfolio_exposure_pct
+        )
         if exposure_ratio > 0.7:
             penalty = (exposure_ratio - 0.7) * 0.3  # up to 9% penalty
             confidence -= penalty

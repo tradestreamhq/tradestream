@@ -127,7 +127,10 @@ class AutonomousRunner:
         except Exception as e:
             logger.error("Signal generation cycle failed: %s", e)
             self._consecutive_overruns += 1
-            if self._consecutive_overruns >= self.config.adaptive.backpressure_max_overruns:
+            if (
+                self._consecutive_overruns
+                >= self.config.adaptive.backpressure_max_overruns
+            ):
                 self._cooldown_remaining = self.config.adaptive.cooldown_cycles
                 logger.warning(
                     "Backpressure triggered after %d overruns, cooling down for %d cycles",

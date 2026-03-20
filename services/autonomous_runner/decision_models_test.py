@@ -63,7 +63,9 @@ class TestAgentDecision:
             symbol="BTC-USD",
             action="BUY",
             source_signals=[
-                SourceSignal(source="strategy", action=SignalAction.BUY, confidence=0.9),
+                SourceSignal(
+                    source="strategy", action=SignalAction.BUY, confidence=0.9
+                ),
             ],
         )
         result = d.to_dict()

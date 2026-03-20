@@ -115,12 +115,8 @@ class Config:
             mcp_strategy_url=os.environ.get(
                 "MCP_STRATEGY_URL", "http://localhost:8080"
             ),
-            mcp_market_url=os.environ.get(
-                "MCP_MARKET_URL", "http://localhost:8081"
-            ),
-            mcp_signal_url=os.environ.get(
-                "MCP_SIGNAL_URL", "http://localhost:8082"
-            ),
+            mcp_market_url=os.environ.get("MCP_MARKET_URL", "http://localhost:8081"),
+            mcp_signal_url=os.environ.get("MCP_SIGNAL_URL", "http://localhost:8082"),
         )
 
         symbols_env = os.environ.get("SYMBOLS", "")

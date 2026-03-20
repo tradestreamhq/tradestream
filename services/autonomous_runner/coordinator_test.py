@@ -103,10 +103,30 @@ class TestSignalCoordinator:
         if tool_name == "get_top_strategies":
             return {
                 "strategies": [
-                    {"name": "RSI_REVERSAL", "signal": "BUY", "score": 0.89, "confidence": 0.85},
-                    {"name": "MACD_CROSS", "signal": "BUY", "score": 0.85, "confidence": 0.78},
-                    {"name": "EMA_TREND", "signal": "BUY", "score": 0.72, "confidence": 0.70},
-                    {"name": "VOLUME_BREAKOUT", "signal": "SELL", "score": 0.65, "confidence": 0.60},
+                    {
+                        "name": "RSI_REVERSAL",
+                        "signal": "BUY",
+                        "score": 0.89,
+                        "confidence": 0.85,
+                    },
+                    {
+                        "name": "MACD_CROSS",
+                        "signal": "BUY",
+                        "score": 0.85,
+                        "confidence": 0.78,
+                    },
+                    {
+                        "name": "EMA_TREND",
+                        "signal": "BUY",
+                        "score": 0.72,
+                        "confidence": 0.70,
+                    },
+                    {
+                        "name": "VOLUME_BREAKOUT",
+                        "signal": "SELL",
+                        "score": 0.65,
+                        "confidence": 0.60,
+                    },
                 ]
             }
         elif tool_name == "get_market_summary":

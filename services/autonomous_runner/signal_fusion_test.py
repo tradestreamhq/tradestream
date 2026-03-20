@@ -43,9 +43,13 @@ class TestCalculateConfidence:
 class TestFuseSignals:
     def test_unanimous_buy(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.9),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.9
+            ),
             SourceSignal(source="sentiment", action=SignalAction.BUY, confidence=0.7),
-            SourceSignal(source="prediction_market", action=SignalAction.BUY, confidence=0.8),
+            SourceSignal(
+                source="prediction_market", action=SignalAction.BUY, confidence=0.8
+            ),
         ]
         result = fuse_signals("BTC-USD", signals)
         assert result.action == SignalAction.BUY
@@ -55,9 +59,13 @@ class TestFuseSignals:
 
     def test_majority_buy(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.85),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.85
+            ),
             SourceSignal(source="sentiment", action=SignalAction.BUY, confidence=0.6),
-            SourceSignal(source="regime_detection", action=SignalAction.SELL, confidence=0.5),
+            SourceSignal(
+                source="regime_detection", action=SignalAction.SELL, confidence=0.5
+            ),
         ]
         result = fuse_signals("ETH-USD", signals)
         assert result.action == SignalAction.BUY
@@ -65,7 +73,9 @@ class TestFuseSignals:
 
     def test_conflict_defaults_to_hold(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.6),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.6
+            ),
             SourceSignal(source="sentiment", action=SignalAction.SELL, confidence=0.6),
         ]
         result = fuse_signals(
@@ -83,7 +93,9 @@ class TestFuseSignals:
 
     def test_highest_confidence_strategy(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.SELL, confidence=0.5),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.SELL, confidence=0.5
+            ),
             SourceSignal(source="sentiment", action=SignalAction.BUY, confidence=0.95),
         ]
         result = fuse_signals(
@@ -96,10 +108,16 @@ class TestFuseSignals:
 
     def test_conservative_requires_strong_consensus(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.9),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.9
+            ),
             SourceSignal(source="sentiment", action=SignalAction.BUY, confidence=0.85),
-            SourceSignal(source="prediction_market", action=SignalAction.BUY, confidence=0.8),
-            SourceSignal(source="regime_detection", action=SignalAction.HOLD, confidence=0.4),
+            SourceSignal(
+                source="prediction_market", action=SignalAction.BUY, confidence=0.8
+            ),
+            SourceSignal(
+                source="regime_detection", action=SignalAction.HOLD, confidence=0.4
+            ),
         ]
         result = fuse_signals(
             "BTC-USD",
@@ -111,7 +129,9 @@ class TestFuseSignals:
 
     def test_source_weights_applied(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.6),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.6
+            ),
             SourceSignal(source="sentiment", action=SignalAction.SELL, confidence=0.9),
         ]
         # Strategy has higher weight than sentiment
@@ -122,7 +142,9 @@ class TestFuseSignals:
 
     def test_fused_signal_has_all_fields(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.8),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.8
+            ),
         ]
         result = fuse_signals("BTC-USD", signals)
         assert isinstance(result, FusedSignal)
@@ -136,9 +158,13 @@ class TestFuseSignals:
 class TestConflictResolution:
     def test_weighted_majority_clear_winner(self):
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.9),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.9
+            ),
             SourceSignal(source="sentiment", action=SignalAction.BUY, confidence=0.8),
-            SourceSignal(source="regime_detection", action=SignalAction.SELL, confidence=0.3),
+            SourceSignal(
+                source="regime_detection", action=SignalAction.SELL, confidence=0.3
+            ),
         ]
         result = fuse_signals(
             "BTC-USD",
@@ -150,8 +176,12 @@ class TestConflictResolution:
     def test_weighted_majority_near_tie_gives_hold(self):
         # Both sources equal weight and confidence
         signals = [
-            SourceSignal(source="strategy_consensus", action=SignalAction.BUY, confidence=0.5),
-            SourceSignal(source="prediction_market", action=SignalAction.SELL, confidence=0.5),
+            SourceSignal(
+                source="strategy_consensus", action=SignalAction.BUY, confidence=0.5
+            ),
+            SourceSignal(
+                source="prediction_market", action=SignalAction.SELL, confidence=0.5
+            ),
         ]
         result = fuse_signals(
             "BTC-USD",
