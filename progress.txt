@@ -1,0 +1,44 @@
+# Autonomous Signal Generation Pipeline - Progress
+
+## PR #2063 - autonomous-signal-pipeline-v3
+Status: All CI checks passed, auto-merge enabled
+
+## What was built (iteration 4, on top of merged PRs #2061 and #2062):
+
+### New tests:
+1. **runner_test.py** - 10 unit tests for AutonomousRunner:
+   - Instance creation, shutdown, kill switch, backpressure cooldown,
+     circuit breaker, success/failure cycles, overrun triggering, signal handling
+2. **dashboard_test.py** - 17 FastAPI endpoint tests:
+   - Health endpoints (basic, live, ready, detailed)
+   - Pipeline status, decisions (with symbol filter), risk status
+   - Kill switch activate/deactivate/status
+   - Metrics endpoint
+
+### Bug fixes:
+3. **agent.py** - Fixed to use MODEL_LIGHTWEIGHT from shared config
+4. **agent.py** - Added try/except for invalid JSON tool arguments
+5. **agent.py** - Added run_agent_for_symbol() and MCP_TOOLS aliases
+6. **agent_integration_test** added to BUILD targets
+
+### All tests pass:
+- 11/11 autonomous_runner tests
+- agent_test passes
+- agent_integration_test passes
+- All CI checks green
+
+## Previously merged (PRs #2061 + #2062):
+- Full autonomous signal generation pipeline
+- Signal fusion engine with 3 conflict resolution strategies
+- Risk management with 7+ checks
+- Kill switch, circuit breaker, retry logic
+- Adaptive scheduler, DB persistence
+- Dashboard API, Prometheus metrics
+- Signal generator agent v2
+- Helm chart, container test
+- Database migration V27
+
+## Remaining work for future iterations:
+- End-to-end integration tests with mock MCP servers
+- Load testing for adaptive scheduler
+- Distributed tracing integration
