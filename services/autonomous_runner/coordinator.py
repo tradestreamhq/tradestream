@@ -1,6 +1,7 @@
 """Signal generation coordinator: orchestrates the autonomous pipeline.
 
 Runs the full cycle: fetch sources -> fuse signals -> risk check -> emit.
+Integrates retry logic, adaptive scheduling, metrics, and DB persistence.
 """
 
 import json
@@ -11,8 +12,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Optional
 
+from services.autonomous_runner.adaptive_scheduler import AdaptiveScheduler
 from services.autonomous_runner.config import Config
+from services.autonomous_runner.db_persistence import DecisionPersistence
 from services.autonomous_runner.decision_models import AgentDecision
+from services.autonomous_runner.metrics import pipeline_metrics
+from services.autonomous_runner.retry import RetryConfig, retry_with_backoff
 from services.autonomous_runner.risk_manager import RiskManager
 from services.autonomous_runner.signal_fusion import (
     FusedSignal,
@@ -45,6 +50,16 @@ TOOL_TO_SERVER = {
 }
 
 
+# Retry config for MCP tool calls (per spec)
+MCP_RETRY_CONFIG = RetryConfig(
+    max_attempts=3,
+    initial_delay_ms=500,
+    max_delay_ms=5000,
+    backoff_multiplier=2.0,
+    jitter_pct=0.10,
+)
+
+
 class SignalCoordinator:
     """Orchestrates the autonomous signal generation pipeline.
 
@@ -55,10 +70,10 @@ class SignalCoordinator:
     4. Fuses all signals
     5. Runs risk checks
     6. Emits approved signals
-    7. Records all decisions
+    7. Records all decisions (in-memory + database)
     """
 
-    def __init__(self, config: Config, instance_id: str):
+    def __init__(self, config: Config, instance_id: str, db_url: str = ""):
         self.config = config
         self.instance_id = instance_id
         self.risk_manager = RiskManager(config.risk)
@@ -74,6 +89,67 @@ class SignalCoordinator:
         }
         self._executor = ThreadPoolExecutor(max_workers=config.parallel.max_concurrent)
         self._decisions = []  # in-memory log for dashboard
+        self._db = DecisionPersistence(db_url)
+        self.adaptive = AdaptiveScheduler(
+            window_size=config.adaptive.latency_window_size,
+            p95_threshold_ms=config.adaptive.p95_threshold_ms,
+            p99_threshold_ms=config.adaptive.p99_threshold_ms,
+            default_batch_size=config.parallel.max_concurrent,
+            reduced_batch_size=config.parallel.min_concurrent,
+            default_timeout=config.timeouts.symbol_timeout_seconds,
+            extended_timeout=config.timeouts.symbol_timeout_max_seconds,
+        )
+
+    def _call_mcp_with_retry(
+        self, tool: str, params: dict, tool_calls: list
+    ) -> Optional[dict]:
+        """Call an MCP tool with retry and metrics tracking."""
+        server = TOOL_TO_SERVER.get(tool, "unknown")
+        call_start = time.time()
+
+        def on_retry(attempt, error, delay_ms):
+            pipeline_metrics.record_tool_retry(tool, server)
+
+        try:
+            result = retry_with_backoff(
+                resolve_and_call,
+                args=(tool, params, TOOL_TO_SERVER, self.mcp_urls),
+                kwargs={"return_type": "parsed"},
+                config=MCP_RETRY_CONFIG,
+                on_retry=on_retry,
+            )
+        except Exception as e:
+            call_ms = int((time.time() - call_start) * 1000)
+            pipeline_metrics.record_tool_call(tool, server, call_ms / 1000.0)
+            tool_calls.append(
+                {
+                    "tool": tool,
+                    "server": server,
+                    "parameters": params,
+                    "result": {"error": str(e)},
+                    "latency_ms": call_ms,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            )
+            raise
+
+        call_ms = int((time.time() - call_start) * 1000)
+        pipeline_metrics.record_tool_call(tool, server, call_ms / 1000.0)
+        tool_calls.append(
+            {
+                "tool": tool,
+                "server": server,
+                "parameters": params,
+                "result": (
+                    result
+                    if not isinstance(result, dict) or "error" not in result
+                    else result
+                ),
+                "latency_ms": call_ms,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        return result
 
     def process_all_symbols(
         self,
@@ -83,14 +159,24 @@ class SignalCoordinator:
     ) -> list:
         """Process all symbols and return generated signals.
 
-        Uses batched processing to respect rate limits.
+        Uses adaptive scheduling to adjust batch size and timeouts.
         """
+        adaptive_state = self.adaptive.get_state()
+        if adaptive_state.should_skip_cycle:
+            logger.warning("Adaptive scheduler recommends skipping cycle")
+            pipeline_metrics.record_signal_skipped("adaptive_p99")
+            return []
+
+        effective_batch = min(batch_size, adaptive_state.batch_size)
+        effective_timeout = adaptive_state.symbol_timeout_seconds
+        pipeline_metrics.set_batch_size(effective_batch)
+
         all_signals = []
-        for i in range(0, len(symbols), batch_size):
-            batch = symbols[i : i + batch_size]
+        for i in range(0, len(symbols), effective_batch):
+            batch = symbols[i : i + effective_batch]
             for symbol in batch:
                 try:
-                    result = self._process_symbol(symbol, symbol_timeout)
+                    result = self._process_symbol(symbol, effective_timeout)
                     if result:
                         all_signals.append(result)
                 except Exception as e:
@@ -129,6 +215,9 @@ class SignalCoordinator:
 
         # Step 4: Build decision record
         latency_ms = int((time.time() - start_time) * 1000)
+        self.adaptive.record_latency(latency_ms)
+        pipeline_metrics.record_symbol_processing(symbol, latency_ms / 1000.0)
+
         decision = AgentDecision(
             symbol=symbol,
             action=fused.action.value,
@@ -154,12 +243,28 @@ class SignalCoordinator:
         decision.compute_opportunity_score()
         decision.validate_jsonb_sizes()
 
+        # Record metrics
+        pipeline_metrics.record_signal_generated(symbol, fused.action.value)
+        pipeline_metrics.record_confidence(fused.confidence)
+
         # Step 5: Emit if approved
         if risk_result.approved and fused.action != SignalAction.HOLD:
             self._emit_signal(decision, tool_calls)
             self.risk_manager.record_signal_emitted(symbol)
+            pipeline_metrics.record_signal_emitted(symbol, fused.action.value)
+        elif not risk_result.approved:
+            reason = (
+                risk_result.rejection_reasons[0]
+                if risk_result.rejection_reasons
+                else "unknown"
+            )
+            pipeline_metrics.record_signal_rejected(symbol, reason[:50])
 
-        # Record decision
+        # Persist to DB
+        db_ok = self._db.persist_decision(decision)
+        pipeline_metrics.record_db_persistence(db_ok)
+
+        # In-memory log
         self._decisions.append(decision)
         if len(self._decisions) > 1000:
             self._decisions = self._decisions[-500:]
@@ -179,29 +284,11 @@ class SignalCoordinator:
         self, symbol: str, tool_calls: list
     ) -> Optional[SourceSignal]:
         """Fetch strategy consensus signal from strategy MCP."""
-        call_start = time.time()
         try:
-            result = resolve_and_call(
+            result = self._call_mcp_with_retry(
                 "get_top_strategies",
                 {"symbol": symbol, "limit": 10},
-                TOOL_TO_SERVER,
-                self.mcp_urls,
-                return_type="parsed",
-            )
-            call_ms = int((time.time() - call_start) * 1000)
-            tool_calls.append(
-                {
-                    "tool": "get_top_strategies",
-                    "server": "strategy",
-                    "parameters": {"symbol": symbol, "limit": 10},
-                    "result": (
-                        result
-                        if not isinstance(result, dict) or "error" not in result
-                        else result
-                    ),
-                    "latency_ms": call_ms,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
+                tool_calls,
             )
 
             if isinstance(result, dict) and "error" in result:
@@ -260,30 +347,12 @@ class SignalCoordinator:
 
     def _fetch_market_regime(self, symbol: str, tool_calls: list) -> tuple:
         """Fetch market data and detect regime."""
-        call_start = time.time()
         market_context = {}
         try:
-            result = resolve_and_call(
+            result = self._call_mcp_with_retry(
                 "get_market_summary",
                 {"symbol": symbol},
-                TOOL_TO_SERVER,
-                self.mcp_urls,
-                return_type="parsed",
-            )
-            call_ms = int((time.time() - call_start) * 1000)
-            tool_calls.append(
-                {
-                    "tool": "get_market_summary",
-                    "server": "market",
-                    "parameters": {"symbol": symbol},
-                    "result": (
-                        result
-                        if not isinstance(result, dict) or "error" not in result
-                        else result
-                    ),
-                    "latency_ms": call_ms,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
+                tool_calls,
             )
 
             if isinstance(result, dict) and "error" not in result:
@@ -327,29 +396,11 @@ class SignalCoordinator:
         self, symbol: str, tool_calls: list
     ) -> Optional[SourceSignal]:
         """Derive a basic sentiment signal from recent signal accuracy."""
-        call_start = time.time()
         try:
-            result = resolve_and_call(
+            result = self._call_mcp_with_retry(
                 "get_recent_signals",
                 {"symbol": symbol, "limit": 10},
-                TOOL_TO_SERVER,
-                self.mcp_urls,
-                return_type="parsed",
-            )
-            call_ms = int((time.time() - call_start) * 1000)
-            tool_calls.append(
-                {
-                    "tool": "get_recent_signals",
-                    "server": "signal",
-                    "parameters": {"symbol": symbol, "limit": 10},
-                    "result": (
-                        result
-                        if not isinstance(result, dict) or "error" not in result
-                        else result
-                    ),
-                    "latency_ms": call_ms,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
+                tool_calls,
             )
 
             if isinstance(result, dict) and "error" in result:
@@ -411,9 +462,8 @@ class SignalCoordinator:
 
     def _emit_signal(self, decision: AgentDecision, tool_calls: list):
         """Emit the approved signal via signal MCP."""
-        call_start = time.time()
         try:
-            result = resolve_and_call(
+            self._call_mcp_with_retry(
                 "emit_signal",
                 {
                     "symbol": decision.symbol,
@@ -424,23 +474,7 @@ class SignalCoordinator:
                         "breakdown", []
                     ),
                 },
-                TOOL_TO_SERVER,
-                self.mcp_urls,
-                return_type="parsed",
-            )
-            call_ms = int((time.time() - call_start) * 1000)
-            tool_calls.append(
-                {
-                    "tool": "emit_signal",
-                    "server": "signal",
-                    "parameters": {
-                        "symbol": decision.symbol,
-                        "action": decision.action,
-                    },
-                    "result": result,
-                    "latency_ms": call_ms,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
+                tool_calls,
             )
         except Exception as e:
             logger.error("Failed to emit signal for %s: %s", decision.symbol, e)
@@ -451,10 +485,21 @@ class SignalCoordinator:
 
     def get_pipeline_status(self) -> dict:
         """Return pipeline status for the dashboard."""
+        adaptive_state = self.adaptive.get_state()
         return {
             "instance_id": self.instance_id,
             "risk_status": self.risk_manager.get_status(),
             "circuit_breaker": self.llm_circuit_breaker.to_dict(),
             "total_decisions": len(self._decisions),
             "recent_decisions_count": min(50, len(self._decisions)),
+            "adaptive": {
+                "batch_size": adaptive_state.batch_size,
+                "symbol_timeout": adaptive_state.symbol_timeout_seconds,
+                "p95_ms": adaptive_state.p95_ms,
+                "p99_ms": adaptive_state.p99_ms,
+                "sample_count": adaptive_state.sample_count,
+                "should_skip": adaptive_state.should_skip_cycle,
+            },
+            "db_persistence": self._db.is_available,
+            "metrics": pipeline_metrics.get_summary(),
         }

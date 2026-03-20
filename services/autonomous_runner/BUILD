@@ -49,14 +49,50 @@ py_library(
 )
 
 py_library(
+    name = "retry_lib",
+    srcs = [
+        "__init__.py",
+        "retry.py",
+    ],
+)
+
+py_library(
+    name = "metrics_lib",
+    srcs = [
+        "__init__.py",
+        "metrics.py",
+    ],
+)
+
+py_library(
+    name = "adaptive_scheduler_lib",
+    srcs = [
+        "__init__.py",
+        "adaptive_scheduler.py",
+    ],
+)
+
+py_library(
+    name = "db_persistence_lib",
+    srcs = [
+        "__init__.py",
+        "db_persistence.py",
+    ],
+)
+
+py_library(
     name = "coordinator_lib",
     srcs = [
         "__init__.py",
         "coordinator.py",
     ],
     deps = [
+        ":adaptive_scheduler_lib",
         ":config_lib",
+        ":db_persistence_lib",
         ":decision_models_lib",
+        ":metrics_lib",
+        ":retry_lib",
         ":risk_manager_lib",
         ":signal_fusion_lib",
         "//services/shared:circuit_breaker",
@@ -71,6 +107,7 @@ py_library(
         "dashboard.py",
     ],
     deps = [
+        ":metrics_lib",
         "//third_party/python:fastapi",
         "//third_party/python:pydantic",
     ],
@@ -87,6 +124,7 @@ py_library(
         ":coordinator_lib",
         ":dashboard_lib",
         ":kill_switch_lib",
+        ":metrics_lib",
         "//services/shared:circuit_breaker",
     ],
 )
@@ -152,6 +190,44 @@ py_test(
         ":config_lib",
         ":coordinator_lib",
         ":signal_fusion_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "retry_test",
+    srcs = ["retry_test.py"],
+    deps = [
+        ":retry_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "adaptive_scheduler_test",
+    srcs = ["adaptive_scheduler_test.py"],
+    deps = [
+        ":adaptive_scheduler_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "db_persistence_test",
+    srcs = ["db_persistence_test.py"],
+    deps = [
+        ":db_persistence_lib",
+        ":decision_models_lib",
+        ":signal_fusion_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "metrics_test",
+    srcs = ["metrics_test.py"],
+    deps = [
+        ":metrics_lib",
         "//third_party/python:pytest",
     ],
 )

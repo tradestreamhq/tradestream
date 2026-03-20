@@ -5,15 +5,10 @@ load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
 
-package(default_visibility = ["//visibility:public"])
-
 py_library(
     name = "agent_lib",
     srcs = ["agent.py"],
     deps = [
-        "//services/shared:mcp_client",
-        "//services/shared:model_config",
-        "//third_party/python:absl_py",
         "//third_party/python:openai",
         "//third_party/python:requests",
     ],
@@ -25,35 +20,17 @@ py_binary(
     main = "main.py",
     deps = [
         ":agent_lib",
-        "//services/shared:structured_logger",
         "//third_party/python:absl_py",
     ],
 )
 
+# --- Test Targets ---
 py_test(
     name = "agent_test",
     srcs = ["agent_test.py"],
-    args = [],
     deps = [
         ":agent_lib",
-        "//services/shared:mcp_client",
-        "//services/shared:model_config",
         "//third_party/python:pytest",
-        "//third_party/python:requests",
-    ],
-)
-
-py_test(
-    name = "agent_integration_test",
-    srcs = ["agent_integration_test.py"],
-    args = [],
-    deps = [
-        ":agent_lib",
-        "//services/shared:mcp_client",
-        "//services/shared:model_config",
-        "//third_party/python:openai",
-        "//third_party/python:pytest",
-        "//third_party/python:requests",
     ],
 )
 

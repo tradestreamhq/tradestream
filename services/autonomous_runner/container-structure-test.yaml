@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/autonomous_runner"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Autonomous Runner binary exists"
+    path: "/services/autonomous_runner/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"

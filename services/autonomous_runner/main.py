@@ -29,6 +29,7 @@ flags.DEFINE_integer(
 )
 flags.DEFINE_integer("dashboard_port", 8090, "Port for the pipeline dashboard API.")
 flags.DEFINE_boolean("enable_dashboard", True, "Enable the pipeline dashboard API.")
+flags.DEFINE_string("db_url", "", "PostgreSQL connection URL for decision persistence.")
 
 flags.mark_flag_as_required("openrouter_api_key")
 
@@ -59,7 +60,8 @@ def main(argv):
         logging.warning("Redis not available, running without kill switch: %s", e)
         redis_client = None
 
-    runner = AutonomousRunner(config, redis_client=redis_client)
+    db_url = FLAGS.db_url or ""
+    runner = AutonomousRunner(config, redis_client=redis_client, db_url=db_url)
 
     # Start dashboard in a separate thread if enabled
     if FLAGS.enable_dashboard:

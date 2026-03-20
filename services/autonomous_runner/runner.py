@@ -14,6 +14,7 @@ from services.autonomous_runner.config import Config
 from services.autonomous_runner.coordinator import SignalCoordinator
 from services.autonomous_runner.dashboard import record_cycle, set_dashboard_state
 from services.autonomous_runner.kill_switch import KillSwitch
+from services.autonomous_runner.metrics import pipeline_metrics
 from services.shared.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger(__name__)
@@ -22,10 +23,10 @@ logger = logging.getLogger(__name__)
 class AutonomousRunner:
     """Main runner that schedules signal generation cycles."""
 
-    def __init__(self, config: Config, redis_client=None):
+    def __init__(self, config: Config, redis_client=None, db_url: str = ""):
         self.config = config
         self.instance_id = config.instance_id or str(uuid.uuid4())[:8]
-        self.coordinator = SignalCoordinator(config, self.instance_id)
+        self.coordinator = SignalCoordinator(config, self.instance_id, db_url=db_url)
         self._shutdown = threading.Event()
         self._redis = redis_client
         self._kill_switch = None
@@ -80,7 +81,10 @@ class AutonomousRunner:
         # Check kill switch
         if self._kill_switch and self._kill_switch.is_active():
             logger.info("Kill switch active, skipping cycle")
+            pipeline_metrics.set_kill_switch(True)
+            pipeline_metrics.record_signal_skipped("kill_switch")
             return
+        pipeline_metrics.set_kill_switch(False)
 
         # Check cooldown (backpressure)
         if self._cooldown_remaining > 0:
@@ -89,11 +93,13 @@ class AutonomousRunner:
                 "Backpressure cooldown: %d cycles remaining",
                 self._cooldown_remaining,
             )
+            pipeline_metrics.record_signal_skipped("backpressure")
             return
 
         # Check circuit breaker
         if not self.coordinator.llm_circuit_breaker.allow_request():
             logger.warning("Circuit breaker open, skipping cycle")
+            pipeline_metrics.record_signal_skipped("circuit_breaker")
             return
 
         cycle_start = time.time()
@@ -115,6 +121,10 @@ class AutonomousRunner:
             )
 
             record_cycle(duration_ms, emitted)
+            pipeline_metrics.record_cycle_duration(duration_ms / 1000.0, "success")
+            pipeline_metrics.set_active_signals(
+                self.coordinator.risk_manager._active_signals
+            )
             self._consecutive_overruns = 0
 
             logger.info(
@@ -126,6 +136,7 @@ class AutonomousRunner:
 
         except Exception as e:
             logger.error("Signal generation cycle failed: %s", e)
+            pipeline_metrics.record_cycle_duration((time.time() - cycle_start), "error")
             self._consecutive_overruns += 1
             if (
                 self._consecutive_overruns
