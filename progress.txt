@@ -1,0 +1,19 @@
+# Autonomous Signal Generation Pipeline - Progress
+
+## PR #2062 - autonomous-signal-pipeline-v2
+Status: All CI checks passed, auto-merge enabled
+
+## What was built (on top of PR #2061 which is merged):
+1. **Retry logic** (retry.py) - exponential backoff for MCP calls (3 attempts, 500ms-5s)
+2. **Prometheus metrics** (metrics.py) - counters, histograms, gauges for full observability
+3. **Adaptive scheduler** (adaptive_scheduler.py) - P95/P99 latency tracking, batch size adjustment
+4. **DB persistence** (db_persistence.py) - PostgreSQL persistence for decision audit trail
+5. **Enhanced health endpoints** - /health/live, /health/ready, /health/detailed
+6. **Prometheus /metrics endpoint** for scraping
+7. **Signal generator agent v2** - enhanced LLM integration
+8. **Helm chart** for autonomous runner with liveness/readiness probes
+9. **Container structure test** for autonomous runner
+10. **Coordinator updated** to use retry, metrics, adaptive scheduling, DB persistence
+
+## Tests: All 9 autonomous_runner tests + signal_generator_agent tests pass
+## Files changed: 13 new/modified files, ~1800 lines added
