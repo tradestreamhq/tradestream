@@ -15,6 +15,7 @@ from services.autonomous_runner.coordinator import SignalCoordinator
 from services.autonomous_runner.dashboard import record_cycle, set_dashboard_state
 from services.autonomous_runner.kill_switch import KillSwitch
 from services.autonomous_runner.metrics import pipeline_metrics
+from services.autonomous_runner.outcome_tracker import OutcomeTracker
 from services.shared.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger(__name__)
@@ -32,9 +33,23 @@ class AutonomousRunner:
         self._kill_switch = None
         self._consecutive_overruns = 0
         self._cooldown_remaining = 0
+        self._outcome_cycle_counter = 0
 
         if redis_client:
             self._kill_switch = KillSwitch(redis_client, config.kill_switch)
+
+        # Outcome tracker for recording signal results
+        self._outcome_tracker = OutcomeTracker(
+            db=self.coordinator._db,
+        )
+
+        # Validate model configuration at startup
+        validation = self.coordinator.model_validator.validate_all()
+        if not validation.get("all_valid", True):
+            logger.warning(
+                "Model validation warnings at startup: %s",
+                validation.get("errors", []),
+            )
 
         set_dashboard_state(
             coordinator=self.coordinator,
@@ -126,6 +141,17 @@ class AutonomousRunner:
                 self.coordinator.risk_manager._active_signals
             )
             self._consecutive_overruns = 0
+
+            # Check outcomes every 5 cycles
+            self._outcome_cycle_counter += 1
+            if self._outcome_cycle_counter >= 5:
+                self._outcome_cycle_counter = 0
+                try:
+                    outcomes = self._outcome_tracker.check_pending_outcomes()
+                    if outcomes:
+                        logger.info("Recorded %d outcomes", len(outcomes))
+                except Exception as oe:
+                    logger.warning("Outcome tracking failed: %s", oe)
 
             logger.info(
                 "Cycle complete: %d decisions, %d emitted in %dms",

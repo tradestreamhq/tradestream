@@ -178,6 +178,7 @@ py_library(
         ":dashboard_lib",
         ":kill_switch_lib",
         ":metrics_lib",
+        ":outcome_tracker_lib",
         "//services/shared:circuit_breaker",
     ],
 )
@@ -359,6 +360,26 @@ py_test(
     srcs = ["signal_publisher_test.py"],
     deps = [
         ":signal_publisher_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "outcome_tracker_lib",
+    srcs = [
+        "__init__.py",
+        "outcome_tracker.py",
+    ],
+    deps = [
+        ":db_persistence_lib",
+    ],
+)
+
+py_test(
+    name = "outcome_tracker_test",
+    srcs = ["outcome_tracker_test.py"],
+    deps = [
+        ":outcome_tracker_lib",
         "//third_party/python:pytest",
     ],
 )
