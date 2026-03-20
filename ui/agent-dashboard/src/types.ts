@@ -70,3 +70,65 @@ export interface DecisionTypeDetail {
 }
 
 export type ConnectionStatus = "connected" | "connecting" | "disconnected";
+
+// Signal Stream types (spec-compliant)
+
+export type SignalAction = "BUY" | "SELL" | "HOLD";
+export type OpportunityTier = "HOT" | "GOOD" | "NEUTRAL";
+
+export interface OpportunityFactor {
+  value: number;
+  contribution: number;
+}
+
+export interface OpportunityFactors {
+  confidence: OpportunityFactor;
+  expected_return: OpportunityFactor;
+  consensus: OpportunityFactor;
+  volatility: OpportunityFactor;
+  freshness: OpportunityFactor;
+}
+
+export interface StrategySignal {
+  name: string;
+  action: SignalAction;
+  weight: number;
+  reasoning: string;
+  agrees: boolean;
+}
+
+export interface Signal {
+  signal_id: string;
+  symbol: string;
+  action: SignalAction;
+  confidence: number;
+  opportunity_score: number;
+  opportunity_tier: OpportunityTier;
+  opportunity_factors: OpportunityFactors;
+  reasoning: string;
+  timestamp: string;
+  strategies_bullish: number;
+  strategies_analyzed: number;
+  strategy_breakdown: StrategySignal[];
+  entry_price?: number;
+  current_price?: number;
+  pnl?: number;
+}
+
+export interface SignalFilters {
+  symbols?: string[];
+  actions?: SignalAction[];
+  minConfidence?: number;
+  minOpportunityScore?: number;
+}
+
+export interface PnLEntry {
+  signal_id: string;
+  symbol: string;
+  action: SignalAction;
+  entry_price: number;
+  current_price: number;
+  pnl_percent: number;
+  pnl_absolute: number;
+  timestamp: string;
+}
