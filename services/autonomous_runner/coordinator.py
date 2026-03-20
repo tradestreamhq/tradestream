@@ -22,8 +22,10 @@ from services.autonomous_runner.config import Config
 from services.autonomous_runner.db_persistence import DecisionPersistence
 from services.autonomous_runner.decision_models import AgentDecision
 from services.autonomous_runner.metrics import pipeline_metrics
+from services.autonomous_runner.model_validator import ModelValidator
 from services.autonomous_runner.retry import RetryConfig, retry_with_backoff
 from services.autonomous_runner.risk_manager import RiskManager
+from services.autonomous_runner.run_lock import LockManager
 from services.autonomous_runner.signal_cache import CacheConfig, SignalCache
 from services.autonomous_runner.signal_fusion import (
     FusedSignal,
@@ -31,6 +33,7 @@ from services.autonomous_runner.signal_fusion import (
     SourceSignal,
     fuse_signals,
 )
+from services.autonomous_runner.signal_publisher import SignalPublisher
 from services.shared.circuit_breaker import CircuitBreaker
 from services.shared.mcp_client import resolve_and_call
 
@@ -115,6 +118,14 @@ class SignalCoordinator:
         )
         # Signal cache (Redis + local fallback)
         self._cache = SignalCache(redis_client=redis_client, config=CacheConfig())
+        # Model validator (validates LLM supports tool calling)
+        self.model_validator = ModelValidator()
+        # Distributed run locks (prevents duplicate processing)
+        self._lock_manager = (
+            LockManager(redis_client, instance_id) if redis_client else None
+        )
+        # Redis signal publisher (publishes to channel:raw-signals)
+        self._publisher = SignalPublisher(redis_client=redis_client)
 
     def _call_mcp_with_retry(
         self, tool: str, params: dict, tool_calls: list
@@ -238,6 +249,17 @@ class SignalCoordinator:
             batch = symbols[i : i + effective_batch]
             for symbol in batch:
                 total_attempted += 1
+                # Acquire distributed lock if available
+                lock_acquired = True
+                if self._lock_manager:
+                    lock_acquired = self._lock_manager.acquire(symbol)
+                    if not lock_acquired:
+                        logger.warning(
+                            "Symbol %s still locked from previous run, skipping",
+                            symbol,
+                        )
+                        pipeline_metrics.record_signal_skipped("locked")
+                        continue
                 try:
                     result = self._process_symbol(symbol, effective_timeout)
                     if result:
@@ -245,6 +267,9 @@ class SignalCoordinator:
                         total_succeeded += 1
                 except Exception as e:
                     logger.error("Failed to process %s: %s", symbol, e)
+                finally:
+                    if self._lock_manager and lock_acquired:
+                        self._lock_manager.release(symbol)
 
         if total_attempted > 0:
             pipeline_metrics.record_batch_success_rate(
@@ -701,7 +726,18 @@ class SignalCoordinator:
         return breakdown
 
     def _emit_signal(self, decision: AgentDecision, tool_calls: list):
-        """Emit the approved signal via signal MCP."""
+        """Emit the approved signal via signal MCP and Redis channel."""
+        signal_payload = {
+            "signal_id": decision.decision_id,
+            "symbol": decision.symbol,
+            "action": decision.action,
+            "confidence": decision.confidence,
+            "reasoning": decision.reasoning,
+            "strategy_breakdown": decision.strategy_breakdown.get("breakdown", []),
+            "market_context": decision.market_context,
+            "opportunity_score": decision.opportunity_score,
+        }
+        # Emit via MCP
         try:
             self._call_mcp_with_retry(
                 "emit_signal",
@@ -710,14 +746,14 @@ class SignalCoordinator:
                     "action": decision.action,
                     "confidence": decision.confidence,
                     "reasoning": decision.reasoning,
-                    "strategy_breakdown": decision.strategy_breakdown.get(
-                        "breakdown", []
-                    ),
+                    "strategy_breakdown": signal_payload["strategy_breakdown"],
                 },
                 tool_calls,
             )
         except Exception as e:
             logger.error("Failed to emit signal for %s: %s", decision.symbol, e)
+        # Publish to Redis channel:raw-signals
+        self._publisher.publish(signal_payload)
 
     def get_recent_decisions(self, limit: int = 50) -> list:
         """Return recent decisions for the dashboard."""
@@ -742,5 +778,10 @@ class SignalCoordinator:
             },
             "db_persistence": self._db.is_available,
             "cache": self._cache.get_stats(),
+            "model_validator": self.model_validator.get_status(),
+            "lock_manager": (
+                self._lock_manager.get_status() if self._lock_manager else None
+            ),
+            "signal_publisher": self._publisher.get_stats(),
             "metrics": pipeline_metrics.get_summary(),
         }
