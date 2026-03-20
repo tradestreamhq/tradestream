@@ -2,6 +2,10 @@
 
 Model names are read from environment variables with sensible defaults.
 All agents should import from this module instead of hardcoding model names.
+
+For dynamic model routing based on agent type and opportunity score,
+use the ModelRouter from services.model_router.router instead of these
+static constants.
 """
 
 import os
@@ -18,3 +22,6 @@ MODEL_PRIMARY = os.environ.get("LLM_MODEL_PRIMARY", "anthropic/claude-sonnet-4-6
 MODEL_LIGHTWEIGHT = os.environ.get(
     "LLM_MODEL_LIGHTWEIGHT", "anthropic/claude-haiku-4-5"
 )
+
+# Model Router URL for dynamic routing (when available)
+MODEL_ROUTER_URL = os.environ.get("MODEL_ROUTER_URL", "http://localhost:8081")
