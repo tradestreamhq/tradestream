@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timezone
 
 from openai import OpenAI
+from services.shared.model_config import MODEL_LIGHTWEIGHT
 
 SYSTEM_PROMPT = """You are a signal generator agent. You analyze market data, strategy signals, and recent signal history to emit BUY/SELL/HOLD trading signals.
 
@@ -363,7 +364,7 @@ def generate_signal(symbol, api_key, mcp_urls):
     max_iterations = 20
     for _ in range(max_iterations):
         response = client.chat.completions.create(
-            model="anthropic/claude-3-5-haiku",
+            model=MODEL_LIGHTWEIGHT,
             messages=messages,
             tools=TOOLS,
             tool_choice="auto",
@@ -377,7 +378,10 @@ def generate_signal(symbol, api_key, mcp_urls):
             messages.append(message)
             for tool_call in message.tool_calls:
                 fn_name = tool_call.function.name
-                fn_args = json.loads(tool_call.function.arguments)
+                try:
+                    fn_args = json.loads(tool_call.function.arguments)
+                except (json.JSONDecodeError, TypeError):
+                    fn_args = {}
 
                 logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
 
@@ -432,3 +436,15 @@ def generate_signal(symbol, api_key, mcp_urls):
 
     logging.warning("Agent reached max iterations for %s", symbol)
     return None
+
+
+# Aliases for backward compatibility
+MCP_TOOLS = TOOLS
+
+
+def run_agent_for_symbol(symbol, api_key, mcp_urls):
+    """Run the signal generator agent and return the JSON string result."""
+    result = generate_signal(symbol, api_key, mcp_urls)
+    if result is None:
+        return None
+    return json.dumps(result)
