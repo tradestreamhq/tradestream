@@ -258,9 +258,7 @@ Cached:          2048000 kB
 
 
 class TestSystemHealth:
-    @patch(
-        "builtins.open", mock_open(read_data=FAKE_MEMINFO)
-    )
+    @patch("builtins.open", mock_open(read_data=FAKE_MEMINFO))
     def test_system_health(self, client):
         tc, conn = client
         conn.fetchrow.return_value = ADMIN_ROW
