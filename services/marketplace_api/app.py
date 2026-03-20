@@ -78,7 +78,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     # --- Publish a strategy ---
 
-    @listings_router.post("", status_code=201)
+    @listings_router.post("/", status_code=201)
     async def publish_listing(body: PublishRequest):
         query = """
             INSERT INTO marketplace_listings
@@ -100,9 +100,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         except asyncpg.ForeignKeyViolationError:
             return not_found("Strategy", body.strategy_id)
         except asyncpg.UniqueViolationError:
-            return conflict(
-                f"Listing for strategy '{body.strategy_id}' already exists"
-            )
+            return conflict(f"Listing for strategy '{body.strategy_id}' already exists")
         except Exception as e:
             logger.error("Failed to publish listing: %s", e)
             return server_error(str(e))
@@ -114,7 +112,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
     # --- Browse listings ---
 
-    @listings_router.get("")
+    @listings_router.get("/")
     async def list_listings(
         pagination: PaginationParams = Depends(),
         author: Optional[str] = Query(None, description="Filter by author"),
@@ -123,7 +121,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         order_by: Optional[str] = Query(
             None,
             description="Sort field",
-            regex="^(price|subscribers_count|created_at)$",
+            pattern="^(price|subscribers_count|created_at)$",
         ),
     ):
         conditions = ["is_active = TRUE"]
@@ -209,9 +207,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         item = _listing_to_dict(row)
         item["avg_rating"] = float(rating_row["avg_score"])
         item["rating_count"] = rating_row["rating_count"]
-        return success_response(
-            item, "marketplace_listing", resource_id=item["id"]
-        )
+        return success_response(item, "marketplace_listing", resource_id=item["id"])
 
     # --- Subscribe ---
 

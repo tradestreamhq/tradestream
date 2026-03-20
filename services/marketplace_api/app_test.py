@@ -3,7 +3,7 @@
 import json
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,7 +23,7 @@ class FakeRecord(dict):
 
 def _make_pool():
     """Create a mock asyncpg pool with async context manager support."""
-    pool = AsyncMock()
+    pool = MagicMock()
     conn = AsyncMock()
     ctx = AsyncMock()
     ctx.__aenter__ = AsyncMock(return_value=conn)
