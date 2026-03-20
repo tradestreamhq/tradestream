@@ -116,7 +116,9 @@ class AgentDecision:
 
         # Expected return factor (30%) - estimated from confidence and action
         expected_return = self._estimate_expected_return()
-        er_norm = min(1.0, max(0.0, expected_return / 0.05)) if expected_return > 0 else 0
+        er_norm = (
+            min(1.0, max(0.0, expected_return / 0.05)) if expected_return > 0 else 0
+        )
         factors["expected_return"] = {
             "value": round(expected_return, 4),
             "normalized": round(er_norm, 4),

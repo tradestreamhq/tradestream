@@ -41,53 +41,63 @@ class RetentionManager:
         statements = []
 
         # Count records to be cleaned
-        statements.append((
-            "count_expired",
-            f"""
+        statements.append(
+            (
+                "count_expired",
+                f"""
             SELECT COUNT(*) as expired_count
             FROM agent_decisions
             WHERE created_at < NOW() - INTERVAL '{days} days'
             """,
-        ))
+            )
+        )
 
         # Delete expired feedback first (foreign key)
-        statements.append((
-            "delete_expired_feedback",
-            f"""
+        statements.append(
+            (
+                "delete_expired_feedback",
+                f"""
             DELETE FROM decision_feedback
             WHERE decision_id IN (
                 SELECT decision_id FROM agent_decisions
                 WHERE created_at < NOW() - INTERVAL '{days} days'
             )
             """,
-        ))
+            )
+        )
 
         # Delete expired outcomes (foreign key)
-        statements.append((
-            "delete_expired_outcomes",
-            f"""
+        statements.append(
+            (
+                "delete_expired_outcomes",
+                f"""
             DELETE FROM decision_outcomes
             WHERE decision_id IN (
                 SELECT decision_id FROM agent_decisions
                 WHERE created_at < NOW() - INTERVAL '{days} days'
             )
             """,
-        ))
+            )
+        )
 
         # Delete expired decisions
-        statements.append((
-            "delete_expired_decisions",
-            f"""
+        statements.append(
+            (
+                "delete_expired_decisions",
+                f"""
             DELETE FROM agent_decisions
             WHERE created_at < NOW() - INTERVAL '{days} days'
             """,
-        ))
+            )
+        )
 
         if self.config.vacuum_after_delete:
-            statements.append((
-                "vacuum_decisions",
-                "VACUUM ANALYZE agent_decisions",
-            ))
+            statements.append(
+                (
+                    "vacuum_decisions",
+                    "VACUUM ANALYZE agent_decisions",
+                )
+            )
 
         return statements
 
