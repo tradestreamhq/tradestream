@@ -39,14 +39,18 @@ async def main_async() -> None:
     """Main async function."""
     api_key = FLAGS.cmc_api_key
     if not api_key:
-        logging.error("CoinMarketCap API key is required (--cmc_api_key or CMC_API_KEY env)")
+        logging.error(
+            "CoinMarketCap API key is required (--cmc_api_key or CMC_API_KEY env)"
+        )
         sys.exit(1)
 
     cmc_client = CoinMarketCapClient(api_key=api_key)
 
     try:
         _set_cmc_client(cmc_client)
-        logging.info("Starting CoinMarketCap MCP server with %s transport", FLAGS.mcp_transport)
+        logging.info(
+            "Starting CoinMarketCap MCP server with %s transport", FLAGS.mcp_transport
+        )
 
         if FLAGS.mcp_transport == "stdio":
             from mcp.server.stdio import stdio_server

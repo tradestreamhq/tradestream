@@ -27,7 +27,9 @@ class TestGetListings:
             },
             request=httpx.Request("GET", "https://test"),
         )
-        with patch.object(client._client, "get", new_callable=AsyncMock, return_value=mock_response):
+        with patch.object(
+            client._client, "get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await client.get_listings(limit=2)
             assert len(result) == 2
             assert result[0]["symbol"] == "BTC"
@@ -39,7 +41,9 @@ class TestGetListings:
             json={"data": []},
             request=httpx.Request("GET", "https://test"),
         )
-        with patch.object(client._client, "get", new_callable=AsyncMock, return_value=mock_response):
+        with patch.object(
+            client._client, "get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await client.get_listings()
             assert result == []
 
@@ -50,13 +54,13 @@ class TestGetQuotes:
         mock_response = httpx.Response(
             200,
             json={
-                "data": {
-                    "BTC": [{"symbol": "BTC", "quote": {"USD": {"price": 65000}}}]
-                }
+                "data": {"BTC": [{"symbol": "BTC", "quote": {"USD": {"price": 65000}}}]}
             },
             request=httpx.Request("GET", "https://test"),
         )
-        with patch.object(client._client, "get", new_callable=AsyncMock, return_value=mock_response):
+        with patch.object(
+            client._client, "get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await client.get_quotes(["BTC"])
             assert "BTC" in result
 
@@ -69,7 +73,9 @@ class TestGetGlobalMetrics:
             json={"data": {"total_market_cap": 2_500_000_000_000}},
             request=httpx.Request("GET", "https://test"),
         )
-        with patch.object(client._client, "get", new_callable=AsyncMock, return_value=mock_response):
+        with patch.object(
+            client._client, "get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await client.get_global_metrics()
             assert "total_market_cap" in result
 
@@ -80,13 +86,13 @@ class TestGetExchangeRates:
         mock_response = httpx.Response(
             200,
             json={
-                "data": {
-                    "BTC": [{"symbol": "BTC", "quote": {"USD": {"price": 65000}}}]
-                }
+                "data": {"BTC": [{"symbol": "BTC", "quote": {"USD": {"price": 65000}}}]}
             },
             request=httpx.Request("GET", "https://test"),
         )
-        with patch.object(client._client, "get", new_callable=AsyncMock, return_value=mock_response):
+        with patch.object(
+            client._client, "get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await client.get_exchange_rates(symbol="BTC")
             assert result["symbol"] == "BTC"
 
@@ -97,6 +103,8 @@ class TestGetExchangeRates:
             json={"data": {}},
             request=httpx.Request("GET", "https://test"),
         )
-        with patch.object(client._client, "get", new_callable=AsyncMock, return_value=mock_response):
+        with patch.object(
+            client._client, "get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await client.get_exchange_rates(symbol="NOEXIST")
             assert result == {}

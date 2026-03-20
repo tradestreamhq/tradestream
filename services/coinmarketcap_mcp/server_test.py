@@ -75,7 +75,13 @@ class TestGetPrice:
                 {
                     "name": "Ethereum",
                     "symbol": "ETH",
-                    "quote": {"USD": {"price": 3500.0, "percent_change_1h": 0.1, "percent_change_24h": 1.0}},
+                    "quote": {
+                        "USD": {
+                            "price": 3500.0,
+                            "percent_change_1h": 0.1,
+                            "percent_change_24h": 1.0,
+                        }
+                    },
                 }
             ]
         }
@@ -96,7 +102,13 @@ class TestGetPrice:
                 {
                     "name": "Bitcoin",
                     "symbol": "BTC",
-                    "quote": {"USD": {"price": 65000.0, "percent_change_1h": 0.5, "percent_change_24h": 2.1}},
+                    "quote": {
+                        "USD": {
+                            "price": 65000.0,
+                            "percent_change_1h": 0.5,
+                            "percent_change_24h": 2.1,
+                        }
+                    },
                 }
             ]
         }
