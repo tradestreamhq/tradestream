@@ -39,7 +39,9 @@ class TestCostTracker:
         tracker = CostTracker()
         tracker.record_usage("signal-generator", "google/gemini-3.0-flash", 1000, 500)
         tracker.record_usage("signal-generator", "google/gemini-3.0-flash", 1000, 500)
-        tracker.record_usage("janitor", "google/gemini-3.0-pro", 800, 400, success=False)
+        tracker.record_usage(
+            "janitor", "google/gemini-3.0-pro", 800, 400, success=False
+        )
 
         summary = tracker.get_monthly_summary()
         assert summary.total_requests == 3
@@ -67,8 +69,12 @@ class TestCostTracker:
     def test_fallback_tracking(self):
         tracker = CostTracker()
         tracker.record_usage(
-            "signal-generator", "google/gemini-3.0-pro", 1000, 500,
-            retries=2, fallback_used=True,
+            "signal-generator",
+            "google/gemini-3.0-pro",
+            1000,
+            500,
+            retries=2,
+            fallback_used=True,
         )
         summary = tracker.get_monthly_summary()
         assert summary.total_retries == 2

@@ -52,9 +52,7 @@ class ModelProfile:
     @property
     def cost_per_1k_tokens(self) -> float:
         """Blended cost estimate assuming 60/40 input/output split."""
-        return (
-            self.pricing.input_per_token * 600 + self.pricing.output_per_token * 400
-        )
+        return self.pricing.input_per_token * 600 + self.pricing.output_per_token * 400
 
 
 # ---------------------------------------------------------------------------

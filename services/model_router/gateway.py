@@ -56,7 +56,9 @@ budget_enforcer = BudgetEnforcer(
 class RouteRequest(BaseModel):
     """Request to route a task to the optimal model."""
 
-    agent_type: str = Field(..., description="Agent type (e.g. signal-generator, janitor)")
+    agent_type: str = Field(
+        ..., description="Agent type (e.g. signal-generator, janitor)"
+    )
     opportunity_score: Optional[float] = Field(
         None, description="Opportunity score for dynamic escalation (0-100)"
     )
@@ -209,13 +211,21 @@ async def get_budget_status():
     current_cost = cost_tracker.get_monthly_cost()
     budget_enforcer.check(current_cost)
     constraints = budget_enforcer.get_routing_constraints()
-    usage_pct = (current_cost / budget_enforcer.monthly_limit_usd * 100) if budget_enforcer.monthly_limit_usd > 0 else 0
+    usage_pct = (
+        (current_cost / budget_enforcer.monthly_limit_usd * 100)
+        if budget_enforcer.monthly_limit_usd > 0
+        else 0
+    )
 
     return BudgetStatusResponse(
         monthly_limit_usd=budget_enforcer.monthly_limit_usd,
         current_cost_usd=current_cost,
         usage_pct=round(usage_pct, 1),
-        current_tier=budget_enforcer.current_tier.action if budget_enforcer.current_tier else None,
+        current_tier=(
+            budget_enforcer.current_tier.action
+            if budget_enforcer.current_tier
+            else None
+        ),
         routing_constraints=constraints,
     )
 

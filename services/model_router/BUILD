@@ -111,8 +111,8 @@ py_test(
 py_test(
     name = "budget_enforcer_test",
     srcs = [
-        "conftest.py",
         "budget_enforcer_test.py",
+        "conftest.py",
     ],
     deps = [
         ":budget_enforcer",

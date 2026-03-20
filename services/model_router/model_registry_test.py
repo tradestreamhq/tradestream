@@ -64,5 +64,7 @@ class TestModelRegistry:
     def test_cost_per_1k_tokens(self):
         # Blended 60/40 input/output split
         flash = get_model("google/gemini-3.0-flash")
-        expected = flash.pricing.input_per_token * 600 + flash.pricing.output_per_token * 400
+        expected = (
+            flash.pricing.input_per_token * 600 + flash.pricing.output_per_token * 400
+        )
         assert abs(flash.cost_per_1k_tokens - expected) < 1e-10

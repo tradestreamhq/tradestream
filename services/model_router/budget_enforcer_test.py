@@ -56,7 +56,9 @@ class TestBudgetEnforcer:
     def test_alert_callback_invoked(self):
         alerts = []
         enforcer = BudgetEnforcer(monthly_limit_usd=3000)
-        enforcer.set_alert_callback(lambda msg, sev, details: alerts.append((msg, sev, details)))
+        enforcer.set_alert_callback(
+            lambda msg, sev, details: alerts.append((msg, sev, details))
+        )
         enforcer.check(current_cost=2700)
         assert len(alerts) == 1
         assert alerts[0][1] == "warning"
@@ -64,7 +66,9 @@ class TestBudgetEnforcer:
     def test_critical_severity_at_95(self):
         alerts = []
         enforcer = BudgetEnforcer(monthly_limit_usd=3000)
-        enforcer.set_alert_callback(lambda msg, sev, details: alerts.append((msg, sev, details)))
+        enforcer.set_alert_callback(
+            lambda msg, sev, details: alerts.append((msg, sev, details))
+        )
         enforcer.check(current_cost=2850)
         assert len(alerts) == 1
         assert alerts[0][1] == "critical"

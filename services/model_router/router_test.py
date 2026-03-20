@@ -121,30 +121,39 @@ class TestCircuitBreaker:
         assert not cb.allow_request()
 
     def test_transitions_to_half_open(self):
-        cb = ModelCircuitBreaker("test-model", failure_threshold=2, recovery_timeout=0.01)
+        cb = ModelCircuitBreaker(
+            "test-model", failure_threshold=2, recovery_timeout=0.01
+        )
         cb.record_failure()
         cb.record_failure()
         assert cb.state == "open"
         import time
+
         time.sleep(0.02)
         assert cb.state == "half_open"
         assert cb.allow_request()
 
     def test_half_open_success_closes(self):
-        cb = ModelCircuitBreaker("test-model", failure_threshold=2, recovery_timeout=0.01)
+        cb = ModelCircuitBreaker(
+            "test-model", failure_threshold=2, recovery_timeout=0.01
+        )
         cb.record_failure()
         cb.record_failure()
         import time
+
         time.sleep(0.02)
         assert cb.state == "half_open"
         cb.record_success()
         assert cb.state == "closed"
 
     def test_half_open_failure_reopens(self):
-        cb = ModelCircuitBreaker("test-model", failure_threshold=2, recovery_timeout=0.01)
+        cb = ModelCircuitBreaker(
+            "test-model", failure_threshold=2, recovery_timeout=0.01
+        )
         cb.record_failure()
         cb.record_failure()
         import time
+
         time.sleep(0.02)
         cb.allow_request()  # triggers half_open
         cb.record_failure()

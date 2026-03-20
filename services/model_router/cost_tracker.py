@@ -89,7 +89,9 @@ class CostTracker:
         else:
             # Unknown model — estimate conservatively
             cost = (input_tokens + output_tokens) * 0.00001
-            logger.warning("Unknown model %s, using conservative cost estimate", model_id)
+            logger.warning(
+                "Unknown model %s, using conservative cost estimate", model_id
+            )
 
         record = UsageRecord(
             agent_type=agent_type,
@@ -111,7 +113,9 @@ class CostTracker:
         )
         return record
 
-    def get_monthly_cost(self, year: Optional[int] = None, month: Optional[int] = None) -> float:
+    def get_monthly_cost(
+        self, year: Optional[int] = None, month: Optional[int] = None
+    ) -> float:
         """Get total cost for a given month (defaults to current month)."""
         now = datetime.now(timezone.utc)
         target_year = year or now.year

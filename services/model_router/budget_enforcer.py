@@ -26,8 +26,12 @@ class DegradationTier:
 DEFAULT_DEGRADATION_TIERS = [
     DegradationTier(80, "alert", "Send warning notification"),
     DegradationTier(90, "reduce_premium", "Disable Opus escalation, cap at Sonnet"),
-    DegradationTier(95, "reduce_frequency", "Reduce signal frequency from 1-min to 5-min"),
-    DegradationTier(100, "emergency_mode", "Flash-only mode, 15-min frequency, critical alerts only"),
+    DegradationTier(
+        95, "reduce_frequency", "Reduce signal frequency from 1-min to 5-min"
+    ),
+    DegradationTier(
+        100, "emergency_mode", "Flash-only mode, 15-min frequency, critical alerts only"
+    ),
 ]
 
 
@@ -77,7 +81,9 @@ class BudgetEnforcer:
             self.current_tier = applicable_tier
 
             if applicable_tier:
-                severity = "critical" if applicable_tier.threshold_pct >= 95 else "warning"
+                severity = (
+                    "critical" if applicable_tier.threshold_pct >= 95 else "warning"
+                )
                 logger.warning(
                     "Budget degradation tier changed: %s → %s (usage=%.1f%%)",
                     old_tier.action if old_tier else "none",
@@ -139,5 +145,7 @@ class BudgetEnforcer:
         return {
             "monthly_limit_usd": self.monthly_limit_usd,
             "current_tier": self.current_tier.action if self.current_tier else None,
-            "tier_threshold_pct": self.current_tier.threshold_pct if self.current_tier else None,
+            "tier_threshold_pct": (
+                self.current_tier.threshold_pct if self.current_tier else None
+            ),
         }

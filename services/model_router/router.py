@@ -169,7 +169,10 @@ class ModelCircuitBreaker:
         if self._state == self.STATE_HALF_OPEN:
             self._state = self.STATE_OPEN
             logger.warning("Model circuit breaker %s: HALF_OPEN → OPEN", self.model_id)
-        elif self._state == self.STATE_CLOSED and self._failure_count >= self.failure_threshold:
+        elif (
+            self._state == self.STATE_CLOSED
+            and self._failure_count >= self.failure_threshold
+        ):
             self._state = self.STATE_OPEN
             logger.warning(
                 "Model circuit breaker %s: CLOSED → OPEN after %d failures",
@@ -281,9 +284,7 @@ class ModelRouter:
             return model_id
 
         if model_profile.cost_per_1k_tokens > cap_profile.cost_per_1k_tokens:
-            logger.info(
-                "Budget cap: downgrading %s to %s", model_id, self._max_model
-            )
+            logger.info("Budget cap: downgrading %s to %s", model_id, self._max_model)
             return self._max_model
         return model_id
 
@@ -337,7 +338,9 @@ class ModelRouter:
         cb = self._get_circuit_breaker(model_id)
         if not cb.allow_request():
             logger.warning("Circuit open for %s, skipping to fallback", model_id)
-            return await self._try_fallback(model_id, call_fn, *args, _tried=_tried, **kwargs)
+            return await self._try_fallback(
+                model_id, call_fn, *args, _tried=_tried, **kwargs
+            )
 
         last_error: Optional[Exception] = None
         delay_ms = self.retry_config.initial_delay_ms
@@ -387,9 +390,7 @@ class ModelRouter:
                     )
                 _tried.add(candidate)
 
-        raise AllModelsFailedError(
-            f"All models failed. Last error: {_last_error}"
-        )
+        raise AllModelsFailedError(f"All models failed. Last error: {_last_error}")
 
     def get_routing_config(self, agent_type: str) -> Optional[AgentRoutingConfig]:
         """Get the routing config for an agent type."""
