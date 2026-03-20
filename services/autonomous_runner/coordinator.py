@@ -37,6 +37,19 @@ from services.autonomous_runner.signal_publisher import SignalPublisher
 from services.shared.circuit_breaker import CircuitBreaker
 from services.shared.mcp_client import resolve_and_call
 
+# Lazy import to avoid circular dependency at module-load time
+_publish_signal_event = None
+
+
+def _get_publish_signal_event():
+    global _publish_signal_event
+    if _publish_signal_event is None:
+        from services.autonomous_runner.dashboard import publish_signal_event
+
+        _publish_signal_event = publish_signal_event
+    return _publish_signal_event
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,6 +69,7 @@ TOOL_TO_SERVER = {
     "get_recent_signals": "signal",
     "get_paper_pnl": "signal",
     "get_signal_accuracy": "signal",
+    "get_learning_recommendations": "learning",
 }
 
 
@@ -103,6 +117,7 @@ class SignalCoordinator:
             "strategy": config.mcp_strategy_url,
             "market": config.mcp_market_url,
             "signal": config.mcp_signal_url,
+            "learning": config.mcp_learning_url,
         }
         self._executor = ThreadPoolExecutor(max_workers=config.parallel.max_concurrent)
         self._decisions = []  # in-memory log for dashboard
@@ -319,6 +334,13 @@ class SignalCoordinator:
         prediction_signal = self._fetch_prediction_market_signal(symbol, tool_calls)
         if prediction_signal:
             source_signals.append(prediction_signal)
+
+        # 1e. Learning engine recommendations
+        learning_signal = self._fetch_learning_signal(symbol, tool_calls)
+        if learning_signal:
+            source_signals.append(learning_signal)
+        else:
+            missing_sources.append("learning_engine")
 
         # Step 2: Handle degraded mode if no sources succeeded
         is_degraded = False
@@ -664,6 +686,55 @@ class SignalCoordinator:
             logger.debug("Prediction market data unavailable for %s: %s", symbol, e)
             return None
 
+    def _fetch_learning_signal(
+        self, symbol: str, tool_calls: list
+    ) -> Optional[SourceSignal]:
+        """Fetch learning engine recommendations for the symbol.
+
+        The learning engine provides adaptive recommendations based on
+        historical performance feedback loops.
+        """
+        try:
+            result = self._call_mcp_cached(
+                "get_learning_recommendations",
+                {"symbol": symbol},
+                tool_calls,
+                cache_type="learning",
+                cache_key=symbol,
+            )
+
+            if result is None or (isinstance(result, dict) and "error" in result):
+                return None
+
+            # Parse learning engine output
+            if isinstance(result, dict):
+                recommended_action = result.get("recommended_action", "HOLD")
+                confidence = result.get("confidence", 0.5)
+                model_version = result.get("model_version", "unknown")
+
+                action_map = {
+                    "BUY": SignalAction.BUY,
+                    "SELL": SignalAction.SELL,
+                    "HOLD": SignalAction.HOLD,
+                }
+                action = action_map.get(recommended_action, SignalAction.HOLD)
+                confidence = min(0.80, max(0.30, float(confidence)))
+
+                return SourceSignal(
+                    source="learning_engine",
+                    action=action,
+                    confidence=confidence,
+                    metadata={
+                        "model_version": model_version,
+                        "features_used": result.get("features_used", []),
+                        "training_samples": result.get("training_samples", 0),
+                    },
+                )
+            return None
+        except Exception as e:
+            logger.debug("Learning engine unavailable for %s: %s", symbol, e)
+            return None
+
     def _extract_top_strategy(self, source_signals: list) -> dict:
         """Extract the top strategy from source signals for signal output."""
         for sig in source_signals:
@@ -754,6 +825,11 @@ class SignalCoordinator:
             logger.error("Failed to emit signal for %s: %s", decision.symbol, e)
         # Publish to Redis channel:raw-signals
         self._publisher.publish(signal_payload)
+        # Publish to SSE stream (even with no subscribers connected)
+        try:
+            _get_publish_signal_event()(signal_payload)
+        except Exception as e:
+            logger.debug("SSE publish failed (non-critical): %s", e)
 
     def get_recent_decisions(self, limit: int = 50) -> list:
         """Return recent decisions for the dashboard."""

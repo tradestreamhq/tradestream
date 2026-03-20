@@ -8,7 +8,10 @@ from fastapi.testclient import TestClient
 from services.autonomous_runner import dashboard
 from services.autonomous_runner.dashboard import (
     DashboardState,
+    SignalEventBus,
     app,
+    get_event_bus,
+    publish_signal_event,
     record_cycle,
     set_dashboard_state,
 )
@@ -181,6 +184,49 @@ class TestKillSwitchEndpoints:
             json={"reason": "test"},
         )
         assert "error" in resp.json()
+
+
+class TestSSEStream:
+    def test_signal_event_bus_publish_and_buffer(self):
+        bus = SignalEventBus(buffer_size=5)
+        bus.publish({"type": "signal", "data": {"symbol": "BTC-USD"}})
+        bus.publish({"type": "signal", "data": {"symbol": "ETH-USD"}})
+        assert bus.buffer_size == 2
+
+    def test_signal_event_bus_subscriber_gets_replay(self):
+        import asyncio
+
+        bus = SignalEventBus(buffer_size=10)
+        bus.publish({"symbol": "BTC-USD"})
+        bus.publish({"symbol": "ETH-USD"})
+
+        q = bus.subscribe()
+        assert q.qsize() == 2
+        assert bus.subscriber_count == 1
+
+        bus.unsubscribe(q)
+        assert bus.subscriber_count == 0
+
+    def test_signal_event_bus_live_delivery(self):
+        import asyncio
+
+        bus = SignalEventBus()
+        q = bus.subscribe()
+        bus.publish({"symbol": "SOL-USD"})
+        assert q.qsize() == 1
+
+    def test_publish_signal_event(self):
+        bus = get_event_bus()
+        initial = bus.buffer_size
+        publish_signal_event({"symbol": "BTC-USD", "action": "BUY"})
+        assert bus.buffer_size == initial + 1
+
+    def test_stream_status_endpoint(self, client):
+        resp = client.get("/api/pipeline/signals/stream/status")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "subscribers" in data
+        assert "buffer_size" in data
 
 
 class TestMetricsEndpoint:

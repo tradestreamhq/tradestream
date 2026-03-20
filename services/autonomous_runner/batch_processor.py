@@ -69,6 +69,7 @@ DEGRADATION_PENALTIES = {
     "volatility": 0.05,
     "sentiment": 0.05,
     "prediction_market": 0.05,
+    "learning_engine": 0.05,
 }
 
 

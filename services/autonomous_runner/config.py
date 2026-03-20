@@ -98,6 +98,7 @@ class Config:
     mcp_strategy_url: str = ""
     mcp_market_url: str = ""
     mcp_signal_url: str = ""
+    mcp_learning_url: str = ""
 
     # API key
     openrouter_api_key: str = ""
@@ -117,6 +118,9 @@ class Config:
             ),
             mcp_market_url=os.environ.get("MCP_MARKET_URL", "http://localhost:8081"),
             mcp_signal_url=os.environ.get("MCP_SIGNAL_URL", "http://localhost:8082"),
+            mcp_learning_url=os.environ.get(
+                "MCP_LEARNING_URL", "http://localhost:8083"
+            ),
         )
 
         symbols_env = os.environ.get("SYMBOLS", "")

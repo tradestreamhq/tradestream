@@ -1,17 +1,72 @@
 """Pipeline dashboard API: real-time view of pipeline status, signal flow, and decision log.
 
-Provides REST endpoints for monitoring the autonomous signal generation pipeline.
+Provides REST endpoints and SSE stream for monitoring the autonomous signal
+generation pipeline.
 """
 
+import asyncio
 import json
 import logging
 import time
+from collections import deque
 from typing import Optional
 
 from fastapi import FastAPI, Query
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+
+
+class SignalEventBus:
+    """In-process event bus for broadcasting signals to SSE subscribers.
+
+    Publishes signals to SSE stream even when no users are connected,
+    buffering the last N events so new subscribers see recent history.
+    """
+
+    def __init__(self, buffer_size: int = 100):
+        self._subscribers: list[asyncio.Queue] = []
+        self._buffer: deque = deque(maxlen=buffer_size)
+
+    def publish(self, event: dict):
+        """Publish a signal event to all subscribers and the replay buffer."""
+        self._buffer.append(event)
+        dead = []
+        for q in self._subscribers:
+            try:
+                q.put_nowait(event)
+            except asyncio.QueueFull:
+                dead.append(q)
+        for q in dead:
+            self._subscribers.remove(q)
+
+    def subscribe(self) -> asyncio.Queue:
+        """Subscribe to the event stream. Returns an asyncio.Queue."""
+        q: asyncio.Queue = asyncio.Queue(maxsize=256)
+        # Replay recent events
+        for event in self._buffer:
+            try:
+                q.put_nowait(event)
+            except asyncio.QueueFull:
+                break
+        self._subscribers.append(q)
+        return q
+
+    def unsubscribe(self, q: asyncio.Queue):
+        if q in self._subscribers:
+            self._subscribers.remove(q)
+
+    @property
+    def subscriber_count(self) -> int:
+        return len(self._subscribers)
+
+    @property
+    def buffer_size(self) -> int:
+        return len(self._buffer)
+
+
+# Module-level event bus for SSE streaming
+_event_bus = SignalEventBus()
 
 
 class DashboardState:
@@ -48,6 +103,21 @@ def record_cycle(duration_ms: int, signals_count: int):
     _state.total_signals_emitted += signals_count
     _state.last_cycle_duration_ms = duration_ms
     _state.last_cycle_signals = signals_count
+
+
+def publish_signal_event(decision_dict: dict):
+    """Publish a signal decision to the SSE event bus."""
+    event = {
+        "type": "signal",
+        "timestamp": time.time(),
+        "data": decision_dict,
+    }
+    _event_bus.publish(event)
+
+
+def get_event_bus() -> SignalEventBus:
+    """Return the module-level event bus (for testing)."""
+    return _event_bus
 
 
 app = FastAPI(
@@ -202,6 +272,52 @@ def pipeline_metrics_endpoint():
     from services.autonomous_runner.metrics import pipeline_metrics
 
     return pipeline_metrics.get_summary()
+
+
+@app.get("/api/pipeline/signals/stream")
+async def signal_stream():
+    """SSE endpoint: streams trading signals in real-time.
+
+    Publishes signals even with no users connected (buffered).
+    New subscribers receive recent history via replay buffer.
+    """
+    from starlette.responses import StreamingResponse
+
+    queue = _event_bus.subscribe()
+
+    async def event_generator():
+        try:
+            while True:
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=30.0)
+                    data = json.dumps(event, default=str)
+                    yield f"event: signal\ndata: {data}\n\n"
+                except asyncio.TimeoutError:
+                    # Send keepalive to prevent connection timeout
+                    yield ": keepalive\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            _event_bus.unsubscribe(queue)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.get("/api/pipeline/signals/stream/status")
+def stream_status():
+    """SSE stream status: subscriber count and buffer depth."""
+    return {
+        "subscribers": _event_bus.subscriber_count,
+        "buffer_size": _event_bus.buffer_size,
+    }
 
 
 @app.get("/metrics")
