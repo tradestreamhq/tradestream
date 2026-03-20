@@ -385,6 +385,34 @@ py_test(
 )
 
 py_library(
+    name = "decision_queries_lib",
+    srcs = [
+        "__init__.py",
+        "decision_queries.py",
+    ],
+)
+
+py_test(
+    name = "decision_queries_test",
+    srcs = ["decision_queries_test.py"],
+    deps = [
+        ":decision_queries_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "coordinator_integration_test",
+    srcs = ["coordinator_integration_test.py"],
+    deps = [
+        ":config_lib",
+        ":coordinator_lib",
+        ":signal_fusion_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
     name = "outcome_tracker_lib",
     srcs = [
         "__init__.py",

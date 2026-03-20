@@ -377,6 +377,60 @@ def event_bus_status():
     return get_event_bus().get_stats()
 
 
+@app.get("/api/pipeline/analytics/tool-performance")
+def tool_performance_analytics(hours: int = Query(default=24, ge=1, le=168)):
+    """Tool call performance analysis (requires DB).
+
+    Shows average latency and call frequency for each MCP tool,
+    using the GIN-indexed tool_calls JSONB field.
+    """
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "tools": []}
+    return {"tools": query_svc.analyze_tool_performance(hours=hours)}
+
+
+@app.get("/api/pipeline/analytics/model-usage")
+def model_usage_analytics(hours: int = Query(default=24, ge=1, le=168)):
+    """Model usage tracking: decisions, latency, and token usage per model."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "models": []}
+    return {"models": query_svc.track_model_usage(hours=hours)}
+
+
+@app.get("/api/pipeline/analytics/accuracy")
+def accuracy_analytics(days: int = Query(default=30, ge=1, le=365)):
+    """Decision accuracy by symbol and action (requires outcome data)."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "accuracy": []}
+    return {"accuracy": query_svc.calculate_accuracy(days=days)}
+
+
+@app.get("/api/pipeline/analytics/high-opportunity")
+def high_opportunity_decisions(
+    min_score: float = Query(default=80.0, ge=0, le=100),
+    hours: int = Query(default=1, ge=1, le=24),
+):
+    """High-opportunity decisions from the last N hours."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "decisions": []}
+    return {"decisions": query_svc.get_high_opportunity_decisions(min_score=min_score, hours=hours)}
+
+
+def _get_query_service():
+    """Get the DecisionQueryService if DB is available."""
+    if not _state.coordinator or not _state.coordinator._db.is_available:
+        return None
+    try:
+        from services.autonomous_runner.decision_queries import DecisionQueryService
+        return DecisionQueryService(db_pool=_state.coordinator._db._pool)
+    except Exception:
+        return None
+
+
 @app.get("/metrics")
 def prometheus_metrics():
     """Prometheus-compatible metrics endpoint."""
