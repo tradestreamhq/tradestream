@@ -129,6 +129,14 @@ py_library(
 )
 
 py_library(
+    name = "signal_event_bus_lib",
+    srcs = [
+        "__init__.py",
+        "signal_event_bus.py",
+    ],
+)
+
+py_library(
     name = "coordinator_lib",
     srcs = [
         "__init__.py",
@@ -146,6 +154,7 @@ py_library(
         ":risk_manager_lib",
         ":run_lock_lib",
         ":signal_cache_lib",
+        ":signal_event_bus_lib",
         ":signal_fusion_lib",
         ":signal_publisher_lib",
         "//services/shared:circuit_breaker",
@@ -161,6 +170,7 @@ py_library(
     ],
     deps = [
         ":metrics_lib",
+        ":signal_event_bus_lib",
         "//third_party/python:fastapi",
         "//third_party/python:pydantic",
     ],
@@ -303,9 +313,19 @@ py_test(
     deps = [
         ":dashboard_lib",
         ":metrics_lib",
+        ":signal_event_bus_lib",
         "//third_party/python:fastapi",
         "//third_party/python:httpx",
         "//third_party/python:pydantic",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "signal_event_bus_test",
+    srcs = ["signal_event_bus_test.py"],
+    deps = [
+        ":signal_event_bus_lib",
         "//third_party/python:pytest",
     ],
 )
