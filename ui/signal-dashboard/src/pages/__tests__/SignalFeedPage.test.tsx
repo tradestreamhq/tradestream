@@ -105,7 +105,7 @@ describe("SignalFeedPage", () => {
     render(<SignalFeedPage />);
     expect(screen.getByRole("feed")).toHaveAttribute(
       "aria-label",
-      "Trading signals"
+      "Trading signals sorted by opportunity score"
     );
   });
 });
