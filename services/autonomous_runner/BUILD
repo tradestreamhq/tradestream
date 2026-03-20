@@ -105,6 +105,30 @@ py_library(
 )
 
 py_library(
+    name = "model_validator_lib",
+    srcs = [
+        "__init__.py",
+        "model_validator.py",
+    ],
+)
+
+py_library(
+    name = "run_lock_lib",
+    srcs = [
+        "__init__.py",
+        "run_lock.py",
+    ],
+)
+
+py_library(
+    name = "signal_publisher_lib",
+    srcs = [
+        "__init__.py",
+        "signal_publisher.py",
+    ],
+)
+
+py_library(
     name = "coordinator_lib",
     srcs = [
         "__init__.py",
@@ -117,10 +141,13 @@ py_library(
         ":db_persistence_lib",
         ":decision_models_lib",
         ":metrics_lib",
+        ":model_validator_lib",
         ":retry_lib",
         ":risk_manager_lib",
+        ":run_lock_lib",
         ":signal_cache_lib",
         ":signal_fusion_lib",
+        ":signal_publisher_lib",
         "//services/shared:circuit_breaker",
         "//services/shared:mcp_client",
     ],
@@ -151,6 +178,7 @@ py_library(
         ":dashboard_lib",
         ":kill_switch_lib",
         ":metrics_lib",
+        ":outcome_tracker_lib",
         "//services/shared:circuit_breaker",
     ],
 )
@@ -305,6 +333,53 @@ py_test(
     srcs = ["retention_test.py"],
     deps = [
         ":retention_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "model_validator_test",
+    srcs = ["model_validator_test.py"],
+    deps = [
+        ":model_validator_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "run_lock_test",
+    srcs = ["run_lock_test.py"],
+    deps = [
+        ":run_lock_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "signal_publisher_test",
+    srcs = ["signal_publisher_test.py"],
+    deps = [
+        ":signal_publisher_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "outcome_tracker_lib",
+    srcs = [
+        "__init__.py",
+        "outcome_tracker.py",
+    ],
+    deps = [
+        ":db_persistence_lib",
+    ],
+)
+
+py_test(
+    name = "outcome_tracker_test",
+    srcs = ["outcome_tracker_test.py"],
+    deps = [
+        ":outcome_tracker_lib",
         "//third_party/python:pytest",
     ],
 )
