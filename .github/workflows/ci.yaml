@@ -128,6 +128,9 @@ jobs:
           - name: strategy-db-mcp
             target: "//services/strategy_db_mcp:strategy_db_mcp_tarball"
             repo: strategy-db-mcp
+          - name: strategy-knowledge-graph-mcp
+            target: "//services/strategy_knowledge_graph_mcp:strategy_knowledge_graph_mcp_tarball"
+            repo: strategy-knowledge-graph-mcp
           - name: websearch-mcp
             target: "//services/websearch_mcp:websearch_mcp_tarball"
             repo: websearch-mcp
@@ -216,6 +219,9 @@ jobs:
               ;;
             "strategy-db-mcp")
               cp bazel-bin/services/strategy_db_mcp/load_strategy_db_mcp_image/tarball.tar images/strategy-db-mcp.tar
+              ;;
+            "strategy-knowledge-graph-mcp")
+              cp bazel-bin/services/strategy_knowledge_graph_mcp/load_strategy_knowledge_graph_mcp_image/tarball.tar images/strategy-knowledge-graph-mcp.tar
               ;;
             "websearch-mcp")
               cp bazel-bin/services/websearch_mcp/load_websearch_mcp_image/tarball.tar images/websearch-mcp.tar

@@ -1285,6 +1285,35 @@ strategyDbMcp:
       cpu: "200m"
       memory: "512Mi"
 
+# Strategy Knowledge Graph MCP Server
+strategyKnowledgeGraphMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-knowledge-graph-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "sse"
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
 # Web Search MCP Server
 websearchMcp:
   enabled: false
