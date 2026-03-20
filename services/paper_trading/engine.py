@@ -41,9 +41,7 @@ class PaperTradingEngine:
         price = result.get("price") or result.get("close")
         return float(price) if price is not None else None
 
-    async def start_session(
-        self, starting_balance: float = 100000.0
-    ) -> Dict[str, Any]:
+    async def start_session(self, starting_balance: float = 100000.0) -> Dict[str, Any]:
         """Start a new paper trading session with the given balance.
 
         Only one session can be ACTIVE at a time.
@@ -60,9 +58,7 @@ class PaperTradingEngine:
         """Stop an active paper trading session."""
         session = await self._pg.stop_session(session_id)
         if session is None:
-            raise ValueError(
-                f"Session '{session_id}' not found or already stopped."
-            )
+            raise ValueError(f"Session '{session_id}' not found or already stopped.")
         return session
 
     async def execute_paper_trade(
@@ -105,9 +101,7 @@ class PaperTradingEngine:
         )
         return trade
 
-    async def get_session_portfolio(
-        self, session_id: str
-    ) -> Dict[str, Any]:
+    async def get_session_portfolio(self, session_id: str) -> Dict[str, Any]:
         """Get portfolio state for a session including updated P&L."""
         session = await self._pg.get_session(session_id)
         if session is None:
@@ -148,9 +142,7 @@ class PaperTradingEngine:
         )
         return {"session_id": session_id, "trades": trades, "count": len(trades)}
 
-    async def get_performance_comparison(
-        self, session_id: str
-    ) -> Dict[str, Any]:
+    async def get_performance_comparison(self, session_id: str) -> Dict[str, Any]:
         """Compare paper trading performance against live metrics.
 
         Returns paper session stats and live stats side-by-side.
@@ -166,9 +158,7 @@ class PaperTradingEngine:
         }
 
 
-def _compute_comparison(
-    paper: Dict[str, Any], live: Dict[str, Any]
-) -> Dict[str, Any]:
+def _compute_comparison(paper: Dict[str, Any], live: Dict[str, Any]) -> Dict[str, Any]:
     """Compute delta metrics between paper and live performance."""
     paper_return = paper.get("return_pct", 0.0)
     live_return = live.get("return_pct", 0.0)
@@ -178,9 +168,7 @@ def _compute_comparison(
         "win_rate_delta": round(
             paper.get("win_rate", 0.0) - live.get("win_rate", 0.0), 2
         ),
-        "avg_pnl_delta": round(
-            paper.get("avg_pnl", 0.0) - live.get("avg_pnl", 0.0), 8
-        ),
+        "avg_pnl_delta": round(paper.get("avg_pnl", 0.0) - live.get("avg_pnl", 0.0), 8),
         "total_trades_delta": (
             paper.get("total_trades", 0) - live.get("total_trades", 0)
         ),

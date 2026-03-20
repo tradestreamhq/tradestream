@@ -128,7 +128,9 @@ class TestExecutePaperTrade:
 
     @pytest.mark.asyncio
     @patch.object(PaperTradingEngine, "_get_current_price", return_value=50000.0)
-    async def test_execute_trade_insufficient_balance(self, mock_price, engine, pg_client):
+    async def test_execute_trade_insufficient_balance(
+        self, mock_price, engine, pg_client
+    ):
         pg_client.get_session.return_value = {
             "session_id": "sess-1",
             "status": "ACTIVE",
@@ -269,8 +271,18 @@ class TestPerformanceComparison:
 
 class TestComputeComparison:
     def test_compute_positive_delta(self):
-        paper = {"return_pct": 10.0, "win_rate": 75.0, "avg_pnl": 200.0, "total_trades": 20}
-        live = {"return_pct": 5.0, "win_rate": 60.0, "avg_pnl": 100.0, "total_trades": 15}
+        paper = {
+            "return_pct": 10.0,
+            "win_rate": 75.0,
+            "avg_pnl": 200.0,
+            "total_trades": 20,
+        }
+        live = {
+            "return_pct": 5.0,
+            "win_rate": 60.0,
+            "avg_pnl": 100.0,
+            "total_trades": 15,
+        }
         result = _compute_comparison(paper, live)
 
         assert result["return_pct_delta"] == 5.0
@@ -279,8 +291,18 @@ class TestComputeComparison:
         assert result["total_trades_delta"] == 5
 
     def test_compute_negative_delta(self):
-        paper = {"return_pct": 2.0, "win_rate": 40.0, "avg_pnl": -50.0, "total_trades": 5}
-        live = {"return_pct": 8.0, "win_rate": 70.0, "avg_pnl": 150.0, "total_trades": 10}
+        paper = {
+            "return_pct": 2.0,
+            "win_rate": 40.0,
+            "avg_pnl": -50.0,
+            "total_trades": 5,
+        }
+        live = {
+            "return_pct": 8.0,
+            "win_rate": 70.0,
+            "avg_pnl": 150.0,
+            "total_trades": 10,
+        }
         result = _compute_comparison(paper, live)
 
         assert result["return_pct_delta"] == -6.0

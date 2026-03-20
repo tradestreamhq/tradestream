@@ -607,9 +607,7 @@ class PostgresClient:
                     "opened_at": row["opened_at"].isoformat(),
                 }
 
-    async def get_session_portfolio(
-        self, session_id: str
-    ) -> List[Dict[str, Any]]:
+    async def get_session_portfolio(self, session_id: str) -> List[Dict[str, Any]]:
         """Get portfolio positions for trades in a specific session."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
