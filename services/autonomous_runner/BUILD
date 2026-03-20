@@ -189,6 +189,7 @@ py_library(
         ":kill_switch_lib",
         ":metrics_lib",
         ":outcome_tracker_lib",
+        ":retention_job_lib",
         "//services/shared:circuit_breaker",
     ],
 )
@@ -380,6 +381,72 @@ py_test(
     srcs = ["signal_publisher_test.py"],
     deps = [
         ":signal_publisher_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "decision_queries_lib",
+    srcs = [
+        "__init__.py",
+        "decision_queries.py",
+    ],
+)
+
+py_test(
+    name = "decision_queries_test",
+    srcs = ["decision_queries_test.py"],
+    deps = [
+        ":decision_queries_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "coordinator_integration_test",
+    srcs = ["coordinator_integration_test.py"],
+    deps = [
+        ":config_lib",
+        ":coordinator_lib",
+        ":signal_fusion_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "decision_feedback_lib",
+    srcs = [
+        "__init__.py",
+        "decision_feedback.py",
+    ],
+)
+
+py_test(
+    name = "decision_feedback_test",
+    srcs = ["decision_feedback_test.py"],
+    deps = [
+        ":decision_feedback_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "retention_job_lib",
+    srcs = [
+        "__init__.py",
+        "retention_job.py",
+    ],
+    deps = [
+        ":retention_lib",
+    ],
+)
+
+py_test(
+    name = "retention_job_test",
+    srcs = ["retention_job_test.py"],
+    deps = [
+        ":retention_job_lib",
+        ":retention_lib",
         "//third_party/python:pytest",
     ],
 )

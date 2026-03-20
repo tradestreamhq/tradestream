@@ -2,16 +2,19 @@
 
 Runs the full cycle: fetch sources -> fuse signals -> risk check -> emit.
 Integrates caching, retry logic, degraded signal generation,
-adaptive scheduling, metrics, and DB persistence.
+adaptive scheduling, metrics, DB persistence, and signal deduplication.
 """
 
 import json
 import logging
 import time
 import uuid
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Optional
+
+DEDUP_WINDOW_SECONDS = 900  # 15 minutes
 
 from services.autonomous_runner.adaptive_scheduler import AdaptiveScheduler
 from services.autonomous_runner.batch_processor import (
@@ -129,6 +132,10 @@ class SignalCoordinator:
         self._publisher = SignalPublisher(redis_client=redis_client)
         # In-process event bus for SSE streaming
         self._event_bus = get_event_bus()
+        # Signal deduplication: tracks (symbol, action) -> last_emit_time
+        self._recent_emissions = defaultdict(float)
+        # Entry price tracking for outcome evaluation
+        self._entry_prices = {}
 
     def _call_mcp_with_retry(
         self, tool: str, params: dict, tool_calls: list
@@ -404,11 +411,30 @@ class SignalCoordinator:
         pipeline_metrics.record_signal_generated(symbol, fused.action.value)
         pipeline_metrics.record_confidence(fused.confidence)
 
-        # Step 5: Emit if approved
+        # Step 5: Emit if approved (with deduplication check)
         if risk_result.approved and fused.action != SignalAction.HOLD:
-            self._emit_signal(decision, tool_calls)
-            self.risk_manager.record_signal_emitted(symbol)
-            pipeline_metrics.record_signal_emitted(symbol, fused.action.value)
+            dedup_key = (symbol, fused.action.value)
+            last_emit = self._recent_emissions.get(dedup_key, 0)
+            if time.time() - last_emit < DEDUP_WINDOW_SECONDS:
+                pipeline_metrics.record_signal_skipped("dedup_window")
+                decision.validation_warnings = (decision.validation_warnings or []) + [
+                    f"Duplicate {fused.action.value} for {symbol} within 15m window"
+                ]
+                logger.info(
+                    "Skipping duplicate %s for %s (last emitted %.0fs ago)",
+                    fused.action.value,
+                    symbol,
+                    time.time() - last_emit,
+                )
+            else:
+                self._emit_signal(decision, tool_calls)
+                self._recent_emissions[dedup_key] = time.time()
+                # Store entry price for outcome tracking
+                entry_price = (decision.market_context or {}).get("current_price")
+                if entry_price is not None:
+                    self._entry_prices[decision.decision_id] = entry_price
+                self.risk_manager.record_signal_emitted(symbol)
+                pipeline_metrics.record_signal_emitted(symbol, fused.action.value)
         elif not risk_result.approved:
             reason = (
                 risk_result.rejection_reasons[0]
@@ -832,6 +858,10 @@ class SignalCoordinator:
             logger.error("Failed to emit signal for %s: %s", decision.symbol, e)
         # Publish to Redis channel:raw-signals
         self._publisher.publish(signal_payload)
+
+    def get_entry_price(self, decision_id: str) -> Optional[float]:
+        """Get the entry price recorded at signal emission time."""
+        return self._entry_prices.get(decision_id)
 
     def get_recent_decisions(self, limit: int = 50) -> list:
         """Return recent decisions for the dashboard."""

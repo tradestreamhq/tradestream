@@ -7,8 +7,8 @@ the learning feedback loop and accuracy tracking.
 
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
+from typing import Callable, Optional
 
 from services.autonomous_runner.db_persistence import DecisionPersistence
 
@@ -40,6 +40,7 @@ class OutcomeResult:
     hit_target: bool = False
     max_drawdown: float = 0.0
     exit_price: Optional[float] = None
+    entry_price: Optional[float] = None
 
 
 class OutcomeTracker:
@@ -52,11 +53,13 @@ class OutcomeTracker:
     def __init__(
         self,
         db: DecisionPersistence,
-        mcp_call_fn=None,
+        mcp_call_fn: Optional[Callable] = None,
+        entry_price_fn: Optional[Callable] = None,
         config: Optional[OutcomeConfig] = None,
     ):
         self._db = db
         self._mcp_call = mcp_call_fn
+        self._entry_price_fn = entry_price_fn
         self.config = config or OutcomeConfig()
         self._stats = {
             "outcomes_recorded": 0,
@@ -129,6 +132,7 @@ class OutcomeTracker:
         symbol = decision.get("symbol", "")
         action = decision.get("action", "HOLD")
         confidence = decision.get("confidence", 0.0)
+        decision_id = decision.get("decision_id", "")
 
         if not symbol or action == "HOLD":
             return None
@@ -138,29 +142,37 @@ class OutcomeTracker:
         if current_price is None:
             return None
 
-        # Use opportunity_score as a proxy for entry price movement expectation
-        entry_score = decision.get("opportunity_score", 50.0)
-        target_return = self.config.target_return_pct / 100.0
+        # Get entry price from coordinator's tracking
+        entry_price = None
+        if self._entry_price_fn:
+            entry_price = self._entry_price_fn(decision_id)
 
-        # Simulate return based on available data
-        # In production, this would compare entry price vs current price
-        simulated_return = self._simulate_return(
-            action, confidence, entry_score, current_price
-        )
-        hit = abs(simulated_return) >= target_return and (
-            (action == "BUY" and simulated_return > 0)
-            or (action == "SELL" and simulated_return < 0)
-        )
+        # Fall back to market_context entry price
+        if entry_price is None:
+            market_ctx = decision.get("market_context", {})
+            if isinstance(market_ctx, dict):
+                entry_price = market_ctx.get("current_price")
+
+        if entry_price is None or entry_price <= 0:
+            return None
+
+        # Compute actual return
+        price_change_pct = (current_price - entry_price) / entry_price
+        actual_return = price_change_pct if action == "BUY" else -price_change_pct
+
+        target_return = self.config.target_return_pct / 100.0
+        hit = actual_return >= target_return
 
         return OutcomeResult(
-            decision_id=decision["decision_id"],
+            decision_id=decision_id,
             symbol=symbol,
             action=action,
             entry_confidence=confidence,
-            actual_return=round(simulated_return, 4),
+            actual_return=round(actual_return, 6),
             hit_target=hit,
-            max_drawdown=round(abs(min(0, simulated_return)), 4),
+            max_drawdown=round(abs(min(0, actual_return)), 6),
             exit_price=current_price,
+            entry_price=entry_price,
         )
 
     def _get_current_price(self, symbol: str) -> Optional[float]:
@@ -177,23 +189,6 @@ class OutcomeTracker:
         except Exception as e:
             logger.debug("Price fetch failed for %s: %s", symbol, e)
         return None
-
-    def _simulate_return(
-        self,
-        action: str,
-        confidence: float,
-        entry_score: float,
-        current_price: float,
-    ) -> float:
-        """Estimate return for outcome tracking.
-
-        This is a simplified model. In production, the entry price
-        would be stored at signal emission time and compared directly.
-        """
-        # Without stored entry price, we can't compute actual return
-        # Return 0 to indicate "unknown" - the outcome tracker job
-        # would be enhanced to store entry prices in a future iteration
-        return 0.0
 
     def get_stats(self) -> dict:
         """Return outcome tracking statistics."""
