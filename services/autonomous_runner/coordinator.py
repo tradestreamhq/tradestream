@@ -1,7 +1,8 @@
 """Signal generation coordinator: orchestrates the autonomous pipeline.
 
 Runs the full cycle: fetch sources -> fuse signals -> risk check -> emit.
-Integrates retry logic, adaptive scheduling, metrics, and DB persistence.
+Integrates caching, retry logic, degraded signal generation,
+adaptive scheduling, metrics, and DB persistence.
 """
 
 import json
@@ -13,12 +14,17 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from services.autonomous_runner.adaptive_scheduler import AdaptiveScheduler
+from services.autonomous_runner.batch_processor import (
+    DEGRADATION_PENALTIES,
+    generate_degraded_signal,
+)
 from services.autonomous_runner.config import Config
 from services.autonomous_runner.db_persistence import DecisionPersistence
 from services.autonomous_runner.decision_models import AgentDecision
 from services.autonomous_runner.metrics import pipeline_metrics
 from services.autonomous_runner.retry import RetryConfig, retry_with_backoff
 from services.autonomous_runner.risk_manager import RiskManager
+from services.autonomous_runner.signal_cache import CacheConfig, SignalCache
 from services.autonomous_runner.signal_fusion import (
     FusedSignal,
     SignalAction,
@@ -64,16 +70,24 @@ class SignalCoordinator:
     """Orchestrates the autonomous signal generation pipeline.
 
     For each symbol:
-    1. Polls strategy consensus from strategy MCP
-    2. Polls market context from market MCP
+    1. Polls strategy consensus from strategy MCP (with cache)
+    2. Polls market context from market MCP (with cache)
     3. Fetches sentiment & prediction market signals
     4. Fuses all signals
     5. Runs risk checks
-    6. Emits approved signals
+    6. Emits approved signals with signal_id
     7. Records all decisions (in-memory + database)
+
+    Supports degraded signal generation when some sources fail.
     """
 
-    def __init__(self, config: Config, instance_id: str, db_url: str = ""):
+    def __init__(
+        self,
+        config: Config,
+        instance_id: str,
+        db_url: str = "",
+        redis_client=None,
+    ):
         self.config = config
         self.instance_id = instance_id
         self.risk_manager = RiskManager(config.risk)
@@ -98,6 +112,10 @@ class SignalCoordinator:
             reduced_batch_size=config.parallel.min_concurrent,
             default_timeout=config.timeouts.symbol_timeout_seconds,
             extended_timeout=config.timeouts.symbol_timeout_max_seconds,
+        )
+        # Signal cache (Redis + local fallback)
+        self._cache = SignalCache(
+            redis_client=redis_client, config=CacheConfig()
         )
 
     def _call_mcp_with_retry(
@@ -151,6 +169,50 @@ class SignalCoordinator:
         )
         return result
 
+    def _call_mcp_cached(
+        self,
+        tool: str,
+        params: dict,
+        tool_calls: list,
+        cache_type: str,
+        cache_key: str,
+    ) -> Optional[dict]:
+        """Call MCP tool with cache-first strategy.
+
+        Checks cache before making the MCP call. On MCP failure,
+        falls back to degraded-TTL cached data.
+        """
+        # Check cache first
+        cached = self._cache.get(cache_type, cache_key)
+        if cached is not None:
+            tool_calls.append(
+                {
+                    "tool": tool,
+                    "server": TOOL_TO_SERVER.get(tool, "unknown"),
+                    "parameters": params,
+                    "result": {"source": "cache"},
+                    "latency_ms": 0,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            )
+            return cached
+
+        # Try MCP call
+        try:
+            result = self._call_mcp_with_retry(tool, params, tool_calls)
+            if result is not None:
+                self._cache.put(cache_type, cache_key, result)
+            return result
+        except Exception:
+            # Fall back to degraded cache on failure
+            degraded = self._cache.get(cache_type, cache_key, degraded=True)
+            if degraded is not None:
+                logger.info(
+                    "Using degraded cache for %s:%s", cache_type, cache_key
+                )
+                return degraded
+            raise
+
     def process_all_symbols(
         self,
         symbols: list,
@@ -185,30 +247,75 @@ class SignalCoordinator:
         return all_signals
 
     def _process_symbol(self, symbol: str, timeout: float) -> Optional[AgentDecision]:
-        """Process a single symbol through the full pipeline."""
+        """Process a single symbol through the full pipeline.
+
+        Collects signals from all sources, generates degraded signals when
+        some sources fail, and assigns a unique signal_id to each decision.
+        """
         start_time = time.time()
         tool_calls = []
+        missing_sources = []
+
+        # Generate unique signal_id for this pipeline run
+        signal_id = f"sig-{uuid.uuid4().hex[:12]}"
 
         # Step 1: Gather source signals
         source_signals = []
 
-        # 1a. Strategy consensus
+        # 1a. Strategy consensus (with cache)
         strategy_signal = self._fetch_strategy_signal(symbol, tool_calls)
         if strategy_signal:
             source_signals.append(strategy_signal)
+        else:
+            missing_sources.append("strategies")
 
-        # 1b. Market context for regime detection
+        # 1b. Market context for regime detection (with cache)
         market_context, regime_signal = self._fetch_market_regime(symbol, tool_calls)
         if regime_signal:
             source_signals.append(regime_signal)
+        else:
+            missing_sources.append("market_context")
 
-        # 1c. Sentiment (from market summary)
+        # 1c. Sentiment (from recent signals)
         sentiment_signal = self._fetch_sentiment_signal(symbol, tool_calls)
         if sentiment_signal:
             source_signals.append(sentiment_signal)
+        else:
+            missing_sources.append("sentiment")
 
-        # Step 2: Fuse signals
-        fused = fuse_signals(symbol, source_signals)
+        # 1d. Prediction market signal
+        prediction_signal = self._fetch_prediction_market_signal(symbol, tool_calls)
+        if prediction_signal:
+            source_signals.append(prediction_signal)
+
+        # Step 2: Handle degraded mode if no sources succeeded
+        is_degraded = False
+        if not source_signals:
+            # All sources failed - generate degraded HOLD signal
+            degraded = generate_degraded_signal(symbol, {}, missing_sources)
+            fused = FusedSignal(
+                symbol=symbol,
+                action=SignalAction.HOLD,
+                confidence=degraded["confidence"],
+                source_signals=[],
+                agreement_ratio=0.0,
+                reasoning=degraded["reasoning"],
+            )
+            is_degraded = True
+            pipeline_metrics.record_signal_skipped("all_sources_failed")
+        else:
+            # Apply confidence penalty if some sources failed
+            confidence_penalty = sum(
+                DEGRADATION_PENALTIES.get(s, 0.05) for s in missing_sources
+            )
+            fused = fuse_signals(symbol, source_signals)
+            if missing_sources:
+                is_degraded = True
+                fused.confidence = max(0.30, fused.confidence - confidence_penalty)
+                fused.reasoning += (
+                    f" [Degraded: missing {', '.join(missing_sources)}, "
+                    f"penalty={confidence_penalty:.2f}]"
+                )
 
         # Step 3: Risk check
         risk_result = self.risk_manager.check_signal(fused)
@@ -218,17 +325,25 @@ class SignalCoordinator:
         self.adaptive.record_latency(latency_ms)
         pipeline_metrics.record_symbol_processing(symbol, latency_ms / 1000.0)
 
+        # Build top strategy from source signals
+        top_strategy = self._extract_top_strategy(source_signals)
+
         decision = AgentDecision(
+            decision_id=signal_id,
             symbol=symbol,
             action=fused.action.value,
             confidence=fused.confidence,
             reasoning=fused.reasoning,
-            strategy_breakdown=self._build_strategy_breakdown(source_signals),
-            market_context=market_context or {},
+            strategy_breakdown=self._build_strategy_breakdown(
+                source_signals, top_strategy
+            ),
+            market_context=self._build_market_context(market_context, symbol),
             tool_calls={
                 "calls": tool_calls,
                 "tools_called": list({c.get("tool", "") for c in tool_calls}),
                 "total_latency_ms": latency_ms,
+                "is_degraded": is_degraded,
+                "missing_sources": missing_sources,
             },
             latency_ms=latency_ms,
             risk_approved=risk_result.approved,
@@ -270,11 +385,13 @@ class SignalCoordinator:
             self._decisions = self._decisions[-500:]
 
         logger.info(
-            "Symbol %s: %s (conf=%.2f, approved=%s) in %dms",
+            "Symbol %s [%s]: %s (conf=%.2f, approved=%s, degraded=%s) in %dms",
             symbol,
+            signal_id,
             fused.action.value,
             fused.confidence,
             risk_result.approved,
+            is_degraded,
             latency_ms,
         )
 
@@ -283,12 +400,14 @@ class SignalCoordinator:
     def _fetch_strategy_signal(
         self, symbol: str, tool_calls: list
     ) -> Optional[SourceSignal]:
-        """Fetch strategy consensus signal from strategy MCP."""
+        """Fetch strategy consensus signal from strategy MCP (cache-backed)."""
         try:
-            result = self._call_mcp_with_retry(
+            result = self._call_mcp_cached(
                 "get_top_strategies",
                 {"symbol": symbol, "limit": 10},
                 tool_calls,
+                cache_type="strategies",
+                cache_key=symbol,
             )
 
             if isinstance(result, dict) and "error" in result:
@@ -338,6 +457,7 @@ class SignalCoordinator:
                     "strategies_count": total,
                     "buy": buy_count,
                     "sell": sell_count,
+                    "top_strategy": strategies[0] if strategies else {},
                 },
             )
         except Exception as e:
@@ -346,13 +466,15 @@ class SignalCoordinator:
             return None
 
     def _fetch_market_regime(self, symbol: str, tool_calls: list) -> tuple:
-        """Fetch market data and detect regime."""
+        """Fetch market data and detect regime (cache-backed)."""
         market_context = {}
         try:
-            result = self._call_mcp_with_retry(
+            result = self._call_mcp_cached(
                 "get_market_summary",
                 {"symbol": symbol},
                 tool_calls,
+                cache_type="market_summary",
+                cache_key=symbol,
             )
 
             if isinstance(result, dict) and "error" not in result:
@@ -397,10 +519,12 @@ class SignalCoordinator:
     ) -> Optional[SourceSignal]:
         """Derive a basic sentiment signal from recent signal accuracy."""
         try:
-            result = self._call_mcp_with_retry(
+            result = self._call_mcp_cached(
                 "get_recent_signals",
                 {"symbol": symbol, "limit": 10},
                 tool_calls,
+                cache_type="recent_signals",
+                cache_key=symbol,
             )
 
             if isinstance(result, dict) and "error" in result:
@@ -435,7 +559,101 @@ class SignalCoordinator:
             logger.warning("Sentiment fetch failed for %s: %s", symbol, e)
             return None
 
-    def _build_strategy_breakdown(self, source_signals: list) -> dict:
+    def _fetch_prediction_market_signal(
+        self, symbol: str, tool_calls: list
+    ) -> Optional[SourceSignal]:
+        """Fetch prediction market probabilities for signal generation.
+
+        Uses signal accuracy data as a proxy for market consensus.
+        Falls back gracefully if the data is unavailable.
+        """
+        try:
+            result = self._call_mcp_cached(
+                "get_signal_accuracy",
+                {"symbol": symbol},
+                tool_calls,
+                cache_type="market_price",
+                cache_key=f"accuracy:{symbol}",
+            )
+
+            if result is None or (isinstance(result, dict) and "error" in result):
+                return None
+
+            # Use signal accuracy as a prediction market proxy
+            accuracy = 0.5
+            if isinstance(result, dict):
+                accuracy = result.get("accuracy", result.get("hit_rate", 0.5))
+            elif isinstance(result, (int, float)):
+                accuracy = float(result)
+
+            # High accuracy on BUY signals => market consensus is bullish
+            buy_accuracy = 0.5
+            sell_accuracy = 0.5
+            if isinstance(result, dict):
+                buy_accuracy = result.get("buy_accuracy", accuracy)
+                sell_accuracy = result.get("sell_accuracy", accuracy)
+
+            if buy_accuracy > sell_accuracy + 0.1:
+                action = SignalAction.BUY
+                confidence = min(0.80, max(0.30, buy_accuracy))
+            elif sell_accuracy > buy_accuracy + 0.1:
+                action = SignalAction.SELL
+                confidence = min(0.80, max(0.30, sell_accuracy))
+            else:
+                action = SignalAction.HOLD
+                confidence = 0.40
+
+            return SourceSignal(
+                source="prediction_market",
+                action=action,
+                confidence=confidence,
+                metadata={
+                    "overall_accuracy": accuracy,
+                    "buy_accuracy": buy_accuracy,
+                    "sell_accuracy": sell_accuracy,
+                },
+            )
+        except Exception as e:
+            logger.debug("Prediction market data unavailable for %s: %s", symbol, e)
+            return None
+
+    def _extract_top_strategy(self, source_signals: list) -> dict:
+        """Extract the top strategy from source signals for signal output."""
+        for sig in source_signals:
+            if sig.source == "strategy_consensus":
+                top = sig.metadata.get("top_strategy", {})
+                if top:
+                    return {
+                        "name": top.get("strategy_type", top.get("name", "unknown")),
+                        "score": top.get("score", top.get("confidence", 0.0)),
+                        "signal": top.get("signal", sig.action.value),
+                        "parameters": top.get("parameters", {}),
+                    }
+        return {}
+
+    def _build_market_context(self, raw_context: dict, symbol: str) -> dict:
+        """Build enriched market context for the signal output."""
+        if not raw_context:
+            return {"symbol": symbol}
+
+        return {
+            "symbol": symbol,
+            "current_price": raw_context.get(
+                "current_price", raw_context.get("price")
+            ),
+            "price_change_1h": raw_context.get(
+                "price_change_1h", raw_context.get("change_pct")
+            ),
+            "volume_ratio": raw_context.get("volume_ratio", 1.0),
+            "volatility_1h": raw_context.get(
+                "volatility", raw_context.get("volatility_1h")
+            ),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+    def _build_strategy_breakdown(
+        self, source_signals: list, top_strategy: dict = None
+    ) -> dict:
         """Build strategy breakdown JSONB from source signals."""
         breakdown = {
             "strategies_analyzed": len(source_signals),
@@ -458,6 +676,8 @@ class SignalCoordinator:
                 for s in source_signals
             ],
         }
+        if top_strategy:
+            breakdown["top_strategy"] = top_strategy
         return breakdown
 
     def _emit_signal(self, decision: AgentDecision, tool_calls: list):
@@ -501,5 +721,6 @@ class SignalCoordinator:
                 "should_skip": adaptive_state.should_skip_cycle,
             },
             "db_persistence": self._db.is_available,
+            "cache": self._cache.get_stats(),
             "metrics": pipeline_metrics.get_summary(),
         }

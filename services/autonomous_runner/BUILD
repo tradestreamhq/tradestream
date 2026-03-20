@@ -81,6 +81,22 @@ py_library(
 )
 
 py_library(
+    name = "signal_cache_lib",
+    srcs = [
+        "__init__.py",
+        "signal_cache.py",
+    ],
+)
+
+py_library(
+    name = "batch_processor_lib",
+    srcs = [
+        "__init__.py",
+        "batch_processor.py",
+    ],
+)
+
+py_library(
     name = "coordinator_lib",
     srcs = [
         "__init__.py",
@@ -88,12 +104,14 @@ py_library(
     ],
     deps = [
         ":adaptive_scheduler_lib",
+        ":batch_processor_lib",
         ":config_lib",
         ":db_persistence_lib",
         ":decision_models_lib",
         ":metrics_lib",
         ":retry_lib",
         ":risk_manager_lib",
+        ":signal_cache_lib",
         ":signal_fusion_lib",
         "//services/shared:circuit_breaker",
         "//services/shared:mcp_client",
@@ -252,6 +270,24 @@ py_test(
         "//third_party/python:fastapi",
         "//third_party/python:httpx",
         "//third_party/python:pydantic",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "signal_cache_test",
+    srcs = ["signal_cache_test.py"],
+    deps = [
+        ":signal_cache_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "batch_processor_test",
+    srcs = ["batch_processor_test.py"],
+    deps = [
+        ":batch_processor_lib",
         "//third_party/python:pytest",
     ],
 )
