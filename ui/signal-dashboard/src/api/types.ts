@@ -12,6 +12,8 @@ export interface Signal {
   strategies_bullish: number;
   strategies_bearish: number;
   reasoning: string;
+  opportunity_factors?: OpportunityFactors;
+  strategy_breakdown?: StrategySignal[];
   outcome?: "WIN" | "LOSS" | "PENDING";
   pnl_percent?: number;
   timestamp: string;
@@ -51,11 +53,45 @@ export interface PricingPlan {
   highlighted?: boolean;
 }
 
+export interface OpportunityFactor {
+  value: number;
+  contribution: number;
+}
+
+export interface OpportunityFactors {
+  confidence: OpportunityFactor;
+  expected_return: OpportunityFactor;
+  consensus: OpportunityFactor;
+  volatility: OpportunityFactor;
+  freshness: OpportunityFactor;
+}
+
+export interface StrategySignal {
+  strategy_name: string;
+  action: "BUY" | "SELL" | "HOLD";
+  score: number;
+  reason: string;
+}
+
+export interface ToolCallEvent {
+  event_type: "tool_call";
+  tool_name: string;
+  arguments: string;
+  latency_ms: number;
+}
+
+export interface ToolResultEvent {
+  event_type: "tool_result";
+  tool_name: string;
+  result_summary: string;
+}
+
 export interface SignalFilters {
   symbols?: string[];
   actions?: ("BUY" | "SELL" | "HOLD")[];
   outcomes?: ("WIN" | "LOSS" | "PENDING")[];
   minConfidence?: number;
+  minOpportunityScore?: number;
   dateFrom?: string;
   dateTo?: string;
 }

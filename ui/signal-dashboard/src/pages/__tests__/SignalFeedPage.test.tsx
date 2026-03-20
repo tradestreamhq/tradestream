@@ -10,6 +10,17 @@ vi.mock("@/hooks/useSignalStream", () => ({
   useSignalStream: (...args: unknown[]) => mockUseSignalStream(...args),
 }));
 
+// Mock react-window to render items directly in tests
+vi.mock("react-window", () => ({
+  VariableSizeList: vi.fn(({ children: Row, itemCount }: any) => (
+    <div data-testid="virtual-list">
+      {Array.from({ length: itemCount }, (_, index) => (
+        <Row key={index} index={index} style={{}} />
+      ))}
+    </div>
+  )),
+}));
+
 const mockSignals: Signal[] = [
   {
     signal_id: "s1",
@@ -60,16 +71,16 @@ describe("SignalFeedPage", () => {
     expect(screen.getByText("Live")).toBeInTheDocument();
   });
 
-  it("renders signal cards", () => {
+  it("renders signal cards via virtualized list", () => {
     render(<SignalFeedPage />);
     expect(screen.getByText("BTC/USD")).toBeInTheDocument();
     expect(screen.getByText("ETH/USD")).toBeInTheDocument();
+    expect(screen.getByTestId("virtual-list")).toBeInTheDocument();
   });
 
   it("filters signals by action using filter buttons", () => {
     render(<SignalFeedPage />);
 
-    // Click SELL filter - use getAllByRole to find filter buttons specifically
     const filterButtons = screen.getAllByRole("button");
     const sellButton = filterButtons.find(
       (btn) => btn.textContent === "SELL"
@@ -101,11 +112,11 @@ describe("SignalFeedPage", () => {
     expect(screen.getByText("Reconnect")).toBeInTheDocument();
   });
 
-  it("has a feed region with aria-label", () => {
+  it("has a list region with aria-label", () => {
     render(<SignalFeedPage />);
-    expect(screen.getByRole("feed")).toHaveAttribute(
+    expect(screen.getByRole("list")).toHaveAttribute(
       "aria-label",
-      "Trading signals"
+      "Trading signals sorted by opportunity score"
     );
   });
 });
