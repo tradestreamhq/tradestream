@@ -94,7 +94,15 @@ class AgentDecision:
         return "LOW"
 
     def compute_opportunity_score(self) -> float:
-        """Calculate opportunity score from decision factors."""
+        """Calculate opportunity score from 5 weighted factors per spec.
+
+        Factors and weights:
+        - confidence: 0.25
+        - expected_return: 0.30
+        - consensus: 0.20
+        - volatility: 0.15
+        - freshness: 0.10
+        """
         factors = {}
 
         # Confidence factor (25%)
@@ -106,13 +114,33 @@ class AgentDecision:
             "weight": 0.25,
         }
 
+        # Expected return factor (30%) - estimated from confidence and action
+        expected_return = self._estimate_expected_return()
+        er_norm = min(1.0, max(0.0, expected_return / 0.05)) if expected_return > 0 else 0
+        factors["expected_return"] = {
+            "value": round(expected_return, 4),
+            "normalized": round(er_norm, 4),
+            "contribution": round(er_norm * 30, 2),
+            "weight": 0.30,
+        }
+
         # Consensus factor (20%)
         consensus_norm = self.fusion_agreement_ratio
         factors["consensus"] = {
             "value": self.fusion_agreement_ratio,
             "normalized": consensus_norm,
-            "contribution": consensus_norm * 20,
+            "contribution": round(consensus_norm * 20, 2),
             "weight": 0.20,
+        }
+
+        # Volatility factor (15%) - from market context
+        volatility = self._extract_volatility()
+        vol_norm = min(1.0, max(0.0, volatility / 0.05)) if volatility > 0 else 0.5
+        factors["volatility"] = {
+            "value": round(volatility, 4),
+            "normalized": round(vol_norm, 4),
+            "contribution": round(vol_norm * 15, 2),
+            "weight": 0.15,
         }
 
         # Freshness factor (10%) - always fresh for autonomous
@@ -123,13 +151,32 @@ class AgentDecision:
             "weight": 0.10,
         }
 
-        total = sum(f["contribution"] for f in factors.values())
+        total = round(sum(f["contribution"] for f in factors.values()), 2)
         factors["total_score"] = total
 
         self.opportunity_factors = factors
         self.opportunity_score = total
         self.opportunity_tier = self.compute_opportunity_tier()
         return total
+
+    def _estimate_expected_return(self) -> float:
+        """Estimate expected return from confidence and market context."""
+        if self.action == "HOLD":
+            return 0.0
+        # Base return proportional to confidence
+        base_return = self.confidence * 0.05
+        # Adjust by price momentum if available
+        price_change = abs(self.market_context.get("price_change_1h", 0) or 0)
+        if isinstance(price_change, (int, float)):
+            base_return *= 1.0 + min(0.5, price_change / 10.0)
+        return base_return
+
+    def _extract_volatility(self) -> float:
+        """Extract volatility from market context."""
+        vol = self.market_context.get("volatility_1h", 0)
+        if isinstance(vol, (int, float)):
+            return float(vol)
+        return 0.0
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""

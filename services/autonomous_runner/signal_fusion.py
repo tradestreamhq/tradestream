@@ -61,10 +61,14 @@ class ConflictResolutionStrategy(str, Enum):
 def calculate_confidence(strategies: list) -> float:
     """Calculate confidence based on strategy consensus and individual scores.
 
-    - 5/5 agree: 0.85-0.95
-    - 4/5 agree: 0.70-0.85
-    - 3/5 agree: 0.55-0.70
-    - Less: 0.30-0.55
+    Spec-defined tiers (for 5 strategies):
+    - 5/5 agree: 0.90-0.95 (modified by avg strategy score)
+    - 4/5 agree: 0.75-0.85
+    - 3/5 agree: 0.60-0.70
+    - 2/5 agree: 0.45-0.55
+    - 1/5 agree: 0.30-0.40
+
+    Formula: confidence = base * (0.8 + 0.2 * avg_score)
     """
     if not strategies:
         return 0.30
@@ -77,16 +81,22 @@ def calculate_confidence(strategies: list) -> float:
     max_agreement = max(bullish, bearish, neutral)
     consensus_ratio = max_agreement / total if total > 0 else 0
 
-    avg_confidence = sum(s.confidence for s in strategies) / total if total > 0 else 0
+    avg_score = sum(s.confidence for s in strategies) / total if total > 0 else 0
 
-    if consensus_ratio >= 0.8:
+    # Base confidence from consensus ratio (spec-defined tiers)
+    if consensus_ratio >= 1.0:
+        base = 0.90
+    elif consensus_ratio >= 0.8:
         base = 0.85
     elif consensus_ratio >= 0.6:
-        base = 0.70
+        base = 0.75
+    elif consensus_ratio >= 0.4:
+        base = 0.55
     else:
-        base = 0.50
+        base = 0.40
 
-    confidence = base * (0.8 + 0.2 * avg_confidence)
+    # Adjust by average strategy score per spec formula
+    confidence = base * (0.8 + 0.2 * avg_score)
     return min(0.95, max(0.30, confidence))
 
 

@@ -111,6 +111,35 @@ class PipelineMetrics:
                 "Total signal generation cycles",
                 ["status"],
             )
+            self.cache_hit = Counter(
+                "signal_generator_cache_hit_total",
+                "Cache hits by data type",
+                ["data_type"],
+            )
+            self.cache_miss = Counter(
+                "signal_generator_cache_miss_total",
+                "Cache misses by data type",
+                ["data_type"],
+            )
+            self.degraded_signals = Counter(
+                "signal_generator_degraded_signals_total",
+                "Degraded signals generated",
+                ["symbol"],
+            )
+            self.retry_exhausted = Counter(
+                "signal_generator_retry_exhausted_total",
+                "Retries exhausted by tool",
+                ["tool"],
+            )
+            self.model_fallback = Counter(
+                "signal_generator_model_fallback_total",
+                "Model fallbacks triggered",
+                ["from_model"],
+            )
+            self.batch_success_rate_gauge = Gauge(
+                "signal_generator_batch_success_rate",
+                "Success rate per batch",
+            )
 
     def record_signal_generated(self, symbol: str, action: str):
         if PROMETHEUS_AVAILABLE:
@@ -195,6 +224,36 @@ class PipelineMetrics:
             self.db_persistence_success.labels(
                 status="success" if success else "failure"
             ).inc()
+
+    def record_cache_hit(self, data_type: str):
+        if PROMETHEUS_AVAILABLE:
+            self.cache_hit.labels(data_type=data_type).inc()
+        self._in_memory[f"cache_hit:{data_type}"] += 1
+
+    def record_cache_miss(self, data_type: str):
+        if PROMETHEUS_AVAILABLE:
+            self.cache_miss.labels(data_type=data_type).inc()
+        self._in_memory[f"cache_miss:{data_type}"] += 1
+
+    def record_degraded_signal(self, symbol: str):
+        if PROMETHEUS_AVAILABLE:
+            self.degraded_signals.labels(symbol=symbol).inc()
+        self._in_memory["degraded_signals"] += 1
+
+    def record_retry_exhausted(self, tool: str):
+        if PROMETHEUS_AVAILABLE:
+            self.retry_exhausted.labels(tool=tool).inc()
+        self._in_memory[f"retry_exhausted:{tool}"] += 1
+
+    def record_model_fallback(self, from_model: str):
+        if PROMETHEUS_AVAILABLE:
+            self.model_fallback.labels(from_model=from_model).inc()
+        self._in_memory["model_fallback"] += 1
+
+    def record_batch_success_rate(self, rate: float):
+        if PROMETHEUS_AVAILABLE:
+            self.batch_success_rate_gauge.set(rate)
+        self._in_memory["batch_success_rate"] = rate
 
     def get_summary(self) -> dict:
         """Return in-memory metrics summary for dashboard."""
