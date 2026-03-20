@@ -101,9 +101,7 @@ class TestAutonomousRunner:
         runner.coordinator.process_all_symbols = MagicMock(
             side_effect=RuntimeError("boom")
         )
-        runner._consecutive_overruns = (
-            config.adaptive.backpressure_max_overruns - 1
-        )
+        runner._consecutive_overruns = config.adaptive.backpressure_max_overruns - 1
 
         runner._run_cycle()
         assert runner._cooldown_remaining == config.adaptive.cooldown_cycles
