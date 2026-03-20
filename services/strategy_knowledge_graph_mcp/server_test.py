@@ -78,7 +78,9 @@ class TestStrategyKnowledgeGraphServer:
         assert response["_metadata"]["source"] == "postgresql"
 
     @pytest.mark.asyncio
-    async def test_get_indicator_relationships_with_type_filter(self, server, postgres_client):
+    async def test_get_indicator_relationships_with_type_filter(
+        self, server, postgres_client
+    ):
         """Test get_indicator_relationships with relationship type filter."""
         postgres_client.get_indicator_relationships.return_value = {
             "items": [],
@@ -202,8 +204,12 @@ class TestStrategyKnowledgeGraphServer:
 
         assert response["data"]["market_condition"]["trend"] == "trending_up"
         assert len(response["data"]["recommendations"]) == 1
-        assert response["data"]["recommendations"][0]["spec_name"] == "MACD_TREND_FOLLOW"
-        assert response["data"]["recommendations"][0]["performance"]["sharpe_ratio"] == 1.8
+        assert (
+            response["data"]["recommendations"][0]["spec_name"] == "MACD_TREND_FOLLOW"
+        )
+        assert (
+            response["data"]["recommendations"][0]["performance"]["sharpe_ratio"] == 1.8
+        )
 
     @pytest.mark.asyncio
     async def test_create_composite_strategy(self, server, postgres_client):
@@ -388,8 +394,12 @@ class TestStrategyKnowledgeGraphServer:
             "name": "RSI_REVERSAL",
             "description": "RSI-based mean reversion",
             "indicators": [{"type": "RSI", "params": {"period": 14}}],
-            "entry_conditions": [{"type": "UNDER_CONSTANT", "indicator": "rsi", "value": 30}],
-            "exit_conditions": [{"type": "OVER_CONSTANT", "indicator": "rsi", "value": 70}],
+            "entry_conditions": [
+                {"type": "UNDER_CONSTANT", "indicator": "rsi", "value": 30}
+            ],
+            "exit_conditions": [
+                {"type": "OVER_CONSTANT", "indicator": "rsi", "value": 70}
+            ],
             "tags": ["mean_reversion", "momentum", "oscillator"],
             "composites": [
                 {
@@ -490,7 +500,9 @@ class TestStrategyKnowledgeGraphServer:
     @pytest.mark.asyncio
     async def test_database_error_handling(self, server, postgres_client):
         """Test that database errors are properly caught and returned."""
-        postgres_client.get_indicator_relationships.side_effect = Exception("Connection lost")
+        postgres_client.get_indicator_relationships.side_effect = Exception(
+            "Connection lost"
+        )
 
         call_tool_handler = server.request_handlers.get("tools/call")
         request = MagicMock()
@@ -507,7 +519,16 @@ class TestStrategyKnowledgeGraphServer:
     async def test_caching_behavior(self, server, postgres_client):
         """Test that repeated calls use cache."""
         postgres_client.get_market_conditions.return_value = {
-            "items": [{"condition_id": "cond-001", "trend": "ranging", "volatility": "low", "volume": "low", "sentiment": "neutral", "description": "Consolidation"}],
+            "items": [
+                {
+                    "condition_id": "cond-001",
+                    "trend": "ranging",
+                    "volatility": "low",
+                    "volume": "low",
+                    "sentiment": "neutral",
+                    "description": "Consolidation",
+                }
+            ],
             "count": 1,
         }
 

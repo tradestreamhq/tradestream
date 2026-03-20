@@ -114,8 +114,22 @@ class TestPostgresClient:
     async def test_get_market_conditions_no_filter(self, client, mock_conn):
         """Test get_market_conditions without filters returns all."""
         mock_conn.fetch.return_value = [
-            {"id": "c1", "trend": "trending_up", "volatility": "high", "volume": "high", "sentiment": "bullish", "description": "d1"},
-            {"id": "c2", "trend": "ranging", "volatility": "low", "volume": "low", "sentiment": "neutral", "description": "d2"},
+            {
+                "id": "c1",
+                "trend": "trending_up",
+                "volatility": "high",
+                "volume": "high",
+                "sentiment": "bullish",
+                "description": "d1",
+            },
+            {
+                "id": "c2",
+                "trend": "ranging",
+                "volatility": "low",
+                "volume": "low",
+                "sentiment": "neutral",
+                "description": "d2",
+            },
         ]
 
         result = await client.get_market_conditions()

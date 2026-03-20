@@ -107,9 +107,7 @@ class PostgresClient:
         param_idx = 1
 
         if indicator_name:
-            conditions.append(
-                f"(a.name = ${param_idx} OR b.name = ${param_idx})"
-            )
+            conditions.append(f"(a.name = ${param_idx} OR b.name = ${param_idx})")
             params.append(indicator_name.upper())
             param_idx += 1
 
@@ -145,15 +143,17 @@ class PostgresClient:
 
         items = []
         for row in rows:
-            items.append({
-                "indicator_a": row["indicator_a"],
-                "category_a": row["category_a"],
-                "indicator_b": row["indicator_b"],
-                "category_b": row["category_b"],
-                "relationship_type": row["relationship_type"],
-                "strength": float(row["strength"]),
-                "reasoning": row["reasoning"],
-            })
+            items.append(
+                {
+                    "indicator_a": row["indicator_a"],
+                    "category_a": row["category_a"],
+                    "indicator_b": row["indicator_b"],
+                    "category_b": row["category_b"],
+                    "relationship_type": row["relationship_type"],
+                    "strength": float(row["strength"]),
+                    "reasoning": row["reasoning"],
+                }
+            )
 
         return {"items": items, "count": len(items)}
 
@@ -183,12 +183,14 @@ class PostgresClient:
 
         items = []
         for row in rows:
-            items.append({
-                "indicator": row["complementary_indicator"],
-                "category": row["category"],
-                "strength": float(row["strength"]),
-                "reasoning": row["reasoning"],
-            })
+            items.append(
+                {
+                    "indicator": row["complementary_indicator"],
+                    "category": row["category"],
+                    "strength": float(row["strength"]),
+                    "reasoning": row["reasoning"],
+                }
+            )
 
         return {"indicator": indicator_name.upper(), "complementary": items}
 
@@ -236,14 +238,16 @@ class PostgresClient:
 
         items = []
         for row in rows:
-            items.append({
-                "condition_id": str(row["id"]),
-                "trend": row["trend"],
-                "volatility": row["volatility"],
-                "volume": row["volume"],
-                "sentiment": row["sentiment"],
-                "description": row["description"],
-            })
+            items.append(
+                {
+                    "condition_id": str(row["id"]),
+                    "trend": row["trend"],
+                    "volatility": row["volatility"],
+                    "volume": row["volume"],
+                    "sentiment": row["sentiment"],
+                    "description": row["description"],
+                }
+            )
 
         return {"items": items, "count": len(items)}
 
@@ -310,20 +314,28 @@ class PostgresClient:
             if isinstance(indicators, str):
                 indicators = json.loads(indicators)
 
-            recommendations.append({
-                "spec_id": str(row["spec_id"]),
-                "spec_name": row["spec_name"],
-                "description": row["description"],
-                "indicators": indicators,
-                "instrument": row["instrument"],
-                "performance": {
-                    "sample_size": row["sample_size"],
-                    "win_rate": float(row["win_rate"]) if row["win_rate"] else None,
-                    "avg_return": float(row["avg_return"]) if row["avg_return"] else None,
-                    "sharpe_ratio": float(row["sharpe_ratio"]) if row["sharpe_ratio"] else None,
-                    "max_drawdown": float(row["max_drawdown"]) if row["max_drawdown"] else None,
-                },
-            })
+            recommendations.append(
+                {
+                    "spec_id": str(row["spec_id"]),
+                    "spec_name": row["spec_name"],
+                    "description": row["description"],
+                    "indicators": indicators,
+                    "instrument": row["instrument"],
+                    "performance": {
+                        "sample_size": row["sample_size"],
+                        "win_rate": float(row["win_rate"]) if row["win_rate"] else None,
+                        "avg_return": (
+                            float(row["avg_return"]) if row["avg_return"] else None
+                        ),
+                        "sharpe_ratio": (
+                            float(row["sharpe_ratio"]) if row["sharpe_ratio"] else None
+                        ),
+                        "max_drawdown": (
+                            float(row["max_drawdown"]) if row["max_drawdown"] else None
+                        ),
+                    },
+                }
+            )
 
         condition_desc = None
         if rows:
@@ -448,13 +460,15 @@ class PostgresClient:
             indicators = cr["indicators"]
             if isinstance(indicators, str):
                 indicators = json.loads(indicators)
-            components.append({
-                "spec_id": str(cr["strategy_spec_id"]),
-                "spec_name": cr["spec_name"],
-                "indicators": indicators,
-                "weight": float(cr["weight"]),
-                "role": cr["role"],
-            })
+            components.append(
+                {
+                    "spec_id": str(cr["strategy_spec_id"]),
+                    "spec_name": cr["spec_name"],
+                    "indicators": indicators,
+                    "weight": float(cr["weight"]),
+                    "role": cr["role"],
+                }
+            )
 
         return {
             "composite_id": str(row["id"]),
@@ -492,14 +506,16 @@ class PostgresClient:
 
         items = []
         for row in rows:
-            items.append({
-                "composite_id": str(row["id"]),
-                "name": row["name"],
-                "description": row["description"],
-                "combination_method": row["combination_method"],
-                "is_active": row["is_active"],
-                "components_count": row["components_count"],
-            })
+            items.append(
+                {
+                    "composite_id": str(row["id"]),
+                    "name": row["name"],
+                    "description": row["description"],
+                    "combination_method": row["combination_method"],
+                    "is_active": row["is_active"],
+                    "components_count": row["components_count"],
+                }
+            )
 
         return {"items": items, "count": len(items)}
 
@@ -539,16 +555,24 @@ class PostgresClient:
 
         attributions = []
         for row in rows:
-            attributions.append({
-                "component_name": row["component_name"],
-                "component_spec_id": str(row["component_spec_id"]),
-                "instrument": row["instrument"],
-                "total_signals": row["total_signals"],
-                "total_agreed": row["total_agreed"],
-                "total_pnl": float(row["total_pnl"]) if row["total_pnl"] else 0.0,
-                "avg_contribution_pct": float(row["avg_contribution_pct"]) if row["avg_contribution_pct"] else None,
-                "avg_accuracy": float(row["avg_accuracy"]) if row["avg_accuracy"] else None,
-            })
+            attributions.append(
+                {
+                    "component_name": row["component_name"],
+                    "component_spec_id": str(row["component_spec_id"]),
+                    "instrument": row["instrument"],
+                    "total_signals": row["total_signals"],
+                    "total_agreed": row["total_agreed"],
+                    "total_pnl": float(row["total_pnl"]) if row["total_pnl"] else 0.0,
+                    "avg_contribution_pct": (
+                        float(row["avg_contribution_pct"])
+                        if row["avg_contribution_pct"]
+                        else None
+                    ),
+                    "avg_accuracy": (
+                        float(row["avg_accuracy"]) if row["avg_accuracy"] else None
+                    ),
+                }
+            )
 
         return {
             "composite_id": composite_id,
@@ -558,9 +582,7 @@ class PostgresClient:
 
     # ── Knowledge Graph Exploration ──────────────────────────────────────
 
-    async def explore_strategy_graph(
-        self, spec_id: str
-    ) -> Dict[str, Any]:
+    async def explore_strategy_graph(self, spec_id: str) -> Dict[str, Any]:
         """Explore the knowledge graph around a strategy spec: indicators, conditions, tags, composites."""
         self._ensure_pool()
 
@@ -635,7 +657,9 @@ class PostgresClient:
                     "volatility": c["volatility"],
                     "volume": c["volume"],
                     "sentiment": c["sentiment"],
-                    "sharpe_ratio": float(c["sharpe_ratio"]) if c["sharpe_ratio"] else None,
+                    "sharpe_ratio": (
+                        float(c["sharpe_ratio"]) if c["sharpe_ratio"] else None
+                    ),
                     "win_rate": float(c["win_rate"]) if c["win_rate"] else None,
                     "sample_size": c["sample_size"],
                     "instrument": c["instrument"],
@@ -700,14 +724,16 @@ class PostgresClient:
             indicators = row["indicators"]
             if isinstance(indicators, str):
                 indicators = json.loads(indicators)
-            items.append({
-                "spec_id": str(row["spec_id"]),
-                "name": row["name"],
-                "description": row["description"],
-                "indicators": indicators,
-                "tag_overlap": row["tag_overlap"],
-                "indicator_overlap": row["indicator_overlap"],
-                "similarity_score": row["similarity_score"],
-            })
+            items.append(
+                {
+                    "spec_id": str(row["spec_id"]),
+                    "name": row["name"],
+                    "description": row["description"],
+                    "indicators": indicators,
+                    "tag_overlap": row["tag_overlap"],
+                    "indicator_overlap": row["indicator_overlap"],
+                    "similarity_score": row["similarity_score"],
+                }
+            )
 
         return {"source_spec_id": spec_id, "similar": items, "count": len(items)}

@@ -50,7 +50,12 @@ def create_server(postgres_client: PostgresClient) -> Server:
                         },
                         "relationship_type": {
                             "type": "string",
-                            "enum": ["complementary", "conflicting", "redundant", "confirming"],
+                            "enum": [
+                                "complementary",
+                                "conflicting",
+                                "redundant",
+                                "confirming",
+                            ],
                             "description": "Filter by relationship type.",
                         },
                         "limit": {
@@ -178,7 +183,12 @@ def create_server(postgres_client: PostgresClient) -> Server:
                         },
                         "combination_method": {
                             "type": "string",
-                            "enum": ["majority_vote", "weighted_average", "unanimous", "any"],
+                            "enum": [
+                                "majority_vote",
+                                "weighted_average",
+                                "unanimous",
+                                "any",
+                            ],
                             "default": "weighted_average",
                             "description": "How to combine component signals.",
                         },
@@ -292,7 +302,13 @@ def create_server(postgres_client: PostgresClient) -> Server:
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:
-                        return wrap_response(cached[0], start_time=start, cached=True, cache_ttl_remaining=cached[1], source="postgresql")
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
                 result = await postgres_client.get_indicator_relationships(
                     indicator_name=arguments.get("indicator_name"),
                     relationship_type=arguments.get("relationship_type"),
@@ -306,7 +322,13 @@ def create_server(postgres_client: PostgresClient) -> Server:
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:
-                        return wrap_response(cached[0], start_time=start, cached=True, cache_ttl_remaining=cached[1], source="postgresql")
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
                 result = await postgres_client.get_complementary_indicators(
                     indicator_name=arguments["indicator_name"],
                     min_strength=arguments.get("min_strength", 0.5),
@@ -319,7 +341,13 @@ def create_server(postgres_client: PostgresClient) -> Server:
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:
-                        return wrap_response(cached[0], start_time=start, cached=True, cache_ttl_remaining=cached[1], source="postgresql")
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
                 result = await postgres_client.get_market_conditions(
                     trend=arguments.get("trend"),
                     volatility=arguments.get("volatility"),
@@ -333,7 +361,13 @@ def create_server(postgres_client: PostgresClient) -> Server:
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:
-                        return wrap_response(cached[0], start_time=start, cached=True, cache_ttl_remaining=cached[1], source="postgresql")
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
                 result = await postgres_client.recommend_strategies(
                     trend=arguments["trend"],
                     volatility=arguments["volatility"],
@@ -350,7 +384,9 @@ def create_server(postgres_client: PostgresClient) -> Server:
                     description=arguments["description"],
                     component_spec_ids=arguments["component_spec_ids"],
                     weights=arguments.get("weights"),
-                    combination_method=arguments.get("combination_method", "weighted_average"),
+                    combination_method=arguments.get(
+                        "combination_method", "weighted_average"
+                    ),
                     min_agreement=arguments.get("min_agreement", 0.5),
                 )
                 return wrap_response(result, start_time=start, source="postgresql")
@@ -360,13 +396,22 @@ def create_server(postgres_client: PostgresClient) -> Server:
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:
-                        return wrap_response(cached[0], start_time=start, cached=True, cache_ttl_remaining=cached[1], source="postgresql")
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
                 result = await postgres_client.get_composite_strategy(
                     composite_id=arguments["composite_id"],
                 )
                 if result is None:
                     return wrap_error(
-                        McpError(SPEC_NOT_FOUND, f"Composite strategy {arguments['composite_id']} not found").to_dict(),
+                        McpError(
+                            SPEC_NOT_FOUND,
+                            f"Composite strategy {arguments['composite_id']} not found",
+                        ).to_dict(),
                         start_time=start,
                     )
                 cache.set(cache_key, result, ttl=_CACHE_TTLS["composite_strategies"])
@@ -391,13 +436,22 @@ def create_server(postgres_client: PostgresClient) -> Server:
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:
-                        return wrap_response(cached[0], start_time=start, cached=True, cache_ttl_remaining=cached[1], source="postgresql")
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
                 result = await postgres_client.explore_strategy_graph(
                     spec_id=arguments["spec_id"],
                 )
                 if result is None:
                     return wrap_error(
-                        McpError(SPEC_NOT_FOUND, f"Strategy spec {arguments['spec_id']} not found").to_dict(),
+                        McpError(
+                            SPEC_NOT_FOUND,
+                            f"Strategy spec {arguments['spec_id']} not found",
+                        ).to_dict(),
                         start_time=start,
                     )
                 cache.set(cache_key, result, ttl=_CACHE_TTLS["explore_graph"])
@@ -408,7 +462,13 @@ def create_server(postgres_client: PostgresClient) -> Server:
                 if not force_refresh:
                     cached = cache.get(cache_key)
                     if cached:
-                        return wrap_response(cached[0], start_time=start, cached=True, cache_ttl_remaining=cached[1], source="postgresql")
+                        return wrap_response(
+                            cached[0],
+                            start_time=start,
+                            cached=True,
+                            cache_ttl_remaining=cached[1],
+                            source="postgresql",
+                        )
                 result = await postgres_client.find_similar_strategies(
                     spec_id=arguments["spec_id"],
                     limit=arguments.get("limit", 10),
