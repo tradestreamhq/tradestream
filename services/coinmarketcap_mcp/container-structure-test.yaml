@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/coinmarketcap_mcp"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "CoinMarketCap MCP binary exists"
+    path: "/services/coinmarketcap_mcp/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
