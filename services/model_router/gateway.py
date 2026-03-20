@@ -18,6 +18,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from services.model_router.ab_testing import ABTestManager
 from services.model_router.budget_enforcer import BudgetEnforcer
 from services.model_router.cost_tracker import CostTracker
 from services.model_router.model_registry import MODELS, list_models
@@ -48,6 +49,7 @@ cost_tracker = CostTracker()
 budget_enforcer = BudgetEnforcer(
     monthly_limit_usd=float(os.environ.get("MONTHLY_BUDGET_USD", "3000"))
 )
+ab_test_manager = ABTestManager()
 
 
 # --- Request / Response models ---
@@ -125,6 +127,26 @@ class CircuitBreakerStatus(BaseModel):
     state: str
     failure_count: int
     failure_threshold: int
+
+
+class CreateExperimentRequest(BaseModel):
+    experiment_id: str
+    agent_type: str
+    primary_model: str
+    challenger_model: str
+    traffic_pct: float = Field(0.1, gt=0, le=1)
+    max_runs: int = Field(100, gt=0)
+
+
+class RecordExperimentResultRequest(BaseModel):
+    experiment_id: str
+    agent_type: str
+    primary_model: str
+    challenger_model: str
+    primary_latency_ms: float = Field(..., ge=0)
+    challenger_latency_ms: float = Field(..., ge=0)
+    primary_tokens: int = Field(..., ge=0)
+    challenger_tokens: int = Field(..., ge=0)
 
 
 # --- Endpoints ---
@@ -252,6 +274,67 @@ async def get_circuit_breakers():
     """Get circuit breaker status for all models."""
     states = router.get_circuit_breaker_states()
     return [CircuitBreakerStatus(**s) for s in states]
+
+
+@app.post("/experiments", tags=["A/B Testing"])
+async def create_experiment(req: CreateExperimentRequest):
+    """Create a new A/B model experiment."""
+    try:
+        exp = ab_test_manager.create_experiment(
+            experiment_id=req.experiment_id,
+            agent_type=req.agent_type,
+            primary_model=req.primary_model,
+            challenger_model=req.challenger_model,
+            traffic_pct=req.traffic_pct,
+            max_runs=req.max_runs,
+        )
+        return exp.summary()
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+
+@app.get("/experiments", tags=["A/B Testing"])
+async def list_experiments():
+    """List all A/B experiments."""
+    return ab_test_manager.list_experiments()
+
+
+@app.get("/experiments/{experiment_id}", tags=["A/B Testing"])
+async def get_experiment(experiment_id: str):
+    """Get details for a specific experiment."""
+    exp = ab_test_manager.get_experiment(experiment_id)
+    if not exp:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    return exp.summary()
+
+
+@app.post("/experiments/{experiment_id}/stop", tags=["A/B Testing"])
+async def stop_experiment(experiment_id: str):
+    """Stop an active experiment."""
+    if not ab_test_manager.stop_experiment(experiment_id):
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    return {"status": "stopped", "experiment_id": experiment_id}
+
+
+@app.post("/experiments/{experiment_id}/results", tags=["A/B Testing"])
+async def record_experiment_result(
+    experiment_id: str, req: RecordExperimentResultRequest
+):
+    """Record a result from an A/B experiment run."""
+    result = ab_test_manager.record_result(
+        experiment_id=experiment_id,
+        agent_type=req.agent_type,
+        primary_model=req.primary_model,
+        challenger_model=req.challenger_model,
+        primary_latency_ms=req.primary_latency_ms,
+        challenger_latency_ms=req.challenger_latency_ms,
+        primary_tokens=req.primary_tokens,
+        challenger_tokens=req.challenger_tokens,
+    )
+    if result is None:
+        raise HTTPException(status_code=404, detail="Experiment not found or inactive")
+    exp = ab_test_manager.get_experiment(experiment_id)
+    return {"recorded": True, "runs": exp.runs if exp else 0}
 
 
 def main():

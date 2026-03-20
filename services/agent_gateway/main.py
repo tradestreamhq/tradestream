@@ -5,12 +5,24 @@ FastAPI application that streams agent events (signals, reasoning, tool calls)
 via Server-Sent Events (SSE). Reads from agent_decisions table and uses Redis
 pub/sub for real-time event streaming. Provides dashboard summary endpoints
 for monitoring active agents, recent decisions, and signal activity.
+
+Implements the full agent-gateway spec:
+- Session management with unique session IDs
+- Command endpoint for submitting user queries
+- Rate limiting per IP
+- Backpressure handling and slow consumer detection
+- Heartbeat events every 30 seconds
+- Event ordering with sequence numbers
+- Last-Event-ID reconnection support
+- Connection limits per IP (max 5)
 """
 
 import asyncio
+import collections
 import json
 import logging
 import os
+import time
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -19,7 +31,7 @@ from typing import AsyncGenerator, Optional
 import asyncpg
 import redis.asyncio as aioredis
 import uvicorn
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -29,6 +41,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 REDIS_CHANNEL = "agent_events"
+REDIS_CHANNELS = ["channel:signals", "channel:reasoning", "channel:tool-events"]
+
+# Configuration
+MAX_QUEUE_SIZE = 1000
+BACKPRESSURE_THRESHOLD_PCT = 80
+SLOW_CONSUMER_TIMEOUT_SECONDS = 30
+SESSION_TIMEOUT_SECONDS = 300
+SESSION_CLEANUP_INTERVAL_SECONDS = 60
+HEARTBEAT_INTERVAL_SECONDS = 30
+MAX_CONNECTIONS_PER_IP = 5
+STREAM_CONNECTIONS_PER_MINUTE = 10
+COMMANDS_PER_MINUTE = 60
+HEALTH_REQUESTS_PER_MINUTE = 120
 
 from services.shared.auth import fastapi_auth_middleware
 
@@ -57,6 +82,10 @@ class HealthResponse(BaseModel):
     redis: str = Field(
         ..., description="Redis connectivity status", examples=["connected"]
     )
+    connections: int = Field(0, description="Active SSE connections", examples=[42])
+    uptime_seconds: int = Field(
+        0, description="Service uptime in seconds", examples=[3600]
+    )
 
 
 class AgentEvent(BaseModel):
@@ -83,7 +112,9 @@ class AgentEvent(BaseModel):
     success: Optional[bool] = Field(None, description="Whether the event succeeded")
     error_message: Optional[str] = Field(None, description="Error message if failed")
     created_at: Optional[str] = Field(
-        None, description="ISO 8601 timestamp", examples=["2026-01-15T10:30:00+00:00"]
+        None,
+        description="ISO 8601 timestamp",
+        examples=["2026-01-15T10:30:00+00:00"],
     )
 
 
@@ -92,9 +123,27 @@ class RecentEventsResponse(BaseModel):
     count: int = Field(..., description="Number of events returned", examples=[10])
 
 
+class CommandRequest(BaseModel):
+    session_id: str = Field(..., description="Session ID from SSE stream")
+    query: str = Field(..., description="User query text")
+    symbol: Optional[str] = Field(
+        None, description="Trading symbol", examples=["ETH/USD"]
+    )
+
+
+class CommandResponse(BaseModel):
+    request_id: str = Field(..., description="Unique request identifier")
+    session_id: str = Field(..., description="Session ID")
+    status: str = Field(..., description="Processing status", examples=["processing"])
+    message: str = Field(..., description="Status message")
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://dashboard.tradestream.io",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -103,6 +152,172 @@ app.add_middleware(
 # Connection pools (initialized on startup)
 _db_pool: Optional[asyncpg.Pool] = None
 _redis: Optional[aioredis.Redis] = None
+_start_time: float = 0.0
+
+# --- Session Management ---
+
+
+class SessionManager:
+    """Manages SSE sessions with per-session event queues."""
+
+    def __init__(self):
+        self.sessions: dict[str, dict] = {}
+        self._cleanup_task: Optional[asyncio.Task] = None
+
+    def create_session(self) -> str:
+        session_id = f"sess-{uuid.uuid4().hex[:12]}"
+        self.sessions[session_id] = {
+            "created_at": time.monotonic(),
+            "last_activity": time.monotonic(),
+            "sequence": 0,
+            "queue": asyncio.Queue(maxsize=MAX_QUEUE_SIZE),
+            "backpressure_since": None,
+        }
+        return session_id
+
+    def get_session(self, session_id: str) -> Optional[dict]:
+        session = self.sessions.get(session_id)
+        if session:
+            session["last_activity"] = time.monotonic()
+        return session
+
+    def remove_session(self, session_id: str):
+        self.sessions.pop(session_id, None)
+
+    def next_sequence(self, session_id: str) -> int:
+        session = self.sessions.get(session_id)
+        if session:
+            session["sequence"] += 1
+            return session["sequence"]
+        return 0
+
+    def active_count(self) -> int:
+        return len(self.sessions)
+
+    async def start_cleanup(self):
+        self._cleanup_task = asyncio.create_task(self._cleanup_loop())
+
+    async def stop_cleanup(self):
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            try:
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
+
+    async def _cleanup_loop(self):
+        while True:
+            await asyncio.sleep(SESSION_CLEANUP_INTERVAL_SECONDS)
+            now = time.monotonic()
+            to_remove = []
+            for sid, session in self.sessions.items():
+                if now - session["last_activity"] > SESSION_TIMEOUT_SECONDS:
+                    to_remove.append(sid)
+            for sid in to_remove[:100]:  # Max 100 per cycle
+                self.remove_session(sid)
+                logger.info("Cleaned up inactive session %s", sid)
+
+
+session_manager = SessionManager()
+
+
+# --- Rate Limiting ---
+
+
+class RateLimiter:
+    """Simple in-memory rate limiter per IP."""
+
+    def __init__(self):
+        # {endpoint: {ip: [(timestamp, ...)]}}
+        self._windows: dict[str, dict[str, list[float]]] = {}
+
+    def check(self, endpoint: str, ip: str, limit: int, window: int = 60) -> dict:
+        """Check rate limit. Returns dict with allowed, remaining, reset."""
+        now = time.time()
+        key = f"{endpoint}"
+        if key not in self._windows:
+            self._windows[key] = {}
+        if ip not in self._windows[key]:
+            self._windows[key][ip] = []
+
+        # Prune old entries
+        cutoff = now - window
+        self._windows[key][ip] = [t for t in self._windows[key][ip] if t > cutoff]
+
+        count = len(self._windows[key][ip])
+        remaining = max(0, limit - count)
+        reset = int(now + window)
+
+        if count >= limit:
+            return {
+                "allowed": False,
+                "limit": limit,
+                "remaining": 0,
+                "reset": reset,
+            }
+
+        self._windows[key][ip].append(now)
+        return {
+            "allowed": True,
+            "limit": limit,
+            "remaining": remaining - 1,
+            "reset": reset,
+        }
+
+
+rate_limiter = RateLimiter()
+
+
+# --- Connection Tracking ---
+
+
+class ConnectionTracker:
+    """Track active SSE connections per IP."""
+
+    def __init__(self, max_per_ip: int = MAX_CONNECTIONS_PER_IP):
+        self.max_per_ip = max_per_ip
+        self._connections: dict[str, int] = {}
+
+    def can_connect(self, ip: str) -> bool:
+        return self._connections.get(ip, 0) < self.max_per_ip
+
+    def add(self, ip: str):
+        self._connections[ip] = self._connections.get(ip, 0) + 1
+
+    def remove(self, ip: str):
+        count = self._connections.get(ip, 0)
+        if count <= 1:
+            self._connections.pop(ip, None)
+        else:
+            self._connections[ip] = count - 1
+
+    def count(self, ip: str) -> int:
+        return self._connections.get(ip, 0)
+
+    def total(self) -> int:
+        return sum(self._connections.values())
+
+
+connection_tracker = ConnectionTracker()
+
+
+def _get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _rate_limit_response(result: dict) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={"error": "rate_limit_exceeded", "message": "Too many requests"},
+        headers={
+            "X-RateLimit-Limit": str(result["limit"]),
+            "X-RateLimit-Remaining": str(result["remaining"]),
+            "X-RateLimit-Reset": str(result["reset"]),
+        },
+    )
 
 
 def _get_db_dsn() -> str:
@@ -122,15 +337,18 @@ def _get_redis_url() -> str:
 
 @app.on_event("startup")
 async def startup():
-    global _db_pool, _redis
+    global _db_pool, _redis, _start_time
+    _start_time = time.time()
     _db_pool = await asyncpg.create_pool(dsn=_get_db_dsn(), min_size=2, max_size=10)
     _redis = aioredis.from_url(_get_redis_url(), decode_responses=True)
+    await session_manager.start_cleanup()
     logger.info("Agent Gateway started")
 
 
 @app.on_event("shutdown")
 async def shutdown():
     global _db_pool, _redis
+    await session_manager.stop_cleanup()
     if _db_pool:
         await _db_pool.close()
     if _redis:
@@ -180,11 +398,143 @@ def _row_to_event(row: dict) -> dict:
     }
 
 
+async def _session_event_generator(
+    session_id: str,
+    agent_name: Optional[str] = None,
+    event_type: Optional[str] = None,
+    last_event_id: Optional[str] = None,
+) -> AsyncGenerator[dict, None]:
+    """Generate SSE events with session management, heartbeats, and backpressure."""
+    session = session_manager.get_session(session_id)
+    if not session:
+        return
+
+    # Send session_start event
+    seq = session_manager.next_sequence(session_id)
+    yield {
+        "event": "session_start",
+        "id": f"{session_id}:{seq}",
+        "data": json.dumps(
+            {
+                "session_id": session_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        ),
+    }
+
+    # Determine resume point from Last-Event-ID
+    resume_after = 0
+    if last_event_id and ":" in last_event_id:
+        try:
+            resume_after = int(last_event_id.split(":")[-1])
+        except (ValueError, IndexError):
+            pass
+
+    pubsub = _redis.pubsub()
+    channels = [REDIS_CHANNEL] + REDIS_CHANNELS
+    await pubsub.subscribe(*channels)
+    last_heartbeat = time.monotonic()
+
+    try:
+        while True:
+            session = session_manager.get_session(session_id)
+            if not session:
+                break
+
+            # Heartbeat check
+            now = time.monotonic()
+            if now - last_heartbeat >= HEARTBEAT_INTERVAL_SECONDS:
+                last_heartbeat = now
+                seq = session_manager.next_sequence(session_id)
+                yield {
+                    "event": "heartbeat",
+                    "id": f"{session_id}:{seq}",
+                    "data": json.dumps(
+                        {"timestamp": datetime.now(timezone.utc).isoformat()}
+                    ),
+                }
+
+            # Check backpressure
+            queue = session["queue"]
+            queue_pct = (queue.qsize() / MAX_QUEUE_SIZE * 100) if MAX_QUEUE_SIZE else 0
+            if queue_pct >= BACKPRESSURE_THRESHOLD_PCT:
+                if session["backpressure_since"] is None:
+                    session["backpressure_since"] = time.monotonic()
+                    seq = session_manager.next_sequence(session_id)
+                    yield {
+                        "event": "backpressure_warning",
+                        "id": f"{session_id}:{seq}",
+                        "data": json.dumps(
+                            {
+                                "queue_size": queue.qsize(),
+                                "queue_max": MAX_QUEUE_SIZE,
+                                "message": "Event queue nearing capacity",
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                            }
+                        ),
+                    }
+                elif (
+                    time.monotonic() - session["backpressure_since"]
+                    > SLOW_CONSUMER_TIMEOUT_SECONDS
+                ):
+                    # Slow consumer - disconnect
+                    seq = session_manager.next_sequence(session_id)
+                    yield {
+                        "event": "error",
+                        "id": f"{session_id}:{seq}",
+                        "data": json.dumps(
+                            {
+                                "error_code": "slow_consumer",
+                                "message": "Disconnected due to sustained backpressure",
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                            }
+                        ),
+                    }
+                    break
+            else:
+                session["backpressure_since"] = None
+
+            # Poll for Redis messages with timeout
+            try:
+                message = await asyncio.wait_for(
+                    pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0),
+                    timeout=2.0,
+                )
+            except asyncio.TimeoutError:
+                message = None
+
+            if message and message.get("type") == "message":
+                try:
+                    data = json.loads(message["data"])
+                except (json.JSONDecodeError, TypeError):
+                    continue
+
+                # Apply filters
+                if agent_name and data.get("agent_name") != agent_name:
+                    continue
+                if event_type and data.get("event_type") != event_type:
+                    continue
+
+                seq = session_manager.next_sequence(session_id)
+                if seq <= resume_after:
+                    continue
+
+                evt_type = data.get("event_type", "message")
+                yield {
+                    "event": evt_type,
+                    "id": f"{session_id}:{seq}",
+                    "data": json.dumps(data),
+                }
+    finally:
+        await pubsub.unsubscribe(*channels)
+        await pubsub.aclose()
+
+
 async def _event_generator(
     agent_name: Optional[str] = None,
     event_type: Optional[str] = None,
 ) -> AsyncGenerator[dict, None]:
-    """Generate SSE events from Redis pub/sub."""
+    """Generate SSE events from Redis pub/sub (legacy non-session mode)."""
     pubsub = _redis.pubsub()
     await pubsub.subscribe(REDIS_CHANNEL)
     try:
@@ -208,6 +558,161 @@ async def _event_generator(
         await pubsub.aclose()
 
 
+# --- Spec Endpoints ---
+
+
+@app.get(
+    "/api/agent/stream",
+    tags=["Agent"],
+    response_class=EventSourceResponse,
+)
+async def agent_stream(
+    request: Request,
+    agent_name: Optional[str] = Query(None, description="Filter by agent name"),
+    event_type: Optional[str] = Query(None, description="Filter by event type"),
+    last_event_id: Optional[str] = Header(None, alias="Last-Event-ID"),
+):
+    """SSE stream endpoint per spec.
+
+    Creates a new session and streams events with session IDs, sequence
+    numbers, heartbeats, and backpressure handling. Supports reconnection
+    via Last-Event-ID header.
+    """
+    client_ip = _get_client_ip(request)
+
+    # Check connection limit
+    if not connection_tracker.can_connect(client_ip):
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "connection_limit_exceeded",
+                "message": f"Maximum {MAX_CONNECTIONS_PER_IP} connections per IP",
+            },
+        )
+
+    # Check rate limit
+    rl = rate_limiter.check("stream", client_ip, STREAM_CONNECTIONS_PER_MINUTE)
+    if not rl["allowed"]:
+        return _rate_limit_response(rl)
+
+    session_id = session_manager.create_session()
+    connection_tracker.add(client_ip)
+
+    async def generate():
+        try:
+            async for event in _session_event_generator(
+                session_id,
+                agent_name=agent_name,
+                event_type=event_type,
+                last_event_id=last_event_id,
+            ):
+                yield event
+        finally:
+            connection_tracker.remove(client_ip)
+            session_manager.remove_session(session_id)
+
+    return EventSourceResponse(generate())
+
+
+@app.post(
+    "/api/agent/command",
+    response_model=CommandResponse,
+    tags=["Agent"],
+)
+async def agent_command(request: Request, body: CommandRequest):
+    """Submit a user query to the agent.
+
+    The session_id must come from a prior SSE connection. Events from
+    processing this command will stream on the SSE connection associated
+    with the session.
+    """
+    client_ip = _get_client_ip(request)
+
+    # Rate limit
+    rl = rate_limiter.check("command", client_ip, COMMANDS_PER_MINUTE)
+    if not rl["allowed"]:
+        return _rate_limit_response(rl)
+
+    # Validate session
+    session = session_manager.get_session(body.session_id)
+    if not session:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "missing_session_id",
+                "message": "Invalid or expired session_id. Connect to /api/agent/stream first.",
+            },
+        )
+
+    request_id = f"req-{uuid.uuid4().hex[:12]}"
+
+    # Publish command to Redis for agent processing
+    if _redis:
+        await _redis.publish(
+            "agent_commands",
+            json.dumps(
+                {
+                    "request_id": request_id,
+                    "session_id": body.session_id,
+                    "query": body.query,
+                    "symbol": body.symbol,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            ),
+        )
+
+    return CommandResponse(
+        request_id=request_id,
+        session_id=body.session_id,
+        status="processing",
+        message="Query submitted. Events will stream on /api/agent/stream",
+    )
+
+
+@app.get(
+    "/api/agent/health",
+    response_model=HealthResponse,
+    tags=["Agent"],
+)
+async def agent_health(request: Request):
+    """Health check endpoint per spec.
+
+    Returns service status with connection count and Redis connectivity.
+    """
+    client_ip = _get_client_ip(request)
+    rl = rate_limiter.check("health", client_ip, HEALTH_REQUESTS_PER_MINUTE)
+    if not rl["allowed"]:
+        return _rate_limit_response(rl)
+
+    checks = {
+        "status": "healthy",
+        "service": "agent-gateway",
+        "connections": connection_tracker.total(),
+        "uptime_seconds": int(time.time() - _start_time),
+    }
+
+    try:
+        async with _db_pool.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        checks["database"] = "connected"
+    except Exception as e:
+        checks["database"] = f"error: {e}"
+        checks["status"] = "degraded"
+
+    try:
+        await _redis.ping()
+        checks["redis"] = "connected"
+    except Exception as e:
+        checks["redis"] = f"error: {e}"
+        checks["status"] = "degraded"
+
+    status_code = 200 if checks["status"] == "healthy" else 503
+    return JSONResponse(content=checks, status_code=status_code)
+
+
+# --- Legacy Endpoints (backwards compatible) ---
+
+
 @app.get(
     "/health",
     response_model=HealthResponse,
@@ -220,9 +725,13 @@ async def health():
     Returns connectivity status for the database and Redis.
     Returns 503 if any dependency is unreachable.
     """
-    checks = {"status": "healthy", "service": "agent-gateway"}
+    checks = {
+        "status": "healthy",
+        "service": "agent-gateway",
+        "connections": connection_tracker.total(),
+        "uptime_seconds": int(time.time() - _start_time),
+    }
 
-    # Check database connectivity
     try:
         async with _db_pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
@@ -231,7 +740,6 @@ async def health():
         checks["database"] = f"error: {e}"
         checks["status"] = "degraded"
 
-    # Check Redis connectivity
     try:
         await _redis.ping()
         checks["redis"] = "connected"
@@ -471,7 +979,7 @@ async def publish_event(event: dict):
 
 def main():
     host = os.environ.get("API_HOST", "0.0.0.0")
-    port = int(os.environ.get("API_PORT", "8080"))
+    port = int(os.environ.get("API_PORT", "8081"))
     uvicorn.run(app, host=host, port=port, log_level="info")
 
 

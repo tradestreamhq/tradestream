@@ -44,12 +44,21 @@ py_library(
 )
 
 py_library(
+    name = "ab_testing",
+    srcs = [
+        "__init__.py",
+        "ab_testing.py",
+    ],
+)
+
+py_library(
     name = "model_router_lib",
     srcs = [
         "__init__.py",
         "gateway.py",
     ],
     deps = [
+        ":ab_testing",
         ":budget_enforcer",
         ":cost_tracker",
         ":model_registry",
@@ -116,6 +125,18 @@ py_test(
     ],
     deps = [
         ":budget_enforcer",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "ab_testing_test",
+    srcs = [
+        "ab_testing_test.py",
+        "conftest.py",
+    ],
+    deps = [
+        ":ab_testing",
         "//third_party/python:pytest",
     ],
 )
