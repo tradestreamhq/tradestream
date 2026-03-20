@@ -149,7 +149,11 @@ def create_app(
     async def detailed_health():
         """Detailed health check with DB, Redis, and exchange status."""
         deps = await check_deps()
-        overall = "healthy" if all(v == "ok" or v == "not_configured" for v in deps.values()) else "degraded"
+        overall = (
+            "healthy"
+            if all(v == "ok" or v == "not_configured" for v in deps.values())
+            else "degraded"
+        )
         return success_response(
             {
                 "status": overall,
@@ -167,18 +171,27 @@ def create_app(
         """System metrics: active strategies, open positions, signals/hour, API latency."""
         try:
             async with db_pool.acquire() as conn:
-                active_strategies = await conn.fetchval(
-                    "SELECT COUNT(*) FROM strategy_specs WHERE source != 'DISABLED'"
-                ) or 0
+                active_strategies = (
+                    await conn.fetchval(
+                        "SELECT COUNT(*) FROM strategy_specs WHERE source != 'DISABLED'"
+                    )
+                    or 0
+                )
 
-                open_positions = await conn.fetchval(
-                    "SELECT COUNT(*) FROM paper_portfolio WHERE quantity != 0"
-                ) or 0
+                open_positions = (
+                    await conn.fetchval(
+                        "SELECT COUNT(*) FROM paper_portfolio WHERE quantity != 0"
+                    )
+                    or 0
+                )
 
-                signals_per_hour = await conn.fetchval(
-                    "SELECT COUNT(*) FROM signals "
-                    "WHERE created_at > NOW() - INTERVAL '1 hour'"
-                ) or 0
+                signals_per_hour = (
+                    await conn.fetchval(
+                        "SELECT COUNT(*) FROM signals "
+                        "WHERE created_at > NOW() - INTERVAL '1 hour'"
+                    )
+                    or 0
+                )
         except Exception as e:
             logger.error("Failed to query system metrics: %s", e)
             return server_error("Failed to retrieve system metrics")
@@ -226,7 +239,11 @@ def create_app(
 
         # WebSocket (derived from exchange status)
         components["websocket"] = {
-            "status": exchange_status if exchange_status in ("ok", "not_configured") else "degraded",
+            "status": (
+                exchange_status
+                if exchange_status in ("ok", "not_configured")
+                else "degraded"
+            ),
             "type": "websocket",
         }
 
@@ -263,11 +280,19 @@ def create_app(
 
         # Latency percentiles
         percentiles = _compute_percentiles(_metrics["api_latencies"])
-        lines.append("# HELP tradestream_http_request_duration_ms HTTP request latency in milliseconds.")
+        lines.append(
+            "# HELP tradestream_http_request_duration_ms HTTP request latency in milliseconds."
+        )
         lines.append("# TYPE tradestream_http_request_duration_ms gauge")
-        lines.append(f'tradestream_http_request_duration_ms{{quantile="0.5"}} {percentiles["p50"]}')
-        lines.append(f'tradestream_http_request_duration_ms{{quantile="0.9"}} {percentiles["p90"]}')
-        lines.append(f'tradestream_http_request_duration_ms{{quantile="0.99"}} {percentiles["p99"]}')
+        lines.append(
+            f'tradestream_http_request_duration_ms{{quantile="0.5"}} {percentiles["p50"]}'
+        )
+        lines.append(
+            f'tradestream_http_request_duration_ms{{quantile="0.9"}} {percentiles["p90"]}'
+        )
+        lines.append(
+            f'tradestream_http_request_duration_ms{{quantile="0.99"}} {percentiles["p99"]}'
+        )
 
         # DB/Redis/Exchange status (1=ok, 0=down)
         try:
@@ -275,7 +300,9 @@ def create_app(
         except Exception:
             deps = {"postgres": "error", "redis": "error", "exchange": "error"}
 
-        lines.append("# HELP tradestream_dependency_up Whether a dependency is healthy (1=up, 0=down).")
+        lines.append(
+            "# HELP tradestream_dependency_up Whether a dependency is healthy (1=up, 0=down)."
+        )
         lines.append("# TYPE tradestream_dependency_up gauge")
         for dep, status in deps.items():
             val = 1 if status in ("ok", "not_configured") else 0
@@ -284,18 +311,29 @@ def create_app(
         # Query DB metrics
         try:
             async with db_pool.acquire() as conn:
-                active_strategies = await conn.fetchval(
-                    "SELECT COUNT(*) FROM strategy_specs WHERE source != 'DISABLED'"
-                ) or 0
-                open_positions = await conn.fetchval(
-                    "SELECT COUNT(*) FROM paper_portfolio WHERE quantity != 0"
-                ) or 0
-                signals_per_hour = await conn.fetchval(
-                    "SELECT COUNT(*) FROM signals "
-                    "WHERE created_at > NOW() - INTERVAL '1 hour'"
-                ) or 0
+                active_strategies = (
+                    await conn.fetchval(
+                        "SELECT COUNT(*) FROM strategy_specs WHERE source != 'DISABLED'"
+                    )
+                    or 0
+                )
+                open_positions = (
+                    await conn.fetchval(
+                        "SELECT COUNT(*) FROM paper_portfolio WHERE quantity != 0"
+                    )
+                    or 0
+                )
+                signals_per_hour = (
+                    await conn.fetchval(
+                        "SELECT COUNT(*) FROM signals "
+                        "WHERE created_at > NOW() - INTERVAL '1 hour'"
+                    )
+                    or 0
+                )
 
-            lines.append("# HELP tradestream_active_strategies Number of active strategies.")
+            lines.append(
+                "# HELP tradestream_active_strategies Number of active strategies."
+            )
             lines.append("# TYPE tradestream_active_strategies gauge")
             lines.append(f"tradestream_active_strategies {active_strategies}")
 
@@ -303,7 +341,9 @@ def create_app(
             lines.append("# TYPE tradestream_open_positions gauge")
             lines.append(f"tradestream_open_positions {open_positions}")
 
-            lines.append("# HELP tradestream_signals_per_hour Signals generated in the last hour.")
+            lines.append(
+                "# HELP tradestream_signals_per_hour Signals generated in the last hour."
+            )
             lines.append("# TYPE tradestream_signals_per_hour gauge")
             lines.append(f"tradestream_signals_per_hour {signals_per_hour}")
         except Exception as e:
