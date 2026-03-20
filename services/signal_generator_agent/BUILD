@@ -9,6 +9,7 @@ py_library(
     name = "agent_lib",
     srcs = ["agent.py"],
     deps = [
+        "//services/shared:model_config",
         "//third_party/python:openai",
         "//third_party/python:requests",
     ],
@@ -31,6 +32,18 @@ py_test(
     deps = [
         ":agent_lib",
         "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "agent_integration_test",
+    srcs = ["agent_integration_test.py"],
+    deps = [
+        ":agent_lib",
+        "//services/shared:model_config",
+        "//third_party/python:openai",
+        "//third_party/python:pytest",
+        "//third_party/python:requests",
     ],
 )
 

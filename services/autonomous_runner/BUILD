@@ -231,3 +231,27 @@ py_test(
         "//third_party/python:pytest",
     ],
 )
+
+py_test(
+    name = "runner_test",
+    srcs = ["runner_test.py"],
+    deps = [
+        ":config_lib",
+        ":coordinator_lib",
+        ":runner_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "dashboard_test",
+    srcs = ["dashboard_test.py"],
+    deps = [
+        ":dashboard_lib",
+        ":metrics_lib",
+        "//third_party/python:fastapi",
+        "//third_party/python:httpx",
+        "//third_party/python:pydantic",
+        "//third_party/python:pytest",
+    ],
+)
