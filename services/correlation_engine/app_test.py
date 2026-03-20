@@ -15,15 +15,24 @@ def _make_price_data(n=200, seed=42):
     common = np.cumsum(np.random.randn(n))
     return {
         "BTC/USD": [
-            {"close": float(common[i] + 50000 + np.random.randn() * 10), "time": f"2026-01-{i+1:03d}"}
+            {
+                "close": float(common[i] + 50000 + np.random.randn() * 10),
+                "time": f"2026-01-{i+1:03d}",
+            }
             for i in range(n)
         ],
         "ETH/USD": [
-            {"close": float(0.7 * common[i] + 3000 + np.random.randn() * 5), "time": f"2026-01-{i+1:03d}"}
+            {
+                "close": float(0.7 * common[i] + 3000 + np.random.randn() * 5),
+                "time": f"2026-01-{i+1:03d}",
+            }
             for i in range(n)
         ],
         "SOL/USD": [
-            {"close": float(np.cumsum(np.random.randn(1))[0] + 100 + i * 0.1), "time": f"2026-01-{i+1:03d}"}
+            {
+                "close": float(np.cumsum(np.random.randn(1))[0] + 100 + i * 0.1),
+                "time": f"2026-01-{i+1:03d}",
+            }
             for i in range(n)
         ],
     }
@@ -34,7 +43,9 @@ def client():
     provider = MagicMock()
     price_data = _make_price_data()
     provider.get_symbols.return_value = list(price_data.keys())
-    provider.get_prices.side_effect = lambda sym, limit=200: price_data.get(sym, [])[:limit]
+    provider.get_prices.side_effect = lambda sym, limit=200: price_data.get(sym, [])[
+        :limit
+    ]
     app = create_app(provider)
     return TestClient(app, raise_server_exceptions=False), provider
 

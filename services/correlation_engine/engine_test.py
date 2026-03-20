@@ -56,21 +56,25 @@ class TestRollingCorrelation:
 class TestCorrelationMatrix:
     def test_diagonal_is_one(self):
         """Diagonal of correlation matrix should be 1.0."""
-        df = pd.DataFrame({
-            "A": np.random.randn(100),
-            "B": np.random.randn(100),
-            "C": np.random.randn(100),
-        })
+        df = pd.DataFrame(
+            {
+                "A": np.random.randn(100),
+                "B": np.random.randn(100),
+                "C": np.random.randn(100),
+            }
+        )
         matrix = correlation_matrix(df)
         np.testing.assert_allclose(np.diag(matrix.values), 1.0)
 
     def test_symmetric(self):
         """Correlation matrix should be symmetric."""
         np.random.seed(42)
-        df = pd.DataFrame({
-            "A": np.random.randn(100),
-            "B": np.random.randn(100),
-        })
+        df = pd.DataFrame(
+            {
+                "A": np.random.randn(100),
+                "B": np.random.randn(100),
+            }
+        )
         matrix = correlation_matrix(df)
         np.testing.assert_allclose(matrix.values, matrix.values.T)
 
@@ -78,10 +82,12 @@ class TestCorrelationMatrix:
         """Series with known linear relationship should have high correlation."""
         np.random.seed(42)
         x = np.random.randn(200)
-        df = pd.DataFrame({
-            "X": x,
-            "Y": 2 * x + 0.1 * np.random.randn(200),  # Strong linear relation
-        })
+        df = pd.DataFrame(
+            {
+                "X": x,
+                "Y": 2 * x + 0.1 * np.random.randn(200),  # Strong linear relation
+            }
+        )
         matrix = correlation_matrix(df)
         assert matrix.loc["X", "Y"] > 0.95
 
@@ -169,11 +175,13 @@ class TestFindCointegratedPairs:
         np.random.seed(42)
         n = 500
         common = np.cumsum(np.random.randn(n))
-        df = pd.DataFrame({
-            "A": common + np.random.randn(n) * 0.3,
-            "B": 0.7 * common + np.random.randn(n) * 0.3,
-            "C": np.cumsum(np.random.randn(n)),  # Independent
-        })
+        df = pd.DataFrame(
+            {
+                "A": common + np.random.randn(n) * 0.3,
+                "B": 0.7 * common + np.random.randn(n) * 0.3,
+                "C": np.cumsum(np.random.randn(n)),  # Independent
+            }
+        )
         pairs = find_cointegrated_pairs(df, significance=0.05)
         # A and B should be cointegrated
         pair_names = [(p.pair1, p.pair2) for p in pairs]
@@ -183,18 +191,22 @@ class TestFindCointegratedPairs:
         """Independent random walks should yield no cointegrated pairs."""
         np.random.seed(42)
         n = 500
-        df = pd.DataFrame({
-            "X": np.cumsum(np.random.randn(n)),
-            "Y": np.cumsum(np.random.randn(n)),
-        })
+        df = pd.DataFrame(
+            {
+                "X": np.cumsum(np.random.randn(n)),
+                "Y": np.cumsum(np.random.randn(n)),
+            }
+        )
         pairs = find_cointegrated_pairs(df, significance=0.05)
         assert len(pairs) == 0
 
     def test_too_short_series_skipped(self):
         """Series shorter than 30 points should be skipped."""
-        df = pd.DataFrame({
-            "A": np.random.randn(20),
-            "B": np.random.randn(20),
-        })
+        df = pd.DataFrame(
+            {
+                "A": np.random.randn(20),
+                "B": np.random.randn(20),
+            }
+        )
         pairs = find_cointegrated_pairs(df)
         assert len(pairs) == 0

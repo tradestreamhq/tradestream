@@ -22,9 +22,7 @@ class InfluxDBPriceProvider:
         return self._redis.get_symbols()
 
     def get_prices(self, symbol, limit=200):
-        return self._influxdb.get_candles(
-            symbol=symbol, timeframe="1d", limit=limit
-        )
+        return self._influxdb.get_candles(symbol=symbol, timeframe="1d", limit=limit)
 
 
 def main():

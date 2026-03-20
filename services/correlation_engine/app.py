@@ -62,9 +62,7 @@ def create_app(price_provider) -> FastAPI:
     correlation_router = APIRouter(tags=["Correlation"])
     pairs_router = APIRouter(prefix="/pairs", tags=["Pairs"])
 
-    def _build_price_df(
-        symbols: List[str], limit: int = 200
-    ) -> Optional[pd.DataFrame]:
+    def _build_price_df(symbols: List[str], limit: int = 200) -> Optional[pd.DataFrame]:
         """Build a DataFrame of close prices for the given symbols."""
         frames = {}
         for sym in symbols:
@@ -114,12 +112,8 @@ def create_app(price_provider) -> FastAPI:
     async def get_pairwise_correlation(
         pair1: str,
         pair2: str,
-        window: int = Query(
-            30, ge=5, le=200, description="Rolling window size"
-        ),
-        limit: int = Query(
-            200, ge=30, le=1000, description="Number of price points"
-        ),
+        window: int = Query(30, ge=5, le=200, description="Rolling window size"),
+        limit: int = Query(200, ge=30, le=1000, description="Number of price points"),
     ):
         """Get pairwise correlation with rolling window and pair analysis."""
         df = _build_price_df([pair1, pair2], limit=limit)
@@ -149,7 +143,9 @@ def create_app(price_provider) -> FastAPI:
             "window": window,
             "data_points": len(df),
         }
-        return success_response(result, "pair_correlation", resource_id=f"{pair1}/{pair2}")
+        return success_response(
+            result, "pair_correlation", resource_id=f"{pair1}/{pair2}"
+        )
 
     @pairs_router.get("/cointegrated")
     async def get_cointegrated_pairs(
@@ -160,9 +156,7 @@ def create_app(price_provider) -> FastAPI:
         significance: float = Query(
             0.05, ge=0.001, le=0.5, description="P-value threshold"
         ),
-        limit: int = Query(
-            200, ge=30, le=1000, description="Number of price points"
-        ),
+        limit: int = Query(200, ge=30, le=1000, description="Number of price points"),
     ):
         """List cointegrated pairs suitable for pair trading."""
         syms = (
