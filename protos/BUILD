@@ -152,3 +152,20 @@ py_proto_library(
     visibility = ["//visibility:public"],
     deps = [":prediction_markets_proto"],
 )
+
+proto_library(
+    name = "signal_reasoning_proto",
+    srcs = ["signal_reasoning.proto"],
+)
+
+java_proto_library(
+    name = "signal_reasoning_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":signal_reasoning_proto"],
+)
+
+py_proto_library(
+    name = "signal_reasoning_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":signal_reasoning_proto"],
+)

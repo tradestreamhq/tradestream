@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package tradestream.reasoning;
+
+option java_package = "com.tradestreamhq.protos";
+option java_multiple_files = true;
+
+// A single indicator that contributed to a signal decision.
+message ContributingFactor {
+  string indicator_name = 1;     // e.g. "RSI(14)", "MACD", "Volume"
+  double value = 2;              // current value
+  double threshold = 3;          // threshold that was crossed
+  string condition = 4;          // e.g. "crossed_above", "crossed_below", "exceeded"
+  double weight = 5;             // how much this factor contributed (0.0-1.0)
+  string description = 6;        // human-readable: "RSI(14) crossed above 30"
+}
+
+// Market context snapshot at signal generation time.
+message MarketContext {
+  string trend_direction = 1;    // "bullish", "bearish", "neutral"
+  double trend_strength = 2;     // 0.0-1.0
+  double volatility_percentile = 3;
+  double volume_ratio = 4;       // vs 20-day average
+  string market_regime = 5;      // "trending", "ranging", "volatile"
+  string sentiment = 6;          // "bullish", "bearish", "neutral"
+}
+
+// Confidence breakdown by component.
+message ConfidenceBreakdown {
+  double indicator_agreement = 1;
+  double volume_confirmation = 2;
+  double trend_alignment = 3;
+  double volatility_context = 4;
+  double overall_confidence = 5;
+  string quality_grade = 6;      // A-F
+}
+
+// Historical pattern match for context.
+message HistoricalPattern {
+  int32 similar_signals_count = 1;
+  double win_rate = 2;
+  double avg_return = 3;
+  int32 lookback_days = 4;
+  string description = 5;
+}
+
+// Risk factor that may affect the signal outcome.
+message RiskFactor {
+  string category = 1;           // "market", "volatility", "strategy", "validation"
+  string severity = 2;           // "low", "medium", "high"
+  string description = 3;
+  double impact_estimate = 4;    // estimated impact on win rate (e.g. -0.12 = -12%)
+}
+
+// Complete reasoning for a signal.
+message SignalReasoning {
+  string id = 1;
+  string signal_id = 2;
+  string strategy_name = 3;
+  string symbol = 4;
+  string signal_type = 5;        // BUY, SELL
+
+  repeated ContributingFactor contributing_factors = 6;
+  map<string, double> indicator_values = 7;
+  MarketContext market_context = 8;
+  ConfidenceBreakdown confidence_breakdown = 9;
+
+  string explanation_text = 10;
+  HistoricalPattern historical_pattern = 11;
+  repeated RiskFactor risk_factors = 12;
+
+  string validation_level = 13;  // candidate, validated, deployed
+  double expected_return = 14;
+  double expected_return_ci_lower = 15;
+  double expected_return_ci_upper = 16;
+  int32 predicted_timeframe_hours = 17;
+
+  int64 created_at = 18;         // Unix ms
+}
