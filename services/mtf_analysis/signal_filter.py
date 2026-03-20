@@ -40,7 +40,9 @@ class MTFSignalFilter:
         confluence = self._analyzer.get_confluence(pair)
 
         # Map signal direction to expected MTF signal.
-        expected = Signal.BULLISH if signal_direction.upper() == "BUY" else Signal.BEARISH
+        expected = (
+            Signal.BULLISH if signal_direction.upper() == "BUY" else Signal.BEARISH
+        )
 
         allowed = True
         reason = "Signal passes MTF filter"

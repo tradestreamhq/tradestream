@@ -48,9 +48,7 @@ class TestShouldExecute:
         assert result["allowed"] is True
 
     def test_rejects_low_confluence(self, filter_, analyzer):
-        analyzer.get_confluence.return_value = _make_confluence(
-            0.1, Signal.NEUTRAL, []
-        )
+        analyzer.get_confluence.return_value = _make_confluence(0.1, Signal.NEUTRAL, [])
         result = filter_.should_execute("BTC/USD", "BUY")
         assert result["allowed"] is False
         assert "below threshold" in result["reason"]
