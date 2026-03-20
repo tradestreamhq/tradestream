@@ -3,6 +3,7 @@ Tests for Agent Gateway Service.
 """
 
 import json
+import time
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -12,11 +13,17 @@ import pytest
 
 from services.agent_gateway.main import (
     AgentEvent,
+    CommandRequest,
+    CommandResponse,
+    ConnectionTracker,
     HealthResponse,
+    RateLimiter,
     RecentEventsResponse,
+    SessionManager,
     _row_to_event,
     _serialize_row,
     app,
+    session_manager,
 )
 
 _MODULE = "services.agent_gateway.main"
@@ -102,10 +109,6 @@ class TestRowToEvent:
             "created_at": "2026-01-15T10:30:00+00:00",
         }
         event = _row_to_event(row)
-        # signal_id is None, tool_calls is None, reasoning exists => reasoning
-        # But the priority chain: reasoning checked first, then tool_call, then signal
-        # Actually in code: reasoning is checked, then tool_call overwrites, then signal overwrites
-        # With reasoning=set, tool_calls=None, signal_id=None => "reasoning"
         assert event["event_type"] == "reasoning"
 
     def test_tool_call_event_type(self):
@@ -126,7 +129,6 @@ class TestRowToEvent:
             "created_at": "2026-01-15T10:30:00+00:00",
         }
         event = _row_to_event(row)
-        # tool_calls is truthy and overwrites reasoning, signal_id is None
         assert event["event_type"] == "tool_call"
 
     def test_decision_event_type_default(self):
@@ -172,6 +174,138 @@ class TestRowToEvent:
         assert event["score"] == 0.9
 
 
+class TestSessionManager:
+    """Tests for SessionManager."""
+
+    def test_create_session(self):
+        sm = SessionManager()
+        sid = sm.create_session()
+        assert sid.startswith("sess-")
+        assert sm.get_session(sid) is not None
+
+    def test_remove_session(self):
+        sm = SessionManager()
+        sid = sm.create_session()
+        sm.remove_session(sid)
+        assert sm.get_session(sid) is None
+
+    def test_next_sequence_increments(self):
+        sm = SessionManager()
+        sid = sm.create_session()
+        assert sm.next_sequence(sid) == 1
+        assert sm.next_sequence(sid) == 2
+        assert sm.next_sequence(sid) == 3
+
+    def test_next_sequence_unknown_session(self):
+        sm = SessionManager()
+        assert sm.next_sequence("nonexistent") == 0
+
+    def test_active_count(self):
+        sm = SessionManager()
+        assert sm.active_count() == 0
+        sid1 = sm.create_session()
+        assert sm.active_count() == 1
+        sid2 = sm.create_session()
+        assert sm.active_count() == 2
+        sm.remove_session(sid1)
+        assert sm.active_count() == 1
+
+    def test_get_session_updates_activity(self):
+        sm = SessionManager()
+        sid = sm.create_session()
+        session = sm.get_session(sid)
+        old_activity = session["last_activity"]
+        # Simulate time passage
+        import time
+
+        time.sleep(0.01)
+        sm.get_session(sid)
+        assert session["last_activity"] >= old_activity
+
+
+class TestRateLimiter:
+    """Tests for RateLimiter."""
+
+    def test_allows_within_limit(self):
+        rl = RateLimiter()
+        result = rl.check("test", "1.2.3.4", limit=5)
+        assert result["allowed"] is True
+        assert result["remaining"] >= 0
+
+    def test_blocks_over_limit(self):
+        rl = RateLimiter()
+        for _ in range(5):
+            rl.check("test", "1.2.3.4", limit=5)
+        result = rl.check("test", "1.2.3.4", limit=5)
+        assert result["allowed"] is False
+        assert result["remaining"] == 0
+
+    def test_separate_ips(self):
+        rl = RateLimiter()
+        for _ in range(5):
+            rl.check("test", "1.2.3.4", limit=5)
+        result = rl.check("test", "5.6.7.8", limit=5)
+        assert result["allowed"] is True
+
+    def test_separate_endpoints(self):
+        rl = RateLimiter()
+        for _ in range(5):
+            rl.check("stream", "1.2.3.4", limit=5)
+        result = rl.check("command", "1.2.3.4", limit=5)
+        assert result["allowed"] is True
+
+    def test_returns_reset_timestamp(self):
+        rl = RateLimiter()
+        result = rl.check("test", "1.2.3.4", limit=5)
+        assert "reset" in result
+        assert result["reset"] > time.time()
+
+
+class TestConnectionTracker:
+    """Tests for ConnectionTracker."""
+
+    def test_can_connect_initially(self):
+        ct = ConnectionTracker(max_per_ip=3)
+        assert ct.can_connect("1.2.3.4") is True
+
+    def test_blocks_at_limit(self):
+        ct = ConnectionTracker(max_per_ip=2)
+        ct.add("1.2.3.4")
+        ct.add("1.2.3.4")
+        assert ct.can_connect("1.2.3.4") is False
+
+    def test_allows_after_remove(self):
+        ct = ConnectionTracker(max_per_ip=1)
+        ct.add("1.2.3.4")
+        assert ct.can_connect("1.2.3.4") is False
+        ct.remove("1.2.3.4")
+        assert ct.can_connect("1.2.3.4") is True
+
+    def test_separate_ips(self):
+        ct = ConnectionTracker(max_per_ip=1)
+        ct.add("1.2.3.4")
+        assert ct.can_connect("5.6.7.8") is True
+
+    def test_total_count(self):
+        ct = ConnectionTracker(max_per_ip=5)
+        ct.add("1.2.3.4")
+        ct.add("1.2.3.4")
+        ct.add("5.6.7.8")
+        assert ct.total() == 3
+
+    def test_count_per_ip(self):
+        ct = ConnectionTracker(max_per_ip=5)
+        ct.add("1.2.3.4")
+        ct.add("1.2.3.4")
+        assert ct.count("1.2.3.4") == 2
+        assert ct.count("unknown") == 0
+
+    def test_remove_nonexistent_ip(self):
+        ct = ConnectionTracker(max_per_ip=5)
+        ct.remove("nonexistent")  # Should not raise
+        assert ct.count("nonexistent") == 0
+
+
 class TestHealthEndpoint:
     """Tests for the /health endpoint."""
 
@@ -179,7 +313,6 @@ class TestHealthEndpoint:
     async def test_health_returns_healthy(self):
         from httpx import ASGITransport, AsyncClient
 
-        # Mock the database pool and redis
         mock_pool = MagicMock()
         mock_conn = AsyncMock()
         mock_conn.fetchval = AsyncMock(return_value=1)
@@ -193,7 +326,7 @@ class TestHealthEndpoint:
 
         with patch(f"{_MODULE}._db_pool", mock_pool), patch(
             f"{_MODULE}._redis", mock_redis
-        ):
+        ), patch(f"{_MODULE}._start_time", time.time()):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -221,7 +354,7 @@ class TestHealthEndpoint:
 
         with patch(f"{_MODULE}._db_pool", mock_pool), patch(
             f"{_MODULE}._redis", mock_redis
-        ):
+        ), patch(f"{_MODULE}._start_time", time.time()):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -231,6 +364,119 @@ class TestHealthEndpoint:
         assert response.status_code == 503
         data = response.json()
         assert data["status"] == "degraded"
+
+
+class TestAgentHealthEndpoint:
+    """Tests for the /api/agent/health endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_agent_health_includes_connections(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_pool = MagicMock()
+        mock_conn = AsyncMock()
+        mock_conn.fetchval = AsyncMock(return_value=1)
+        mock_cm = AsyncMock()
+        mock_cm.__aenter__ = AsyncMock(return_value=mock_conn)
+        mock_cm.__aexit__ = AsyncMock(return_value=None)
+        mock_pool.acquire.return_value = mock_cm
+
+        mock_redis = AsyncMock()
+        mock_redis.ping = AsyncMock(return_value=True)
+
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ), patch(f"{_MODULE}._start_time", time.time() - 100):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.get("/api/agent/health")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "connections" in data
+        assert "uptime_seconds" in data
+        assert data["uptime_seconds"] >= 100
+
+
+class TestCommandEndpoint:
+    """Tests for the /api/agent/command endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_command_requires_valid_session(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._redis", mock_redis):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.post(
+                    "/api/agent/command",
+                    json={
+                        "session_id": "nonexistent",
+                        "query": "What about ETH?",
+                    },
+                )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert data["error"] == "missing_session_id"
+
+    @pytest.mark.asyncio
+    async def test_command_with_valid_session(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_redis = AsyncMock()
+        mock_redis.publish = AsyncMock()
+
+        # Create a session
+        sid = session_manager.create_session()
+
+        try:
+            with patch(f"{_MODULE}._redis", mock_redis):
+                transport = ASGITransport(app=app)
+                async with AsyncClient(
+                    transport=transport, base_url="http://test"
+                ) as client:
+                    response = await client.post(
+                        "/api/agent/command",
+                        json={
+                            "session_id": sid,
+                            "query": "Should I buy ETH?",
+                            "symbol": "ETH/USD",
+                        },
+                    )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["session_id"] == sid
+            assert data["status"] == "processing"
+            assert data["request_id"].startswith("req-")
+            mock_redis.publish.assert_called_once()
+        finally:
+            session_manager.remove_session(sid)
+
+    @pytest.mark.asyncio
+    async def test_command_missing_query_field(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_redis = AsyncMock()
+
+        with patch(f"{_MODULE}._redis", mock_redis):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.post(
+                    "/api/agent/command",
+                    json={"session_id": "sess-123"},
+                )
+
+        assert response.status_code == 422  # Validation error
 
 
 class TestRecentEventsEndpoint:
@@ -316,7 +562,6 @@ class TestRecentEventsEndpoint:
                 )
 
         assert response.status_code == 200
-        # Verify the query was called with agent_name filter
         mock_conn.fetch.assert_called_once()
         call_args = mock_conn.fetch.call_args
         assert "agent_name" in call_args[0][0]
@@ -359,6 +604,12 @@ class TestStreamEndpoint:
         """Verify the stream endpoint is registered."""
         routes = [route.path for route in app.routes]
         assert "/events/stream" in routes
+
+    @pytest.mark.asyncio
+    async def test_agent_stream_endpoint_exists(self):
+        """Verify the spec SSE endpoint is registered."""
+        routes = [route.path for route in app.routes]
+        assert "/api/agent/stream" in routes
 
     @pytest.mark.asyncio
     async def test_stream_returns_event_source_response(self):
@@ -407,6 +658,9 @@ class TestOpenAPIDocs:
         assert "/health" in paths
         assert "/events/stream" in paths
         assert "/events/recent" in paths
+        assert "/api/agent/stream" in paths
+        assert "/api/agent/command" in paths
+        assert "/api/agent/health" in paths
 
     def test_response_models_in_schema(self):
         """Test that Pydantic response models appear in the schema."""
@@ -415,6 +669,8 @@ class TestOpenAPIDocs:
         assert "HealthResponse" in component_schemas
         assert "AgentEvent" in component_schemas
         assert "RecentEventsResponse" in component_schemas
+        assert "CommandRequest" in component_schemas
+        assert "CommandResponse" in component_schemas
 
     def test_agent_event_model(self):
         """Test AgentEvent Pydantic model."""
@@ -433,6 +689,26 @@ class TestOpenAPIDocs:
         resp = RecentEventsResponse(events=[event], count=1)
         assert resp.count == 1
         assert len(resp.events) == 1
+
+    def test_command_request_model(self):
+        """Test CommandRequest Pydantic model."""
+        cmd = CommandRequest(
+            session_id="sess-abc",
+            query="What about ETH?",
+            symbol="ETH/USD",
+        )
+        assert cmd.session_id == "sess-abc"
+        assert cmd.symbol == "ETH/USD"
+
+    def test_command_response_model(self):
+        """Test CommandResponse Pydantic model."""
+        resp = CommandResponse(
+            request_id="req-123",
+            session_id="sess-abc",
+            status="processing",
+            message="Query submitted",
+        )
+        assert resp.status == "processing"
 
 
 def _make_mock_pool_with_conn(conn):
@@ -453,9 +729,7 @@ class TestDashboardSummary:
         from httpx import ASGITransport, AsyncClient
 
         mock_conn = AsyncMock()
-        # active_agents query
         mock_conn.fetch = AsyncMock(return_value=[])
-        # stats_24h query
         mock_conn.fetchrow = AsyncMock(
             return_value=FakeRecord(
                 {
@@ -513,7 +787,6 @@ class TestDashboardSummary:
         )
 
         mock_conn = AsyncMock()
-        # fetch is called 3 times: active_agents, tier_dist, recent_signals
         mock_conn.fetch = AsyncMock(side_effect=[[agent_row], [], []])
         mock_conn.fetchrow = AsyncMock(return_value=stats_row)
         mock_pool = _make_mock_pool_with_conn(mock_conn)

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TradeStream API Documentation</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --bg: #f8fafc;
+        --card-bg: #ffffff;
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --green: #16a34a;
+        --amber: #d97706;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+      }
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      .header p {
+        color: #94a3b8;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .badge {
+        display: inline-block;
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-top: 1rem;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+      .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+      }
+      .card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+      }
+      .card p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      .card a {
+        display: inline-block;
+        margin-top: 1rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+      .card a:hover {
+        color: var(--primary-dark);
+      }
+      .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-top: 2.5rem;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border);
+      }
+      .stats {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .stat {
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+      .stat-label {
+        font-size: 0.85rem;
+        color: #94a3b8;
+      }
+      .cta {
+        display: inline-block;
+        background: var(--primary);
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin: 0.5rem;
+        transition: background 0.2s;
+      }
+      .cta:hover {
+        background: var(--primary-dark);
+      }
+      .cta-secondary {
+        background: transparent;
+        border: 2px solid #475569;
+        color: #e2e8f0;
+      }
+      .cta-secondary:hover {
+        background: #1e293b;
+      }
+      .cta-row {
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>TradeStream API</h1>
+      <p>
+        AI-powered trading signals, strategy marketplace, backtesting, and
+        portfolio management — all via REST API.
+      </p>
+      <span class="badge">OpenAPI 3.0 &middot; v1.0.0</span>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">134</div>
+          <div class="stat-label">Endpoints</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">88</div>
+          <div class="stat-label">Schemas</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">29</div>
+          <div class="stat-label">Tags</div>
+        </div>
+      </div>
+      <div class="cta-row">
+        <a href="/api/docs" class="cta">Swagger UI</a>
+        <a href="/api/redoc" class="cta cta-secondary">ReDoc</a>
+        <a href="/api/openapi.json" class="cta cta-secondary">OpenAPI JSON</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2 class="section-title">Guides</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Getting Started</h3>
+          <p>
+            Authentication, first signal subscription, webhook setup, rate
+            limits, pagination, and error handling.
+          </p>
+          <a href="getting-started.html">Read guide &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>TradingView Integration</h3>
+          <p>
+            Connect TradingView alerts to TradeStream via webhook. Includes Pine
+            Script templates.
+          </p>
+          <a href="integration-tradingview.html">Read guide &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Telegram Bot</h3>
+          <p>
+            Receive signals in Telegram via @TradeStreamBot. Setup, commands,
+            and formatting options.
+          </p>
+          <a href="integration-telegram.html">Read guide &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Discord Webhooks</h3>
+          <p>
+            Deliver signal embeds to Discord channels with color-coded buy/sell
+            indicators.
+          </p>
+          <a href="integration-discord.html">Read guide &rarr;</a>
+        </div>
+      </div>
+
+      <h2 class="section-title">API Modules</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Signals &amp; Subscriptions</h3>
+          <p>
+            Trading signal delivery, subscription management, and delivery
+            channel configuration.
+          </p>
+          <a href="/api/docs#/Signals">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Strategy Marketplace</h3>
+          <p>
+            Browse, publish, rate, and subscribe to trading strategies. Includes
+            leaderboard.
+          </p>
+          <a href="/api/docs#/Marketplace">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Backtesting</h3>
+          <p>
+            Run backtests, walk-forward analysis, and parameter optimization on
+            strategies.
+          </p>
+          <a href="/api/docs#/Backtesting">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Opportunities</h3>
+          <p>
+            AI-scored trading opportunities with confluence analysis and
+            performance tracking.
+          </p>
+          <a href="/api/docs#/Opportunities">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Portfolio &amp; Positions</h3>
+          <p>
+            Portfolio state, position tracking, risk metrics, and trade
+            validation.
+          </p>
+          <a href="/api/docs#/Portfolio">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Billing</h3>
+          <p>
+            Subscription plans, invoices, payment methods, and usage tracking
+            via Stripe.
+          </p>
+          <a href="/api/docs#/Billing">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>User Management</h3>
+          <p>
+            Authentication, profile, API keys with scoped permissions, and
+            notification preferences.
+          </p>
+          <a href="/api/docs#/Users">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Webhooks</h3>
+          <p>
+            Outbound webhooks with HMAC-SHA256 signing, retry policies, and
+            delivery logs.
+          </p>
+          <a href="/api/docs#/Webhooks">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Market Data</h3>
+          <p>Instruments, OHLCV candles, live prices, and order book data.</p>
+          <a href="/api/docs#/Instruments">Explore endpoints &rarr;</a>
+        </div>
+        <div class="card">
+          <h3>Agent Dashboard</h3>
+          <p>
+            Real-time agent event streaming, decision tracking, and performance
+            analytics.
+          </p>
+          <a href="/api/docs#/Dashboard">Explore endpoints &rarr;</a>
+        </div>
+      </div>
+
+      <h2 class="section-title">Authentication</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>API Key</h3>
+          <p>
+            For server-to-server. Create at <code>/api/v1/api-keys</code> with
+            scoped permissions. Pass via <code>X-API-Key</code> header.
+          </p>
+        </div>
+        <div class="card">
+          <h3>JWT Bearer</h3>
+          <p>
+            For browser/mobile. Login at <code>/api/v1/auth/login</code>, pass
+            as <code>Authorization: Bearer</code>. 15-min TTL, refresh via
+            <code>/api/v1/auth/refresh</code>.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Stripe Webhooks</h3>
+          <p>
+            Billing webhooks verified via <code>Stripe-Signature</code> header
+            using your webhook signing secret.
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,28 +1,38 @@
 import React from "react";
-import type { ToolCall } from "../types";
+import type { AgentEvent } from "../types";
 
 interface ToolCallLogProps {
-  toolCalls: ToolCall[];
+  events: AgentEvent[];
 }
 
-export function ToolCallLog({ toolCalls }: ToolCallLogProps) {
-  if (!toolCalls.length) return null;
+export function ToolCallLog({ events }: ToolCallLogProps) {
+  const toolEvents = events.filter((e) => e.event_type === "tool_call" && e.tool_calls);
+  if (!toolEvents.length) return null;
 
   return (
     <div className="tool-call-list" aria-label="Tool call log">
-      <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>
-        Tool Calls ({toolCalls.length})
-      </div>
-      {toolCalls.map((tc, i) => (
-        <div className="tool-call-item" key={i}>
-          <span className="tool-name">{tc.name}</span>
-          {tc.args && (
-            <span style={{ color: "var(--text-muted)", marginLeft: 8 }}>
-              {JSON.stringify(tc.args).slice(0, 80)}
-            </span>
-          )}
-        </div>
-      ))}
+      <div className="tool-call-header">Tool Calls</div>
+      {toolEvents.map((event) =>
+        event.tool_calls?.map((tc, i) => (
+          <div className="tool-call-item" key={`${event.id}-${i}`}>
+            <span className="tool-badge">[tool]</span>
+            <span className="tool-name">{tc.name}</span>
+            {tc.args && (
+              <span className="tool-args">
+                ({Object.entries(tc.args).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ")})
+              </span>
+            )}
+            {tc.latency_ms != null && (
+              <span className="tool-latency">{tc.latency_ms}ms</span>
+            )}
+            {tc.result != null && (
+              <div className="tool-result">
+                {"\u2192"} {typeof tc.result === "string" ? tc.result : JSON.stringify(tc.result).slice(0, 120)}
+              </div>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 }

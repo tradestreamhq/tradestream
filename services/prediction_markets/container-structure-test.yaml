@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+commandTests:
+  - name: "binary exists"
+    command: "ls"
+    args: ["/services/prediction_markets/app"]
+    expectedOutput: ["/services/prediction_markets/app"]
+  - name: "help flag works"
+    command: "/services/prediction_markets/app"
+    args: ["--helpshort"]
+    exitCode: 1

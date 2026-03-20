@@ -25,10 +25,10 @@ class TestMCPServer:
         return pg
 
     @pytest.mark.asyncio
-    async def test_list_tools_returns_seven(self):
-        """Test that list_tools returns all 7 tools."""
+    async def test_list_tools_returns_nine(self):
+        """Test that list_tools returns all 9 tools."""
         tools = await list_tools()
-        assert len(tools) == 7
+        assert len(tools) == 9
         names = {t.name for t in tools}
         assert names == {
             "get_top_strategies",
@@ -38,6 +38,8 @@ class TestMCPServer:
             "list_strategy_types",
             "create_spec",
             "get_walk_forward",
+            "get_strategy_signal",
+            "get_strategy_consensus",
         }
 
     @pytest.mark.asyncio
@@ -58,9 +60,13 @@ class TestMCPServer:
         )
 
         assert len(result) == 1
-        data = json.loads(result[0].text)
-        assert len(data) == 1
-        assert data[0]["spec_name"] == "macd"
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert len(response["data"]) == 1
+        assert response["data"][0]["spec_name"] == "macd"
+        assert isinstance(response["_metadata"]["latency_ms"], int)
+        assert response["_metadata"]["source"] == "postgresql"
         mock_pg.get_top_strategies.assert_called_once_with(
             symbol="BTC/USD", limit=5, min_score=0.0
         )
@@ -90,8 +96,10 @@ class TestMCPServer:
 
         result = await call_tool("get_spec", {"spec_name": "macd_crossover"})
 
-        data = json.loads(result[0].text)
-        assert data["name"] == "macd_crossover"
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["name"] == "macd_crossover"
 
     @pytest.mark.asyncio
     async def test_get_spec_not_found(self, mock_pg):
@@ -100,8 +108,10 @@ class TestMCPServer:
 
         result = await call_tool("get_spec", {"spec_name": "nonexistent"})
 
-        data = json.loads(result[0].text)
-        assert "error" in data
+        response = json.loads(result[0].text)
+        assert "error" in response
+        assert response["error"]["code"] == "STRATEGY_NOT_FOUND"
+        assert "_metadata" in response
 
     @pytest.mark.asyncio
     async def test_get_performance(self, mock_pg):
@@ -112,8 +122,10 @@ class TestMCPServer:
 
         result = await call_tool("get_performance", {"impl_id": "abc-123"})
 
-        data = json.loads(result[0].text)
-        assert "backtest" in data
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert "backtest" in response["data"]
         mock_pg.get_performance.assert_called_once_with(
             impl_id="abc-123", environment=None
         )
@@ -138,8 +150,10 @@ class TestMCPServer:
 
         result = await call_tool("get_performance", {"impl_id": "nonexistent"})
 
-        data = json.loads(result[0].text)
-        assert "error" in data
+        response = json.loads(result[0].text)
+        assert "error" in response
+        assert response["error"]["code"] == "STRATEGY_NOT_FOUND"
+        assert "_metadata" in response
 
     @pytest.mark.asyncio
     async def test_get_performance_batch(self, mock_pg):
@@ -153,9 +167,11 @@ class TestMCPServer:
             "get_performance_batch", {"impl_ids": ["impl-1", "impl-2"]}
         )
 
-        data = json.loads(result[0].text)
-        assert "impl-1" in data
-        assert "impl-2" in data
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert "impl-1" in response["data"]
+        assert "impl-2" in response["data"]
         mock_pg.get_performance_batch.assert_called_once_with(
             impl_ids=["impl-1", "impl-2"], environment=None
         )
@@ -183,8 +199,10 @@ class TestMCPServer:
 
         result = await call_tool("list_strategy_types", {})
 
-        data = json.loads(result[0].text)
-        assert data == ["macd", "rsi"]
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"] == ["macd", "rsi"]
 
     @pytest.mark.asyncio
     async def test_create_spec(self, mock_pg):
@@ -202,8 +220,10 @@ class TestMCPServer:
 
         result = await call_tool("create_spec", args)
 
-        data = json.loads(result[0].text)
-        assert data["spec_id"] == "new-uuid"
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["spec_id"] == "new-uuid"
         mock_pg.create_spec.assert_called_once_with(
             name="test_spec",
             indicators={"rsi": {"period": 14}},
@@ -226,8 +246,10 @@ class TestMCPServer:
 
         result = await call_tool("get_walk_forward", {"impl_id": "abc-123"})
 
-        data = json.loads(result[0].text)
-        assert data["validation_status"] == "APPROVED"
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["validation_status"] == "APPROVED"
 
     @pytest.mark.asyncio
     async def test_get_walk_forward_not_found(self, mock_pg):
@@ -236,14 +258,74 @@ class TestMCPServer:
 
         result = await call_tool("get_walk_forward", {"impl_id": "nonexistent"})
 
-        data = json.loads(result[0].text)
-        assert "error" in data
+        response = json.loads(result[0].text)
+        assert "error" in response
+        assert response["error"]["code"] == "STRATEGY_NOT_FOUND"
+        assert "_metadata" in response
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_signal(self, mock_pg):
+        """Test get_strategy_signal tool."""
+        mock_pg.get_strategy_signal.return_value = {
+            "signal": "BUY",
+            "confidence": 0.85,
+            "triggered_at": "2026-03-19T12:00:00",
+            "parameters": {"period": 14},
+        }
+
+        result = await call_tool(
+            "get_strategy_signal", {"strategy_id": "42", "symbol": "ETH/USD"}
+        )
+
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["signal"] == "BUY"
+        assert response["data"]["confidence"] == 0.85
+        mock_pg.get_strategy_signal.assert_called_once_with(
+            strategy_id="42", symbol="ETH/USD"
+        )
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_signal_not_found(self, mock_pg):
+        """Test get_strategy_signal when no signal exists."""
+        mock_pg.get_strategy_signal.return_value = None
+
+        result = await call_tool(
+            "get_strategy_signal", {"strategy_id": "99", "symbol": "BTC/USD"}
+        )
+
+        response = json.loads(result[0].text)
+        assert "error" in response
+        assert response["error"]["code"] == "NO_SIGNAL"
+        assert "_metadata" in response
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_consensus(self, mock_pg):
+        """Test get_strategy_consensus tool."""
+        mock_pg.get_strategy_consensus.return_value = {
+            "bullish_count": 5,
+            "bearish_count": 2,
+            "neutral_count": 1,
+            "consensus": "BUY",
+            "confidence": 0.72,
+        }
+
+        result = await call_tool("get_strategy_consensus", {"symbol": "ETH/USD"})
+
+        response = json.loads(result[0].text)
+        assert "data" in response
+        assert "_metadata" in response
+        assert response["data"]["consensus"] == "BUY"
+        assert response["data"]["bullish_count"] == 5
+        mock_pg.get_strategy_consensus.assert_called_once_with(symbol="ETH/USD")
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self, mock_pg):
         """Test calling an unknown tool."""
         result = await call_tool("unknown_tool", {})
 
-        data = json.loads(result[0].text)
-        assert "error" in data
-        assert "Unknown tool" in data["error"]
+        response = json.loads(result[0].text)
+        assert "error" in response
+        assert response["error"]["code"] == "UNKNOWN_TOOL"
+        assert "_metadata" in response

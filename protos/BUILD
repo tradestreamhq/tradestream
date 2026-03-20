@@ -96,12 +96,19 @@ proto_library(
     name = "trade_signals_proto",
     srcs = ["trade_signals.proto"],
     deps = [
+        ":marketdata_proto",
         ":strategies_proto",
     ],
 )
 
 java_proto_library(
     name = "trade_signals_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":trade_signals_proto"],
+)
+
+py_proto_library(
+    name = "trade_signals_py_proto",
     visibility = ["//visibility:public"],
     deps = [":trade_signals_proto"],
 )
@@ -124,4 +131,41 @@ py_proto_library(
     name = "polymarket_py_proto",
     visibility = ["//visibility:public"],
     deps = [":polymarket_proto"],
+)
+
+proto_library(
+    name = "prediction_markets_proto",
+    srcs = ["prediction_markets.proto"],
+    deps = [
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+java_proto_library(
+    name = "prediction_markets_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":prediction_markets_proto"],
+)
+
+py_proto_library(
+    name = "prediction_markets_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":prediction_markets_proto"],
+)
+
+proto_library(
+    name = "signal_reasoning_proto",
+    srcs = ["signal_reasoning.proto"],
+)
+
+java_proto_library(
+    name = "signal_reasoning_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":signal_reasoning_proto"],
+)
+
+py_proto_library(
+    name = "signal_reasoning_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":signal_reasoning_proto"],
 )

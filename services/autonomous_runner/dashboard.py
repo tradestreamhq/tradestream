@@ -1,0 +1,591 @@
+"""Pipeline dashboard API: real-time view of pipeline status, signal flow, and decision log.
+
+Provides REST and SSE endpoints for monitoring the autonomous signal generation pipeline.
+"""
+
+import asyncio
+import json
+import logging
+import time
+import uuid
+from collections import Counter
+from typing import Optional
+
+from fastapi import FastAPI, Query, Request
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+from services.autonomous_runner.signal_event_bus import get_event_bus
+
+logger = logging.getLogger(__name__)
+
+
+class DashboardState:
+    """Shared state between the runner and the dashboard API."""
+
+    def __init__(self):
+        self.coordinator = None
+        self.kill_switch = None
+        self.runner_started_at = None
+        self.last_cycle_at = None
+        self.total_cycles = 0
+        self.total_signals_emitted = 0
+        self.last_cycle_duration_ms = 0
+        self.last_cycle_signals = 0
+
+
+_state = DashboardState()
+
+
+def set_dashboard_state(coordinator=None, kill_switch=None, runner_started_at=None):
+    """Set the shared state references (called from main runner)."""
+    if coordinator:
+        _state.coordinator = coordinator
+    if kill_switch:
+        _state.kill_switch = kill_switch
+    if runner_started_at:
+        _state.runner_started_at = runner_started_at
+
+
+def record_cycle(duration_ms: int, signals_count: int):
+    """Record a completed cycle for dashboard metrics."""
+    _state.last_cycle_at = time.time()
+    _state.total_cycles += 1
+    _state.total_signals_emitted += signals_count
+    _state.last_cycle_duration_ms = duration_ms
+    _state.last_cycle_signals = signals_count
+
+
+app = FastAPI(
+    title="Autonomous Signal Pipeline Dashboard",
+    version="1.1.0",
+)
+
+
+class KillSwitchRequest(BaseModel):
+    reason: str = ""
+    activated_by: str = "api"
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "service": "autonomous-signal-pipeline"}
+
+
+@app.get("/health/live")
+def health_live():
+    """Liveness probe: service is running."""
+    return {"status": "alive"}
+
+
+@app.get("/health/ready")
+def health_ready():
+    """Readiness probe: service is ready to process signals."""
+    ready = _state.coordinator is not None and _state.runner_started_at is not None
+    if not ready:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "reason": "coordinator not initialized"},
+        )
+    return {"status": "ready"}
+
+
+@app.get("/health/detailed")
+def health_detailed():
+    """Detailed health check with component status."""
+    components = {
+        "runner": {
+            "status": "up" if _state.runner_started_at else "down",
+            "started_at": _state.runner_started_at,
+            "total_cycles": _state.total_cycles,
+        },
+        "coordinator": {
+            "status": "up" if _state.coordinator else "down",
+        },
+        "kill_switch": {
+            "status": "up" if _state.kill_switch else "unavailable",
+        },
+    }
+
+    if _state.coordinator:
+        status = _state.coordinator.get_pipeline_status()
+        components["circuit_breaker"] = status.get("circuit_breaker", {})
+        components["adaptive"] = status.get("adaptive", {})
+        components["db_persistence"] = status.get("db_persistence", False)
+        components["risk"] = _state.coordinator.risk_manager.get_status()
+        components["event_bus"] = get_event_bus().get_stats()
+
+    all_up = all(
+        c.get("status") in ("up", "unavailable", True)
+        for c in components.values()
+        if isinstance(c, dict) and "status" in c
+    )
+    return {
+        "status": "healthy" if all_up else "degraded",
+        "components": components,
+    }
+
+
+@app.get("/api/pipeline/status")
+def pipeline_status():
+    """Overall pipeline status."""
+    status = {
+        "running": _state.runner_started_at is not None,
+        "started_at": _state.runner_started_at,
+        "last_cycle_at": _state.last_cycle_at,
+        "total_cycles": _state.total_cycles,
+        "total_signals_emitted": _state.total_signals_emitted,
+        "last_cycle_duration_ms": _state.last_cycle_duration_ms,
+        "last_cycle_signals": _state.last_cycle_signals,
+    }
+
+    if _state.coordinator:
+        status["pipeline"] = _state.coordinator.get_pipeline_status()
+
+    if _state.kill_switch:
+        status["kill_switch"] = _state.kill_switch.get_status()
+
+    return status
+
+
+@app.get("/api/pipeline/decisions")
+def recent_decisions(
+    limit: int = Query(default=50, ge=1, le=200),
+    symbol: Optional[str] = Query(default=None),
+):
+    """Recent autonomous decisions with full reasoning chains."""
+    if not _state.coordinator:
+        return {"decisions": [], "total": 0}
+
+    decisions = _state.coordinator.get_recent_decisions(limit=limit)
+
+    if symbol:
+        decisions = [d for d in decisions if d.get("symbol") == symbol]
+
+    return {"decisions": decisions, "total": len(decisions)}
+
+
+@app.get("/api/pipeline/risk")
+def risk_status():
+    """Current risk management status."""
+    if not _state.coordinator:
+        return {"error": "Coordinator not initialized"}
+    return _state.coordinator.risk_manager.get_status()
+
+
+@app.post("/api/pipeline/kill-switch/activate")
+def activate_kill_switch(req: KillSwitchRequest):
+    """Activate the kill switch to pause autonomous generation."""
+    if not _state.kill_switch:
+        return {"error": "Kill switch not initialized"}
+    success = _state.kill_switch.activate(
+        reason=req.reason, activated_by=req.activated_by
+    )
+    return {"success": success, "status": _state.kill_switch.get_status()}
+
+
+@app.post("/api/pipeline/kill-switch/deactivate")
+def deactivate_kill_switch():
+    """Deactivate the kill switch to resume autonomous generation."""
+    if not _state.kill_switch:
+        return {"error": "Kill switch not initialized"}
+    success = _state.kill_switch.deactivate(deactivated_by="api")
+    return {"success": success, "status": _state.kill_switch.get_status()}
+
+
+@app.get("/api/pipeline/kill-switch")
+def kill_switch_status():
+    """Get current kill switch status."""
+    if not _state.kill_switch:
+        return {"active": False, "error": "Kill switch not initialized"}
+    return _state.kill_switch.get_status()
+
+
+@app.get("/api/pipeline/metrics")
+def pipeline_metrics_endpoint():
+    """Pipeline metrics summary."""
+    from services.autonomous_runner.metrics import pipeline_metrics
+
+    return pipeline_metrics.get_summary()
+
+
+@app.get("/api/pipeline/stream")
+async def signal_stream(
+    request: Request,
+    last_event_id: int = Query(default=0, ge=0),
+):
+    """Server-Sent Events stream for real-time signal updates.
+
+    Publishes signals continuously even with no users connected (the event bus
+    buffers events). New connections can replay missed events via last_event_id.
+    """
+    event_bus = get_event_bus()
+
+    async def event_generator():
+        queue = asyncio.Queue(maxsize=100)
+        subscriber_id = f"sse-{uuid.uuid4().hex[:8]}"
+
+        def on_event(event):
+            try:
+                queue.put_nowait(event)
+            except asyncio.QueueFull:
+                pass  # Drop oldest if consumer is slow
+
+        # Replay missed events
+        replay = event_bus.get_replay_buffer(since_id=last_event_id)
+        for event in replay:
+            yield _format_sse(event)
+
+        # Subscribe for live events
+        event_bus.subscribe(subscriber_id, on_event)
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    yield _format_sse(event)
+                except asyncio.TimeoutError:
+                    # Send keepalive comment
+                    yield ": keepalive\n\n"
+        finally:
+            event_bus.unsubscribe(subscriber_id)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+def _format_sse(event: dict) -> str:
+    """Format an event as SSE data."""
+    event_id = event.get("id", "")
+    event_type = event.get("type", "signal")
+    data = json.dumps(event.get("data", {}))
+    return f"id: {event_id}\nevent: {event_type}\ndata: {data}\n\n"
+
+
+@app.get("/api/pipeline/analytics/decisions")
+def decision_analytics():
+    """Aggregated decision analytics: action distribution, confidence stats, tier distribution."""
+    if not _state.coordinator:
+        return {"error": "Coordinator not initialized"}
+
+    decisions = _state.coordinator.get_recent_decisions(limit=200)
+    if not decisions:
+        return {
+            "total": 0,
+            "action_distribution": {},
+            "confidence_stats": {},
+            "opportunity_tiers": {},
+        }
+
+    actions = Counter(d.get("action", "HOLD") for d in decisions)
+    confidences = [d.get("confidence", 0) for d in decisions]
+
+    # Opportunity tier distribution
+    tiers = Counter()
+    for d in decisions:
+        score = d.get("opportunity_score", 0) or 0
+        if score >= 80:
+            tiers["HOT"] += 1
+        elif score >= 60:
+            tiers["GOOD"] += 1
+        elif score >= 40:
+            tiers["NEUTRAL"] += 1
+        else:
+            tiers["LOW"] += 1
+
+    # Risk rejection analysis
+    rejected = [d for d in decisions if not d.get("risk_approved", True)]
+    rejection_reasons = Counter()
+    for d in rejected:
+        for reason in d.get("risk_rejection_reasons", []):
+            rejection_reasons[reason] += 1
+
+    return {
+        "total": len(decisions),
+        "action_distribution": dict(actions),
+        "confidence_stats": {
+            "mean": sum(confidences) / len(confidences) if confidences else 0,
+            "min": min(confidences) if confidences else 0,
+            "max": max(confidences) if confidences else 0,
+        },
+        "opportunity_tiers": dict(tiers),
+        "risk_rejections": {
+            "total_rejected": len(rejected),
+            "rejection_reasons": dict(rejection_reasons),
+        },
+    }
+
+
+@app.get("/api/pipeline/analytics/signals")
+def signal_analytics(symbol: Optional[str] = Query(default=None)):
+    """Per-symbol signal history and agreement analysis."""
+    if not _state.coordinator:
+        return {"error": "Coordinator not initialized"}
+
+    decisions = _state.coordinator.get_recent_decisions(limit=200)
+
+    if symbol:
+        decisions = [d for d in decisions if d.get("symbol") == symbol]
+
+    # Group by symbol
+    by_symbol = {}
+    for d in decisions:
+        sym = d.get("symbol", "unknown")
+        if sym not in by_symbol:
+            by_symbol[sym] = {
+                "count": 0,
+                "actions": Counter(),
+                "avg_confidence": 0,
+                "avg_agreement": 0,
+                "approved": 0,
+                "rejected": 0,
+            }
+        entry = by_symbol[sym]
+        entry["count"] += 1
+        entry["actions"][d.get("action", "HOLD")] += 1
+        entry["avg_confidence"] += d.get("confidence", 0)
+        entry["avg_agreement"] += d.get("fusion_agreement_ratio", 0) or 0
+        if d.get("risk_approved", False):
+            entry["approved"] += 1
+        else:
+            entry["rejected"] += 1
+
+    # Compute averages
+    for sym, entry in by_symbol.items():
+        count = entry["count"]
+        if count > 0:
+            entry["avg_confidence"] = round(entry["avg_confidence"] / count, 4)
+            entry["avg_agreement"] = round(entry["avg_agreement"] / count, 4)
+        entry["actions"] = dict(entry["actions"])
+
+    return {"symbols": by_symbol, "total_symbols": len(by_symbol)}
+
+
+@app.get("/api/pipeline/event-bus")
+def event_bus_status():
+    """Event bus statistics."""
+    return get_event_bus().get_stats()
+
+
+@app.get("/api/pipeline/analytics/tool-performance")
+def tool_performance_analytics(hours: int = Query(default=24, ge=1, le=168)):
+    """Tool call performance analysis (requires DB).
+
+    Shows average latency and call frequency for each MCP tool,
+    using the GIN-indexed tool_calls JSONB field.
+    """
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "tools": []}
+    return {"tools": query_svc.analyze_tool_performance(hours=hours)}
+
+
+@app.get("/api/pipeline/analytics/model-usage")
+def model_usage_analytics(hours: int = Query(default=24, ge=1, le=168)):
+    """Model usage tracking: decisions, latency, and token usage per model."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "models": []}
+    return {"models": query_svc.track_model_usage(hours=hours)}
+
+
+@app.get("/api/pipeline/analytics/accuracy")
+def accuracy_analytics(days: int = Query(default=30, ge=1, le=365)):
+    """Decision accuracy by symbol and action (requires outcome data)."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "accuracy": []}
+    return {"accuracy": query_svc.calculate_accuracy(days=days)}
+
+
+@app.get("/api/pipeline/analytics/high-opportunity")
+def high_opportunity_decisions(
+    min_score: float = Query(default=80.0, ge=0, le=100),
+    hours: int = Query(default=1, ge=1, le=24),
+):
+    """High-opportunity decisions from the last N hours."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "decisions": []}
+    return {
+        "decisions": query_svc.get_high_opportunity_decisions(
+            min_score=min_score, hours=hours
+        )
+    }
+
+
+def _get_query_service():
+    """Get the DecisionQueryService if DB is available."""
+    if not _state.coordinator or not _state.coordinator._db.is_available:
+        return None
+    try:
+        from services.autonomous_runner.decision_queries import DecisionQueryService
+
+        return DecisionQueryService(db_pool=_state.coordinator._db._pool)
+    except Exception:
+        return None
+
+
+class FeedbackRequest(BaseModel):
+    user_id: str
+    feedback_type: str  # helpful, not_helpful, incorrect, executed
+    comment: Optional[str] = None
+
+
+@app.post("/api/pipeline/decisions/{decision_id}/feedback")
+def submit_decision_feedback(decision_id: str, req: FeedbackRequest):
+    """Submit user feedback on a specific autonomous decision."""
+    feedback_svc = _get_feedback_service()
+    if not feedback_svc:
+        return {"error": "Feedback service not available"}
+    try:
+        fb = feedback_svc.submit_feedback(
+            decision_id=decision_id,
+            user_id=req.user_id,
+            feedback_type=req.feedback_type,
+            comment=req.comment,
+        )
+        return {
+            "feedback_id": fb.feedback_id,
+            "decision_id": fb.decision_id,
+            "feedback_type": fb.feedback_type,
+        }
+    except ValueError as e:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+
+@app.get("/api/pipeline/decisions/{decision_id}/feedback")
+def get_decision_feedback(decision_id: str):
+    """Get all feedback for a specific decision."""
+    feedback_svc = _get_feedback_service()
+    if not feedback_svc:
+        return {"error": "Feedback service not available", "feedback": []}
+    return {"feedback": feedback_svc.get_feedback_for_decision(decision_id)}
+
+
+@app.get("/api/pipeline/analytics/feedback")
+def feedback_analytics(hours: int = Query(default=24, ge=1, le=168)):
+    """Aggregated feedback summary."""
+    feedback_svc = _get_feedback_service()
+    if not feedback_svc:
+        return {"error": "Feedback service not available"}
+    return feedback_svc.get_feedback_summary(hours=hours)
+
+
+@app.get("/api/pipeline/decisions/by-tier")
+def decisions_by_tier(
+    tier: str = Query(description="Opportunity tier: HOT, GOOD, NEUTRAL, LOW"),
+    hours: int = Query(default=24, ge=1, le=168),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    """Get decisions filtered by opportunity tier."""
+    if tier not in ("HOT", "GOOD", "NEUTRAL", "LOW"):
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": f"Invalid tier: {tier}. Must be HOT, GOOD, NEUTRAL, or LOW"
+            },
+        )
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "decisions": []}
+    return {
+        "tier": tier,
+        "decisions": query_svc.get_decisions_by_tier(
+            tier=tier, hours=hours, limit=limit
+        ),
+    }
+
+
+@app.get("/api/pipeline/decisions/by-symbol/{symbol}")
+def decisions_by_symbol(
+    symbol: str,
+    days: int = Query(default=7, ge=1, le=90),
+    limit: int = Query(default=20, ge=1, le=200),
+):
+    """Get decisions for a specific symbol with time range."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "decisions": []}
+    return {
+        "symbol": symbol,
+        "decisions": query_svc.get_decisions_by_symbol(
+            symbol=symbol, days=days, limit=limit
+        ),
+    }
+
+
+@app.get("/api/pipeline/retention")
+def retention_status():
+    """Get retention job status."""
+    retention_job = _get_retention_job()
+    if not retention_job:
+        return {"error": "Retention job not available"}
+    return retention_job.get_status()
+
+
+@app.post("/api/pipeline/retention/run")
+def trigger_retention_job(dry_run: bool = Query(default=True)):
+    """Manually trigger the retention cleanup job."""
+    retention_job = _get_retention_job()
+    if not retention_job:
+        return {"error": "Retention job not available"}
+    result = retention_job.execute(dry_run=dry_run)
+    return result.to_dict()
+
+
+def _get_feedback_service():
+    """Get the DecisionFeedbackService if DB is available."""
+    try:
+        from services.autonomous_runner.decision_feedback import DecisionFeedbackService
+
+        pool = None
+        if _state.coordinator and _state.coordinator._db.is_available:
+            pool = _state.coordinator._db._pool
+        return DecisionFeedbackService(db_pool=pool)
+    except Exception:
+        return None
+
+
+def _get_retention_job():
+    """Get the RetentionJob if DB is available."""
+    try:
+        from services.autonomous_runner.retention_job import RetentionJob
+
+        pool = None
+        if _state.coordinator and _state.coordinator._db.is_available:
+            pool = _state.coordinator._db._pool
+        return RetentionJob(db_pool=pool)
+    except Exception:
+        return None
+
+
+@app.get("/metrics")
+def prometheus_metrics():
+    """Prometheus-compatible metrics endpoint."""
+    try:
+        from prometheus_client import generate_latest
+        from starlette.responses import Response
+
+        return Response(
+            content=generate_latest(),
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
+    except ImportError:
+        from services.autonomous_runner.metrics import pipeline_metrics
+
+        return pipeline_metrics.get_summary()

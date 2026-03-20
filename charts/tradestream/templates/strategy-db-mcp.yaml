@@ -1,0 +1,75 @@
+{{- if .Values.strategyDbMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-db-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-db-mcp
+spec:
+  replicas: {{ .Values.strategyDbMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: strategy-db-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: strategy-db-mcp
+    spec:
+      containers:
+        - name: strategy-db-mcp
+          image: "{{ .Values.strategyDbMcp.image.repository }}:{{ .Values.strategyDbMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.strategyDbMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.strategyDbMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: {{ tpl .Values.strategyDbMcp.database.host . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.strategyDbMcp.database.port | quote }}
+            - name: POSTGRES_DATABASE
+              value: "{{ .Values.strategyDbMcp.database.database }}"
+            - name: POSTGRES_USERNAME
+              value: "{{ .Values.strategyDbMcp.database.username }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.strategyDbMcp.database.passwordSecret.name . }}
+                  key: {{ .Values.strategyDbMcp.database.passwordSecret.key }}
+            - name: MCP_TRANSPORT
+              value: "{{ .Values.strategyDbMcp.config.mcpTransport }}"
+            - name: MCP_PORT
+              value: {{ .Values.strategyDbMcp.service.port | quote }}
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+            - "--mcp_transport=$(MCP_TRANSPORT)"
+            - "--mcp_port=$(MCP_PORT)"
+          resources:
+            {{- toYaml .Values.strategyDbMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-db-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-db-mcp
+spec:
+  type: {{ .Values.strategyDbMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.strategyDbMcp.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-db-mcp
+{{- end }}

@@ -2,21 +2,25 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { ToolCallLog } from "../ToolCallLog";
+import { createMockEvent } from "./testHelpers";
 
 describe("ToolCallLog", () => {
-  it("renders tool calls", () => {
-    const toolCalls = [
-      { name: "get_candles", args: { symbol: "BTC" } },
-      { name: "get_signals", args: {} },
-    ];
-    render(<ToolCallLog toolCalls={toolCalls} />);
-    expect(screen.getByText("get_candles")).toBeInTheDocument();
-    expect(screen.getByText("get_signals")).toBeInTheDocument();
-    expect(screen.getByText("Tool Calls (2)")).toBeInTheDocument();
+  it("renders nothing when no tool call events", () => {
+    const { container } = render(<ToolCallLog events={[]} />);
+    expect(container.innerHTML).toBe("");
   });
 
-  it("renders nothing for empty array", () => {
-    const { container } = render(<ToolCallLog toolCalls={[]} />);
-    expect(container.firstChild).toBeNull();
+  it("renders tool calls from events", () => {
+    const events = [
+      createMockEvent({
+        event_type: "tool_call",
+        tool_calls: [
+          { name: "get_top_strategies", args: { symbol: "ETH/USD" } },
+        ],
+      }),
+    ];
+    render(<ToolCallLog events={events} />);
+    expect(screen.getByText("get_top_strategies")).toBeInTheDocument();
+    expect(screen.getByText("Tool Calls")).toBeInTheDocument();
   });
 });

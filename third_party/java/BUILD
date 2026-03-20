@@ -129,6 +129,33 @@ java_library(
 )
 
 java_library(
+    name = "h2",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:com_h2database_h2",
+    ],
+)
+
+java_library(
+    name = "flyway_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_flywaydb_flyway_core",
+    ],
+)
+
+java_library(
+    name = "flyway_postgresql",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_flywaydb_flyway_database_postgresql",
+    ],
+    runtime_deps = [
+        ":flyway_core",
+    ],
+)
+
+java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [

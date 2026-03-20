@@ -1,0 +1,57 @@
+{{- if .Values.strategyEnsemble.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-ensemble
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-ensemble
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: strategy-ensemble
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: strategy-ensemble
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: strategy-ensemble
+          image: "{{ .Values.strategyEnsemble.image.repository }}:{{ .Values.strategyEnsemble.image.tag }}"
+          imagePullPolicy: {{ .Values.strategyEnsemble.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: MAX_STRATEGIES_PER_ENSEMBLE
+              value: "{{ .Values.strategyEnsemble.config.maxStrategiesPerEnsemble | default 5 }}"
+            - name: MIN_STRATEGIES_PER_ENSEMBLE
+              value: "{{ .Values.strategyEnsemble.config.minStrategiesPerEnsemble | default 2 }}"
+            - name: DIVERSIFICATION_WEIGHT
+              value: "{{ .Values.strategyEnsemble.config.diversificationWeight | default 0.3 }}"
+            - name: PERFORMANCE_WEIGHT
+              value: "{{ .Values.strategyEnsemble.config.performanceWeight | default 0.7 }}"
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+          resources:
+            {{- toYaml .Values.strategyEnsemble.resources | nindent 12 }}
+{{- end }}

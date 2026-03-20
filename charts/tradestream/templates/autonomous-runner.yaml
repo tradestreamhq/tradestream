@@ -1,0 +1,90 @@
+{{- if .Values.autonomousRunner.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-autonomous-runner
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: autonomous-runner
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: autonomous-runner
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: autonomous-runner
+        release: {{ .Release.Name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.autonomousRunner.dashboardPort }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: autonomous-runner
+          image: "{{ .Values.autonomousRunner.image.repository }}:{{ .Values.autonomousRunner.image.tag }}"
+          imagePullPolicy: {{ .Values.autonomousRunner.image.pullPolicy }}
+          ports:
+            - name: dashboard
+              containerPort: {{ .Values.autonomousRunner.dashboardPort }}
+              protocol: TCP
+          env:
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.autonomousRunner.secrets.openrouterApiKey.name }}
+                  key: {{ .Values.autonomousRunner.secrets.openrouterApiKey.key }}
+            - name: MCP_STRATEGY_URL
+              value: {{ .Values.autonomousRunner.mcpUrls.strategy | quote }}
+            - name: MCP_MARKET_URL
+              value: {{ .Values.autonomousRunner.mcpUrls.market | quote }}
+            - name: MCP_SIGNAL_URL
+              value: {{ .Values.autonomousRunner.mcpUrls.signal | quote }}
+            - name: REDIS_URL
+              value: {{ .Values.autonomousRunner.redisUrl | quote }}
+            - name: DB_URL
+              value: {{ .Values.autonomousRunner.dbUrl | quote }}
+            - name: SYMBOLS
+              value: {{ .Values.autonomousRunner.config.symbols | quote }}
+            - name: SIGNAL_FREQUENCY_MINUTES
+              value: {{ .Values.autonomousRunner.config.intervalMinutes | quote }}
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: dashboard
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: dashboard
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.autonomousRunner.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-autonomous-runner
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: autonomous-runner
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.autonomousRunner.dashboardPort }}
+      targetPort: dashboard
+      protocol: TCP
+      name: dashboard
+  selector:
+    app: {{ include "tradestream.name" . }}
+    component: autonomous-runner
+{{- end }}

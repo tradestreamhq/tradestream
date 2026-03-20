@@ -1,0 +1,54 @@
+{{- if .Values.telegramBot.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-telegram-bot
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: telegram-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: telegram-bot
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: telegram-bot
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: telegram-bot
+          image: "{{ .Values.telegramBot.image.repository }}:{{ .Values.telegramBot.image.tag }}"
+          imagePullPolicy: {{ .Values.telegramBot.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.telegramBot.secrets.telegramBotToken.name }}
+                  key: {{ .Values.telegramBot.secrets.telegramBotToken.key }}
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+          resources:
+            {{- toYaml .Values.telegramBot.resources | nindent 12 }}
+{{- end }}

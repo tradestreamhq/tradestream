@@ -1,83 +1,126 @@
-import React, { useState } from "react";
-import type { AgentEvent } from "../types";
+import React from "react";
+import type { AgentEvent, Signal } from "../types";
 import { ScoreBreakdown } from "./ScoreBreakdown";
 import { ToolCallLog } from "./ToolCallLog";
+import { StrategyBreakdown } from "./StrategyBreakdown";
 
 interface SignalCardProps {
-  event: AgentEvent;
+  signal: Signal;
+  isExpanded: boolean;
+  isFocused?: boolean;
+  onToggleExpand: () => void;
+  events?: AgentEvent[];
 }
 
-function formatTime(isoString: string): string {
+function getTierIcon(tier: string): string {
+  switch (tier) {
+    case "HOT": return "\uD83D\uDD25";
+    case "GOOD": return "\u2B50";
+    case "NEUTRAL": return "\u26AA";
+    default: return "\uD83D\uDD39";
+  }
+}
+
+function getTierLabel(tier: string): string {
+  switch (tier) {
+    case "HOT": return "Hot opportunity";
+    case "GOOD": return "Good opportunity";
+    case "NEUTRAL": return "Neutral opportunity";
+    default: return "Opportunity";
+  }
+}
+
+function getActionClass(action: string): string {
+  switch (action) {
+    case "BUY": return "action-buy";
+    case "SELL": return "action-sell";
+    default: return "action-hold";
+  }
+}
+
+function formatTime(timestamp: string): string {
   try {
-    const d = new Date(isoString);
-    return d.toLocaleTimeString(undefined, {
+    return new Date(timestamp).toLocaleTimeString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
     });
   } catch {
-    return isoString;
+    return timestamp;
   }
 }
 
-export function SignalCard({ event }: SignalCardProps) {
-  const [expanded, setExpanded] = useState(false);
-
-  const tierClass = event.tier === "high" ? "high" : event.tier === "medium" ? "medium" : "low";
-
+export function SignalCard({
+  signal,
+  isExpanded,
+  isFocused = false,
+  onToggleExpand,
+  events = [],
+}: SignalCardProps) {
   return (
-    <div
-      className="signal-card"
-      onClick={() => setExpanded(!expanded)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setExpanded(!expanded);
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-expanded={expanded}
-      aria-label={`${event.event_type} from ${event.agent_name ?? "unknown"}`}
+    <article
+      className={`signal-card-v2 ${isExpanded ? "expanded" : ""} ${isFocused ? "focused" : ""}`}
+      aria-label={`${signal.action} signal for ${signal.symbol} with opportunity score ${signal.opportunity_score.toFixed(0)}`}
+      aria-expanded={isExpanded}
     >
-      <div className="signal-card-header">
-        <span className="signal-agent">{event.agent_name ?? "unknown"}</span>
-        <span className="signal-time">{formatTime(event.created_at)}</span>
+      {/* Header Row */}
+      <div className="signal-card-header-v2">
+        <div className="signal-tier">
+          <span role="img" aria-label={getTierLabel(signal.opportunity_tier)}>
+            {getTierIcon(signal.opportunity_tier)}
+          </span>
+          <span className="opportunity-score">{signal.opportunity_score.toFixed(0)}</span>
+        </div>
+        <time className="signal-time-v2" dateTime={signal.timestamp}>
+          {formatTime(signal.timestamp)}
+        </time>
       </div>
 
-      <div className="signal-content">
-        {event.tier && <span className={`tier-badge ${tierClass}`}>{event.tier}</span>}
-        {event.score != null && (
-          <span className="signal-score">{(event.score * 100).toFixed(1)}%</span>
-        )}
-        <span className="tier-badge" style={{ background: "rgba(139,92,246,0.15)", color: "#8b5cf6" }}>
-          {event.event_type}
+      {/* Signal Info */}
+      <div className="signal-info-v2">
+        <span className={`signal-action-v2 ${getActionClass(signal.action)}`}>
+          {signal.action === "BUY" ? "\uD83D\uDFE2" : signal.action === "SELL" ? "\uD83D\uDD34" : "\u26AA"}{" "}
+          {signal.action}
+        </span>
+        <span className="signal-symbol-v2">{signal.symbol}</span>
+        <span className="signal-confidence-v2">
+          Confidence: {(signal.confidence * 100).toFixed(0)}%
         </span>
       </div>
 
-      {event.reasoning && <div className="signal-reasoning">{event.reasoning}</div>}
+      {/* Summary */}
+      <p className="signal-summary-v2">
+        Expected return: +{(signal.opportunity_factors.expected_return.value * 100).toFixed(1)}% |{" "}
+        {signal.strategies_bullish}/{signal.strategies_analyzed} strategies bullish
+      </p>
 
-      {expanded && (
-        <div className="signal-details">
-          <div className="signal-meta">
-            {event.model_used && <span>Model: {event.model_used}</span>}
-            {event.latency_ms != null && <span>Latency: {event.latency_ms}ms</span>}
-            {event.tokens_used != null && <span>Tokens: {event.tokens_used}</span>}
-            {event.success != null && (
-              <span style={{ color: event.success ? "var(--accent-green)" : "var(--accent-red)" }}>
-                {event.success ? "Success" : "Failed"}
-              </span>
-            )}
+      {/* Expand Toggle */}
+      <button
+        onClick={onToggleExpand}
+        className="signal-expand-toggle"
+        aria-expanded={isExpanded}
+        aria-controls={`signal-details-${signal.signal_id}`}
+      >
+        {isExpanded ? "\u25B2 Hide reasoning" : "\u25BC Show reasoning"}
+      </button>
+
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div id={`signal-details-${signal.signal_id}`} className="signal-details-v2">
+          <ScoreBreakdown
+            factors={signal.opportunity_factors}
+            totalScore={signal.opportunity_score}
+          />
+          <ToolCallLog events={events} />
+          <div className="signal-analysis">
+            <div className="analysis-header">Analysis</div>
+            <p>{signal.reasoning}</p>
           </div>
-          {event.error_message && (
-            <div style={{ marginTop: 8, color: "var(--accent-red)", fontSize: 12 }}>
-              {event.error_message}
-            </div>
+          {signal.strategy_breakdown.length > 0 && (
+            <StrategyBreakdown strategies={signal.strategy_breakdown} />
           )}
-          {event.score != null && <ScoreBreakdown score={event.score} tier={event.tier} />}
-          {event.tool_calls && <ToolCallLog toolCalls={event.tool_calls} />}
         </div>
       )}
-    </div>
+    </article>
   );
 }

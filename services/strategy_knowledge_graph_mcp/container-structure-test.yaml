@@ -1,0 +1,9 @@
+schemaVersion: 2.0.0
+metadataTest:
+  workdir: "/services/strategy_knowledge_graph_mcp"
+  user: "nobody"
+fileExistenceTests:
+  - name: "Binary exists"
+    path: "/services/strategy_knowledge_graph_mcp/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"

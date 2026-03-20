@@ -1,0 +1,12 @@
+schemaVersion: "2.0.0"
+metadataTest:
+  user: "nobody"
+commandTests:
+  - name: "Python runtime exists"
+    command: "python3"
+    args: ["--version"]
+    expectedOutput: ["Python 3"]
+fileExistenceTests:
+  - name: "app binary exists"
+    path: "/services/websearch_mcp/app"
+    shouldExist: true

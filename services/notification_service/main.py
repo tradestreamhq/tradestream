@@ -9,6 +9,7 @@ Supports multiple delivery channels:
   - Slack incoming webhook
   - Generic HTTP webhook (with HMAC signing)
   - Email (SMTP)
+  - SMS via Twilio (critical signals only)
 
 Tracks notification delivery history in Redis.
 """
@@ -25,6 +26,7 @@ from services.notification_service.discord_sender import DiscordSender
 from services.notification_service.email_sender import EmailSender
 from services.notification_service.notification_history import NotificationHistory
 from services.notification_service.slack_sender import SlackSender
+from services.notification_service.sms_sender import SmsSender
 from services.notification_service.telegram_sender import TelegramSender
 from services.notification_service.webhook_sender import WebhookSender
 from services.shared.structured_logger import StructuredLogger
@@ -109,6 +111,20 @@ def _build_senders(config: dict) -> list[tuple[str, object]]:
             )
         )
         _log.info("Email sender enabled.")
+
+    if config["twilio_account_sid"] and config["sms_to_number"]:
+        senders.append(
+            (
+                "sms",
+                SmsSender(
+                    account_sid=config["twilio_account_sid"],
+                    auth_token=config["twilio_auth_token"],
+                    from_number=config["twilio_from_number"],
+                    to_number=config["sms_to_number"],
+                ),
+            )
+        )
+        _log.info("SMS sender enabled.")
 
     return senders
 

@@ -10,3 +10,15 @@ java_test(
         "//third_party/java:truth",
     ],
 )
+
+java_test(
+    name = "InstrumentTest",
+    srcs = ["InstrumentTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/instruments:instrument",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)

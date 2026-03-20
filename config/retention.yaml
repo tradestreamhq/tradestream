@@ -1,0 +1,7 @@
+agent_decisions:
+  hot_retention_days: 30
+  warm_retention_days: 90
+  archive_enabled: true
+  archive_destination: s3://tradestream-archive/decisions/
+  delete_after_archive: true
+  vacuum_after_delete: true

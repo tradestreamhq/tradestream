@@ -7,6 +7,42 @@ option java_package = "com.verlumen.tradestream.marketdata";
 
 import "google/protobuf/timestamp.proto";
 
+// Asset class classification for multi-asset support.
+enum AssetClass {
+  ASSET_CLASS_UNSPECIFIED = 0;
+  CRYPTO = 1;
+  STOCKS = 2;
+  FOREX = 3;
+  COMMODITIES = 4;
+}
+
+// Asset metadata describing trading characteristics for a specific asset class.
+message AssetMetadata {
+  AssetClass asset_class = 1;
+  string symbol = 2;                        // Normalized symbol (e.g., "BTC/USD", "AAPL", "EUR/USD")
+  string exchange = 3;                      // Primary exchange or data source
+  string description = 4;                   // Human-readable asset description
+
+  // Trading hours (empty for 24/7 markets like crypto)
+  string trading_hours_timezone = 5;        // e.g., "America/New_York"
+  string market_open = 6;                   // e.g., "09:30" (local time)
+  string market_close = 7;                  // e.g., "16:00" (local time)
+
+  // Precision and sizing
+  double tick_size = 8;                     // Minimum price increment
+  double lot_size = 9;                      // Minimum order quantity
+  int32 price_precision = 10;              // Decimal places for price
+  int32 quantity_precision = 11;           // Decimal places for quantity
+
+  // Margin requirements
+  double margin_requirement = 12;           // Initial margin as fraction (e.g., 0.5 = 50%)
+  double maintenance_margin = 13;           // Maintenance margin as fraction
+
+  // Base and quote currencies
+  string base_currency = 14;               // e.g., "BTC", "AAPL", "EUR"
+  string quote_currency = 15;              // e.g., "USD", "USD", "USD"
+}
+
 // Trade message definition
 message Trade {
   google.protobuf.Timestamp timestamp = 1; // Epoch time in milliseconds
@@ -15,6 +51,7 @@ message Trade {
   double price = 4;                        // Trade price
   double volume = 5;                       // Trade volume
   string trade_id = 6;                     // Unique trade identifier
+  AssetClass asset_class = 7;              // Asset class of this trade
 }
 
 // Candle message definition
@@ -26,4 +63,6 @@ message Candle {
   double low = 5;                          // Lowest price
   double close = 6;                        // Closing price
   double volume = 7;                       // Total volume
+  AssetClass asset_class = 8;              // Asset class of this candle
+  string source = 9;                       // Data source identifier (e.g., "binance", "alpha_vantage")
 }

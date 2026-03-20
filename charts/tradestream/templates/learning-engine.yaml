@@ -1,0 +1,51 @@
+{{- if .Values.learningEngine.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-learning-engine
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: learning-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: learning-engine
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: learning-engine
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: learning-engine
+          image: "{{ .Values.learningEngine.image.repository }}:{{ .Values.learningEngine.image.tag }}"
+          imagePullPolicy: {{ .Values.learningEngine.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: INSTRUMENTS
+              value: "{{ .Values.learningEngine.config.instruments | default "BTC-USD,ETH-USD" }}"
+            - name: INTERVAL_SECONDS
+              value: "{{ .Values.learningEngine.config.intervalSeconds | default 3600 }}"
+          args:
+            - "--db_url=postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DATABASE)"
+            - "--instruments=$(INSTRUMENTS)"
+            - "--interval_seconds=$(INTERVAL_SECONDS)"
+          resources:
+            {{- toYaml .Values.learningEngine.resources | nindent 12 }}
+{{- end }}

@@ -1,0 +1,75 @@
+{{- if .Values.janitorAgent.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-janitor-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: janitor-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: janitor-agent
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: janitor-agent
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: janitor-agent
+          image: "{{ .Values.janitorAgent.image.repository }}:{{ .Values.janitorAgent.image.tag }}"
+          imagePullPolicy: {{ .Values.janitorAgent.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: INFLUX_URL
+              value: 'http://{{ include "tradestream.fullname" . }}-influxdb:8086'
+            - name: INFLUX_ORG
+              value: "tradestream-org"
+            - name: INFLUX_BUCKET
+              value: "tradestream-data"
+            - name: INFLUX_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: "influxdb-admin-secret"
+                  key: "admin-token"
+            - name: CHECK_INTERVAL_SECONDS
+              value: "{{ .Values.janitorAgent.config.checkIntervalSeconds | default 3600 }}"
+            - name: MIN_SIGNALS
+              value: "{{ .Values.janitorAgent.config.minSignals | default 10 }}"
+            - name: MIN_AGE_DAYS
+              value: "{{ .Values.janitorAgent.config.minAgeDays | default 30 }}"
+            - name: STALE_SIGNAL_DAYS
+              value: "{{ .Values.janitorAgent.config.staleSignalDays | default 90 }}"
+            - name: STALE_BACKTEST_DAYS
+              value: "{{ .Values.janitorAgent.config.staleBacktestDays | default 180 }}"
+          args:
+            - "--pg_connection_string=postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DATABASE)"
+            - "--influx_url=$(INFLUX_URL)"
+            - "--influx_token=$(INFLUX_TOKEN)"
+            - "--influx_org=$(INFLUX_ORG)"
+            - "--influx_bucket=$(INFLUX_BUCKET)"
+            - "--check_interval_seconds=$(CHECK_INTERVAL_SECONDS)"
+            - "--min_signals=$(MIN_SIGNALS)"
+            - "--min_age_days=$(MIN_AGE_DAYS)"
+            - "--stale_signal_days=$(STALE_SIGNAL_DAYS)"
+            - "--stale_backtest_days=$(STALE_BACKTEST_DAYS)"
+          resources:
+            {{- toYaml .Values.janitorAgent.resources | nindent 12 }}
+{{- end }}

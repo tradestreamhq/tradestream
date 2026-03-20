@@ -1,0 +1,33 @@
+{
+  "name": "janitor",
+  "description": "Retires underperforming strategies and maintains system health",
+  "model": "google/gemini-3.0-pro",
+  "mcp_servers": {
+    "strategy-db-mcp": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.strategy_db_mcp"],
+      "env": {
+        "DATABASE_URL": "${POSTGRES_URL}"
+      }
+    }
+  },
+  "skills_dir": "./skills",
+  "schedule": "0 3 * * *",
+  "limits": {
+    "timeout_seconds": 600,
+    "max_retirements_per_run": 50
+  },
+  "criteria": {
+    "min_signals": 100,
+    "min_age_days": 180,
+    "max_sharpe": 0.5,
+    "max_accuracy": 0.45,
+    "required_trend": "DECLINING",
+    "require_better_alternative": true,
+    "min_alternative_sharpe": 1.0
+  },
+  "protection": {
+    "canonical_specs": true,
+    "grace_period_days": 180
+  }
+}

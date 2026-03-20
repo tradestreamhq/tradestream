@@ -384,6 +384,118 @@ class TestPostgresClient:
             assert result is None
 
     @pytest.mark.asyncio
+    async def test_get_strategy_signal_found(self, postgres_client):
+        """Test getting a strategy signal that exists."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+
+            mock_row = MagicMock()
+            mock_row.__getitem__.side_effect = lambda key: {
+                "signal": "BUY",
+                "confidence": 0.85,
+                "triggered_at": "2026-03-19T12:00:00",
+                "parameters": '{"period": 14}',
+            }[key]
+            mock_conn.fetchrow.return_value = mock_row
+
+            await postgres_client.connect()
+            result = await postgres_client.get_strategy_signal("42", "ETH/USD")
+
+            assert result is not None
+            assert result["signal"] == "BUY"
+            assert result["confidence"] == 0.85
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_signal_not_found(self, postgres_client):
+        """Test getting a strategy signal when none exists."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+            mock_conn.fetchrow.return_value = None
+
+            await postgres_client.connect()
+            result = await postgres_client.get_strategy_signal("99", "BTC/USD")
+
+            assert result is None
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_consensus(self, postgres_client):
+        """Test getting strategy consensus."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+
+            mock_row = MagicMock()
+            mock_row.__getitem__.side_effect = lambda key: {
+                "bullish_count": 5,
+                "bearish_count": 2,
+                "neutral_count": 1,
+                "avg_confidence": 0.72,
+            }[key]
+            mock_conn.fetchrow.return_value = mock_row
+
+            await postgres_client.connect()
+            result = await postgres_client.get_strategy_consensus("ETH/USD")
+
+            assert result["bullish_count"] == 5
+            assert result["bearish_count"] == 2
+            assert result["consensus"] == "BUY"
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_consensus_strong_buy(self, postgres_client):
+        """Test consensus with strong buy signal."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+
+            mock_row = MagicMock()
+            mock_row.__getitem__.side_effect = lambda key: {
+                "bullish_count": 8,
+                "bearish_count": 1,
+                "neutral_count": 1,
+                "avg_confidence": 0.9,
+            }[key]
+            mock_conn.fetchrow.return_value = mock_row
+
+            await postgres_client.connect()
+            result = await postgres_client.get_strategy_consensus("ETH/USD")
+
+            assert result["consensus"] == "STRONG_BUY"
+
+    @pytest.mark.asyncio
+    async def test_get_strategy_consensus_no_strategies(self, postgres_client):
+        """Test consensus with no active strategies."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+
+            mock_row = MagicMock()
+            mock_row.__getitem__.side_effect = lambda key: {
+                "bullish_count": 0,
+                "bearish_count": 0,
+                "neutral_count": 0,
+                "avg_confidence": None,
+            }[key]
+            mock_conn.fetchrow.return_value = mock_row
+
+            await postgres_client.connect()
+            result = await postgres_client.get_strategy_consensus("BTC/USD")
+
+            assert result["consensus"] == "NEUTRAL"
+            assert result["confidence"] == 0.0
+
+    @pytest.mark.asyncio
     async def test_not_connected_raises(self, postgres_client):
         """Test that operations raise when not connected."""
         with pytest.raises(RuntimeError, match="PostgreSQL connection not established"):

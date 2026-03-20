@@ -1,0 +1,75 @@
+{{- if .Values.portfolioMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-portfolio-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: portfolio-mcp
+spec:
+  replicas: {{ .Values.portfolioMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: portfolio-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: portfolio-mcp
+    spec:
+      containers:
+        - name: portfolio-mcp
+          image: "{{ .Values.portfolioMcp.image.repository }}:{{ .Values.portfolioMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.portfolioMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.portfolioMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: {{ tpl .Values.portfolioMcp.database.host . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.portfolioMcp.database.port | quote }}
+            - name: POSTGRES_DATABASE
+              value: "{{ .Values.portfolioMcp.database.database }}"
+            - name: POSTGRES_USERNAME
+              value: "{{ .Values.portfolioMcp.database.username }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.portfolioMcp.database.passwordSecret.name . }}
+                  key: {{ .Values.portfolioMcp.database.passwordSecret.key }}
+            - name: MCP_TRANSPORT
+              value: "{{ .Values.portfolioMcp.config.mcpTransport }}"
+            - name: MCP_PORT
+              value: {{ .Values.portfolioMcp.service.port | quote }}
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+            - "--mcp_transport=$(MCP_TRANSPORT)"
+            - "--mcp_port=$(MCP_PORT)"
+          resources:
+            {{- toYaml .Values.portfolioMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-portfolio-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: portfolio-mcp
+spec:
+  type: {{ .Values.portfolioMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.portfolioMcp.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: portfolio-mcp
+{{- end }}

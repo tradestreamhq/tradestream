@@ -60,7 +60,7 @@ The YAML strategy loader interprets strategy definitions and produces entry/exit
 - Replacing the Java strategy implementation (ta4j rules/indicators) — those remain for live trading
 - Real-time backtesting or streaming evaluation
 - GUI visualization of backtest results (separate concern)
-- Walk-forward optimization in Phase 1
+- Walk-forward optimization in Phase 1 (now implemented)
 
 ## Acceptance Criteria
 
@@ -70,7 +70,7 @@ The YAML strategy loader interprets strategy definitions and produces entry/exit
 - [x] Unit tests cover core runner, indicator calculations, and strategy execution
 - [ ] YAML strategy loader can read strategy specs and generate entry/exit signals
 - [ ] Integration test demonstrates end-to-end: YAML spec → VectorBT backtest → metrics
-- [ ] Bazel build targets defined for all components
+- [x] Bazel build targets defined for all components
 - [ ] OCI image configured for deployment
 
 ## Implementing Issues
@@ -104,3 +104,13 @@ The YAML strategy loader interprets strategy definitions and produces entry/exit
 - `vectorbt>=0.26.0`, `pandas>=2.0.0`, `numpy>=1.24.0`, `numba>=0.57.0`
 - Existing proto definitions in `protos/backtesting.proto`
 - YAML strategy specs in `src/main/resources/strategies/`
+
+### Phase 2 Features (Added)
+
+- [x] Walk-forward optimization with rolling train/test windows and overfitting detection
+- [x] Monte Carlo simulation with trade-order reshuffling and confidence intervals
+- [x] Portfolio-level backtesting with multi-strategy capital allocation and correlation
+- [x] Results comparison framework for VectorBT vs Ta4j validation
+- [x] gRPC RPCs: `RunWalkForwardValidation`, `RunMonteCarloSimulation`, `RunPortfolioBacktest`
+- [x] Proto messages: `MonteCarloRequest/Result`, `PortfolioBacktestRequest/Result`
+- [x] Unit tests for all new modules (7/7 passing)

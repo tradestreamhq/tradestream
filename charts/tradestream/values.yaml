@@ -168,8 +168,8 @@ strategyDiscoveryPipeline:
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
-    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
-    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
+    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random -XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED"
+    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random -XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED"
     taskmanager.numberOfTaskSlots: "1"
     execution.checkpointing.interval: "300000"
     execution.checkpointing.mode: "EXACTLY_ONCE"
@@ -679,6 +679,35 @@ signalGeneratorAgent:
     symbols: "BTC-USD,ETH-USD"
     intervalSeconds: 60
 
+# Autonomous Signal Pipeline Runner - long-running service
+autonomousRunner:
+  enabled: false
+  dashboardPort: 8090
+  image:
+    repository: "ghcr.io/tradestreamhq/autonomous-runner"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  secrets:
+    openrouterApiKey:
+      name: "openrouter-api-secret"
+      key: "api-key"
+  mcpUrls:
+    strategy: "http://strategy-mcp.default.svc.cluster.local:8080"
+    market: "http://market-mcp.default.svc.cluster.local:8080"
+    signal: "http://signal-mcp.default.svc.cluster.local:8080"
+  redisUrl: "redis://redis-master.default.svc.cluster.local:6379"
+  dbUrl: ""
+  config:
+    symbols: "BTC-USD,ETH-USD,SOL-USD,DOGE-USD,AVAX-USD,LINK-USD"
+    intervalMinutes: 1
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
 # Opportunity Scorer Agent Deployment configuration
 opportunityScorerAgent:
   enabled: false
@@ -891,3 +920,705 @@ strategyRotation:
     limits:
       cpu: "200m"
       memory: "512Mi"
+
+# ============================================================
+# New services added in PRs #2026-2054
+# ============================================================
+
+# Signal API - REST API for signal subscription and retrieval
+signalApi:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/signal-api"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Telegram Bot - signal delivery via Telegram
+telegramBot:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/telegram-bot"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  secrets:
+    telegramBotToken:
+      name: "telegram-secrets"
+      key: "bot-token"
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+# Billing Service - Stripe subscription management
+billing:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/billing"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8081
+    host: "0.0.0.0"
+  secrets:
+    stripeSecretKey:
+      name: "stripe-secrets"
+      key: "secret-key"
+    stripeWebhookSecret:
+      name: "stripe-secrets"
+      key: "webhook-secret"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Beta Onboarding - user registration API
+betaOnboarding:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/beta-onboarding"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8091
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+# Signal Quality - signal quality scoring API
+signalQuality:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/signal-quality"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8090
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# TradingView Integration - webhook receiver and pine script generator
+tradingviewIntegration:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/tradingview-integration"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8090
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Strategy Marketplace API - strategy marketplace and leaderboard
+strategyMarketplaceApi:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-marketplace-api"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8090
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Market Data API - candle and timeseries data API
+marketDataApi:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/market-data-api"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+    host: "0.0.0.0"
+  influxdb:
+    url: 'http://{{ include "tradestream.fullname" . }}-influxdb:8086'
+    org: "tradestream-org"
+    bucket: "tradestream-data"
+    tokenSecret:
+      name: "influxdb-admin-secret"
+      key: "admin-token"
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Learning Engine - regime detection, weight optimization, A/B testing
+learningEngine:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/learning-engine"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    instruments: "BTC-USD,ETH-USD"
+    intervalSeconds: 3600
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+# Learning API - API for learning engine data access
+learningApi:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/learning-api"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Prediction Markets - prediction market integration for signal generation
+predictionMarkets:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/prediction-markets"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    runMode: "wet"
+    pollIntervalSeconds: 300
+    cacheTtlSeconds: 600
+    bullishThreshold: 0.7
+    bearishThreshold: 0.3
+    spikeThreshold: 0.1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Market Sentiment - fear & greed index signal source
+marketSentiment:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/market-sentiment"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8090
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+# Backtesting - VectorBT backtesting gRPC service
+backtesting:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/backtesting"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 50051
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+
+# Backtest MCP Server
+backtestMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/backtest-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "sse"
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Decisions MCP Server
+decisionsMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/decisions-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "sse"
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Portfolio MCP Server
+portfolioMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/portfolio-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "sse"
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Strategy DB MCP Server
+strategyDbMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-db-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "sse"
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Strategy Knowledge Graph MCP Server
+strategyKnowledgeGraphMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-knowledge-graph-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "sse"
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Web Search MCP Server
+websearchMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/websearch-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "sse"
+  secrets:
+    braveApiKey:
+      name: "websearch-secrets"
+      key: "brave-api-key"
+    googleApiKey:
+      name: "websearch-secrets"
+      key: "google-api-key"
+    googleCx:
+      name: "websearch-secrets"
+      key: "google-cx"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Agent Orchestration - AI-driven orchestration layer
+agentOrchestration:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/agent-orchestration"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    cycleIntervalSeconds: 300
+    enableDashboard: true
+    dashboardPort: 9010
+  secrets:
+    openrouterApiKey:
+      name: "openrouter-api-secret"
+      key: "api-key"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+# Delivery Service - multi-channel signal delivery
+delivery:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/delivery"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
+  secrets:
+    telegramBotToken:
+      name: "delivery-secrets"
+      key: "telegram-bot-token"
+    webhookSigningSecret:
+      name: "delivery-secrets"
+      key: "webhook-signing-secret"
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+# Opportunity Scoring - deterministic scoring engine API
+opportunityScoring:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/opportunity-scoring"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Janitor Agent - database cleanup, strategy retirement, health checks
+janitorAgent:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/janitor-agent"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    checkIntervalSeconds: 3600
+    minSignals: 10
+    minAgeDays: 30
+    staleSignalDays: 90
+    staleBacktestDays: 180
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Portfolio State - portfolio state tracking with HTTP API
+portfolioState:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/portfolio-state"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8095
+  config:
+    initialCapital: 10000
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Wallet Anomaly Detector - insider trading signal detection
+walletAnomalyDetector:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/wallet-anomaly-detector"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    dryRun: false
+    alertThreshold: 0.7
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Portfolio API - portfolio management REST API
+portfolioApi:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/portfolio-api"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Strategy API - strategy management REST API
+strategyApi:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-api"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Strategy Builder API - no-code strategy builder
+strategyBuilderApi:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-builder-api"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8095
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Strategy Ensemble - strategy ensemble builder
+strategyEnsemble:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-ensemble"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    maxStrategiesPerEnsemble: 5
+    minStrategiesPerEnsemble: 2
+    diversificationWeight: 0.3
+    performanceWeight: 0.7
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Strategy Time Filter - time-based strategy filtering
+strategyTimeFilter:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-time-filter"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    maxStrategyAgeDays: 365
+    timeDecayFactor: 0.95
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# CoinMarketCap MCP - cryptocurrency data via MCP protocol
+coinmarketcapMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/coinmarketcap-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  mcpTransport: "sse"
+  apiKeySecret:
+    name: "coinmarketcap-credentials"
+    key: "api-key"
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"

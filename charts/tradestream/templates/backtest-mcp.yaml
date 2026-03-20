@@ -1,0 +1,75 @@
+{{- if .Values.backtestMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-backtest-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backtest-mcp
+spec:
+  replicas: {{ .Values.backtestMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backtest-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backtest-mcp
+    spec:
+      containers:
+        - name: backtest-mcp
+          image: "{{ .Values.backtestMcp.image.repository }}:{{ .Values.backtestMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.backtestMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backtestMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: {{ tpl .Values.backtestMcp.database.host . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.backtestMcp.database.port | quote }}
+            - name: POSTGRES_DATABASE
+              value: "{{ .Values.backtestMcp.database.database }}"
+            - name: POSTGRES_USERNAME
+              value: "{{ .Values.backtestMcp.database.username }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.backtestMcp.database.passwordSecret.name . }}
+                  key: {{ .Values.backtestMcp.database.passwordSecret.key }}
+            - name: MCP_TRANSPORT
+              value: "{{ .Values.backtestMcp.config.mcpTransport }}"
+            - name: MCP_PORT
+              value: {{ .Values.backtestMcp.service.port | quote }}
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+            - "--mcp_transport=$(MCP_TRANSPORT)"
+            - "--mcp_port=$(MCP_PORT)"
+          resources:
+            {{- toYaml .Values.backtestMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-backtest-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backtest-mcp
+spec:
+  type: {{ .Values.backtestMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.backtestMcp.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backtest-mcp
+{{- end }}

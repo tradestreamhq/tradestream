@@ -6,9 +6,16 @@ load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
 
 py_library(
+    name = "scoring_lib",
+    srcs = ["scoring.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
     name = "agent_lib",
     srcs = ["agent.py"],
     deps = [
+        ":scoring_lib",
         "//services/shared:mcp_client",
         "//services/shared:model_config",
         "//third_party/python:openai",
@@ -50,6 +57,15 @@ py_test(
         "//third_party/python:openai",
         "//third_party/python:pytest",
         "//third_party/python:requests",
+    ],
+)
+
+py_test(
+    name = "scoring_test",
+    srcs = ["scoring_test.py"],
+    deps = [
+        ":scoring_lib",
+        "//third_party/python:pytest",
     ],
 )
 

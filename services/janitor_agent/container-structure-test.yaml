@@ -1,0 +1,11 @@
+schemaVersion: "2.0.0"
+
+fileExistenceTests:
+  - name: "App binary exists"
+    path: /services/janitor_agent/app
+    shouldExist: true
+
+metadataTest:
+  user: "nobody"
+  workdir: "/services/janitor_agent"
+  entrypoint: ["/services/janitor_agent/app"]
