@@ -71,9 +71,7 @@ class SignalCache:
         self._local: dict[str, tuple[Any, float]] = {}  # key -> (value, expires_at)
         self.stats = CacheStats()
 
-    def get(
-        self, data_type: str, key: str, degraded: bool = False
-    ) -> Optional[Any]:
+    def get(self, data_type: str, key: str, degraded: bool = False) -> Optional[Any]:
         """Get a cached value.
 
         Args:

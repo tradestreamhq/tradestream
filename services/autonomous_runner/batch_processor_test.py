@@ -43,7 +43,10 @@ class TestPartialDataError:
             available_data={"strategies": []},
             missing_tools=["market_context", "volatility"],
         )
-        expected = DEGRADATION_PENALTIES["market_context"] + DEGRADATION_PENALTIES["volatility"]
+        expected = (
+            DEGRADATION_PENALTIES["market_context"]
+            + DEGRADATION_PENALTIES["volatility"]
+        )
         assert err.confidence_penalty == expected
         assert "market_context" in err.missing_tools
 
@@ -57,7 +60,9 @@ class TestPartialDataError:
 
 class TestGenerateDegradedSignal:
     def test_hold_when_no_data(self):
-        result = generate_degraded_signal("BTC-USD", {}, ["strategies", "market_context"])
+        result = generate_degraded_signal(
+            "BTC-USD", {}, ["strategies", "market_context"]
+        )
         assert result["symbol"] == "BTC-USD"
         assert result["action"] == "HOLD"
         assert result["is_degraded"] is True
@@ -99,14 +104,18 @@ class TestGenerateDegradedSignal:
         result = generate_degraded_signal(
             "X",
             {},
-            ["strategies", "market_context", "volatility", "sentiment", "prediction_market"],
+            [
+                "strategies",
+                "market_context",
+                "volatility",
+                "sentiment",
+                "prediction_market",
+            ],
         )
         assert result["confidence"] >= 0.30
 
     def test_missing_data_in_output(self):
-        result = generate_degraded_signal(
-            "X", {}, ["strategies", "sentiment"]
-        )
+        result = generate_degraded_signal("X", {}, ["strategies", "sentiment"])
         assert "strategies" in result["missing_data"]
         assert "sentiment" in result["missing_data"]
 
@@ -118,9 +127,7 @@ class TestBatchProcessor:
         def process_fn(symbol):
             return {"symbol": symbol, "action": "BUY"}
 
-        result = asyncio.run(
-            processor.process_batch(["BTC", "ETH"], process_fn)
-        )
+        result = asyncio.run(processor.process_batch(["BTC", "ETH"], process_fn))
         assert len(result.successful) == 2
         assert result.success_rate == 1.0
         processor.shutdown()
@@ -152,9 +159,7 @@ class TestBatchProcessor:
                 )
             return {"symbol": symbol}
 
-        result = asyncio.run(
-            processor.process_batch(["BTC", "PARTIAL"], process_fn)
-        )
+        result = asyncio.run(processor.process_batch(["BTC", "PARTIAL"], process_fn))
         assert len(result.successful) == 1
         assert len(result.partial) == 1
         assert result.partial[0].missing_data == ["volatility"]
@@ -173,8 +178,6 @@ class TestBatchProcessor:
         def process_fn(symbol):
             return {"symbol": symbol}
 
-        result = asyncio.run(
-            processor.process_batch(["A", "B"], process_fn)
-        )
+        result = asyncio.run(processor.process_batch(["A", "B"], process_fn))
         assert result.batch_latency_ms >= 0
         processor.shutdown()

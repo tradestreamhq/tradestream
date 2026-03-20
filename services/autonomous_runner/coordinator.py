@@ -114,9 +114,7 @@ class SignalCoordinator:
             extended_timeout=config.timeouts.symbol_timeout_max_seconds,
         )
         # Signal cache (Redis + local fallback)
-        self._cache = SignalCache(
-            redis_client=redis_client, config=CacheConfig()
-        )
+        self._cache = SignalCache(redis_client=redis_client, config=CacheConfig())
 
     def _call_mcp_with_retry(
         self, tool: str, params: dict, tool_calls: list
@@ -207,9 +205,7 @@ class SignalCoordinator:
             # Fall back to degraded cache on failure
             degraded = self._cache.get(cache_type, cache_key, degraded=True)
             if degraded is not None:
-                logger.info(
-                    "Using degraded cache for %s:%s", cache_type, cache_key
-                )
+                logger.info("Using degraded cache for %s:%s", cache_type, cache_key)
                 return degraded
             raise
 
@@ -638,9 +634,7 @@ class SignalCoordinator:
 
         return {
             "symbol": symbol,
-            "current_price": raw_context.get(
-                "current_price", raw_context.get("price")
-            ),
+            "current_price": raw_context.get("current_price", raw_context.get("price")),
             "price_change_1h": raw_context.get(
                 "price_change_1h", raw_context.get("change_pct")
             ),

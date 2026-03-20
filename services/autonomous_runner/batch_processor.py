@@ -94,9 +94,7 @@ class BatchProcessor:
     def __init__(self, config: Optional[BatchConfig] = None):
         self.config = config or BatchConfig()
         self._semaphore = asyncio.Semaphore(self.config.max_concurrent_symbols)
-        self._executor = ThreadPoolExecutor(
-            max_workers=self.config.thread_pool_size
-        )
+        self._executor = ThreadPoolExecutor(max_workers=self.config.thread_pool_size)
 
     async def process_batch(
         self,
@@ -119,9 +117,7 @@ class BatchProcessor:
         # Process in batches
         for i in range(0, len(symbols), self.config.batch_size):
             batch = symbols[i : i + self.config.batch_size]
-            tasks = [
-                self._process_with_limit(sym, process_fn) for sym in batch
-            ]
+            tasks = [self._process_with_limit(sym, process_fn) for sym in batch]
             batch_results = await asyncio.gather(*tasks, return_exceptions=True)
 
             for symbol, res in zip(batch, batch_results):
@@ -155,16 +151,12 @@ class BatchProcessor:
 
         return result
 
-    async def _process_with_limit(
-        self, symbol: str, process_fn: Callable
-    ):
+    async def _process_with_limit(self, symbol: str, process_fn: Callable):
         """Process a single symbol with semaphore limiting."""
         async with self._semaphore:
             loop = asyncio.get_event_loop()
             try:
-                return await loop.run_in_executor(
-                    self._executor, process_fn, symbol
-                )
+                return await loop.run_in_executor(self._executor, process_fn, symbol)
             except PartialDataError as e:
                 return PartialSignal(
                     signal=e.available_data,
@@ -192,9 +184,7 @@ def generate_degraded_signal(
     Returns:
         Signal dict with reduced confidence and degraded flag.
     """
-    total_penalty = sum(
-        DEGRADATION_PENALTIES.get(tool, 0.05) for tool in missing_tools
-    )
+    total_penalty = sum(DEGRADATION_PENALTIES.get(tool, 0.05) for tool in missing_tools)
 
     # Determine action from available data
     action = "HOLD"
