@@ -31,6 +31,11 @@ def get_config():
         "email_from": os.environ.get("EMAIL_FROM", ""),
         "email_to": os.environ.get("EMAIL_TO", ""),  # comma-separated
         "email_use_tls": os.environ.get("EMAIL_USE_TLS", "true").lower() == "true",
+        # SMS (Twilio)
+        "twilio_account_sid": os.environ.get("TWILIO_ACCOUNT_SID", ""),
+        "twilio_auth_token": os.environ.get("TWILIO_AUTH_TOKEN", ""),
+        "twilio_from_number": os.environ.get("TWILIO_FROM_NUMBER", ""),
+        "sms_to_number": os.environ.get("SMS_TO_NUMBER", ""),
         # Notification history
         "enable_history": os.environ.get("ENABLE_HISTORY", "true").lower() == "true",
     }
