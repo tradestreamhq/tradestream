@@ -2,8 +2,9 @@
 
 import json
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,12 +24,14 @@ class FakeRecord(dict):
 
 def _make_pool():
     """Create a mock asyncpg pool with async context manager support."""
-    pool = AsyncMock()
     conn = AsyncMock()
-    ctx = AsyncMock()
-    ctx.__aenter__ = AsyncMock(return_value=conn)
-    ctx.__aexit__ = AsyncMock(return_value=False)
-    pool.acquire.return_value = ctx
+
+    @asynccontextmanager
+    async def _acquire():
+        yield conn
+
+    pool = MagicMock()
+    pool.acquire = _acquire
     return pool, conn
 
 

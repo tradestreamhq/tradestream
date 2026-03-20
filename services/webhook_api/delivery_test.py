@@ -3,7 +3,8 @@
 import hashlib
 import hmac
 import json
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -164,12 +165,14 @@ class TestDeliverWebhook:
 
 class TestDeliverWithRetries:
     def _make_pool(self):
-        pool = AsyncMock()
         conn = AsyncMock()
-        ctx = AsyncMock()
-        ctx.__aenter__ = AsyncMock(return_value=conn)
-        ctx.__aexit__ = AsyncMock(return_value=False)
-        pool.acquire.return_value = ctx
+
+        @asynccontextmanager
+        async def _acquire():
+            yield conn
+
+        pool = MagicMock()
+        pool.acquire = _acquire
         return pool, conn
 
     @pytest.mark.asyncio

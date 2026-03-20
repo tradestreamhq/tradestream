@@ -70,7 +70,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     # ------------------------------------------------------------------
     # POST / — register a new webhook
     # ------------------------------------------------------------------
-    @router.post("", status_code=201)
+    @router.post("/", status_code=201)
     async def create_webhook(body: WebhookCreate):
         # Validate event types
         invalid = set(body.events) - VALID_EVENT_TYPES
@@ -111,7 +111,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
     # ------------------------------------------------------------------
     # GET / — list all webhooks
     # ------------------------------------------------------------------
-    @router.get("")
+    @router.get("/")
     async def list_webhooks(pagination: PaginationParams = Depends()):
         query = """
             SELECT id, url, events, is_active, description, created_at
