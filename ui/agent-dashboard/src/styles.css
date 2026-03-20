@@ -952,6 +952,67 @@ body {
   }
 }
 
+/* Ask Agent Button */
+.ask-agent-btn {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.ask-agent-btn:hover {
+  opacity: 0.85;
+}
+
+.ask-agent-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Performance Sidebar */
+.performance-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.perf-card {
+  background: var(--bg-primary);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.perf-card-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.perf-card-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.perf-card-value.positive { color: var(--accent-green); }
+.perf-card-value.negative { color: var(--accent-red); }
+
+.perf-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.text-green { color: var(--accent-green); }
+.text-red { color: var(--accent-red); }
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .signal-card-v2,

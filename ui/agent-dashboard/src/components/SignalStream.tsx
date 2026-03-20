@@ -4,6 +4,7 @@ import type { AgentEvent, Signal, SignalAction, SignalFilters } from "../types";
 import { SignalCard } from "./SignalCard";
 import { SignalStreamErrorBoundary } from "./SignalStreamErrorBoundary";
 import { PnLTracker } from "./PnLTracker";
+import { PerformanceSidebar } from "./PerformanceSidebar";
 import { useSignalStream } from "../hooks/useSignalStream";
 import { useSoundAlert } from "../hooks/useSoundAlert";
 
@@ -16,6 +17,7 @@ interface SignalStreamProps {
   maxSignals?: number;
   autoScroll?: boolean;
   soundEnabled?: boolean;
+  onAskAgent?: (query: string) => void;
 }
 
 function FilterBar({
@@ -80,6 +82,7 @@ export function SignalStream({
   maxSignals = 100,
   autoScroll = true,
   soundEnabled = true,
+  onAskAgent,
 }: SignalStreamProps) {
   const [filters, setFilters] = useState<SignalFilters>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -198,6 +201,15 @@ export function SignalStream({
       <div className="signal-stream-v2">
         <div className="signal-stream-header-v2">
           <span className="signal-stream-title">{title}</span>
+          {onAskAgent && (
+            <button
+              className="ask-agent-btn"
+              onClick={() => onAskAgent("")}
+              aria-label="Ask the trading agent a question"
+            >
+              Ask Agent...
+            </button>
+          )}
         </div>
         <FilterBar
           filters={filters}
@@ -231,6 +243,7 @@ export function SignalStream({
           </div>
           <div className="signal-sidebar">
             <PnLTracker signals={signals} />
+            <PerformanceSidebar signals={signals} />
           </div>
         </div>
         {/* Live region for screen reader announcements */}
