@@ -1,0 +1,48 @@
+{
+  "name": "signal-generator",
+  "model": "google/gemini-2.0-flash",
+  "fallback_model": "anthropic/claude-sonnet-4-20250514",
+  "mcp_servers": {
+    "strategy-mcp": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.strategy_mcp"],
+      "env": {
+        "DATABASE_URL": "${POSTGRES_URL}"
+      }
+    },
+    "market-data-mcp": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.market_data_mcp"],
+      "env": {
+        "INFLUXDB_URL": "${INFLUXDB_URL}"
+      }
+    }
+  },
+  "skills_dir": "./skills",
+  "output": {
+    "redis_channel": "channel:raw-signals"
+  },
+  "limits": {
+    "timeout_seconds": 10,
+    "max_strategies": 5
+  },
+  "parallel": {
+    "max_concurrent_symbols": 10,
+    "thread_pool_size": 20,
+    "batch_size": 10,
+    "inter_batch_delay_ms": 1000
+  },
+  "retry": {
+    "max_attempts": 3,
+    "initial_delay_ms": 500,
+    "max_delay_ms": 5000,
+    "backoff_multiplier": 2.0,
+    "jitter_pct": 0.10
+  },
+  "cache": {
+    "strategy_list_ttl": 300,
+    "strategy_signal_ttl": 60,
+    "market_price_ttl": 10,
+    "volatility_ttl": 60
+  }
+}
