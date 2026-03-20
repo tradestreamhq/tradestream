@@ -12,16 +12,16 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string("openrouter_api_key", "", "OpenRouter API key")
 flags.DEFINE_string(
-    "symbols", "BTC-USD,ETH-USD", "Comma-separated list of symbols to generate signals for"
+    "symbols",
+    "BTC-USD,ETH-USD",
+    "Comma-separated list of symbols to generate signals for",
 )
 flags.DEFINE_string(
     "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL"
 )
 flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL")
 flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL")
-flags.DEFINE_integer(
-    "interval_seconds", 60, "Seconds between signal generation cycles"
-)
+flags.DEFINE_integer("interval_seconds", 60, "Seconds between signal generation cycles")
 
 _shutdown = False
 

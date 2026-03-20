@@ -121,30 +121,34 @@ class SignalCoordinator:
         except Exception as e:
             call_ms = int((time.time() - call_start) * 1000)
             pipeline_metrics.record_tool_call(tool, server, call_ms / 1000.0)
-            tool_calls.append({
-                "tool": tool,
-                "server": server,
-                "parameters": params,
-                "result": {"error": str(e)},
-                "latency_ms": call_ms,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+            tool_calls.append(
+                {
+                    "tool": tool,
+                    "server": server,
+                    "parameters": params,
+                    "result": {"error": str(e)},
+                    "latency_ms": call_ms,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            )
             raise
 
         call_ms = int((time.time() - call_start) * 1000)
         pipeline_metrics.record_tool_call(tool, server, call_ms / 1000.0)
-        tool_calls.append({
-            "tool": tool,
-            "server": server,
-            "parameters": params,
-            "result": (
-                result
-                if not isinstance(result, dict) or "error" not in result
-                else result
-            ),
-            "latency_ms": call_ms,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        tool_calls.append(
+            {
+                "tool": tool,
+                "server": server,
+                "parameters": params,
+                "result": (
+                    result
+                    if not isinstance(result, dict) or "error" not in result
+                    else result
+                ),
+                "latency_ms": call_ms,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
         return result
 
     def process_all_symbols(
@@ -249,7 +253,11 @@ class SignalCoordinator:
             self.risk_manager.record_signal_emitted(symbol)
             pipeline_metrics.record_signal_emitted(symbol, fused.action.value)
         elif not risk_result.approved:
-            reason = risk_result.rejection_reasons[0] if risk_result.rejection_reasons else "unknown"
+            reason = (
+                risk_result.rejection_reasons[0]
+                if risk_result.rejection_reasons
+                else "unknown"
+            )
             pipeline_metrics.record_signal_rejected(symbol, reason[:50])
 
         # Persist to DB

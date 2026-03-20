@@ -136,9 +136,7 @@ class AutonomousRunner:
 
         except Exception as e:
             logger.error("Signal generation cycle failed: %s", e)
-            pipeline_metrics.record_cycle_duration(
-                (time.time() - cycle_start), "error"
-            )
+            pipeline_metrics.record_cycle_duration((time.time() - cycle_start), "error")
             self._consecutive_overruns += 1
             if (
                 self._consecutive_overruns

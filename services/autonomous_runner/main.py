@@ -29,9 +29,7 @@ flags.DEFINE_integer(
 )
 flags.DEFINE_integer("dashboard_port", 8090, "Port for the pipeline dashboard API.")
 flags.DEFINE_boolean("enable_dashboard", True, "Enable the pipeline dashboard API.")
-flags.DEFINE_string(
-    "db_url", "", "PostgreSQL connection URL for decision persistence."
-)
+flags.DEFINE_string("db_url", "", "PostgreSQL connection URL for decision persistence.")
 
 flags.mark_flag_as_required("openrouter_api_key")
 

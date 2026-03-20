@@ -88,8 +88,12 @@ class AdaptiveScheduler:
             )
 
         return AdaptiveState(
-            batch_size=self._reduced_batch_size if high_latency else self._default_batch_size,
-            symbol_timeout_seconds=self._extended_timeout if high_latency else self._default_timeout,
+            batch_size=(
+                self._reduced_batch_size if high_latency else self._default_batch_size
+            ),
+            symbol_timeout_seconds=(
+                self._extended_timeout if high_latency else self._default_timeout
+            ),
             should_skip_cycle=skip,
             p95_ms=p95,
             p99_ms=p99,

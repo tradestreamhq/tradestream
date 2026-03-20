@@ -35,7 +35,9 @@ class DecisionPersistence:
             self._available = True
             logger.info("Decision persistence connected to database")
         except Exception as e:
-            logger.warning("Database not available, decisions will be in-memory only: %s", e)
+            logger.warning(
+                "Database not available, decisions will be in-memory only: %s", e
+            )
             self._available = False
 
     @contextmanager

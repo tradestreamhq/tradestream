@@ -140,16 +140,22 @@ class PipelineMetrics:
         self._histograms["cycle_duration"].append(duration_seconds)
         # Keep last 100
         if len(self._histograms["cycle_duration"]) > 100:
-            self._histograms["cycle_duration"] = self._histograms["cycle_duration"][-100:]
+            self._histograms["cycle_duration"] = self._histograms["cycle_duration"][
+                -100:
+            ]
 
     def record_symbol_processing(self, symbol: str, duration_seconds: float):
         if PROMETHEUS_AVAILABLE:
-            self.symbol_processing_duration.labels(symbol=symbol).observe(duration_seconds)
+            self.symbol_processing_duration.labels(symbol=symbol).observe(
+                duration_seconds
+            )
         self._histograms[f"symbol:{symbol}"].append(duration_seconds)
 
     def record_tool_call(self, tool: str, server: str, duration_seconds: float):
         if PROMETHEUS_AVAILABLE:
-            self.tool_call_duration.labels(tool=tool, server=server).observe(duration_seconds)
+            self.tool_call_duration.labels(tool=tool, server=server).observe(
+                duration_seconds
+            )
 
     def record_tool_retry(self, tool: str, server: str):
         if PROMETHEUS_AVAILABLE:
@@ -197,9 +203,7 @@ class PipelineMetrics:
             "total_cycles": int(self._in_memory.get("cycle_count", 0)),
             "prometheus_available": PROMETHEUS_AVAILABLE,
             "cycle_duration_avg_seconds": (
-                sum(cycle_durations) / len(cycle_durations)
-                if cycle_durations
-                else 0
+                sum(cycle_durations) / len(cycle_durations) if cycle_durations else 0
             ),
             "cycle_duration_p95_seconds": (
                 sorted(cycle_durations)[int(len(cycle_durations) * 0.95)]

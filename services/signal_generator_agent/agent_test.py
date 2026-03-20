@@ -209,9 +209,7 @@ class TestCallMcpTool:
     def test_call_mcp_tool_emit_signal(self, mock_requests, mcp_urls):
         mock_response = mock.MagicMock()
         mock_response.json.return_value = {
-            "content": [
-                {"type": "text", "text": '{"signal_id": "sig-001"}'}
-            ]
+            "content": [{"type": "text", "text": '{"signal_id": "sig-001"}'}]
         }
         mock_response.raise_for_status = mock.MagicMock()
         mock_requests.post.return_value = mock_response
@@ -258,9 +256,7 @@ class TestGenerateSignal:
 
     @mock.patch("services.signal_generator_agent.agent.OpenAI")
     @mock.patch("services.signal_generator_agent.agent._call_mcp_tool")
-    def test_generate_signal_returns_result(
-        self, mock_mcp, mock_openai_cls, mcp_urls
-    ):
+    def test_generate_signal_returns_result(self, mock_mcp, mock_openai_cls, mcp_urls):
         """Test that generate_signal returns a signal."""
         mock_client = mock.MagicMock()
         mock_openai_cls.return_value = mock_client
@@ -272,7 +268,11 @@ class TestGenerateSignal:
             "reasoning": "7/10 strategies agree on BUY with strong momentum",
             "strategy_breakdown": [
                 {"strategy_type": "momentum", "signal": "BUY", "confidence": 0.9},
-                {"strategy_type": "trend_following", "signal": "BUY", "confidence": 0.85},
+                {
+                    "strategy_type": "trend_following",
+                    "signal": "BUY",
+                    "confidence": 0.85,
+                },
             ],
         }
 
@@ -308,9 +308,7 @@ class TestGenerateSignal:
         tool_call = mock.MagicMock()
         tool_call.id = "call-1"
         tool_call.function.name = "get_top_strategies"
-        tool_call.function.arguments = json.dumps(
-            {"symbol": "BTC-USD", "limit": 10}
-        )
+        tool_call.function.arguments = json.dumps({"symbol": "BTC-USD", "limit": 10})
 
         tool_message = mock.MagicMock()
         tool_message.tool_calls = [tool_call]
@@ -393,9 +391,7 @@ class TestGenerateSignal:
         tool_call = mock.MagicMock()
         tool_call.id = "call-1"
         tool_call.function.name = "get_candles"
-        tool_call.function.arguments = json.dumps(
-            {"symbol": "BTC-USD", "limit": 50}
-        )
+        tool_call.function.arguments = json.dumps({"symbol": "BTC-USD", "limit": 50})
 
         tool_message = mock.MagicMock()
         tool_message.tool_calls = [tool_call]
