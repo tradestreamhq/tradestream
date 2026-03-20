@@ -168,8 +168,8 @@ strategyDiscoveryPipeline:
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
-    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
-    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
+    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random -XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED"
+    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random -XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED"
     taskmanager.numberOfTaskSlots: "1"
     execution.checkpointing.interval: "300000"
     execution.checkpointing.mode: "EXACTLY_ONCE"
