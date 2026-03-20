@@ -183,6 +183,114 @@ class TestKillSwitchEndpoints:
         assert "error" in resp.json()
 
 
+class TestAnalyticsEndpoints:
+    def test_decision_analytics_no_coordinator(self, client):
+        resp = client.get("/api/pipeline/analytics/decisions")
+        assert resp.status_code == 200
+        assert "error" in resp.json()
+
+    def test_decision_analytics_empty(self, client):
+        mock_coord = MagicMock()
+        mock_coord.get_recent_decisions.return_value = []
+        set_dashboard_state(coordinator=mock_coord)
+
+        resp = client.get("/api/pipeline/analytics/decisions")
+        data = resp.json()
+        assert data["total"] == 0
+
+    def test_decision_analytics_with_data(self, client):
+        mock_coord = MagicMock()
+        mock_coord.get_recent_decisions.return_value = [
+            {
+                "symbol": "BTC-USD",
+                "action": "BUY",
+                "confidence": 0.85,
+                "risk_approved": True,
+                "opportunity_score": 82,
+                "risk_rejection_reasons": [],
+            },
+            {
+                "symbol": "ETH-USD",
+                "action": "SELL",
+                "confidence": 0.70,
+                "risk_approved": False,
+                "opportunity_score": 35,
+                "risk_rejection_reasons": ["max_concurrent"],
+            },
+            {
+                "symbol": "SOL-USD",
+                "action": "HOLD",
+                "confidence": 0.40,
+                "risk_approved": True,
+                "opportunity_score": 55,
+                "risk_rejection_reasons": [],
+            },
+        ]
+        set_dashboard_state(coordinator=mock_coord)
+
+        resp = client.get("/api/pipeline/analytics/decisions")
+        data = resp.json()
+        assert data["total"] == 3
+        assert data["action_distribution"]["BUY"] == 1
+        assert data["action_distribution"]["SELL"] == 1
+        assert data["action_distribution"]["HOLD"] == 1
+        assert data["confidence_stats"]["max"] == 0.85
+        assert data["opportunity_tiers"]["HOT"] == 1
+        assert data["opportunity_tiers"]["LOW"] == 1
+        assert data["risk_rejections"]["total_rejected"] == 1
+
+    def test_signal_analytics_no_coordinator(self, client):
+        resp = client.get("/api/pipeline/analytics/signals")
+        assert resp.status_code == 200
+        assert "error" in resp.json()
+
+    def test_signal_analytics_by_symbol(self, client):
+        mock_coord = MagicMock()
+        mock_coord.get_recent_decisions.return_value = [
+            {
+                "symbol": "BTC-USD",
+                "action": "BUY",
+                "confidence": 0.80,
+                "fusion_agreement_ratio": 0.75,
+                "risk_approved": True,
+            },
+            {
+                "symbol": "BTC-USD",
+                "action": "BUY",
+                "confidence": 0.90,
+                "fusion_agreement_ratio": 0.85,
+                "risk_approved": True,
+            },
+        ]
+        set_dashboard_state(coordinator=mock_coord)
+
+        resp = client.get("/api/pipeline/analytics/signals?symbol=BTC-USD")
+        data = resp.json()
+        assert data["total_symbols"] == 1
+        btc = data["symbols"]["BTC-USD"]
+        assert btc["count"] == 2
+        assert btc["approved"] == 2
+        assert btc["avg_confidence"] == 0.85
+
+    def test_event_bus_status(self, client):
+        resp = client.get("/api/pipeline/event-bus")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total_events" in data
+        assert "subscriber_count" in data
+
+
+class TestSSEStream:
+    def test_sse_stream_returns_event_stream(self, client):
+        """Test that the SSE endpoint returns correct content type."""
+        # Use stream=True for SSE and close quickly
+        with client.stream("GET", "/api/pipeline/stream") as resp:
+            assert resp.status_code == 200
+            assert "text/event-stream" in resp.headers.get("content-type", "")
+            # Don't consume the body — just validate headers
+            resp.close()
+
+
 class TestMetricsEndpoint:
     def test_pipeline_metrics(self, client):
         resp = client.get("/api/pipeline/metrics")

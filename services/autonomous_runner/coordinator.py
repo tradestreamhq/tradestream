@@ -33,6 +33,7 @@ from services.autonomous_runner.signal_fusion import (
     SourceSignal,
     fuse_signals,
 )
+from services.autonomous_runner.signal_event_bus import get_event_bus
 from services.autonomous_runner.signal_publisher import SignalPublisher
 from services.shared.circuit_breaker import CircuitBreaker
 from services.shared.mcp_client import resolve_and_call
@@ -126,6 +127,8 @@ class SignalCoordinator:
         )
         # Redis signal publisher (publishes to channel:raw-signals)
         self._publisher = SignalPublisher(redis_client=redis_client)
+        # In-process event bus for SSE streaming
+        self._event_bus = get_event_bus()
 
     def _call_mcp_with_retry(
         self, tool: str, params: dict, tool_calls: list
@@ -320,6 +323,11 @@ class SignalCoordinator:
         if prediction_signal:
             source_signals.append(prediction_signal)
 
+        # 1e. Learning engine signal (historical performance feedback)
+        learning_signal = self._fetch_learning_engine_signal(symbol, tool_calls)
+        if learning_signal:
+            source_signals.append(learning_signal)
+
         # Step 2: Handle degraded mode if no sources succeeded
         is_degraded = False
         if not source_signals:
@@ -417,6 +425,20 @@ class SignalCoordinator:
         self._decisions.append(decision)
         if len(self._decisions) > 1000:
             self._decisions = self._decisions[-500:]
+
+        # Publish to event bus for SSE streaming
+        self._event_bus.publish(
+            "signal",
+            {
+                "signal_id": decision.decision_id,
+                "symbol": decision.symbol,
+                "action": decision.action,
+                "confidence": decision.confidence,
+                "risk_approved": decision.risk_approved,
+                "opportunity_score": decision.opportunity_score,
+                "latency_ms": decision.latency_ms,
+            },
+        )
 
         logger.info(
             "Symbol %s [%s]: %s (conf=%.2f, approved=%s, degraded=%s) in %dms",
@@ -662,6 +684,62 @@ class SignalCoordinator:
             )
         except Exception as e:
             logger.debug("Prediction market data unavailable for %s: %s", symbol, e)
+            return None
+
+    def _fetch_learning_engine_signal(
+        self, symbol: str, tool_calls: list
+    ) -> Optional[SourceSignal]:
+        """Fetch learning engine feedback as a signal source.
+
+        Uses historical performance data (win rate, bias detection) to
+        generate a signal that adjusts confidence based on past outcomes.
+        """
+        try:
+            result = self._call_mcp_cached(
+                "get_signal_accuracy",
+                {"symbol": symbol},
+                tool_calls,
+                cache_type="learning_engine",
+                cache_key=f"learning:{symbol}",
+            )
+
+            if result is None or (isinstance(result, dict) and "error" in result):
+                return None
+
+            # Extract win rate and historical performance
+            win_rate = 0.5
+            total_decisions = 0
+            if isinstance(result, dict):
+                win_rate = result.get("win_rate", result.get("accuracy", 0.5))
+                total_decisions = result.get("total_decisions", result.get("total", 0))
+
+            # Need minimum sample size for a meaningful signal
+            if total_decisions < 3:
+                return None
+
+            # High win rate on past signals => learning engine favors continuation
+            if win_rate >= 0.65:
+                action = SignalAction.BUY
+                confidence = min(0.75, max(0.40, win_rate * 0.9))
+            elif win_rate <= 0.35:
+                action = SignalAction.SELL
+                confidence = min(0.75, max(0.40, (1 - win_rate) * 0.9))
+            else:
+                action = SignalAction.HOLD
+                confidence = 0.35
+
+            return SourceSignal(
+                source="learning_engine",
+                action=action,
+                confidence=confidence,
+                weight=0.8,  # Slightly lower weight than primary sources
+                metadata={
+                    "win_rate": win_rate,
+                    "total_decisions": total_decisions,
+                },
+            )
+        except Exception as e:
+            logger.debug("Learning engine data unavailable for %s: %s", symbol, e)
             return None
 
     def _extract_top_strategy(self, source_signals: list) -> dict:
