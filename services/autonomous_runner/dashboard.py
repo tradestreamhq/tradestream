@@ -436,6 +436,144 @@ def _get_query_service():
         return None
 
 
+class FeedbackRequest(BaseModel):
+    user_id: str
+    feedback_type: str  # helpful, not_helpful, incorrect, executed
+    comment: Optional[str] = None
+
+
+@app.post("/api/pipeline/decisions/{decision_id}/feedback")
+def submit_decision_feedback(decision_id: str, req: FeedbackRequest):
+    """Submit user feedback on a specific autonomous decision."""
+    feedback_svc = _get_feedback_service()
+    if not feedback_svc:
+        return {"error": "Feedback service not available"}
+    try:
+        fb = feedback_svc.submit_feedback(
+            decision_id=decision_id,
+            user_id=req.user_id,
+            feedback_type=req.feedback_type,
+            comment=req.comment,
+        )
+        return {
+            "feedback_id": fb.feedback_id,
+            "decision_id": fb.decision_id,
+            "feedback_type": fb.feedback_type,
+        }
+    except ValueError as e:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+
+@app.get("/api/pipeline/decisions/{decision_id}/feedback")
+def get_decision_feedback(decision_id: str):
+    """Get all feedback for a specific decision."""
+    feedback_svc = _get_feedback_service()
+    if not feedback_svc:
+        return {"error": "Feedback service not available", "feedback": []}
+    return {"feedback": feedback_svc.get_feedback_for_decision(decision_id)}
+
+
+@app.get("/api/pipeline/analytics/feedback")
+def feedback_analytics(hours: int = Query(default=24, ge=1, le=168)):
+    """Aggregated feedback summary."""
+    feedback_svc = _get_feedback_service()
+    if not feedback_svc:
+        return {"error": "Feedback service not available"}
+    return feedback_svc.get_feedback_summary(hours=hours)
+
+
+@app.get("/api/pipeline/decisions/by-tier")
+def decisions_by_tier(
+    tier: str = Query(description="Opportunity tier: HOT, GOOD, NEUTRAL, LOW"),
+    hours: int = Query(default=24, ge=1, le=168),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    """Get decisions filtered by opportunity tier."""
+    if tier not in ("HOT", "GOOD", "NEUTRAL", "LOW"):
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": f"Invalid tier: {tier}. Must be HOT, GOOD, NEUTRAL, or LOW"
+            },
+        )
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "decisions": []}
+    return {
+        "tier": tier,
+        "decisions": query_svc.get_decisions_by_tier(
+            tier=tier, hours=hours, limit=limit
+        ),
+    }
+
+
+@app.get("/api/pipeline/decisions/by-symbol/{symbol}")
+def decisions_by_symbol(
+    symbol: str,
+    days: int = Query(default=7, ge=1, le=90),
+    limit: int = Query(default=20, ge=1, le=200),
+):
+    """Get decisions for a specific symbol with time range."""
+    query_svc = _get_query_service()
+    if not query_svc:
+        return {"error": "Database not available", "decisions": []}
+    return {
+        "symbol": symbol,
+        "decisions": query_svc.get_decisions_by_symbol(
+            symbol=symbol, days=days, limit=limit
+        ),
+    }
+
+
+@app.get("/api/pipeline/retention")
+def retention_status():
+    """Get retention job status."""
+    retention_job = _get_retention_job()
+    if not retention_job:
+        return {"error": "Retention job not available"}
+    return retention_job.get_status()
+
+
+@app.post("/api/pipeline/retention/run")
+def trigger_retention_job(dry_run: bool = Query(default=True)):
+    """Manually trigger the retention cleanup job."""
+    retention_job = _get_retention_job()
+    if not retention_job:
+        return {"error": "Retention job not available"}
+    result = retention_job.execute(dry_run=dry_run)
+    return result.to_dict()
+
+
+def _get_feedback_service():
+    """Get the DecisionFeedbackService if DB is available."""
+    try:
+        from services.autonomous_runner.decision_feedback import DecisionFeedbackService
+
+        pool = None
+        if _state.coordinator and _state.coordinator._db.is_available:
+            pool = _state.coordinator._db._pool
+        return DecisionFeedbackService(db_pool=pool)
+    except Exception:
+        return None
+
+
+def _get_retention_job():
+    """Get the RetentionJob if DB is available."""
+    try:
+        from services.autonomous_runner.retention_job import RetentionJob
+
+        pool = None
+        if _state.coordinator and _state.coordinator._db.is_available:
+            pool = _state.coordinator._db._pool
+        return RetentionJob(db_pool=pool)
+    except Exception:
+        return None
+
+
 @app.get("/metrics")
 def prometheus_metrics():
     """Prometheus-compatible metrics endpoint."""

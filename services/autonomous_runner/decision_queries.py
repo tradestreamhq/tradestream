@@ -306,6 +306,59 @@ class DecisionQueryService:
             logger.error("Accuracy query failed: %s", e)
             return []
 
+    def get_decisions_by_tier(
+        self, tier: str, hours: int = 24, limit: int = 50
+    ) -> list:
+        """Get decisions filtered by opportunity tier.
+
+        Maps tier to score ranges: HOT >= 80, GOOD >= 60, NEUTRAL >= 40, LOW < 40.
+        """
+        if not self.is_available:
+            return []
+
+        tier_ranges = {
+            "HOT": (80.0, 100.0),
+            "GOOD": (60.0, 80.0),
+            "NEUTRAL": (40.0, 60.0),
+            "LOW": (0.0, 40.0),
+        }
+        min_score, max_score = tier_ranges.get(tier, (0.0, 100.0))
+
+        try:
+            with self._get_conn() as conn:
+                cur = conn.cursor()
+                cur.execute(
+                    """
+                    SELECT
+                        decision_id, symbol, action, confidence,
+                        opportunity_score, opportunity_tier,
+                        reasoning, risk_approved, created_at
+                    FROM agent_decisions
+                    WHERE opportunity_score >= %s AND opportunity_score < %s
+                      AND created_at >= NOW() - INTERVAL '%s hours'
+                    ORDER BY opportunity_score DESC, created_at DESC
+                    LIMIT %s
+                    """,
+                    (min_score, max_score, hours, limit),
+                )
+                return _rows_to_dicts(
+                    cur.fetchall(),
+                    [
+                        "decision_id",
+                        "symbol",
+                        "action",
+                        "confidence",
+                        "opportunity_score",
+                        "opportunity_tier",
+                        "reasoning",
+                        "risk_approved",
+                        "created_at",
+                    ],
+                )
+        except Exception as e:
+            logger.error("Tier query failed for %s: %s", tier, e)
+            return []
+
     def find_decisions_by_tool(self, tool_name: str, limit: int = 20) -> list:
         """Find decisions that used a specific tool (GIN index query).
 

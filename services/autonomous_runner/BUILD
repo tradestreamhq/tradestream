@@ -413,6 +413,44 @@ py_test(
 )
 
 py_library(
+    name = "decision_feedback_lib",
+    srcs = [
+        "__init__.py",
+        "decision_feedback.py",
+    ],
+)
+
+py_test(
+    name = "decision_feedback_test",
+    srcs = ["decision_feedback_test.py"],
+    deps = [
+        ":decision_feedback_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
+    name = "retention_job_lib",
+    srcs = [
+        "__init__.py",
+        "retention_job.py",
+    ],
+    deps = [
+        ":retention_lib",
+    ],
+)
+
+py_test(
+    name = "retention_job_test",
+    srcs = ["retention_job_test.py"],
+    deps = [
+        ":retention_job_lib",
+        ":retention_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_library(
     name = "outcome_tracker_lib",
     srcs = [
         "__init__.py",
