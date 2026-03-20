@@ -1,0 +1,59 @@
+{{- if .Values.coinmarketcapMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-coinmarketcap-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coinmarketcap-mcp
+spec:
+  replicas: {{ .Values.coinmarketcapMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: coinmarketcap-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: coinmarketcap-mcp
+    spec:
+      containers:
+        - name: coinmarketcap-mcp
+          image: "{{ .Values.coinmarketcapMcp.image.repository }}:{{ .Values.coinmarketcapMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.coinmarketcapMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: mcp
+              containerPort: {{ .Values.coinmarketcapMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: CMC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.coinmarketcapMcp.apiKeySecret.name . }}
+                  key: {{ .Values.coinmarketcapMcp.apiKeySecret.key }}
+          args:
+            - "--cmc_api_key=$(CMC_API_KEY)"
+            - "--mcp_transport={{ .Values.coinmarketcapMcp.mcpTransport | default "stdio" }}"
+            - "--mcp_port={{ .Values.coinmarketcapMcp.service.port | default 8080 }}"
+          resources:
+            {{- toYaml .Values.coinmarketcapMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-coinmarketcap-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coinmarketcap-mcp
+spec:
+  type: {{ .Values.coinmarketcapMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.coinmarketcapMcp.service.port | default 8080 }}
+      targetPort: mcp
+      protocol: TCP
+      name: mcp
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: coinmarketcap-mcp
+{{- end }}
