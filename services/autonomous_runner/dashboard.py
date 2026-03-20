@@ -66,6 +66,61 @@ def health():
     return {"status": "ok", "service": "autonomous-signal-pipeline"}
 
 
+@app.get("/health/live")
+def health_live():
+    """Liveness probe: service is running."""
+    return {"status": "alive"}
+
+
+@app.get("/health/ready")
+def health_ready():
+    """Readiness probe: service is ready to process signals."""
+    ready = _state.coordinator is not None and _state.runner_started_at is not None
+    if not ready:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "reason": "coordinator not initialized"},
+        )
+    return {"status": "ready"}
+
+
+@app.get("/health/detailed")
+def health_detailed():
+    """Detailed health check with component status."""
+    components = {
+        "runner": {
+            "status": "up" if _state.runner_started_at else "down",
+            "started_at": _state.runner_started_at,
+            "total_cycles": _state.total_cycles,
+        },
+        "coordinator": {
+            "status": "up" if _state.coordinator else "down",
+        },
+        "kill_switch": {
+            "status": "up" if _state.kill_switch else "unavailable",
+        },
+    }
+
+    if _state.coordinator:
+        status = _state.coordinator.get_pipeline_status()
+        components["circuit_breaker"] = status.get("circuit_breaker", {})
+        components["adaptive"] = status.get("adaptive", {})
+        components["db_persistence"] = status.get("db_persistence", False)
+        components["risk"] = _state.coordinator.risk_manager.get_status()
+
+    all_up = all(
+        c.get("status") in ("up", "unavailable", True)
+        for c in components.values()
+        if isinstance(c, dict) and "status" in c
+    )
+    return {
+        "status": "healthy" if all_up else "degraded",
+        "components": components,
+    }
+
+
 @app.get("/api/pipeline/status")
 def pipeline_status():
     """Overall pipeline status."""
@@ -139,3 +194,28 @@ def kill_switch_status():
     if not _state.kill_switch:
         return {"active": False, "error": "Kill switch not initialized"}
     return _state.kill_switch.get_status()
+
+
+@app.get("/api/pipeline/metrics")
+def pipeline_metrics_endpoint():
+    """Pipeline metrics summary."""
+    from services.autonomous_runner.metrics import pipeline_metrics
+
+    return pipeline_metrics.get_summary()
+
+
+@app.get("/metrics")
+def prometheus_metrics():
+    """Prometheus-compatible metrics endpoint."""
+    try:
+        from prometheus_client import generate_latest
+        from starlette.responses import Response
+
+        return Response(
+            content=generate_latest(),
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
+    except ImportError:
+        from services.autonomous_runner.metrics import pipeline_metrics
+
+        return pipeline_metrics.get_summary()
