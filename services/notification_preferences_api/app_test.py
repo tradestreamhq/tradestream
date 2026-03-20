@@ -132,11 +132,7 @@ class TestUpdatePreferences:
         resp = tc.put(
             "/notification-preferences",
             params={"user_id": USER_ID},
-            json={
-                "preferences": [
-                    {"event_type": "signal_generated", "channels": []}
-                ]
-            },
+            json={"preferences": [{"event_type": "signal_generated", "channels": []}]},
         )
         assert resp.status_code == 422
 
@@ -146,9 +142,7 @@ class TestUpdatePreferences:
             "/notification-preferences",
             params={"user_id": USER_ID},
             json={
-                "preferences": [
-                    {"event_type": "invalid_event", "channels": ["in_app"]}
-                ]
+                "preferences": [{"event_type": "invalid_event", "channels": ["in_app"]}]
             },
         )
         assert resp.status_code == 422
@@ -159,9 +153,7 @@ class TestUpdatePreferences:
             "/notification-preferences",
             params={"user_id": USER_ID},
             json={
-                "preferences": [
-                    {"event_type": "signal_generated", "channels": ["sms"]}
-                ]
+                "preferences": [{"event_type": "signal_generated", "channels": ["sms"]}]
             },
         )
         assert resp.status_code == 422

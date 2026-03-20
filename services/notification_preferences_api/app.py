@@ -188,9 +188,7 @@ class NotificationDeliveryService:
         metadata: Optional[Dict[str, Any]],
     ) -> None:
         """Send email notification. Delegates to the existing email sender."""
-        logger.info(
-            "Email delivery queued for user=%s event=%s", user_id, event_type
-        )
+        logger.info("Email delivery queued for user=%s event=%s", user_id, event_type)
 
     async def _deliver_webhook(
         self,
@@ -201,9 +199,7 @@ class NotificationDeliveryService:
         metadata: Optional[Dict[str, Any]],
     ) -> None:
         """Send webhook notification. Delegates to the existing webhook sender."""
-        logger.info(
-            "Webhook delivery queued for user=%s event=%s", user_id, event_type
-        )
+        logger.info("Webhook delivery queued for user=%s event=%s", user_id, event_type)
 
 
 # --- Application Factory ---
@@ -238,8 +234,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
         """Get notification preferences for a user."""
         prefs = await delivery_service.get_user_preferences(user_id)
         items = [
-            {"event_type": et, "channels": channels}
-            for et, channels in prefs.items()
+            {"event_type": et, "channels": channels} for et, channels in prefs.items()
         ]
         return success_response(
             {"user_id": user_id, "preferences": items},
@@ -279,8 +274,7 @@ def create_app(db_pool: asyncpg.Pool) -> FastAPI:
 
         prefs = await delivery_service.get_user_preferences(user_id)
         items = [
-            {"event_type": et, "channels": channels}
-            for et, channels in prefs.items()
+            {"event_type": et, "channels": channels} for et, channels in prefs.items()
         ]
         return success_response(
             {"user_id": user_id, "preferences": items},
