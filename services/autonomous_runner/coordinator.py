@@ -183,6 +183,7 @@ class SignalCoordinator:
         # Check cache first
         cached = self._cache.get(cache_type, cache_key)
         if cached is not None:
+            pipeline_metrics.record_cache_hit(cache_type)
             tool_calls.append(
                 {
                     "tool": tool,
@@ -194,6 +195,7 @@ class SignalCoordinator:
                 }
             )
             return cached
+        pipeline_metrics.record_cache_miss(cache_type)
 
         # Try MCP call
         try:
@@ -230,15 +232,24 @@ class SignalCoordinator:
         pipeline_metrics.set_batch_size(effective_batch)
 
         all_signals = []
+        total_attempted = 0
+        total_succeeded = 0
         for i in range(0, len(symbols), effective_batch):
             batch = symbols[i : i + effective_batch]
             for symbol in batch:
+                total_attempted += 1
                 try:
                     result = self._process_symbol(symbol, effective_timeout)
                     if result:
                         all_signals.append(result)
+                        total_succeeded += 1
                 except Exception as e:
                     logger.error("Failed to process %s: %s", symbol, e)
+
+        if total_attempted > 0:
+            pipeline_metrics.record_batch_success_rate(
+                total_succeeded / total_attempted
+            )
 
         return all_signals
 
@@ -299,6 +310,7 @@ class SignalCoordinator:
             )
             is_degraded = True
             pipeline_metrics.record_signal_skipped("all_sources_failed")
+            pipeline_metrics.record_degraded_signal(symbol)
         else:
             # Apply confidence penalty if some sources failed
             confidence_penalty = sum(
@@ -312,6 +324,7 @@ class SignalCoordinator:
                     f" [Degraded: missing {', '.join(missing_sources)}, "
                     f"penalty={confidence_penalty:.2f}]"
                 )
+                pipeline_metrics.record_degraded_signal(symbol)
 
         # Step 3: Risk check
         risk_result = self.risk_manager.check_signal(fused)
@@ -443,7 +456,20 @@ class SignalCoordinator:
             consensus_ratio = (
                 max(buy_count, sell_count, total - buy_count - sell_count) / total
             )
-            confidence = min(0.95, max(0.30, consensus_ratio * (0.8 + 0.2 * avg_score)))
+
+            # Spec-defined confidence tiers
+            if consensus_ratio >= 1.0:
+                base = 0.90
+            elif consensus_ratio >= 0.8:
+                base = 0.85
+            elif consensus_ratio >= 0.6:
+                base = 0.75
+            elif consensus_ratio >= 0.4:
+                base = 0.55
+            else:
+                base = 0.40
+
+            confidence = min(0.95, max(0.30, base * (0.8 + 0.2 * avg_score)))
 
             return SourceSignal(
                 source="strategy_consensus",

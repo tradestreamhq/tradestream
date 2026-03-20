@@ -97,6 +97,14 @@ py_library(
 )
 
 py_library(
+    name = "retention_lib",
+    srcs = [
+        "__init__.py",
+        "retention.py",
+    ],
+)
+
+py_library(
     name = "coordinator_lib",
     srcs = [
         "__init__.py",
@@ -288,6 +296,15 @@ py_test(
     srcs = ["batch_processor_test.py"],
     deps = [
         ":batch_processor_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "retention_test",
+    srcs = ["retention_test.py"],
+    deps = [
+        ":retention_lib",
         "//third_party/python:pytest",
     ],
 )
