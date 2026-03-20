@@ -166,9 +166,7 @@ class HeartbeatManager:
         key = HEARTBEAT_KEY_TEMPLATE.format(instance_id=self.instance_id)
         while not self._stop_event.is_set():
             try:
-                payload = json.dumps(
-                    {"timestamp": time.time(), "pid": os.getpid()}
-                )
+                payload = json.dumps({"timestamp": time.time(), "pid": os.getpid()})
                 self.redis.set(key, payload, ex=HEARTBEAT_TTL)
             except Exception as e:
                 logger.error("Heartbeat failed: %s", e)

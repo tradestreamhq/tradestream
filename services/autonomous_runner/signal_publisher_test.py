@@ -28,9 +28,7 @@ class TestSignalPublisher:
     def test_publish_success(self):
         redis = FakeRedis()
         pub = SignalPublisher(redis)
-        result = pub.publish(
-            {"symbol": "BTC-USD", "action": "BUY", "confidence": 0.85}
-        )
+        result = pub.publish({"symbol": "BTC-USD", "action": "BUY", "confidence": 0.85})
         assert result is True
         assert len(redis.published) == 1
         msg = json.loads(redis.published[0]["message"])
