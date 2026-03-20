@@ -189,6 +189,7 @@ py_library(
         ":kill_switch_lib",
         ":metrics_lib",
         ":outcome_tracker_lib",
+        ":retention_job_lib",
         "//services/shared:circuit_breaker",
     ],
 )

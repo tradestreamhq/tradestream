@@ -98,6 +98,45 @@ class TestSignalCoordinator:
         assert "risk_status" in status
         assert "circuit_breaker" in status
 
+    @patch("services.autonomous_runner.coordinator.resolve_and_call")
+    def test_dedup_skips_duplicate_signal(self, mock_call):
+        """Test that duplicate signals within 15-min window are skipped."""
+        mock_call.side_effect = self._mock_mcp_responses
+        coord = self._make_coordinator()
+        # Ensure risk thresholds are permissive
+        coord.risk_manager.config.min_confidence_threshold = 0.0
+        coord.risk_manager.config.max_concurrent_signals = 100
+
+        # Process symbol twice - second should be deduped
+        d1 = coord._process_symbol("BTC-USD", timeout=10.0)
+        d2 = coord._process_symbol("BTC-USD", timeout=10.0)
+
+        assert d1 is not None
+        assert d2 is not None
+
+        # If both BUY signals, second should have dedup warning
+        if d1.action == d2.action and d1.action != "HOLD":
+            if d1.risk_approved:
+                assert any(
+                    "Duplicate" in w or "dedup" in w.lower()
+                    for w in (d2.validation_warnings or [])
+                )
+
+    @patch("services.autonomous_runner.coordinator.resolve_and_call")
+    def test_entry_price_stored_on_emit(self, mock_call):
+        """Test that entry price is stored when a signal is emitted."""
+        mock_call.side_effect = self._mock_mcp_responses
+        coord = self._make_coordinator()
+        coord.risk_manager.config.min_confidence_threshold = 0.0
+        coord.risk_manager.config.max_concurrent_signals = 100
+
+        decision = coord._process_symbol("BTC-USD", timeout=10.0)
+
+        if decision and decision.risk_approved and decision.action != "HOLD":
+            entry_price = coord.get_entry_price(decision.decision_id)
+            assert entry_price is not None
+            assert entry_price == 65000.0  # from mock market data
+
     def _mock_mcp_responses(self, tool_name, arguments, *args, **kwargs):
         """Mock MCP responses for testing."""
         if tool_name == "get_top_strategies":

@@ -16,6 +16,7 @@ from services.autonomous_runner.dashboard import record_cycle, set_dashboard_sta
 from services.autonomous_runner.kill_switch import KillSwitch
 from services.autonomous_runner.metrics import pipeline_metrics
 from services.autonomous_runner.outcome_tracker import OutcomeTracker
+from services.autonomous_runner.retention_job import RetentionJob
 from services.shared.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger(__name__)
@@ -38,9 +39,19 @@ class AutonomousRunner:
         if redis_client:
             self._kill_switch = KillSwitch(redis_client, config.kill_switch)
 
-        # Outcome tracker for recording signal results
+        # Outcome tracker for recording signal results (with entry price lookup)
         self._outcome_tracker = OutcomeTracker(
             db=self.coordinator._db,
+            entry_price_fn=self.coordinator.get_entry_price,
+        )
+
+        # Retention job for automated cleanup (runs every 24h by default)
+        self._retention_job = RetentionJob(
+            db_pool=(
+                self.coordinator._db._pool
+                if self.coordinator._db.is_available
+                else None
+            ),
         )
 
         # Validate model configuration at startup
@@ -152,6 +163,18 @@ class AutonomousRunner:
                         logger.info("Recorded %d outcomes", len(outcomes))
                 except Exception as oe:
                     logger.warning("Outcome tracking failed: %s", oe)
+
+            # Run retention job if due (checks its own interval)
+            if self._retention_job.is_available and self._retention_job.should_run():
+                try:
+                    result = self._retention_job.execute()
+                    logger.info(
+                        "Retention job: archived=%d deleted=%d",
+                        result.archived_count,
+                        result.deleted_decisions_count,
+                    )
+                except Exception as re:
+                    logger.warning("Retention job failed: %s", re)
 
             logger.info(
                 "Cycle complete: %d decisions, %d emitted in %dms",
