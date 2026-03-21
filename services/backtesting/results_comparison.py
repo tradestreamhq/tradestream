@@ -60,7 +60,7 @@ class ResultsComparator:
     }
 
     # Minimum required match ratio to consider overall match
-    MIN_MATCH_RATIO = 0.70
+    MIN_MATCH_RATIO = 1.0
 
     def __init__(self, tolerances: Optional[Dict[str, float]] = None):
         self.tolerances = tolerances or self.DEFAULT_TOLERANCES

@@ -22,6 +22,16 @@ def pg_client():
     client.get_trades = AsyncMock()
     client.get_pnl_summary = AsyncMock()
     client.log_decision = AsyncMock()
+    # Session management methods
+    client.create_session = AsyncMock()
+    client.get_active_session = AsyncMock()
+    client.get_session = AsyncMock()
+    client.stop_session = AsyncMock()
+    client.execute_session_trade = AsyncMock()
+    client.get_session_portfolio = AsyncMock()
+    client.get_session_trades = AsyncMock()
+    client.get_session_stats = AsyncMock()
+    client.get_live_trade_stats = AsyncMock()
     return client
 
 
@@ -371,3 +381,182 @@ class TestRunAsyncThreadSafety:
             results = [f.result() for f in futures]
 
         assert all(status == 200 for status in results)
+
+
+class TestStartSessionEndpoint:
+    def test_start_session_success(self, client, pg_client):
+        pg_client.get_active_session.return_value = None
+        pg_client.create_session.return_value = {
+            "session_id": "sess-1",
+            "starting_balance": 50000.0,
+            "current_balance": 50000.0,
+            "status": "ACTIVE",
+            "started_at": "2026-03-13T00:00:00",
+        }
+
+        resp = client.post(
+            "/api/v1/paper-trading/start",
+            json={"starting_balance": 50000.0},
+            content_type="application/json",
+        )
+
+        assert resp.status_code == 201
+        data = resp.get_json()
+        assert data["session_id"] == "sess-1"
+        assert data["starting_balance"] == 50000.0
+
+    def test_start_session_default_balance(self, client, pg_client):
+        pg_client.get_active_session.return_value = None
+        pg_client.create_session.return_value = {
+            "session_id": "sess-2",
+            "starting_balance": 100000.0,
+            "current_balance": 100000.0,
+            "status": "ACTIVE",
+            "started_at": "2026-03-13T00:00:00",
+        }
+
+        resp = client.post("/api/v1/paper-trading/start")
+        assert resp.status_code == 201
+        assert resp.get_json()["starting_balance"] == 100000.0
+
+    def test_start_session_negative_balance(self, client):
+        resp = client.post(
+            "/api/v1/paper-trading/start",
+            json={"starting_balance": -1000},
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+        assert "positive" in resp.get_json()["error"]
+
+    def test_start_session_conflict(self, client, pg_client):
+        pg_client.get_active_session.return_value = {
+            "session_id": "existing",
+            "status": "ACTIVE",
+        }
+
+        resp = client.post("/api/v1/paper-trading/start")
+        assert resp.status_code == 409
+        assert "already active" in resp.get_json()["error"]
+
+
+class TestStopSessionEndpoint:
+    def test_stop_session_success(self, client, pg_client):
+        pg_client.stop_session.return_value = {
+            "session_id": "sess-1",
+            "status": "STOPPED",
+            "stopped_at": "2026-03-13T01:00:00",
+        }
+
+        resp = client.post(
+            "/api/v1/paper-trading/stop",
+            json={"session_id": "sess-1"},
+            content_type="application/json",
+        )
+
+        assert resp.status_code == 200
+        assert resp.get_json()["status"] == "STOPPED"
+
+    def test_stop_session_missing_id(self, client):
+        resp = client.post(
+            "/api/v1/paper-trading/stop",
+            json={},
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+
+    def test_stop_session_not_found(self, client, pg_client):
+        pg_client.stop_session.return_value = None
+
+        resp = client.post(
+            "/api/v1/paper-trading/stop",
+            json={"session_id": "nonexistent"},
+            content_type="application/json",
+        )
+        assert resp.status_code == 404
+
+
+class TestSessionPortfolioEndpoint:
+    @patch("services.paper_trading.engine.PaperTradingEngine._get_current_price")
+    def test_get_session_portfolio(self, mock_price, client, pg_client):
+        mock_price.return_value = 52000.0
+        pg_client.get_session.return_value = {
+            "session_id": "sess-1",
+            "status": "ACTIVE",
+            "starting_balance": 100000.0,
+            "current_balance": 75000.0,
+            "total_realized_pnl": 0.0,
+        }
+        pg_client.get_session_portfolio.return_value = [
+            {
+                "symbol": "BTC-USD",
+                "quantity": 0.5,
+                "avg_entry_price": 50000.0,
+                "unrealized_pnl": 0.0,
+            }
+        ]
+
+        resp = client.get("/api/v1/paper-trading/portfolio?session_id=sess-1")
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["session_id"] == "sess-1"
+        assert len(data["positions"]) == 1
+        assert data["positions"][0]["current_price"] == 52000.0
+
+    def test_get_session_portfolio_missing_id(self, client):
+        resp = client.get("/api/v1/paper-trading/portfolio")
+        assert resp.status_code == 400
+
+    def test_get_session_portfolio_not_found(self, client, pg_client):
+        pg_client.get_session.return_value = None
+
+        resp = client.get("/api/v1/paper-trading/portfolio?session_id=nonexistent")
+        assert resp.status_code == 404
+
+
+class TestSessionTradesEndpoint:
+    def test_get_session_trades(self, client, pg_client):
+        pg_client.get_session_trades.return_value = [
+            {"trade_id": "t-1", "symbol": "BTC-USD", "side": "BUY"}
+        ]
+
+        resp = client.get("/api/v1/paper-trading/trades?session_id=sess-1")
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["count"] == 1
+        assert data["trades"][0]["trade_id"] == "t-1"
+
+    def test_get_session_trades_missing_id(self, client):
+        resp = client.get("/api/v1/paper-trading/trades")
+        assert resp.status_code == 400
+
+
+class TestPerformanceComparisonEndpoint:
+    def test_get_performance(self, client, pg_client):
+        pg_client.get_session_stats.return_value = {
+            "total_pnl": 5000.0,
+            "return_pct": 5.0,
+            "total_trades": 10,
+            "win_rate": 70.0,
+            "avg_pnl": 500.0,
+        }
+        pg_client.get_live_trade_stats.return_value = {
+            "total_pnl": 3000.0,
+            "return_pct": 3.0,
+            "total_trades": 8,
+            "win_rate": 62.5,
+            "avg_pnl": 375.0,
+        }
+
+        resp = client.get("/api/v1/paper-trading/performance?session_id=sess-1")
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["paper"]["total_pnl"] == 5000.0
+        assert data["live"]["total_pnl"] == 3000.0
+        assert data["comparison"]["return_pct_delta"] == 2.0
+
+    def test_get_performance_missing_id(self, client):
+        resp = client.get("/api/v1/paper-trading/performance")
+        assert resp.status_code == 400
