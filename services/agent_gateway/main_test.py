@@ -324,9 +324,11 @@ class TestHealthEndpoint:
         mock_redis = AsyncMock()
         mock_redis.ping = AsyncMock(return_value=True)
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
-        ), patch(f"{_MODULE}._start_time", time.time()):
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
+            patch(f"{_MODULE}._start_time", time.time()),
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -352,9 +354,11 @@ class TestHealthEndpoint:
         mock_redis = AsyncMock()
         mock_redis.ping = AsyncMock(return_value=True)
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
-        ), patch(f"{_MODULE}._start_time", time.time()):
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
+            patch(f"{_MODULE}._start_time", time.time()),
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -384,9 +388,11 @@ class TestAgentHealthEndpoint:
         mock_redis = AsyncMock()
         mock_redis.ping = AsyncMock(return_value=True)
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
-        ), patch(f"{_MODULE}._start_time", time.time() - 100):
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
+            patch(f"{_MODULE}._start_time", time.time() - 100),
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -521,8 +527,9 @@ class TestRecentEventsEndpoint:
 
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -550,8 +557,9 @@ class TestRecentEventsEndpoint:
 
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -581,8 +589,9 @@ class TestRecentEventsEndpoint:
 
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -745,8 +754,9 @@ class TestDashboardSummary:
         mock_pool = _make_mock_pool_with_conn(mock_conn)
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -792,8 +802,9 @@ class TestDashboardSummary:
         mock_pool = _make_mock_pool_with_conn(mock_conn)
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -838,8 +849,9 @@ class TestDashboardAgents:
         mock_pool = _make_mock_pool_with_conn(mock_conn)
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -862,8 +874,9 @@ class TestDashboardAgents:
         mock_pool = _make_mock_pool_with_conn(mock_conn)
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -910,8 +923,9 @@ class TestDashboardSignals:
         mock_pool = _make_mock_pool_with_conn(mock_conn)
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
@@ -934,8 +948,9 @@ class TestDashboardSignals:
         mock_pool = _make_mock_pool_with_conn(mock_conn)
         mock_redis = AsyncMock()
 
-        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
-            f"{_MODULE}._redis", mock_redis
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
         ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
