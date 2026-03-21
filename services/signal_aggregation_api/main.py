@@ -16,7 +16,7 @@ import psycopg2
 import psycopg2.extras
 from absl import app as absl_app
 from absl import flags
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from services.shared.auth import flask_auth_middleware
