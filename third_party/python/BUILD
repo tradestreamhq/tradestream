@@ -240,3 +240,11 @@ py_library(
         requirement("stripe"),
     ],
 )
+
+py_library(
+    name = "cryptography",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("cryptography"),
+    ],
+)
