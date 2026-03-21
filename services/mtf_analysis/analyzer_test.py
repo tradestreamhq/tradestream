@@ -5,12 +5,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from services.mtf_analysis.analyzer import (
+    _MIN_CANDLES,
     TIMEFRAMES,
     ConfluenceResult,
     MultiTimeframeAnalyzer,
     Signal,
     TimeframeAnalysis,
-    _MIN_CANDLES,
 )
 
 
