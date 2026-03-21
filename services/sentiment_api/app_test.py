@@ -6,158 +6,149 @@ import pytest
 from fastapi.testclient import TestClient
 
 from services.sentiment_api.app import create_app
-
-
-def _make_candles(base=100, direction=1, count=40):
-    """Generate test candle data."""
-    return [
-        {
-            "time": f"2026-01-{i+1:02d}T00:00:00Z",
-            "open": base + direction * i - 0.5,
-            "high": base + direction * i + 1.0,
-            "low": base + direction * i - 1.0,
-            "close": base + direction * i,
-            "volume": 100.0,
-        }
-        for i in range(count)
-    ]
+from services.sentiment_api.analyzer import SentimentAnalyzer
 
 
 @pytest.fixture
-def client():
-    influxdb = MagicMock()
-    redis = MagicMock()
-    app = create_app(influxdb, redis)
-    return TestClient(app, raise_server_exceptions=False), influxdb, redis
+def mock_provider():
+    provider = MagicMock()
+    provider.health_check.return_value = None
+    return provider
+
+
+@pytest.fixture
+def client(mock_provider):
+    analyzer = SentimentAnalyzer(whale_threshold=50_000.0)
+    app = create_app(mock_provider, analyzer)
+    return TestClient(app, raise_server_exceptions=False), mock_provider
 
 
 class TestHealthEndpoints:
     def test_health(self, client):
-        tc, influxdb, redis = client
-        redis.get_symbols.return_value = ["BTC/USD"]
+        tc, _ = client
         resp = tc.get("/health")
         assert resp.status_code == 200
+        assert resp.json()["status"] == "healthy"
 
 
 class TestGetSentiment:
-    def test_success(self, client):
-        tc, influxdb, redis = client
-        influxdb.get_candles.return_value = _make_candles()
+    def test_sentiment_snapshot(self, client):
+        tc, provider = client
+        provider.get_order_book.return_value = {
+            "bids": [
+                {"price": 60000.0, "size": 5.0},
+                {"price": 59990.0, "size": 3.0},
+            ],
+            "asks": [
+                {"price": 60010.0, "size": 2.0},
+                {"price": 60020.0, "size": 1.0},
+            ],
+        }
+        provider.get_recent_trades.return_value = [
+            {
+                "side": "buy",
+                "price": 60000.0,
+                "size": 2.0,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+            {
+                "side": "sell",
+                "price": 60000.0,
+                "size": 1.0,
+                "timestamp": "2026-01-01T00:00:01Z",
+            },
+        ]
+        provider.get_funding_rate.return_value = 0.0001
 
-        resp = tc.get("/?symbol=BTC/USD")
+        resp = tc.get("/BTC%2FUSD")
         assert resp.status_code == 200
         body = resp.json()
-        assert body["data"]["type"] == "sentiment"
         assert body["data"]["id"] == "BTC/USD"
         attrs = body["data"]["attributes"]
-        assert -1.0 <= attrs["score"] <= 1.0
-        assert "breakdown" in attrs
-        assert "timeframe_scores" in attrs
+        assert attrs["pair"] == "BTC/USD"
+        assert -1.0 <= attrs["composite_score"] <= 1.0
+        assert attrs["order_book_imbalance"] is not None
+        assert attrs["trade_flow"] is not None
 
-    def test_missing_symbol_param(self, client):
-        tc, influxdb, redis = client
-        resp = tc.get("/")
-        assert resp.status_code == 422
-
-    def test_no_data(self, client):
-        tc, influxdb, redis = client
-        influxdb.get_candles.return_value = []
-
-        resp = tc.get("/?symbol=UNKNOWN")
+    def test_sentiment_not_found(self, client):
+        tc, provider = client
+        provider.get_order_book.return_value = None
+        resp = tc.get("/UNKNOWN%2FUSD")
         assert resp.status_code == 404
 
-    def test_breakdown_fields(self, client):
-        tc, influxdb, redis = client
-        influxdb.get_candles.return_value = _make_candles()
+    def test_custom_levels_and_window(self, client):
+        tc, provider = client
+        provider.get_order_book.return_value = {
+            "bids": [{"price": 100.0, "size": 1.0}],
+            "asks": [{"price": 101.0, "size": 1.0}],
+        }
+        provider.get_recent_trades.return_value = []
+        provider.get_funding_rate.return_value = None
 
-        resp = tc.get("/?symbol=BTC/USD")
-        body = resp.json()
-        breakdown = body["data"]["attributes"]["breakdown"]
-        assert "rsi" in breakdown
-        assert "macd_trend" in breakdown
-        assert "volume" in breakdown
-        assert "price_momentum" in breakdown
+        resp = tc.get("/TEST%2FUSD?levels=5&window=60")
+        assert resp.status_code == 200
+        provider.get_order_book.assert_called_with("TEST/USD", 5)
+        provider.get_recent_trades.assert_called_with("TEST/USD", 60)
 
 
 class TestSentimentHistory:
-    def test_success(self, client):
-        tc, influxdb, redis = client
-        influxdb.get_candles.return_value = _make_candles(count=70)
-
-        resp = tc.get("/history?symbol=BTC/USD&timeframe=1d&limit=10")
+    def test_history(self, client):
+        tc, provider = client
+        provider.get_sentiment_history.return_value = [
+            {
+                "pair": "BTC/USD",
+                "composite_score": 0.5,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+            {
+                "pair": "BTC/USD",
+                "composite_score": -0.2,
+                "timestamp": "2026-01-01T00:05:00Z",
+            },
+        ]
+        resp = tc.get("/BTC%2FUSD/history?limit=10")
         assert resp.status_code == 200
         body = resp.json()
-        assert len(body["data"]) > 0
-        entry = body["data"][0]["attributes"]
-        assert "timestamp" in entry
-        assert "score" in entry
-        assert "label" in entry
+        assert len(body["data"]) == 2
+        assert body["meta"]["limit"] == 10
 
-    def test_insufficient_data(self, client):
-        tc, influxdb, redis = client
-        influxdb.get_candles.return_value = _make_candles(count=10)
-
-        resp = tc.get("/history?symbol=BTC/USD")
+    def test_history_not_found(self, client):
+        tc, provider = client
+        provider.get_sentiment_history.return_value = None
+        resp = tc.get("/BAD%2FUSD/history")
         assert resp.status_code == 404
 
-    def test_invalid_timeframe(self, client):
-        tc, influxdb, redis = client
-        resp = tc.get("/history?symbol=BTC/USD&timeframe=3m")
-        assert resp.status_code == 422
 
-
-class TestDivergence:
-    def test_returns_collection(self, client):
-        tc, influxdb, redis = client
-        redis.get_symbols.return_value = ["BTC/USD"]
-        influxdb.get_candles.return_value = _make_candles()
-
-        resp = tc.get("/divergence")
+class TestWhaleTrades:
+    def test_whale_trades(self, client):
+        tc, provider = client
+        provider.get_whale_trades.return_value = [
+            {
+                "pair": "BTC/USD",
+                "side": "buy",
+                "price": 60000.0,
+                "size": 2.0,
+                "notional": 120000.0,
+                "timestamp": "2026-01-01T00:00:00Z",
+            },
+        ]
+        resp = tc.get("/BTC%2FUSD/whale-trades")
         assert resp.status_code == 200
         body = resp.json()
-        assert "data" in body
-        assert "meta" in body
+        assert len(body["data"]) == 1
+        assert body["data"][0]["attributes"]["side"] == "buy"
 
-    def test_empty_symbols(self, client):
-        tc, influxdb, redis = client
-        redis.get_symbols.return_value = []
-
-        resp = tc.get("/divergence")
+    def test_whale_trades_with_threshold(self, client):
+        tc, provider = client
+        provider.get_whale_trades.return_value = []
+        resp = tc.get("/BTC%2FUSD/whale-trades?threshold=200000")
         assert resp.status_code == 200
-        assert resp.json()["data"] == []
+        provider.get_whale_trades.assert_called_with(
+            "BTC/USD", limit=50, threshold=200000.0
+        )
 
-
-class TestHeatmap:
-    def test_returns_collection(self, client):
-        tc, influxdb, redis = client
-        redis.get_symbols.return_value = ["BTC/USD", "ETH/USD"]
-        influxdb.get_candles.return_value = _make_candles()
-
-        resp = tc.get("/heatmap")
-        assert resp.status_code == 200
-        body = resp.json()
-        assert len(body["data"]) > 0
-        entry = body["data"][0]["attributes"]
-        assert "symbol" in entry
-        assert "score" in entry
-        assert "label" in entry
-        assert "color" in entry
-
-    def test_empty_symbols(self, client):
-        tc, influxdb, redis = client
-        redis.get_symbols.return_value = []
-
-        resp = tc.get("/heatmap")
-        assert resp.status_code == 200
-        assert resp.json()["data"] == []
-
-    def test_color_format(self, client):
-        tc, influxdb, redis = client
-        redis.get_symbols.return_value = ["BTC/USD"]
-        influxdb.get_candles.return_value = _make_candles()
-
-        resp = tc.get("/heatmap")
-        body = resp.json()
-        color = body["data"][0]["attributes"]["color"]
-        assert color.startswith("#")
-        assert len(color) == 7
+    def test_whale_trades_not_found(self, client):
+        tc, provider = client
+        provider.get_whale_trades.return_value = None
+        resp = tc.get("/BAD%2FUSD/whale-trades")
+        assert resp.status_code == 404

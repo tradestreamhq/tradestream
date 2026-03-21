@@ -1,12 +1,11 @@
 """
-Market Sentiment Analysis REST API — RMM Level 2.
+Sentiment Analysis REST API — RMM Level 2.
 
-Provides endpoints for sentiment scores, history, divergences, and heatmaps.
-Backed by InfluxDB for candle data and Redis for symbol cache.
+Provides endpoints for market sentiment based on order book imbalance,
+trade flow, whale detection, and funding rate data.
 """
 
 import logging
-from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, FastAPI, Query
@@ -18,54 +17,24 @@ from services.rest_api_shared.responses import (
     success_response,
     validation_error,
 )
-from services.sentiment_api.engine import (
-    TIMEFRAMES,
-    SentimentResult,
-    compute_sentiment,
-    detect_divergences,
-)
+from services.sentiment_api.analyzer import SentimentAnalyzer
 from services.shared.auth import fastapi_auth_middleware
 
 logger = logging.getLogger(__name__)
 
 
-def _fetch_candles_by_timeframe(
-    influxdb_client, symbol: str, limit: int = 100
-) -> Dict[str, List[Dict[str, Any]]]:
-    """Fetch candles for all timeframes from InfluxDB."""
-    result = {}
-    for tf in TIMEFRAMES:
-        try:
-            candles = influxdb_client.get_candles(
-                symbol=symbol, timeframe=tf, start=None, limit=limit
-            )
-            if candles:
-                result[tf] = candles
-        except Exception:
-            logger.warning("Failed to fetch %s candles for %s", tf, symbol)
-    return result
+def create_app(data_provider, analyzer: Optional[SentimentAnalyzer] = None) -> FastAPI:
+    """Create the Sentiment API FastAPI application.
 
-
-def _sentiment_to_dict(result: SentimentResult) -> Dict[str, Any]:
-    """Convert SentimentResult to API-friendly dict."""
-    return {
-        "symbol": result.symbol,
-        "score": result.score,
-        "label": result.label,
-        "breakdown": asdict(result.breakdown),
-        "timeframe_scores": [
-            {
-                "timeframe": ts.timeframe,
-                "score": ts.score,
-                "breakdown": asdict(ts.breakdown),
-            }
-            for ts in result.timeframe_scores
-        ],
-    }
-
-
-def create_app(influxdb_client, redis_client) -> FastAPI:
-    """Create the Sentiment Analysis API FastAPI application."""
+    Args:
+        data_provider: Object providing market data methods:
+            - get_order_book(pair, levels) -> dict with "bids" and "asks"
+            - get_recent_trades(pair, window_seconds) -> list of trade dicts
+            - get_funding_rate(pair) -> float or None
+            - get_sentiment_history(pair, limit) -> list of snapshot dicts
+            - get_whale_trades(pair, limit, threshold) -> list of trade dicts
+        analyzer: Optional SentimentAnalyzer instance. Creates default if None.
+    """
     app = FastAPI(
         title="Sentiment Analysis API",
         version="1.0.0",
@@ -74,166 +43,93 @@ def create_app(influxdb_client, redis_client) -> FastAPI:
     )
     fastapi_auth_middleware(app)
 
+    if analyzer is None:
+        analyzer = SentimentAnalyzer()
+
     async def check_deps():
         deps = {}
         try:
-            redis_client.get_symbols()
-            deps["redis"] = "ok"
+            data_provider.health_check()
+            deps["data_provider"] = "ok"
         except Exception as e:
-            deps["redis"] = str(e)
+            deps["data_provider"] = str(e)
         return deps
 
     app.include_router(create_health_router("sentiment-api", check_deps))
 
-    router = APIRouter(tags=["Sentiment"])
+    sentiment_router = APIRouter(tags=["Sentiment"])
 
-    @router.get("")
+    @sentiment_router.get("/{pair}")
     async def get_sentiment(
-        symbol: str = Query(..., description="Trading symbol (e.g. BTC/USD)"),
+        pair: str,
+        levels: int = Query(10, ge=1, le=100, description="Order book depth levels"),
+        window: int = Query(
+            300, ge=10, le=3600, description="Trade flow window in seconds"
+        ),
     ):
-        """Get current sentiment score for a symbol with breakdown."""
-        candles_by_tf = _fetch_candles_by_timeframe(influxdb_client, symbol)
-        if not candles_by_tf:
-            return not_found("Sentiment data", symbol)
+        """Get current sentiment snapshot for a trading pair."""
+        order_book = data_provider.get_order_book(pair, levels)
+        if order_book is None:
+            return not_found("Pair", pair)
 
-        result = compute_sentiment(symbol, candles_by_tf)
-        if not result:
-            return not_found("Sentiment data", symbol)
+        bids = [
+            (float(b["price"]), float(b["size"])) for b in order_book.get("bids", [])
+        ]
+        asks = [
+            (float(a["price"]), float(a["size"])) for a in order_book.get("asks", [])
+        ]
 
-        return success_response(
-            _sentiment_to_dict(result), "sentiment", resource_id=symbol
+        trades = data_provider.get_recent_trades(pair, window)
+        funding_rate = data_provider.get_funding_rate(pair)
+
+        snapshot = analyzer.compute_snapshot(
+            pair=pair,
+            bids=bids,
+            asks=asks,
+            trades=trades,
+            funding_rate=funding_rate,
+            levels=levels,
+            window_seconds=window,
         )
 
-    @router.get("/history")
+        return success_response(
+            snapshot.to_dict(), "sentiment_snapshot", resource_id=pair
+        )
+
+    @sentiment_router.get("/{pair}/history")
     async def get_sentiment_history(
-        symbol: str = Query(..., description="Trading symbol (e.g. BTC/USD)"),
-        timeframe: str = Query(
-            "1d",
-            description="Timeframe for historical points",
-            regex="^(1h|4h|1d|1w)$",
-        ),
-        limit: int = Query(30, ge=1, le=365, description="Number of historical points"),
+        pair: str,
+        limit: int = Query(50, ge=1, le=500, description="Max snapshots to return"),
+        offset: int = Query(0, ge=0, description="Pagination offset"),
     ):
-        """Get historical sentiment scores over time.
+        """Get historical sentiment snapshots for a trading pair."""
+        history = data_provider.get_sentiment_history(pair, limit=limit, offset=offset)
+        if history is None:
+            return not_found("Pair", pair)
 
-        Computes sentiment at each candle window by sliding over historical data.
-        """
-        try:
-            candles = influxdb_client.get_candles(
-                symbol=symbol,
-                timeframe=timeframe,
-                start=None,
-                limit=limit + 35,  # Extra for indicator warm-up
-            )
-        except Exception:
-            logger.exception("Failed to fetch candles for history")
-            candles = []
+        return collection_response(
+            history,
+            "sentiment_snapshot",
+            limit=limit,
+            offset=offset,
+        )
 
-        if not candles or len(candles) < 35:
-            return not_found("Sentiment history", symbol)
-
-        history = []
-        window_size = 35  # Minimum for MACD (26+9)
-        for i in range(window_size, len(candles)):
-            window = candles[i - window_size : i + 1]
-            from services.sentiment_api.engine import (
-                _sentiment_label,
-                compute_timeframe_sentiment,
-            )
-
-            tf_result = compute_timeframe_sentiment(window)
-            if tf_result:
-                history.append(
-                    {
-                        "timestamp": candles[i].get("time", ""),
-                        "score": tf_result.score,
-                        "label": _sentiment_label(tf_result.score),
-                    }
-                )
-
-        return collection_response(history, "sentiment_history")
-
-    @router.get("/divergence")
-    async def get_divergences(
-        threshold: float = Query(
-            0.3, ge=0.0, le=1.0, description="Divergence threshold"
+    @sentiment_router.get("/{pair}/whale-trades")
+    async def get_whale_trades(
+        pair: str,
+        limit: int = Query(50, ge=1, le=500, description="Max trades to return"),
+        threshold: Optional[float] = Query(
+            None, ge=0, description="Min notional value (defaults to analyzer config)"
         ),
     ):
-        """Find symbols where price and sentiment diverge (contrarian signals)."""
-        symbols = redis_client.get_symbols()
-        if not symbols:
-            return collection_response([], "divergence")
+        """Get recent large (whale) trades for a trading pair."""
+        whale_trades = data_provider.get_whale_trades(
+            pair, limit=limit, threshold=threshold
+        )
+        if whale_trades is None:
+            return not_found("Pair", pair)
 
-        sentiment_results = []
-        price_changes: Dict[str, float] = {}
+        return collection_response(whale_trades, "whale_trade")
 
-        for symbol in symbols:
-            candles_by_tf = _fetch_candles_by_timeframe(
-                influxdb_client, symbol, limit=50
-            )
-            if not candles_by_tf:
-                continue
-
-            result = compute_sentiment(symbol, candles_by_tf)
-            if not result:
-                continue
-            sentiment_results.append(result)
-
-            # Calculate recent price change from daily candles
-            daily = candles_by_tf.get("1d", [])
-            if len(daily) >= 2 and daily[-2]["close"] != 0:
-                pct = (
-                    (daily[-1]["close"] - daily[-2]["close"]) / daily[-2]["close"]
-                ) * 100
-                price_changes[symbol] = pct
-
-        divergences = detect_divergences(sentiment_results, price_changes, threshold)
-        items = [asdict(d) for d in divergences]
-        return collection_response(items, "divergence")
-
-    @router.get("/heatmap")
-    async def get_heatmap():
-        """Get sentiment heatmap for all tracked symbols."""
-        symbols = redis_client.get_symbols()
-        if not symbols:
-            return collection_response([], "heatmap_entry")
-
-        entries = []
-        for symbol in symbols:
-            candles_by_tf = _fetch_candles_by_timeframe(
-                influxdb_client, symbol, limit=50
-            )
-            if not candles_by_tf:
-                continue
-
-            result = compute_sentiment(symbol, candles_by_tf)
-            if not result:
-                continue
-
-            entries.append(
-                {
-                    "symbol": result.symbol,
-                    "score": result.score,
-                    "label": result.label,
-                    "color": _score_to_color(result.score),
-                }
-            )
-
-        entries.sort(key=lambda e: e["score"], reverse=True)
-        return collection_response(entries, "heatmap_entry")
-
-    app.include_router(router)
+    app.include_router(sentiment_router)
     return app
-
-
-def _score_to_color(score: float) -> str:
-    """Map sentiment score to a display color."""
-    if score >= 0.6:
-        return "#00C853"  # Strong green
-    if score >= 0.2:
-        return "#69F0AE"  # Light green
-    if score > -0.2:
-        return "#FFD600"  # Yellow / neutral
-    if score > -0.6:
-        return "#FF6D00"  # Orange
-    return "#D50000"  # Red
