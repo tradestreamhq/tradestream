@@ -32,9 +32,11 @@ def _make_config() -> JanitorConfig:
 def _make_agent(mock_pg=None, mock_health=None, mock_repairer=None):
     """Helper to create a JanitorAgent with mocked dependencies."""
     config = _make_config()
-    with patch("services.janitor_agent.agent.PostgreSQLMaintenance"), patch(
-        "services.janitor_agent.agent.HealthChecker"
-    ), patch("services.janitor_agent.agent.StateRepairer"):
+    with (
+        patch("services.janitor_agent.agent.PostgreSQLMaintenance"),
+        patch("services.janitor_agent.agent.HealthChecker"),
+        patch("services.janitor_agent.agent.StateRepairer"),
+    ):
         agent = JanitorAgent(config)
     if mock_pg:
         agent._pg = mock_pg

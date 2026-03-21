@@ -3,8 +3,9 @@ Tests for the main strategy consumer application.
 """
 
 import asyncio
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from services.strategy_consumer.main import StrategyConsumerService
 
@@ -28,11 +29,14 @@ class TestStrategyConsumerService:
     @pytest.mark.asyncio
     async def test_initialize_success(self, service):
         """Test successful service initialization."""
-        with patch(
-            "services.strategy_consumer.main.PostgresClient"
-        ) as mock_postgres_class, patch(
-            "services.strategy_consumer.main.StrategyKafkaConsumer"
-        ) as mock_kafka_class:
+        with (
+            patch(
+                "services.strategy_consumer.main.PostgresClient"
+            ) as mock_postgres_class,
+            patch(
+                "services.strategy_consumer.main.StrategyKafkaConsumer"
+            ) as mock_kafka_class,
+        ):
 
             # Mock PostgreSQL client
             mock_postgres = AsyncMock()
