@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/leaderboard_api"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Leaderboard API binary exists"
+    path: "/services/leaderboard_api/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
