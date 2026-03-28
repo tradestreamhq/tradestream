@@ -3,8 +3,9 @@ Tests for the InfluxDB market client with mocked InfluxDB.
 """
 
 import datetime
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from services.market_mcp.influxdb_client import InfluxDBMarketClient
 

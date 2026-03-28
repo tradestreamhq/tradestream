@@ -3,8 +3,9 @@ Tests for the Redis market client with mocked Redis.
 """
 
 import json
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from services.market_mcp.redis_client import RedisMarketClient
 
