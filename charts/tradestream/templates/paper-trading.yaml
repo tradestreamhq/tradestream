@@ -27,20 +27,28 @@ spec:
               containerPort: {{ .Values.paperTrading.config.port }}
               protocol: TCP
           env:
+            - name: POSTGRES_HOST
+              value: {{ tpl .Values.paperTrading.database.host . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.paperTrading.database.port | quote }}
+            - name: POSTGRES_DATABASE
+              value: {{ .Values.paperTrading.database.database | quote }}
+            - name: POSTGRES_USERNAME
+              value: {{ .Values.paperTrading.database.username | quote }}
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.paperTrading.secrets.postgresPassword.name }}
-                  key: {{ .Values.paperTrading.secrets.postgresPassword.key }}
+                  name: {{ tpl .Values.paperTrading.database.passwordSecret.name . }}
+                  key: {{ .Values.paperTrading.database.passwordSecret.key }}
             - name: MCP_MARKET_URL
               value: "http://{{ include "tradestream.fullname" . }}-market-mcp:8080"
             - name: MCP_SIGNAL_URL
               value: "http://{{ include "tradestream.fullname" . }}-signal-mcp:8080"
           args:
-            - "--postgres_host={{ .Values.paperTrading.config.postgresHost }}"
-            - "--postgres_port={{ .Values.paperTrading.config.postgresPort }}"
-            - "--postgres_database={{ .Values.paperTrading.config.postgresDatabase }}"
-            - "--postgres_username={{ .Values.paperTrading.config.postgresUsername }}"
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
             - "--postgres_password=$(POSTGRES_PASSWORD)"
             - "--mcp_market_url=$(MCP_MARKET_URL)"
             - "--mcp_signal_url=$(MCP_SIGNAL_URL)"

@@ -38,8 +38,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.signalApi.database.passwordSecret.name . }}
+                  key: {{ .Values.signalApi.database.passwordSecret.key }}
             - name: API_PORT
               value: "{{ .Values.signalApi.service.port | default 8080 }}"
             - name: API_HOST

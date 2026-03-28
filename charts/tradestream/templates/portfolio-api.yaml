@@ -38,8 +38,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.portfolioApi.database.passwordSecret.name . }}
+                  key: {{ .Values.portfolioApi.database.passwordSecret.key }}
             - name: API_PORT
               value: "{{ .Values.portfolioApi.service.port | default 8080 }}"
             - name: API_HOST

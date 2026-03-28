@@ -780,12 +780,12 @@ paperTrading:
     tag: "latest"
   config:
     port: 8090
-    postgresHost: '{{ include "tradestream.fullname" . }}-postgresql'
-    postgresPort: 5432
-    postgresDatabase: "tradestream"
-    postgresUsername: "postgres"
-  secrets:
-    postgresPassword:
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
       name: '{{ include "tradestream.fullname" . }}-postgresql'
       key: "postgres-password"
   resources:
@@ -906,13 +906,15 @@ strategyRotation:
     pullPolicy: IfNotPresent
     tag: "latest"
   config:
-    postgresHost: '{{ include "tradestream.fullname" . }}-postgresql'
-    postgresPort: 5432
-    postgresDatabase: "tradestream"
     rotationIntervalSeconds: 3600
-  secrets:
-    postgresCredentials:
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
       name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
   resources:
     requests:
       cpu: "100m"
@@ -946,6 +948,14 @@ signalApi:
       memory: "512Mi"
 
 # Telegram Bot - signal delivery via Telegram
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 telegramBot:
   enabled: false
   image:
@@ -965,6 +975,14 @@ telegramBot:
       memory: "256Mi"
 
 # Billing Service - Stripe subscription management
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 billing:
   enabled: false
   replicaCount: 1
@@ -992,6 +1010,14 @@ billing:
       memory: "512Mi"
 
 # Beta Onboarding - user registration API
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 betaOnboarding:
   enabled: false
   replicaCount: 1
@@ -1011,6 +1037,14 @@ betaOnboarding:
       memory: "256Mi"
 
 # Signal Quality - signal quality scoring API
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 signalQuality:
   enabled: false
   replicaCount: 1
@@ -1030,6 +1064,14 @@ signalQuality:
       memory: "512Mi"
 
 # TradingView Integration - webhook receiver and pine script generator
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 tradingviewIntegration:
   enabled: false
   replicaCount: 1
@@ -1050,6 +1092,14 @@ tradingviewIntegration:
       memory: "512Mi"
 
 # Strategy Marketplace API - strategy marketplace and leaderboard
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 strategyMarketplaceApi:
   enabled: false
   replicaCount: 1
@@ -1070,6 +1120,14 @@ strategyMarketplaceApi:
       memory: "512Mi"
 
 # Market Data API - candle and timeseries data API
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 marketDataApi:
   enabled: false
   replicaCount: 1
@@ -1118,6 +1176,14 @@ learningEngine:
       memory: "1Gi"
 
 # Learning API - API for learning engine data access
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 learningApi:
   enabled: false
   replicaCount: 1
@@ -1138,6 +1204,14 @@ learningApi:
       memory: "512Mi"
 
 # Prediction Markets - prediction market integration for signal generation
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 predictionMarkets:
   enabled: false
   image:
@@ -1464,6 +1538,14 @@ janitorAgent:
       memory: "512Mi"
 
 # Portfolio State - portfolio state tracking with HTTP API
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 portfolioState:
   enabled: false
   replicaCount: 1
@@ -1485,6 +1567,14 @@ portfolioState:
       memory: "512Mi"
 
 # Wallet Anomaly Detector - insider trading signal detection
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 walletAnomalyDetector:
   enabled: false
   image:
@@ -1523,6 +1613,14 @@ portfolioApi:
       memory: "512Mi"
 
 # Strategy API - strategy management REST API
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 strategyApi:
   enabled: false
   replicaCount: 1
@@ -1543,6 +1641,14 @@ strategyApi:
       memory: "512Mi"
 
 # Strategy Builder API - no-code strategy builder
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 strategyBuilderApi:
   enabled: false
   replicaCount: 1
@@ -1563,6 +1669,14 @@ strategyBuilderApi:
       memory: "512Mi"
 
 # Strategy Ensemble - strategy ensemble builder
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 strategyEnsemble:
   enabled: false
   image:
@@ -1583,6 +1697,14 @@ strategyEnsemble:
       memory: "512Mi"
 
 # Strategy Time Filter - time-based strategy filtering
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 strategyTimeFilter:
   enabled: false
   image:
@@ -1601,6 +1723,14 @@ strategyTimeFilter:
       memory: "512Mi"
 
 # CoinMarketCap MCP - cryptocurrency data via MCP protocol
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 coinmarketcapMcp:
   enabled: false
   replicaCount: 1

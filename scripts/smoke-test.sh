@@ -38,7 +38,7 @@ fi
 # 3. Redis responds to PING
 echo ""
 echo "--- Redis ---"
-if docker exec tradestream-redis redis-cli -a "${REDIS_PASSWORD:-changeme}" ping 2>/dev/null | grep -q PONG; then
+if docker exec tradestream-redis redis-cli -a "${REDIS_PASSWORD:?REDIS_PASSWORD is required}" ping 2>/dev/null | grep -q PONG; then
   pass "Redis responds to PING"
 else
   fail "Redis does not respond to PING"

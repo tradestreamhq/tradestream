@@ -36,8 +36,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.learningEngine.database.passwordSecret.name . }}
+                  key: {{ .Values.learningEngine.database.passwordSecret.key }}
             - name: INSTRUMENTS
               value: "{{ .Values.learningEngine.config.instruments | default "BTC-USD,ETH-USD" }}"
             - name: INTERVAL_SECONDS

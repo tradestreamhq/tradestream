@@ -36,8 +36,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.janitorAgent.database.passwordSecret.name . }}
+                  key: {{ .Values.janitorAgent.database.passwordSecret.key }}
             - name: INFLUX_URL
               value: 'http://{{ include "tradestream.fullname" . }}-influxdb:8086'
             - name: INFLUX_ORG

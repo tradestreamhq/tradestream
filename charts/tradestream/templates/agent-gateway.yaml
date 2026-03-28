@@ -38,8 +38,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.agentGateway.database.passwordSecret.name . }}
+                  key: {{ .Values.agentGateway.database.passwordSecret.key }}
             - name: REDIS_HOST
               value: "{{ include "tradestream.fullname" . }}-redis-master"
             - name: REDIS_PORT

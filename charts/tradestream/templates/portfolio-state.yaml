@@ -38,8 +38,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.portfolioState.database.passwordSecret.name . }}
+                  key: {{ .Values.portfolioState.database.passwordSecret.key }}
             - name: MCP_MARKET_URL
               value: "http://{{ include "tradestream.fullname" . }}-market-mcp:8080"
             - name: INITIAL_CAPITAL

@@ -36,8 +36,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.strategyTimeFilter.database.passwordSecret.name . }}
+                  key: {{ .Values.strategyTimeFilter.database.passwordSecret.key }}
             - name: MAX_STRATEGY_AGE_DAYS
               value: "{{ .Values.strategyTimeFilter.config.maxStrategyAgeDays | default 365 }}"
             - name: TIME_DECAY_FACTOR

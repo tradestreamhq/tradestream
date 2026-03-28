@@ -38,8 +38,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.betaOnboarding.database.passwordSecret.name . }}
+                  key: {{ .Values.betaOnboarding.database.passwordSecret.key }}
             - name: PORT
               value: "{{ .Values.betaOnboarding.service.port | default 8091 }}"
           resources:

@@ -1,0 +1,14 @@
+## Iteration 2026-03-28
+- Implemented: P0 security fix for database credential management
+- Files changed:
+  - charts/tradestream/values.yaml (added database.passwordSecret to 16 services, standardized paper-trading and strategy-rotation)
+  - 20 Helm templates updated to reference values.yaml passwordSecret instead of hardcoding secret names
+  - docker-compose.yml (removed Redis 'changeme' default, now requires REDIS_PASSWORD env var)
+  - .env.example (removed 'changeme' default for REDIS_PASSWORD)
+  - scripts/smoke-test.sh (removed 'changeme' default)
+- Learnings:
+  - The literal 'tradestream123' was never present in the codebase
+  - All Python services already use os.environ.get("POSTGRES_PASSWORD", "") - no hardcoded passwords in Python code
+  - All Helm templates already injected POSTGRES_PASSWORD from K8s secretKeyRef, but 20 of 30 hardcoded the secret name instead of reading from values.yaml
+  - paper-trading and strategy-rotation used non-standard config patterns (secrets.postgresPassword, secrets.postgresCredentials) - migrated to standard database.passwordSecret
+  - Redis was using 'changeme' as default password in docker-compose.yml and .env.example

@@ -43,21 +43,18 @@ spec:
             periodSeconds: 10
           env:
             - name: POSTGRES_HOST
-              value: {{ tpl .Values.strategyRotation.config.postgresHost . | quote }}
+              value: {{ tpl .Values.strategyRotation.database.host . | quote }}
             - name: POSTGRES_PORT
-              value: {{ .Values.strategyRotation.config.postgresPort | quote }}
+              value: {{ .Values.strategyRotation.database.port | quote }}
             - name: POSTGRES_DATABASE
-              value: {{ .Values.strategyRotation.config.postgresDatabase | quote }}
+              value: {{ .Values.strategyRotation.database.database | quote }}
             - name: POSTGRES_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.strategyRotation.secrets.postgresCredentials.name }}
-                  key: username
+              value: {{ .Values.strategyRotation.database.username | quote }}
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.strategyRotation.secrets.postgresCredentials.name }}
-                  key: password
+                  name: {{ tpl .Values.strategyRotation.database.passwordSecret.name . }}
+                  key: {{ .Values.strategyRotation.database.passwordSecret.key }}
           args:
             - "--postgres_host=$(POSTGRES_HOST)"
             - "--postgres_port=$(POSTGRES_PORT)"

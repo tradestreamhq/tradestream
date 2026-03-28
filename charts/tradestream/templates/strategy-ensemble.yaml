@@ -36,8 +36,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.strategyEnsemble.database.passwordSecret.name . }}
+                  key: {{ .Values.strategyEnsemble.database.passwordSecret.key }}
             - name: MAX_STRATEGIES_PER_ENSEMBLE
               value: "{{ .Values.strategyEnsemble.config.maxStrategiesPerEnsemble | default 5 }}"
             - name: MIN_STRATEGIES_PER_ENSEMBLE

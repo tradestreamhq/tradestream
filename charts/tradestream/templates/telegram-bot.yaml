@@ -36,8 +36,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ include "tradestream.fullname" . }}-postgresql"
-                  key: "postgres-password"
+                  name: {{ tpl .Values.telegramBot.database.passwordSecret.name . }}
+                  key: {{ .Values.telegramBot.database.passwordSecret.key }}
             - name: TELEGRAM_BOT_TOKEN
               valueFrom:
                 secretKeyRef:
