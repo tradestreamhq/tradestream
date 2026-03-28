@@ -1,0 +1,29 @@
+[project]
+name = "market-mcp"
+version = "0.1.0"
+description = "MCP server for market data — candles, prices, volatility, and market summaries from InfluxDB and Redis"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.0.0",
+    "influxdb-client>=1.36.0",
+    "redis>=5.0.0",
+    "absl-py>=2.0.0",
+    "uvicorn>=0.24.0",
+    "starlette>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "black>=23.0",
+    "mypy>=1.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+python_files = ["*_test.py"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]

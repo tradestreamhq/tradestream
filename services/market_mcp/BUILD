@@ -72,6 +72,25 @@ py_test(
     ],
 )
 
+py_test(
+    name = "influxdb_client_test",
+    srcs = ["influxdb_client_test.py"],
+    deps = [
+        ":influxdb_client_lib",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "redis_client_test",
+    srcs = ["redis_client_test.py"],
+    deps = [
+        ":redis_client_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:redis",
+    ],
+)
+
 # --- OCI Image Rules ---
 py_image_layer(
     name = "layers",
