@@ -51,7 +51,9 @@ class TestMCPClient:
         mock_post.return_value = mock_resp
 
         client = MCPClient(urls={"strategy": "http://localhost:8080"})
-        result = client.call_tool("strategy", "get_top_strategies", {"symbol": "BTC-USD"})
+        result = client.call_tool(
+            "strategy", "get_top_strategies", {"symbol": "BTC-USD"}
+        )
 
         assert result == {"result": "ok"}
         mock_post.assert_called_once_with(

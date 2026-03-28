@@ -47,7 +47,9 @@ class TestBaseAgent:
             openrouter=MagicMock(),
             mcp=mock_mcp,
         )
-        result = agent.call_mcp_tool("strategy", "get_top_strategies", {"symbol": "BTC-USD"})
+        result = agent.call_mcp_tool(
+            "strategy", "get_top_strategies", {"symbol": "BTC-USD"}
+        )
 
         assert result == {"data": [1, 2, 3]}
         mock_mcp.call_tool.assert_called_once_with(
@@ -95,8 +97,10 @@ class TestBaseAgent:
 
     def test_default_clients_created(self):
         """When no clients are passed, defaults are constructed."""
-        with patch("services.agents.base.OpenRouterClient") as mock_or, \
-             patch("services.agents.base.MCPClient") as mock_mcp:
+        with (
+            patch("services.agents.base.OpenRouterClient") as mock_or,
+            patch("services.agents.base.MCPClient") as mock_mcp,
+        ):
             agent = ConcreteAgent("auto-agent", api_key="k", default_model="m")
             mock_or.assert_called_once_with(api_key="k", default_model="m")
             mock_mcp.assert_called_once()

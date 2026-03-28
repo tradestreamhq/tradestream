@@ -72,9 +72,7 @@ class TestOpenRouterClient:
 
     @patch("services.agents.openrouter_client.time.sleep")
     def test_retry_on_429(self, mock_sleep):
-        client = OpenRouterClient(
-            api_key="test-key", max_retries=2, initial_delay=0.1
-        )
+        client = OpenRouterClient(api_key="test-key", max_retries=2, initial_delay=0.1)
         client._client = MagicMock()
         client._client.chat.completions.create.side_effect = [
             _FakeAPIError(429),
@@ -89,9 +87,7 @@ class TestOpenRouterClient:
 
     @patch("services.agents.openrouter_client.time.sleep")
     def test_retry_on_500(self, mock_sleep):
-        client = OpenRouterClient(
-            api_key="test-key", max_retries=2, initial_delay=0.1
-        )
+        client = OpenRouterClient(api_key="test-key", max_retries=2, initial_delay=0.1)
         client._client = MagicMock()
         client._client.chat.completions.create.side_effect = [
             _FakeAPIError(500),
@@ -105,9 +101,7 @@ class TestOpenRouterClient:
 
     @patch("services.agents.openrouter_client.time.sleep")
     def test_raises_after_max_retries(self, mock_sleep):
-        client = OpenRouterClient(
-            api_key="test-key", max_retries=2, initial_delay=0.1
-        )
+        client = OpenRouterClient(api_key="test-key", max_retries=2, initial_delay=0.1)
         client._client = MagicMock()
         client._client.chat.completions.create.side_effect = _FakeAPIError(429)
 

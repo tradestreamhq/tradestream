@@ -44,9 +44,7 @@ class MCPClient:
             if urls and key in urls:
                 self._urls[key] = urls[key]
             else:
-                self._urls[key] = os.environ.get(
-                    _ENV_VARS[key], _DEFAULT_URLS[key]
-                )
+                self._urls[key] = os.environ.get(_ENV_VARS[key], _DEFAULT_URLS[key])
 
     def get_url(self, server: str) -> str:
         """Return the base URL for *server*.
@@ -56,8 +54,7 @@ class MCPClient:
         """
         if server not in self._urls:
             raise ValueError(
-                f"Unknown MCP server: {server!r}. "
-                f"Valid keys: {sorted(self._urls)}"
+                f"Unknown MCP server: {server!r}. " f"Valid keys: {sorted(self._urls)}"
             )
         return self._urls[server]
 
@@ -95,9 +92,7 @@ class MCPClient:
         # Extract text content from MCP response envelope
         if "content" in result and isinstance(result["content"], list):
             texts = [
-                c.get("text", "")
-                for c in result["content"]
-                if c.get("type") == "text"
+                c.get("text", "") for c in result["content"] if c.get("type") == "text"
             ]
             if texts:
                 combined = "\n".join(texts)
