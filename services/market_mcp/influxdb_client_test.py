@@ -82,29 +82,34 @@ class TestInfluxDBMarketClient:
             bucket="bucket",
         )
         with pytest.raises(RuntimeError, match="not established"):
-            c._query("from(bucket: \"test\")")
+            c._query('from(bucket: "test")')
 
     def test_get_candles(self, client):
         """Test get_candles returns formatted OHLCV data."""
         ts = datetime.datetime(2026, 3, 8, 12, 0, 0)
-        self._mock_query(client, [[
-            {
-                "_time": ts,
-                "open": 50000.0,
-                "high": 50100.0,
-                "low": 49900.0,
-                "close": 50050.0,
-                "volume": 1.5,
-            },
-            {
-                "_time": ts.replace(minute=1),
-                "open": 50050.0,
-                "high": 50200.0,
-                "low": 50000.0,
-                "close": 50150.0,
-                "volume": 2.0,
-            },
-        ]])
+        self._mock_query(
+            client,
+            [
+                [
+                    {
+                        "_time": ts,
+                        "open": 50000.0,
+                        "high": 50100.0,
+                        "low": 49900.0,
+                        "close": 50050.0,
+                        "volume": 1.5,
+                    },
+                    {
+                        "_time": ts.replace(minute=1),
+                        "open": 50050.0,
+                        "high": 50200.0,
+                        "low": 50000.0,
+                        "close": 50150.0,
+                        "volume": 2.0,
+                    },
+                ]
+            ],
+        )
 
         result = client.get_candles("BTC/USD", timeframe="1m", limit=100)
 
@@ -137,23 +142,36 @@ class TestInfluxDBMarketClient:
         # First call: latest candle
         # Second call: 24h records
         call_count = [0]
-        original_query = client.client.query_api.return_value.query
 
         def side_effect(flux, org=None):
             call_count[0] += 1
             if call_count[0] == 1:
                 # Latest candle
-                return [self._make_table([{
-                    "_time": ts,
-                    "close": 50050.0,
-                    "volume": 1.5,
-                }])]
+                return [
+                    self._make_table(
+                        [
+                            {
+                                "_time": ts,
+                                "close": 50050.0,
+                                "volume": 1.5,
+                            }
+                        ]
+                    )
+                ]
             else:
                 # 24h records
-                return [self._make_table([
-                    {"_time": ts.replace(hour=0), "close": 49000.0, "volume": 10.0},
-                    {"_time": ts, "close": 50050.0, "volume": 1.5},
-                ])]
+                return [
+                    self._make_table(
+                        [
+                            {
+                                "_time": ts.replace(hour=0),
+                                "close": 49000.0,
+                                "volume": 10.0,
+                            },
+                            {"_time": ts, "close": 50050.0, "volume": 1.5},
+                        ]
+                    )
+                ]
 
         client.client.query_api.return_value.query.side_effect = side_effect
 
@@ -202,14 +220,16 @@ class TestInfluxDBMarketClient:
         """Test get_market_summary returns all expected fields."""
         records = []
         for i in range(100):
-            records.append({
-                "_time": f"t{i}",
-                "open": 50000 + i,
-                "high": 50100 + i,
-                "low": 49900 + i,
-                "close": 50000 + i * 10,
-                "volume": 1.0 + i * 0.1,
-            })
+            records.append(
+                {
+                    "_time": f"t{i}",
+                    "open": 50000 + i,
+                    "high": 50100 + i,
+                    "low": 49900 + i,
+                    "close": 50000 + i * 10,
+                    "volume": 1.0 + i * 0.1,
+                }
+            )
         self._mock_query(client, [records])
 
         result = client.get_market_summary("BTC/USD")
