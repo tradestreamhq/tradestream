@@ -947,7 +947,7 @@ signalApi:
       cpu: "500m"
       memory: "512Mi"
 
-# Telegram Bot - signal delivery via Telegram
+  # Telegram Bot - signal delivery via Telegram
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -974,7 +974,7 @@ telegramBot:
       cpu: "200m"
       memory: "256Mi"
 
-# Billing Service - Stripe subscription management
+  # Billing Service - Stripe subscription management
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1009,7 +1009,7 @@ billing:
       cpu: "500m"
       memory: "512Mi"
 
-# Beta Onboarding - user registration API
+  # Beta Onboarding - user registration API
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1036,7 +1036,7 @@ betaOnboarding:
       cpu: "200m"
       memory: "256Mi"
 
-# Signal Quality - signal quality scoring API
+  # Signal Quality - signal quality scoring API
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1063,7 +1063,7 @@ signalQuality:
       cpu: "200m"
       memory: "512Mi"
 
-# TradingView Integration - webhook receiver and pine script generator
+  # TradingView Integration - webhook receiver and pine script generator
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1091,7 +1091,7 @@ tradingviewIntegration:
       cpu: "200m"
       memory: "512Mi"
 
-# Strategy Marketplace API - strategy marketplace and leaderboard
+  # Strategy Marketplace API - strategy marketplace and leaderboard
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1119,7 +1119,7 @@ strategyMarketplaceApi:
       cpu: "500m"
       memory: "512Mi"
 
-# Market Data API - candle and timeseries data API
+  # Market Data API - candle and timeseries data API
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1175,7 +1175,7 @@ learningEngine:
       cpu: "500m"
       memory: "1Gi"
 
-# Learning API - API for learning engine data access
+  # Learning API - API for learning engine data access
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1203,7 +1203,7 @@ learningApi:
       cpu: "200m"
       memory: "512Mi"
 
-# Prediction Markets - prediction market integration for signal generation
+  # Prediction Markets - prediction market integration for signal generation
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1537,7 +1537,7 @@ janitorAgent:
       cpu: "200m"
       memory: "512Mi"
 
-# Portfolio State - portfolio state tracking with HTTP API
+  # Portfolio State - portfolio state tracking with HTTP API
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1566,7 +1566,7 @@ portfolioState:
       cpu: "200m"
       memory: "512Mi"
 
-# Wallet Anomaly Detector - insider trading signal detection
+  # Wallet Anomaly Detector - insider trading signal detection
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1612,7 +1612,7 @@ portfolioApi:
       cpu: "200m"
       memory: "512Mi"
 
-# Strategy API - strategy management REST API
+  # Strategy API - strategy management REST API
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1640,7 +1640,7 @@ strategyApi:
       cpu: "200m"
       memory: "512Mi"
 
-# Strategy Builder API - no-code strategy builder
+  # Strategy Builder API - no-code strategy builder
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1668,7 +1668,7 @@ strategyBuilderApi:
       cpu: "200m"
       memory: "512Mi"
 
-# Strategy Ensemble - strategy ensemble builder
+  # Strategy Ensemble - strategy ensemble builder
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1696,7 +1696,7 @@ strategyEnsemble:
       cpu: "200m"
       memory: "512Mi"
 
-# Strategy Time Filter - time-based strategy filtering
+  # Strategy Time Filter - time-based strategy filtering
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
@@ -1722,7 +1722,7 @@ strategyTimeFilter:
       cpu: "200m"
       memory: "512Mi"
 
-# CoinMarketCap MCP - cryptocurrency data via MCP protocol
+  # CoinMarketCap MCP - cryptocurrency data via MCP protocol
   database:
     host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
