@@ -10,7 +10,6 @@ from services.paper_trading.execution_adapter import (
     TradeIntent,
 )
 
-
 NOW = datetime(2026, 6, 10, 0, 0, tzinfo=timezone.utc)
 
 

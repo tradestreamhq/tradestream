@@ -7,9 +7,8 @@ credentials, databases, or live execution APIs.
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal, Optional
-
 
 AssetClass = Literal["crypto", "equities", "forex"]
 OrderSide = Literal["buy", "sell"]
