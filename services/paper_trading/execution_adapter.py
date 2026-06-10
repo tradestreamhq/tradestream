@@ -93,7 +93,9 @@ class DeterministicPaperExecutionAdapter:
             )
 
         mid = (snapshot.best_bid + snapshot.best_ask) / Decimal("2")
-        reference_price = snapshot.best_ask if intent.side == "buy" else snapshot.best_bid
+        reference_price = (
+            snapshot.best_ask if intent.side == "buy" else snapshot.best_bid
+        )
         slippage_multiplier = snapshot.slippage_bps / Decimal("10000")
         price_delta = reference_price * slippage_multiplier
         fill_price = (
@@ -135,10 +137,15 @@ class DeterministicPaperExecutionAdapter:
             return "invalid_snapshot_price"
         if snapshot.best_bid > snapshot.best_ask:
             return "crossed_snapshot"
-        if _age_seconds(snapshot.captured_at_utc, now_utc) > self._max_snapshot_age_seconds:
+        if (
+            _age_seconds(snapshot.captured_at_utc, now_utc)
+            > self._max_snapshot_age_seconds
+        ):
             return "stale_snapshot"
 
-        reference_price = snapshot.best_ask if intent.side == "buy" else snapshot.best_bid
+        reference_price = (
+            snapshot.best_ask if intent.side == "buy" else snapshot.best_bid
+        )
         notional = reference_price * intent.quantity
         if (
             intent.max_notional_usd is not None
