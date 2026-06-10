@@ -1,8 +1,8 @@
 """Tests for deterministic paper execution primitives."""
 
+import unittest
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-import unittest
 
 from services.paper_trading.execution_adapter import (
     DeterministicPaperExecutionAdapter,
