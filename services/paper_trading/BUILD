@@ -25,6 +25,11 @@ py_library(
 )
 
 py_library(
+    name = "execution_adapter_lib",
+    srcs = ["execution_adapter.py"],
+)
+
+py_library(
     name = "service_lib",
     srcs = ["service.py"],
     deps = [
@@ -67,6 +72,14 @@ py_test(
         ":postgres_client_lib",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "execution_adapter_test",
+    srcs = ["execution_adapter_test.py"],
+    deps = [
+        ":execution_adapter_lib",
     ],
 )
 
