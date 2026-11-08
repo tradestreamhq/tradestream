@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.backtesting.cli
 
 import com.google.gson.GsonBuilder
-import com.google.inject.Guice
 import com.google.protobuf.Any
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
@@ -34,7 +33,6 @@ data class BacktestCliExecutionResult(
     val exitCode: Int,
     val stdout: String,
     val stderr: String,
-    val backtestResult: BacktestResult? = null,
 )
 
 /**
@@ -51,27 +49,21 @@ class BacktestCli(
         const val DEFAULT_STRATEGY = "SMA_RSI"
         const val DEFAULT_INSTRUMENT = "BTC/USD"
         const val DEFAULT_OUTPUT_FORMAT = "json"
-        const val DEFAULT_INITIAL_CAPITAL = 10000.0
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val injector = Guice.createInjector(Ta4jModule.create(), BacktestingModule())
-            val runner = injector.getInstance(BacktestRunner::class.java)
-            val cli = BacktestCli(runner)
-            val exitCode = cli.run(args, System.out, System.err)
+            val exitCode = createDefault().run(args, System.out, System.err)
             if (exitCode != 0) {
                 System.exit(exitCode)
             }
         }
 
         fun createDefault(): BacktestCli {
-            val injector = Guice.createInjector(Ta4jModule.create(), BacktestingModule())
+            val injector = com.google.inject.Guice.createInjector(Ta4jModule.create(), BacktestingModule())
             val runner = injector.getInstance(BacktestRunner::class.java)
             return BacktestCli(runner)
         }
     }
-
-    private var lastBacktestResult: BacktestResult? = null
 
     private fun createArgumentParser(): ArgumentParser {
         val parser =
@@ -110,12 +102,6 @@ class BacktestCli(
             .help("Optional end date/time (ISO-8601, e.g., 2024-01-05T00:00:00Z or YYYY-MM-DD)")
 
         parser
-            .addArgument("--initial-capital", "-c")
-            .type(Double::class.java)
-            .setDefault(DEFAULT_INITIAL_CAPITAL)
-            .help("Initial backtest capital (default: 10000.0)")
-
-        parser
             .addArgument("--output", "-o")
             .type(String::class.java)
             .choices("json", "text")
@@ -134,7 +120,6 @@ class BacktestCli(
      * Executes the CLI with captured stdout and stderr for testing and programmatic use.
      */
     fun execute(args: Array<String>): BacktestCliExecutionResult {
-        lastBacktestResult = null
         val outBytes = ByteArrayOutputStream()
         val errBytes = ByteArrayOutputStream()
         val outPrint = PrintStream(outBytes)
@@ -148,7 +133,6 @@ class BacktestCli(
             exitCode = exitCode,
             stdout = outBytes.toString(Charsets.UTF_8),
             stderr = errBytes.toString(Charsets.UTF_8),
-            backtestResult = lastBacktestResult,
         )
     }
 
@@ -193,14 +177,7 @@ class BacktestCli(
         val outputFormat = ns.getString("output") ?: DEFAULT_OUTPUT_FORMAT
         val startFilter = ns.getString("start")
         val endFilter = ns.getString("end")
-        val initialCapital = ns.getDouble("initial_capital") ?: DEFAULT_INITIAL_CAPITAL
         val paramsJson = ns.getString("params")
-
-        // Validate initial capital
-        if (initialCapital <= 0.0) {
-            err.println("Error: --initial-capital must be greater than 0, got $initialCapital")
-            return 2
-        }
 
         // 1. Resolve strategy
         val strategySpecPair = findStrategySpec(strategyInput)
@@ -210,7 +187,9 @@ class BacktestCli(
             StrategySpecs.getSupportedStrategyNames().take(15).forEach {
                 err.println("  - $it")
             }
-            err.println("  ... (${StrategySpecs.size() - 15} more)")
+            if (StrategySpecs.size() > 15) {
+                err.println("  ... (${StrategySpecs.size() - 15} more)")
+            }
             return 2
         }
 
@@ -293,16 +272,14 @@ class BacktestCli(
                 return 5
             }
 
-        lastBacktestResult = result
-
         // 5. Format and print output
         val periodStart = formatTimestamp(candles.first().timestamp)
         val periodEnd = formatTimestamp(candles.last().timestamp)
 
         if (outputFormat.equals("text", ignoreCase = true)) {
-            printTextSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, result)
+            printTextSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, result)
         } else {
-            printJsonSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, result)
+            printJsonSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, result)
         }
 
         return 0
@@ -365,12 +342,25 @@ class BacktestCli(
             "CSV header must contain timestamp/time, open, high, low, and close columns"
         }
 
+        val requiredCols = maxOf(timeIdx, openIdx, highIdx, lowIdx, closeIdx, volIdx) + 1
         val candles = mutableListOf<Candle>()
+        var prevMillis: Long? = null
+
         for (i in 1 until lines.size) {
             val row = lines[i].split(",").map { it.trim() }
-            if (row.size < 5) continue
+            if (row.size < requiredCols) {
+                throw IllegalArgumentException(
+                    "Malformed CSV row at line ${i + 1}: expected at least $requiredCols columns, got ${row.size}",
+                )
+            }
 
             val timestamp = parseTimestampString(row[timeIdx])
+            val currentMillis = Timestamps.toMillis(timestamp)
+            require(prevMillis == null || currentMillis > prevMillis) {
+                "CSV timestamps must be strictly increasing at line ${i + 1}"
+            }
+            prevMillis = currentMillis
+
             val open = row[openIdx].toDouble()
             val high = row[highIdx].toDouble()
             val low = row[lowIdx].toDouble()
@@ -382,7 +372,7 @@ class BacktestCli(
                     .newBuilder()
                     .setTimestamp(timestamp)
                     .setOpen(open)
-                    .setHigh(high)
+                     .setHigh(high)
                     .setLow(low)
                     .setClose(close)
                     .setVolume(volume)
@@ -416,29 +406,13 @@ class BacktestCli(
             return instant.toEpochMilli()
         } catch (_: Exception) {}
 
-        // 3. Try epoch timestamp
-        try {
-            val num = trimmed.toLong()
-            return if (num < 10_000_000_000L) num * 1000L else num
-        } catch (_: Exception) {}
-
         throw IllegalArgumentException(
             "Malformed date/time string: '$raw'. Expected ISO-8601 (e.g., 2024-01-01T00:00:00Z) or YYYY-MM-DD (e.g., 2024-01-01)",
         )
     }
 
     private fun parseTimestampString(raw: String): com.google.protobuf.Timestamp =
-        try {
-            val instant = Instant.parse(raw)
-            Timestamps.fromMillis(instant.toEpochMilli())
-        } catch (_: Exception) {
-            val num = raw.toLong()
-            if (num < 10_000_000_000L) {
-                Timestamps.fromSeconds(num)
-            } else {
-                Timestamps.fromMillis(num)
-            }
-        }
+        Timestamps.fromMillis(Instant.parse(raw.trim()).toEpochMilli())
 
     private fun formatTimestamp(ts: com.google.protobuf.Timestamp): String =
         Instant.ofEpochMilli(Timestamps.toMillis(ts)).toString()
@@ -465,18 +439,13 @@ class BacktestCli(
         }
     }
 
-    private fun round(
+    private fun roundFinite(
         value: Double,
         decimals: Int,
-    ): Double {
-        if (!value.isFinite()) return 0.0
+    ): Double? {
+        if (!value.isFinite()) return null
         val factor = 10.0.pow(decimals)
         return round(value * factor) / factor
-    }
-
-    private fun formatTradeDuration(durationBars: Double): String {
-        val rounded = round(durationBars, 1)
-        return "$rounded bars"
     }
 
     private fun printJsonSummary(
@@ -485,16 +454,8 @@ class BacktestCli(
         instrument: String,
         start: String,
         end: String,
-        initialCapital: Double,
         result: BacktestResult,
     ) {
-        val recommendation =
-            if (result.strategyScore >= 0.5 || result.cumulativeReturn > 0.0) {
-                "Strategy shows positive expectancy. Consider using."
-            } else {
-                "Strategy does not show positive expectancy. Consider optimization."
-            }
-
         val jsonMap =
             linkedMapOf(
                 "strategy" to strategyName,
@@ -506,24 +467,21 @@ class BacktestCli(
                     ),
                 "results" to
                     linkedMapOf(
-                        "initial_capital" to initialCapital,
-                        "total_return_pct" to round(result.cumulativeReturn, 2),
-                        "cumulative_return" to round(result.cumulativeReturn, 2),
-                        "annualized_return_pct" to round(result.annualizedReturn * 100.0, 2),
-                        "sharpe_ratio" to round(result.sharpeRatio, 2),
-                        "sortino_ratio" to round(result.sortinoRatio, 2),
-                        "max_drawdown_pct" to round(result.maxDrawdown * 100.0, 2),
-                        "win_rate" to round(result.winRate, 2),
-                        "profit_factor" to round(result.profitFactor, 2),
-                        "volatility" to round(result.volatility, 4),
+                        "gross_pnl_per_unit" to roundFinite(result.cumulativeReturn, 2),
+                        "annualized_return" to roundFinite(result.annualizedReturn, 4),
+                        "sharpe_ratio" to roundFinite(result.sharpeRatio, 2),
+                        "sortino_ratio" to roundFinite(result.sortinoRatio, 2),
+                        "max_drawdown" to roundFinite(result.maxDrawdown, 4),
+                        "volatility" to roundFinite(result.volatility, 4),
+                        "win_rate" to roundFinite(result.winRate, 4),
+                        "profit_factor" to roundFinite(result.profitFactor, 2),
                         "total_trades" to result.numberOfTrades,
-                        "avg_trade_duration" to formatTradeDuration(result.averageTradeDuration),
-                        "strategy_score" to round(result.strategyScore, 2),
+                        "avg_trade_duration_bars" to roundFinite(result.averageTradeDuration, 1),
+                        "strategy_score" to roundFinite(result.strategyScore, 2),
                     ),
-                "recommendation" to recommendation,
             )
 
-        val gson = GsonBuilder().setPrettyPrinting().create()
+        val gson = GsonBuilder().serializeNulls().setPrettyPrinting().create()
         out.println(gson.toJson(jsonMap))
     }
 
@@ -533,37 +491,26 @@ class BacktestCli(
         instrument: String,
         start: String,
         end: String,
-        initialCapital: Double,
         result: BacktestResult,
     ) {
-        val rec =
-            if (result.strategyScore >= 0.5 || result.cumulativeReturn > 0.0) {
-                "Strategy shows positive expectancy. Consider using."
-            } else {
-                "Strategy does not show positive expectancy. Consider optimization."
-            }
-
         out.println("==================================================")
         out.println(" TradeStream Backtest Summary")
         out.println("==================================================")
         out.println("Strategy:           $strategyName")
         out.println("Instrument:         $instrument")
         out.println("Period:             $start to $end")
-        out.println("Initial Capital:    $$initialCapital")
         out.println("--------------------------------------------------")
-        out.println("Total Return:       ${round(result.cumulativeReturn, 2)}%")
-        out.println("Annualized Return:  ${round(result.annualizedReturn * 100.0, 2)}%")
-        out.println("Sharpe Ratio:       ${round(result.sharpeRatio, 2)}")
-        out.println("Sortino Ratio:      ${round(result.sortinoRatio, 2)}")
-        out.println("Max Drawdown:       ${round(result.maxDrawdown * 100.0, 2)}%")
-        out.println("Win Rate:           ${round(result.winRate * 100.0, 2)}%")
-        out.println("Profit Factor:      ${round(result.profitFactor, 2)}")
-        out.println("Volatility:         ${round(result.volatility, 4)}")
+        out.println("Gross PnL (1 unit): ${roundFinite(result.cumulativeReturn, 2) ?: "N/A"}")
+        out.println("Annualized Return:  ${roundFinite(result.annualizedReturn, 4) ?: "N/A"}")
+        out.println("Sharpe Ratio:       ${roundFinite(result.sharpeRatio, 2) ?: "N/A"}")
+        out.println("Sortino Ratio:      ${roundFinite(result.sortinoRatio, 2) ?: "N/A"}")
+        out.println("Max Drawdown:       ${roundFinite(result.maxDrawdown, 4) ?: "N/A"}")
+        out.println("Win Rate:           ${roundFinite(result.winRate, 4) ?: "N/A"}")
+        out.println("Profit Factor:      ${roundFinite(result.profitFactor, 2) ?: "N/A"}")
+        out.println("Volatility:         ${roundFinite(result.volatility, 4) ?: "N/A"}")
         out.println("Total Trades:       ${result.numberOfTrades}")
-        out.println("Avg Trade Duration: ${formatTradeDuration(result.averageTradeDuration)}")
-        out.println("Strategy Score:     ${round(result.strategyScore, 2)}")
-        out.println("--------------------------------------------------")
-        out.println("Recommendation:     $rec")
+        out.println("Avg Trade Duration: ${roundFinite(result.averageTradeDuration, 1) ?: "N/A"} bars")
+        out.println("Strategy Score:     ${roundFinite(result.strategyScore, 2) ?: "N/A"}")
         out.println("==================================================")
     }
 }
