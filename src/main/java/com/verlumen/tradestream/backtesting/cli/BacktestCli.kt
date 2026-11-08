@@ -3,6 +3,7 @@ package com.verlumen.tradestream.backtesting.cli
 import com.google.gson.GsonBuilder
 import com.google.inject.Guice
 import com.google.protobuf.Any
+import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.backtesting.BacktestRequest
 import com.verlumen.tradestream.backtesting.BacktestResult
@@ -21,8 +22,10 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import kotlin.math.pow
-import kotlin.math.roundToInt
+import kotlin.math.round
 
 /**
  * Result returned by programmatic invocation of [BacktestCli].
@@ -68,6 +71,8 @@ class BacktestCli(
         }
     }
 
+    private var lastBacktestResult: BacktestResult? = null
+
     private fun createArgumentParser(): ArgumentParser {
         val parser =
             ArgumentParsers
@@ -97,12 +102,12 @@ class BacktestCli(
         parser
             .addArgument("--start")
             .type(String::class.java)
-            .help("Optional start date/time (ISO-8601, e.g., 2024-01-01T00:00:00Z)")
+            .help("Optional start date/time (ISO-8601, e.g., 2024-01-01T00:00:00Z or YYYY-MM-DD)")
 
         parser
             .addArgument("--end")
             .type(String::class.java)
-            .help("Optional end date/time (ISO-8601, e.g., 2024-01-05T00:00:00Z)")
+            .help("Optional end date/time (ISO-8601, e.g., 2024-01-05T00:00:00Z or YYYY-MM-DD)")
 
         parser
             .addArgument("--initial-capital", "-c")
@@ -129,6 +134,7 @@ class BacktestCli(
      * Executes the CLI with captured stdout and stderr for testing and programmatic use.
      */
     fun execute(args: Array<String>): BacktestCliExecutionResult {
+        lastBacktestResult = null
         val outBytes = ByteArrayOutputStream()
         val errBytes = ByteArrayOutputStream()
         val outPrint = PrintStream(outBytes)
@@ -142,6 +148,7 @@ class BacktestCli(
             exitCode = exitCode,
             stdout = outBytes.toString(Charsets.UTF_8),
             stderr = errBytes.toString(Charsets.UTF_8),
+            backtestResult = lastBacktestResult,
         )
     }
 
@@ -186,6 +193,14 @@ class BacktestCli(
         val outputFormat = ns.getString("output") ?: DEFAULT_OUTPUT_FORMAT
         val startFilter = ns.getString("start")
         val endFilter = ns.getString("end")
+        val initialCapital = ns.getDouble("initial_capital") ?: DEFAULT_INITIAL_CAPITAL
+        val paramsJson = ns.getString("params")
+
+        // Validate initial capital
+        if (initialCapital <= 0.0) {
+            err.println("Error: --initial-capital must be greater than 0, got $initialCapital")
+            return 2
+        }
 
         // 1. Resolve strategy
         val strategySpecPair = findStrategySpec(strategyInput)
@@ -221,19 +236,45 @@ class BacktestCli(
             return 4
         }
 
-        val candles = filterCandles(allCandles, startFilter, endFilter)
+        val candles =
+            try {
+                filterCandles(allCandles, startFilter, endFilter)
+            } catch (e: IllegalArgumentException) {
+                err.println("Error: ${e.message}")
+                return 2
+            }
+
         if (candles.isEmpty()) {
-            err.println("Error: No candles match the specified date range.")
-            return 4
+            err.println("Error: No candles match the specified date range ($startFilter to $endFilter).")
+            return 2
         }
 
-        // 3. Build BacktestRequest with existing strategy
+        // 3. Build BacktestRequest with strategy parameters
         val defaultParams = spec.strategyFactory.defaultParameters
+        val configuredParams =
+            if (paramsJson != null && paramsJson.isNotBlank()) {
+                try {
+                    val overrideBuilder = defaultParams.newBuilderForType()
+                    JsonFormat.parser().merge(paramsJson, overrideBuilder)
+                    val overrides = overrideBuilder.build()
+                    val merged = defaultParams.toBuilder()
+                    for ((field, value) in overrides.allFields) {
+                        merged.setField(field, value)
+                    }
+                    merged.build()
+                } catch (e: Exception) {
+                    err.println("Error: Invalid --params JSON for strategy '$canonicalStrategyName': ${e.message}")
+                    return 2
+                }
+            } else {
+                defaultParams
+            }
+
         val strategyProto =
             Strategy
                 .newBuilder()
                 .setStrategyName(canonicalStrategyName)
-                .setParameters(Any.pack(defaultParams))
+                .setParameters(Any.pack(configuredParams))
                 .build()
 
         val request =
@@ -252,14 +293,16 @@ class BacktestCli(
                 return 5
             }
 
+        lastBacktestResult = result
+
         // 5. Format and print output
         val periodStart = formatTimestamp(candles.first().timestamp)
         val periodEnd = formatTimestamp(candles.last().timestamp)
 
         if (outputFormat.equals("text", ignoreCase = true)) {
-            printTextSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, result)
+            printTextSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, result)
         } else {
-            printJsonSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, result)
+            printJsonSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, result)
         }
 
         return 0
@@ -350,6 +393,40 @@ class BacktestCli(
         return candles
     }
 
+    private fun parseFilterTimestamp(
+        raw: String,
+        isEndOfDay: Boolean,
+    ): Long {
+        val trimmed = raw.trim()
+
+        // 1. Try ISO-8601 Instant (e.g., 2024-01-01T00:00:00Z)
+        try {
+            return Instant.parse(trimmed).toEpochMilli()
+        } catch (_: Exception) {}
+
+        // 2. Try YYYY-MM-DD date only
+        try {
+            val localDate = LocalDate.parse(trimmed)
+            val instant =
+                if (isEndOfDay) {
+                    localDate.atTime(23, 59, 59, 999_000_000).toInstant(ZoneOffset.UTC)
+                } else {
+                    localDate.atStartOfDay(ZoneOffset.UTC).toInstant()
+                }
+            return instant.toEpochMilli()
+        } catch (_: Exception) {}
+
+        // 3. Try epoch timestamp
+        try {
+            val num = trimmed.toLong()
+            return if (num < 10_000_000_000L) num * 1000L else num
+        } catch (_: Exception) {}
+
+        throw IllegalArgumentException(
+            "Malformed date/time string: '$raw'. Expected ISO-8601 (e.g., 2024-01-01T00:00:00Z) or YYYY-MM-DD (e.g., 2024-01-01)",
+        )
+    }
+
     private fun parseTimestampString(raw: String): com.google.protobuf.Timestamp =
         try {
             val instant = Instant.parse(raw)
@@ -371,8 +448,14 @@ class BacktestCli(
         startFilter: String?,
         endFilter: String?,
     ): List<Candle> {
-        val startMillis = startFilter?.let { parseTimestampString(it).let { ts -> Timestamps.toMillis(ts) } }
-        val endMillis = endFilter?.let { parseTimestampString(it).let { ts -> Timestamps.toMillis(ts) } }
+        val startMillis = startFilter?.let { parseFilterTimestamp(it, isEndOfDay = false) }
+        val endMillis = endFilter?.let { parseFilterTimestamp(it, isEndOfDay = true) }
+
+        if (startMillis != null && endMillis != null && startMillis > endMillis) {
+            throw IllegalArgumentException(
+                "Start date ($startFilter) cannot be after end date ($endFilter)",
+            )
+        }
 
         return candles.filter { candle ->
             val millis = Timestamps.toMillis(candle.timestamp)
@@ -388,7 +471,7 @@ class BacktestCli(
     ): Double {
         if (!value.isFinite()) return 0.0
         val factor = 10.0.pow(decimals)
-        return (value * factor).roundToInt() / factor
+        return round(value * factor) / factor
     }
 
     private fun formatTradeDuration(durationBars: Double): String {
@@ -402,6 +485,7 @@ class BacktestCli(
         instrument: String,
         start: String,
         end: String,
+        initialCapital: Double,
         result: BacktestResult,
     ) {
         val recommendation =
@@ -422,7 +506,9 @@ class BacktestCli(
                     ),
                 "results" to
                     linkedMapOf(
-                        "total_return_pct" to round(result.cumulativeReturn * 100.0, 2),
+                        "initial_capital" to initialCapital,
+                        "total_return_pct" to round(result.cumulativeReturn, 2),
+                        "cumulative_return" to round(result.cumulativeReturn, 2),
                         "annualized_return_pct" to round(result.annualizedReturn * 100.0, 2),
                         "sharpe_ratio" to round(result.sharpeRatio, 2),
                         "sortino_ratio" to round(result.sortinoRatio, 2),
@@ -447,6 +533,7 @@ class BacktestCli(
         instrument: String,
         start: String,
         end: String,
+        initialCapital: Double,
         result: BacktestResult,
     ) {
         val rec =
@@ -462,8 +549,9 @@ class BacktestCli(
         out.println("Strategy:           $strategyName")
         out.println("Instrument:         $instrument")
         out.println("Period:             $start to $end")
+        out.println("Initial Capital:    $$initialCapital")
         out.println("--------------------------------------------------")
-        out.println("Total Return:       ${round(result.cumulativeReturn * 100.0, 2)}%")
+        out.println("Total Return:       ${round(result.cumulativeReturn, 2)}%")
         out.println("Annualized Return:  ${round(result.annualizedReturn * 100.0, 2)}%")
         out.println("Sharpe Ratio:       ${round(result.sharpeRatio, 2)}")
         out.println("Sortino Ratio:      ${round(result.sortinoRatio, 2)}")

@@ -307,4 +307,161 @@ class BacktestCliTest {
         assertThat(metrics.get("win_rate").asDouble).isEqualTo(0.62)
         assertThat(metrics.get("sharpe_ratio").asDouble).isEqualTo(1.85)
     }
+
+    @Test
+    fun execute_withDateRange_filtersCandlesCorrectly() {
+        // Arrange
+        val args =
+            arrayOf(
+                "--strategy",
+                "SMA_RSI",
+                "--fixtures",
+                fixtureFile.absolutePath,
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-01-01",
+            )
+
+        // Act
+        val result = cli.execute(args)
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(0)
+        val json = JsonParser.parseString(result.stdout).asJsonObject
+        val period = json.getAsJsonObject("period")
+        assertThat(period.get("start").asString).isEqualTo("2024-01-01T00:00:00Z")
+        assertThat(period.get("end").asString).isEqualTo("2024-01-01T23:00:00Z")
+        assertThat(result.backtestResult).isNotNull()
+    }
+
+    @Test
+    fun execute_withMalformedDate_returnsExitCode2() {
+        // Arrange
+        val args =
+            arrayOf(
+                "--strategy",
+                "SMA_RSI",
+                "--fixtures",
+                fixtureFile.absolutePath,
+                "--start",
+                "invalid-date-format",
+            )
+
+        // Act
+        val result = cli.execute(args)
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(2)
+        assertThat(result.stderr).contains("Malformed date/time string")
+    }
+
+    @Test
+    fun execute_withStartAfterEnd_returnsExitCode2() {
+        // Arrange
+        val args =
+            arrayOf(
+                "--strategy",
+                "SMA_RSI",
+                "--fixtures",
+                fixtureFile.absolutePath,
+                "--start",
+                "2024-01-02",
+                "--end",
+                "2024-01-01",
+            )
+
+        // Act
+        val result = cli.execute(args)
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(2)
+        assertThat(result.stderr).contains("cannot be after end date")
+    }
+
+    @Test
+    fun execute_withInitialCapital_setsCapitalInOutput() {
+        // Arrange
+        val args =
+            arrayOf(
+                "--strategy",
+                "SMA_RSI",
+                "--fixtures",
+                fixtureFile.absolutePath,
+                "--initial-capital",
+                "50000.0",
+            )
+
+        // Act
+        val result = cli.execute(args)
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(0)
+        val json = JsonParser.parseString(result.stdout).asJsonObject
+        val metrics = json.getAsJsonObject("results")
+        assertThat(metrics.get("initial_capital").asDouble).isEqualTo(50000.0)
+    }
+
+    @Test
+    fun execute_withInvalidInitialCapital_returnsExitCode2() {
+        // Arrange
+        val args =
+            arrayOf(
+                "--strategy",
+                "SMA_RSI",
+                "--fixtures",
+                fixtureFile.absolutePath,
+                "--initial-capital",
+                "0.0",
+            )
+
+        // Act
+        val result = cli.execute(args)
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(2)
+        assertThat(result.stderr).contains("must be greater than 0")
+    }
+
+    @Test
+    fun execute_withValidParamsOverride_updatesParametersAndPopulatesResult() {
+        // Arrange
+        val args =
+            arrayOf(
+                "--strategy",
+                "SMA_RSI",
+                "--fixtures",
+                fixtureFile.absolutePath,
+                "--params",
+                "{\"movingAveragePeriod\": 10, \"rsiPeriod\": 7}",
+            )
+
+        // Act
+        val result = cli.execute(args)
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(0)
+        assertThat(result.backtestResult).isNotNull()
+    }
+
+    @Test
+    fun execute_withInvalidParamsJson_returnsExitCode2() {
+        // Arrange
+        val args =
+            arrayOf(
+                "--strategy",
+                "SMA_RSI",
+                "--fixtures",
+                fixtureFile.absolutePath,
+                "--params",
+                "{\"unknownField\": 123}",
+            )
+
+        // Act
+        val result = cli.execute(args)
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(2)
+        assertThat(result.stderr).contains("Invalid --params JSON")
+    }
 }

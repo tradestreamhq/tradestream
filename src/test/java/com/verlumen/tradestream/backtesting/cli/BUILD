@@ -6,6 +6,7 @@ kt_jvm_test(
     data = [
         "//fixtures:marketdata",
     ],
+    tags = ["block-network"],
     test_class = "com.verlumen.tradestream.backtesting.cli.BacktestCliTest",
     deps = [
         "//protos:backtesting_java_proto",
