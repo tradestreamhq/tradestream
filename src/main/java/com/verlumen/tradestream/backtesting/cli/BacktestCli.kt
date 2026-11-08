@@ -71,7 +71,9 @@ class BacktestCli(
                 .newFor("tradestream backtest")
                 .build()
                 .defaultHelp(true)
-                .description("Run a backtest on historical fixture market data and print a deterministic summary.")
+                .description(
+                    "Run a 1-unit backtest on historical fixture market data and print a deterministic trade/P&L summary (--initial-capital is omitted in this first slice; all P&L figures are per 1 unit).",
+                )
 
         parser
             .addArgument("--strategy", "-s")
@@ -472,16 +474,10 @@ class BacktestCli(
                 "results" to
                     linkedMapOf(
                         "gross_pnl_per_unit" to roundFinite(result.cumulativeReturn, 2),
-                        "annualized_return" to roundFinite(result.annualizedReturn, 4),
-                        "sharpe_ratio" to roundFinite(result.sharpeRatio, 2),
-                        "sortino_ratio" to roundFinite(result.sortinoRatio, 2),
-                        "max_drawdown" to roundFinite(result.maxDrawdown, 4),
-                        "volatility" to roundFinite(result.volatility, 4),
+                        "total_trades" to result.numberOfTrades,
                         "win_rate" to roundFinite(result.winRate, 4),
                         "profit_factor" to roundFinite(result.profitFactor, 2),
-                        "total_trades" to result.numberOfTrades,
                         "avg_trade_duration_bars" to roundFinite(result.averageTradeDuration, 1),
-                        "strategy_score" to roundFinite(result.strategyScore, 2),
                     ),
             )
 
@@ -505,16 +501,10 @@ class BacktestCli(
         out.println("Period:             $start to $end")
         out.println("--------------------------------------------------")
         out.println("Gross PnL (1 unit): ${roundFinite(result.cumulativeReturn, 2) ?: "N/A"}")
-        out.println("Annualized Return:  ${roundFinite(result.annualizedReturn, 4) ?: "N/A"}")
-        out.println("Sharpe Ratio:       ${roundFinite(result.sharpeRatio, 2) ?: "N/A"}")
-        out.println("Sortino Ratio:      ${roundFinite(result.sortinoRatio, 2) ?: "N/A"}")
-        out.println("Max Drawdown:       ${roundFinite(result.maxDrawdown, 4) ?: "N/A"}")
+        out.println("Total Trades:       ${result.numberOfTrades}")
         out.println("Win Rate:           ${roundFinite(result.winRate, 4) ?: "N/A"}")
         out.println("Profit Factor:      ${roundFinite(result.profitFactor, 2) ?: "N/A"}")
-        out.println("Volatility:         ${roundFinite(result.volatility, 4) ?: "N/A"}")
-        out.println("Total Trades:       ${result.numberOfTrades}")
         out.println("Avg Trade Duration: ${roundFinite(result.averageTradeDuration, 1) ?: "N/A"} bars")
-        out.println("Strategy Score:     ${roundFinite(result.strategyScore, 2) ?: "N/A"}")
         out.println("==================================================")
     }
 }

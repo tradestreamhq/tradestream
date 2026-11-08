@@ -20,6 +20,98 @@ class BacktestCliTest {
 
     private lateinit var cli: BacktestCli
 
+    data class IndependentTrade(
+        val entryBar: Int,
+        val exitBar: Int,
+        val entryPrice: Double,
+        val exitPrice: Double,
+    ) {
+        val grossPnl: Double get() = exitPrice - entryPrice
+        val durationBars: Double get() = (exitBar - entryBar).toDouble()
+    }
+
+    private fun loadCheckedInClosePrices(): List<Double> {
+        val fixturePath = "fixtures/marketdata/btc_usd_1h.csv"
+        val runfilesDir = System.getenv("RUNFILES_DIR") ?: System.getenv("TEST_SRCDIR")
+        val file =
+            if (runfilesDir != null) {
+                val workspace = System.getenv("TEST_WORKSPACE") ?: "_main"
+                val inWorkspace = java.io.File(runfilesDir, "$workspace/$fixturePath")
+                if (inWorkspace.exists()) inWorkspace else java.io.File(runfilesDir, fixturePath)
+            } else {
+                java.io.File(fixturePath)
+            }
+        val lines = file.readLines().map { it.trim() }.filter { it.isNotEmpty() }
+        val header = lines.first().split(",").map { it.trim().lowercase() }
+        val closeIdx = header.indexOf("close")
+        return lines.drop(1).map { row -> row.split(",")[closeIdx].trim().toDouble() }
+    }
+
+    private fun computeIndependentEma(values: List<Double>, startIndex: Int, period: Int): List<Double?> {
+        val alpha = 2.0 / (period + 1)
+        val ema = ArrayList<Double?>(values.size)
+        for (i in 0 until startIndex) {
+            ema.add(null)
+        }
+        var currentEma = values[startIndex]
+        ema.add(currentEma)
+        for (i in (startIndex + 1) until values.size) {
+            currentEma = values[i] * alpha + currentEma * (1.0 - alpha)
+            ema.add(currentEma)
+        }
+        return ema
+    }
+
+    private fun computeIndependentEmaMacdTrades(closes: List<Double>): List<IndependentTrade> {
+        val ema12 = computeIndependentEma(closes, startIndex = 12, period = 12)
+        val ema26 = computeIndependentEma(closes, startIndex = 26, period = 26)
+        val macd = ArrayList<Double?>(closes.size)
+        for (i in closes.indices) {
+            val e12 = ema12[i]
+            val e26 = ema26[i]
+            if (e12 != null && e26 != null) {
+                macd.add(e12 - e26)
+            } else {
+                macd.add(null)
+            }
+        }
+        val signalValues = macd.drop(26).filterNotNull()
+        val signalEma = computeIndependentEma(signalValues, startIndex = 0, period = 9)
+        val signal = ArrayList<Double?>(closes.size)
+        for (i in 0 until 26) {
+            signal.add(null)
+        }
+        signal.addAll(signalEma)
+
+        val trades = mutableListOf<IndependentTrade>()
+        var entryBar: Int? = null
+
+        for (i in 27 until closes.size) {
+            val prevM = macd[i - 1]
+            val currM = macd[i]
+            val prevS = signal[i - 1]
+            val currS = signal[i]
+            if (prevM == null || currM == null || prevS == null || currS == null) continue
+
+            // Ta4j CrossedUpIndicatorRule requires strictly less than on prev and strictly greater on curr
+            val crossedOver = prevM < prevS && currM > currS
+            // Ta4j CrossedDownIndicatorRule requires strictly greater than on prev and strictly less on curr
+            val crossedUnder = prevM > prevS && currM < currS
+
+            if (entryBar == null) {
+                if (crossedOver) {
+                    entryBar = i
+                }
+            } else {
+                if (crossedUnder) {
+                    trades.add(IndependentTrade(entryBar, i, closes[entryBar], closes[i]))
+                    entryBar = null
+                }
+            }
+        }
+        return trades
+    }
+
     @Before
     fun setUp() {
         cli = BacktestCli.createDefault()
@@ -41,9 +133,19 @@ class BacktestCliTest {
         assertThat(period.get("end").asString).isEqualTo("2024-01-05T03:00:00Z")
 
         val results = json.getAsJsonObject("results")
-        assertThat(results.get("total_trades").asInt).isEqualTo(0)
+        assertThat(results.keySet())
+            .containsExactly(
+                "gross_pnl_per_unit",
+                "total_trades",
+                "win_rate",
+                "profit_factor",
+                "avg_trade_duration_bars",
+            )
         assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(0.0)
-        assertThat(results.get("strategy_score").asDouble).isEqualTo(0.44)
+        assertThat(results.get("total_trades").asInt).isEqualTo(0)
+        assertThat(results.get("win_rate").asDouble).isEqualTo(0.0)
+        assertThat(results.get("profit_factor").asDouble).isEqualTo(0.0)
+        assertThat(results.get("avg_trade_duration_bars").asDouble).isEqualTo(0.0)
     }
 
     @Test
@@ -71,7 +173,22 @@ class BacktestCliTest {
 
     @Test
     fun execute_withCheckedInFixtureAndEmaMacd_returnsPinnedMetrics() {
-        // Arrange
+        // Arrange - Independently derive expected trade metrics from checked-in CSV
+        val closes = loadCheckedInClosePrices()
+        val independentTrades = computeIndependentEmaMacdTrades(closes)
+        assertThat(independentTrades).hasSize(1)
+        val trade = independentTrades.first()
+        assertThat(trade.entryBar).isEqualTo(58)
+        assertThat(trade.exitBar).isEqualTo(67)
+        assertThat(trade.entryPrice).isEqualTo(44050.0)
+        assertThat(trade.exitPrice).isEqualTo(44150.0)
+        val expectedGrossPnl = 100.0
+        val expectedDurationBars = 9.0
+        val expectedTotalTrades = 1
+        val expectedWinRate = 1.0
+        assertThat(trade.grossPnl).isEqualTo(expectedGrossPnl)
+        assertThat(trade.durationBars).isEqualTo(expectedDurationBars)
+
         val args = arrayOf("--strategy", "EMA_MACD", "--output", "json")
 
         // Act - JSON output
@@ -88,17 +205,26 @@ class BacktestCliTest {
         assertThat(period.get("end").asString).isEqualTo("2024-01-05T03:00:00Z")
 
         val results = json.getAsJsonObject("results")
-        assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(100.0)
-        assertThat(results.get("annualized_return").isJsonNull).isTrue()
-        assertThat(results.get("sharpe_ratio").asDouble).isEqualTo(28282.0)
-        assertThat(results.get("sortino_ratio").asDouble).isEqualTo(496.58)
-        assertThat(results.get("max_drawdown").asDouble).isEqualTo(0.0582)
-        assertThat(results.get("volatility").asDouble).isEqualTo(0.0035)
-        assertThat(results.get("win_rate").asDouble).isEqualTo(1.0)
+        assertThat(results.keySet())
+            .containsExactly(
+                "gross_pnl_per_unit",
+                "total_trades",
+                "win_rate",
+                "profit_factor",
+                "avg_trade_duration_bars",
+            )
+        assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(expectedGrossPnl)
+        assertThat(results.get("total_trades").asInt).isEqualTo(expectedTotalTrades)
+        assertThat(results.get("win_rate").asDouble).isEqualTo(expectedWinRate)
         assertThat(results.get("profit_factor").asDouble).isEqualTo(1.0)
-        assertThat(results.get("total_trades").asInt).isEqualTo(1)
-        assertThat(results.get("avg_trade_duration_bars").asDouble).isEqualTo(9.0)
-        assertThat(results.get("strategy_score").asDouble).isEqualTo(0.94)
+        assertThat(results.get("avg_trade_duration_bars").asDouble).isEqualTo(expectedDurationBars)
+
+        assertThat(results.has("sharpe_ratio")).isFalse()
+        assertThat(results.has("sortino_ratio")).isFalse()
+        assertThat(results.has("strategy_score")).isFalse()
+        assertThat(results.has("annualized_return")).isFalse()
+        assertThat(results.has("max_drawdown")).isFalse()
+        assertThat(results.has("volatility")).isFalse()
 
         assertThat(json.has("recommendation")).isFalse()
         assertThat(results.has("total_return_pct")).isFalse()
@@ -110,18 +236,23 @@ class BacktestCliTest {
         // Assert Text output format and values
         assertThat(textResult.exitCode).isEqualTo(0)
         assertThat(textResult.stdout).contains("Gross PnL (1 unit): 100.0")
-        assertThat(textResult.stdout).contains("Annualized Return:  N/A")
-        assertThat(textResult.stdout).contains("Max Drawdown:       0.0582")
-        assertThat(textResult.stdout).contains("Win Rate:           1.0")
         assertThat(textResult.stdout).contains("Total Trades:       1")
+        assertThat(textResult.stdout).contains("Win Rate:           1.0")
+        assertThat(textResult.stdout).contains("Profit Factor:      1.0")
         assertThat(textResult.stdout).contains("Avg Trade Duration: 9.0 bars")
+        assertThat(textResult.stdout).doesNotContain("Sharpe")
+        assertThat(textResult.stdout).doesNotContain("Sortino")
+        assertThat(textResult.stdout).doesNotContain("Score")
+        assertThat(textResult.stdout).doesNotContain("Annualized")
+        assertThat(textResult.stdout).doesNotContain("Drawdown")
+        assertThat(textResult.stdout).doesNotContain("Volatility")
         assertThat(textResult.stdout).doesNotContain("%")
         assertThat(textResult.stdout).doesNotContain("Recommendation")
     }
 
     @Test
     fun execute_withCustomFakeRunner_delegatesAndMapsAllFields() {
-        // Arrange - Test with custom runner double pinning all 11 fields
+        // Arrange - Test with custom runner double pinning all 5 well-defined fields
         var requestReceived: BacktestRequest? = null
         val fakeRunner =
             object : BacktestRunner {
@@ -157,17 +288,57 @@ class BacktestCliTest {
 
         val json = JsonParser.parseString(result.stdout).asJsonObject
         val metrics = json.getAsJsonObject("results")
+        assertThat(metrics.keySet())
+            .containsExactly(
+                "gross_pnl_per_unit",
+                "total_trades",
+                "win_rate",
+                "profit_factor",
+                "avg_trade_duration_bars",
+            )
         assertThat(metrics.get("gross_pnl_per_unit").asDouble).isEqualTo(0.12)
-        assertThat(metrics.get("annualized_return").asDouble).isEqualTo(0.45)
-        assertThat(metrics.get("sharpe_ratio").asDouble).isEqualTo(1.85)
-        assertThat(metrics.get("sortino_ratio").asDouble).isEqualTo(2.1)
-        assertThat(metrics.get("max_drawdown").asDouble).isEqualTo(0.082)
-        assertThat(metrics.get("volatility").asDouble).isEqualTo(0.02)
+        assertThat(metrics.get("total_trades").asInt).isEqualTo(47)
         assertThat(metrics.get("win_rate").asDouble).isEqualTo(0.62)
         assertThat(metrics.get("profit_factor").asDouble).isEqualTo(1.95)
-        assertThat(metrics.get("total_trades").asInt).isEqualTo(47)
         assertThat(metrics.get("avg_trade_duration_bars").asDouble).isEqualTo(15.5)
-        assertThat(metrics.get("strategy_score").asDouble).isEqualTo(0.88)
+    }
+
+    @Test
+    fun execute_withNonFiniteValues_serializesAsJsonNullAndTextNA() {
+        val nonFiniteRunner =
+            object : BacktestRunner {
+                override fun runBacktest(request: BacktestRequest): BacktestResult {
+                    return BacktestResult
+                        .newBuilder()
+                        .setCumulativeReturn(Double.NaN)
+                        .setWinRate(Double.POSITIVE_INFINITY)
+                        .setProfitFactor(Double.NEGATIVE_INFINITY)
+                        .setNumberOfTrades(0)
+                        .setAverageTradeDuration(Double.NaN)
+                        .build()
+                }
+            }
+        val customCli = BacktestCli(nonFiniteRunner)
+
+        // JSON check
+        val jsonResult = customCli.execute(arrayOf("--strategy", "EMA_MACD", "--output", "json"))
+        assertThat(jsonResult.exitCode).isEqualTo(0)
+        val json = JsonParser.parseString(jsonResult.stdout).asJsonObject
+        val results = json.getAsJsonObject("results")
+        assertThat(results.get("gross_pnl_per_unit").isJsonNull).isTrue()
+        assertThat(results.get("win_rate").isJsonNull).isTrue()
+        assertThat(results.get("profit_factor").isJsonNull).isTrue()
+        assertThat(results.get("avg_trade_duration_bars").isJsonNull).isTrue()
+        assertThat(results.get("total_trades").asInt).isEqualTo(0)
+
+        // Text check
+        val textResult = customCli.execute(arrayOf("--strategy", "EMA_MACD", "--output", "text"))
+        assertThat(textResult.exitCode).isEqualTo(0)
+        assertThat(textResult.stdout).contains("Gross PnL (1 unit): N/A")
+        assertThat(textResult.stdout).contains("Win Rate:           N/A")
+        assertThat(textResult.stdout).contains("Profit Factor:      N/A")
+        assertThat(textResult.stdout).contains("Avg Trade Duration: N/A bars")
+        assertThat(textResult.stdout).contains("Total Trades:       0")
     }
 
     @Test
@@ -351,6 +522,7 @@ class BacktestCliTest {
         // Assert
         assertThat(result.exitCode).isEqualTo(0)
         assertThat(result.stdout).contains("tradestream backtest")
+        assertThat(result.stdout).contains("per 1 unit")
         assertThat(result.stdout).contains("--strategy")
         assertThat(result.stdout).contains("--fixtures")
     }
