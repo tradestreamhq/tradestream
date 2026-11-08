@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# TradeStream CLI runner
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PATH="/home/pselamy/.cache/bazel/_bazel_pselamy/install/4c167c0b8ab075cf84abeb68c85d3968/embedded_tools/jdk/bin:/home/pselamy/.local/bin:$PATH"
+
+BIN_PATH="${SCRIPT_DIR}/bazel-bin/src/main/java/com/verlumen/tradestream/backtesting/cli/backtest_cli"
+
+if [[ ! -x "${BIN_PATH}" ]]; then
+    bazel build --remote_cache= --bes_backend= //src/main/java/com/verlumen/tradestream/backtesting/cli:backtest_cli >/dev/null 2>&1
+fi
+
+exec "${BIN_PATH}" "$@"
