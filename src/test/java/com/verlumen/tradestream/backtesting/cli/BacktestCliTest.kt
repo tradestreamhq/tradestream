@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 
 @RunWith(JUnit4::class)
 class BacktestCliTest {
@@ -24,6 +23,27 @@ class BacktestCliTest {
     @Before
     fun setUp() {
         cli = BacktestCli.createDefault()
+    }
+
+    @Test
+    fun execute_withNoArgs_runsDefaultSmaRsiOnCheckedInFixture() {
+        // Act - Run with no arguments (uses defaults: SMA_RSI, BTC/USD, json, checked-in fixture)
+        val result = cli.execute(emptyArray())
+
+        // Assert
+        assertThat(result.exitCode).isEqualTo(0)
+        val json = JsonParser.parseString(result.stdout).asJsonObject
+        assertThat(json.get("strategy").asString).isEqualTo("SMA_RSI")
+        assertThat(json.get("instrument").asString).isEqualTo("BTC/USD")
+
+        val period = json.getAsJsonObject("period")
+        assertThat(period.get("start").asString).isEqualTo("2024-01-01T00:00:00Z")
+        assertThat(period.get("end").asString).isEqualTo("2024-01-05T03:00:00Z")
+
+        val results = json.getAsJsonObject("results")
+        assertThat(results.get("total_trades").asInt).isEqualTo(0)
+        assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(0.0)
+        assertThat(results.get("strategy_score").asDouble).isEqualTo(0.44)
     }
 
     @Test

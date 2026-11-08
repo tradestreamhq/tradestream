@@ -372,7 +372,7 @@ class BacktestCli(
                     .newBuilder()
                     .setTimestamp(timestamp)
                     .setOpen(open)
-                     .setHigh(high)
+                    .setHigh(high)
                     .setLow(low)
                     .setClose(close)
                     .setVolume(volume)
@@ -392,7 +392,9 @@ class BacktestCli(
         // 1. Try ISO-8601 Instant (e.g., 2024-01-01T00:00:00Z)
         try {
             return Instant.parse(trimmed).toEpochMilli()
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+            // Fall through to YYYY-MM-DD LocalDate parsing
+        }
 
         // 2. Try YYYY-MM-DD date only
         try {
@@ -404,7 +406,9 @@ class BacktestCli(
                     localDate.atStartOfDay(ZoneOffset.UTC).toInstant()
                 }
             return instant.toEpochMilli()
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+            // Handled below by IllegalArgumentException
+        }
 
         throw IllegalArgumentException(
             "Malformed date/time string: '$raw'. Expected ISO-8601 (e.g., 2024-01-01T00:00:00Z) or YYYY-MM-DD (e.g., 2024-01-01)",
