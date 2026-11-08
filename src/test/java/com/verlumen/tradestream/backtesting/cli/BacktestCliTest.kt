@@ -135,13 +135,21 @@ class BacktestCliTest {
         val results = json.getAsJsonObject("results")
         assertThat(results.keySet())
             .containsExactly(
+                "initial_capital",
+                "position_units",
                 "gross_pnl_per_unit",
+                "gross_pnl",
+                "final_capital",
                 "total_trades",
                 "win_rate",
                 "profit_factor",
                 "avg_trade_duration_bars",
             )
+        assertThat(results.get("initial_capital").asDouble).isEqualTo(10000.0)
+        assertThat(results.get("position_units").asDouble).isEqualTo(0.237248)
         assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(0.0)
+        assertThat(results.get("gross_pnl").asDouble).isEqualTo(0.0)
+        assertThat(results.get("final_capital").asDouble).isEqualTo(10000.0)
         assertThat(results.get("total_trades").asInt).isEqualTo(0)
         assertThat(results.get("win_rate").asDouble).isEqualTo(0.0)
         assertThat(results.get("profit_factor").asDouble).isEqualTo(0.0)
@@ -169,6 +177,7 @@ class BacktestCliTest {
         val json = JsonParser.parseString(run1.stdout).asJsonObject
         val results = json.getAsJsonObject("results")
         assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(100.0)
+        assertThat(results.get("gross_pnl").asDouble).isEqualTo(23.72)
     }
 
     @Test
@@ -182,12 +191,21 @@ class BacktestCliTest {
         assertThat(trade.exitBar).isEqualTo(67)
         assertThat(trade.entryPrice).isEqualTo(44050.0)
         assertThat(trade.exitPrice).isEqualTo(44150.0)
-        val expectedGrossPnl = 100.0
+        val expectedGrossPnlPerUnit = 100.0
         val expectedDurationBars = 9.0
         val expectedTotalTrades = 1
         val expectedWinRate = 1.0
-        assertThat(trade.grossPnl).isEqualTo(expectedGrossPnl)
+        assertThat(trade.grossPnl).isEqualTo(expectedGrossPnlPerUnit)
         assertThat(trade.durationBars).isEqualTo(expectedDurationBars)
+
+        // Independently derive position-sized capital and PnL metrics from initial close price (42150.0)
+        val initialClose = closes.first()
+        val expectedPositionUnits = kotlin.math.round((10000.0 / initialClose) * 1_000_000.0) / 1_000_000.0
+        val expectedGrossPnl = kotlin.math.round((10000.0 / initialClose) * trade.grossPnl * 100.0) / 100.0
+        val expectedFinalCapital = kotlin.math.round((10000.0 + (10000.0 / initialClose) * trade.grossPnl) * 100.0) / 100.0
+        assertThat(expectedPositionUnits).isEqualTo(0.237248)
+        assertThat(expectedGrossPnl).isEqualTo(23.72)
+        assertThat(expectedFinalCapital).isEqualTo(10023.72)
 
         val args = arrayOf("--strategy", "EMA_MACD", "--output", "json")
 
@@ -207,15 +225,24 @@ class BacktestCliTest {
         val results = json.getAsJsonObject("results")
         assertThat(results.keySet())
             .containsExactly(
+                "initial_capital",
+                "position_units",
                 "gross_pnl_per_unit",
+                "gross_pnl",
+                "final_capital",
                 "total_trades",
                 "win_rate",
                 "profit_factor",
                 "avg_trade_duration_bars",
             )
-        assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(expectedGrossPnl)
+        assertThat(results.get("initial_capital").asDouble).isEqualTo(10000.0)
+        assertThat(results.get("position_units").asDouble).isEqualTo(expectedPositionUnits)
+        assertThat(results.get("gross_pnl_per_unit").asDouble).isEqualTo(expectedGrossPnlPerUnit)
+        assertThat(results.get("gross_pnl").asDouble).isEqualTo(expectedGrossPnl)
+        assertThat(results.get("final_capital").asDouble).isEqualTo(expectedFinalCapital)
         assertThat(results.get("total_trades").asInt).isEqualTo(expectedTotalTrades)
         assertThat(results.get("win_rate").asDouble).isEqualTo(expectedWinRate)
+        // Profit factor 1.0 is documented as a reviewed runner snapshot
         assertThat(results.get("profit_factor").asDouble).isEqualTo(1.0)
         assertThat(results.get("avg_trade_duration_bars").asDouble).isEqualTo(expectedDurationBars)
 
@@ -228,14 +255,17 @@ class BacktestCliTest {
 
         assertThat(json.has("recommendation")).isFalse()
         assertThat(results.has("total_return_pct")).isFalse()
-        assertThat(results.has("initial_capital")).isFalse()
 
         // Act - Text output
         val textResult = cli.execute(arrayOf("--strategy", "EMA_MACD", "--output", "text"))
 
         // Assert Text output format and values
         assertThat(textResult.exitCode).isEqualTo(0)
+        assertThat(textResult.stdout).contains("Initial Capital:    10000.0")
+        assertThat(textResult.stdout).contains("Position Units:     0.237248")
         assertThat(textResult.stdout).contains("Gross PnL (1 unit): 100.0")
+        assertThat(textResult.stdout).contains("Gross PnL:          23.72")
+        assertThat(textResult.stdout).contains("Final Capital:      10023.72")
         assertThat(textResult.stdout).contains("Total Trades:       1")
         assertThat(textResult.stdout).contains("Win Rate:           1.0")
         assertThat(textResult.stdout).contains("Profit Factor:      1.0")
@@ -251,8 +281,52 @@ class BacktestCliTest {
     }
 
     @Test
+    fun execute_withDifferentInitialCapital_changesPositionSizeAndExecutionDerivedResults() {
+        // Run 1: default 10000.0 (0.237248 BTC at initial close 42150.0)
+        val res10k = cli.execute(arrayOf("--strategy", "EMA_MACD", "--output", "json", "--initial-capital", "10000"))
+        assertThat(res10k.exitCode).isEqualTo(0)
+        val json10k = JsonParser.parseString(res10k.stdout).asJsonObject.getAsJsonObject("results")
+        assertThat(json10k.get("initial_capital").asDouble).isEqualTo(10000.0)
+        assertThat(json10k.get("position_units").asDouble).isEqualTo(0.237248)
+        assertThat(json10k.get("gross_pnl_per_unit").asDouble).isEqualTo(100.0)
+        assertThat(json10k.get("gross_pnl").asDouble).isEqualTo(23.72)
+        assertThat(json10k.get("final_capital").asDouble).isEqualTo(10023.72)
+
+        // Run 2: 42150.0 (exactly 1.0 BTC at initial close 42150.0)
+        val res42k = cli.execute(arrayOf("--strategy", "EMA_MACD", "--output", "json", "--initial-capital", "42150"))
+        assertThat(res42k.exitCode).isEqualTo(0)
+        val json42k = JsonParser.parseString(res42k.stdout).asJsonObject.getAsJsonObject("results")
+        assertThat(json42k.get("initial_capital").asDouble).isEqualTo(42150.0)
+        assertThat(json42k.get("position_units").asDouble).isEqualTo(1.0)
+        assertThat(json42k.get("gross_pnl_per_unit").asDouble).isEqualTo(100.0)
+        assertThat(json42k.get("gross_pnl").asDouble).isEqualTo(100.0)
+        assertThat(json42k.get("final_capital").asDouble).isEqualTo(42250.0)
+
+        // Run 3: -c 21075 (exactly 0.5 BTC at initial close 42150.0)
+        val res21k = cli.execute(arrayOf("--strategy", "EMA_MACD", "--output", "json", "-c", "21075"))
+        assertThat(res21k.exitCode).isEqualTo(0)
+        val json21k = JsonParser.parseString(res21k.stdout).asJsonObject.getAsJsonObject("results")
+        assertThat(json21k.get("initial_capital").asDouble).isEqualTo(21075.0)
+        assertThat(json21k.get("position_units").asDouble).isEqualTo(0.5)
+        assertThat(json21k.get("gross_pnl_per_unit").asDouble).isEqualTo(100.0)
+        assertThat(json21k.get("gross_pnl").asDouble).isEqualTo(50.0)
+        assertThat(json21k.get("final_capital").asDouble).isEqualTo(21125.0)
+    }
+
+    @Test
+    fun execute_withNonPositiveInitialCapital_returnsExitCode2() {
+        val zeroRes = cli.execute(arrayOf("--strategy", "EMA_MACD", "--initial-capital", "0"))
+        assertThat(zeroRes.exitCode).isEqualTo(2)
+        assertThat(zeroRes.stderr).contains("--initial-capital must be a finite positive number")
+
+        val negRes = cli.execute(arrayOf("--strategy", "EMA_MACD", "--initial-capital", "-500"))
+        assertThat(negRes.exitCode).isEqualTo(2)
+        assertThat(negRes.stderr).contains("--initial-capital must be a finite positive number")
+    }
+
+    @Test
     fun execute_withCustomFakeRunner_delegatesAndMapsAllFields() {
-        // Arrange - Test with custom runner double pinning all 5 well-defined fields
+        // Arrange - Test with custom runner double pinning all 9 well-defined fields
         var requestReceived: BacktestRequest? = null
         val fakeRunner =
             object : BacktestRunner {
@@ -290,13 +364,21 @@ class BacktestCliTest {
         val metrics = json.getAsJsonObject("results")
         assertThat(metrics.keySet())
             .containsExactly(
+                "initial_capital",
+                "position_units",
                 "gross_pnl_per_unit",
+                "gross_pnl",
+                "final_capital",
                 "total_trades",
                 "win_rate",
                 "profit_factor",
                 "avg_trade_duration_bars",
             )
+        assertThat(metrics.get("initial_capital").asDouble).isEqualTo(10000.0)
+        assertThat(metrics.get("position_units").asDouble).isEqualTo(0.237248)
         assertThat(metrics.get("gross_pnl_per_unit").asDouble).isEqualTo(0.12)
+        assertThat(metrics.get("gross_pnl").asDouble).isEqualTo(0.03)
+        assertThat(metrics.get("final_capital").asDouble).isEqualTo(10000.03)
         assertThat(metrics.get("total_trades").asInt).isEqualTo(47)
         assertThat(metrics.get("win_rate").asDouble).isEqualTo(0.62)
         assertThat(metrics.get("profit_factor").asDouble).isEqualTo(1.95)
@@ -325,7 +407,11 @@ class BacktestCliTest {
         assertThat(jsonResult.exitCode).isEqualTo(0)
         val json = JsonParser.parseString(jsonResult.stdout).asJsonObject
         val results = json.getAsJsonObject("results")
+        assertThat(results.get("initial_capital").asDouble).isEqualTo(10000.0)
+        assertThat(results.get("position_units").asDouble).isEqualTo(0.237248)
         assertThat(results.get("gross_pnl_per_unit").isJsonNull).isTrue()
+        assertThat(results.get("gross_pnl").isJsonNull).isTrue()
+        assertThat(results.get("final_capital").isJsonNull).isTrue()
         assertThat(results.get("win_rate").isJsonNull).isTrue()
         assertThat(results.get("profit_factor").isJsonNull).isTrue()
         assertThat(results.get("avg_trade_duration_bars").isJsonNull).isTrue()
@@ -334,7 +420,11 @@ class BacktestCliTest {
         // Text check
         val textResult = customCli.execute(arrayOf("--strategy", "EMA_MACD", "--output", "text"))
         assertThat(textResult.exitCode).isEqualTo(0)
+        assertThat(textResult.stdout).contains("Initial Capital:    10000.0")
+        assertThat(textResult.stdout).contains("Position Units:     0.237248")
         assertThat(textResult.stdout).contains("Gross PnL (1 unit): N/A")
+        assertThat(textResult.stdout).contains("Gross PnL:          N/A")
+        assertThat(textResult.stdout).contains("Final Capital:      N/A")
         assertThat(textResult.stdout).contains("Win Rate:           N/A")
         assertThat(textResult.stdout).contains("Profit Factor:      N/A")
         assertThat(textResult.stdout).contains("Avg Trade Duration: N/A bars")
@@ -522,7 +612,7 @@ class BacktestCliTest {
         // Assert
         assertThat(result.exitCode).isEqualTo(0)
         assertThat(result.stdout).contains("tradestream backtest")
-        assertThat(result.stdout).contains("per 1 unit")
+        assertThat(result.stdout).contains("--initial-capital")
         assertThat(result.stdout).contains("--strategy")
         assertThat(result.stdout).contains("--fixtures")
     }

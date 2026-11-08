@@ -49,6 +49,7 @@ class BacktestCli(
         const val DEFAULT_STRATEGY = "SMA_RSI"
         const val DEFAULT_INSTRUMENT = "BTC/USD"
         const val DEFAULT_OUTPUT_FORMAT = "json"
+        const val DEFAULT_INITIAL_CAPITAL = 10000.0
 
         @JvmStatic
         fun main(args: Array<String>) {
@@ -72,7 +73,7 @@ class BacktestCli(
                 .build()
                 .defaultHelp(true)
                 .description(
-                    "Run a 1-unit backtest on historical fixture market data and print a deterministic trade/P&L summary (--initial-capital is omitted in this first slice; all P&L figures are per 1 unit).",
+                    "Run a backtest on historical fixture market data and print a deterministic trade/P&L summary.",
                 )
 
         parser
@@ -86,6 +87,12 @@ class BacktestCli(
             .type(String::class.java)
             .setDefault(DEFAULT_INSTRUMENT)
             .help("Trading pair / instrument symbol (e.g., BTC/USD)")
+
+        parser
+            .addArgument("--initial-capital", "-c")
+            .type(Double::class.java)
+            .setDefault(DEFAULT_INITIAL_CAPITAL)
+            .help("Initial capital in quote currency used to size the position (default: 10000.0)")
 
         parser
             .addArgument("--fixtures", "-f")
@@ -175,6 +182,11 @@ class BacktestCli(
 
         val strategyInput = ns.getString("strategy") ?: DEFAULT_STRATEGY
         val instrument = ns.getString("instrument") ?: DEFAULT_INSTRUMENT
+        val initialCapital = ns.getDouble("initial_capital") ?: DEFAULT_INITIAL_CAPITAL
+        if (!initialCapital.isFinite() || initialCapital <= 0.0) {
+            err.println("Error: --initial-capital must be a finite positive number, got $initialCapital")
+            return 2
+        }
         val fixturesPath = ns.getString("fixtures") ?: DEFAULT_FIXTURE_PATH
         val outputFormat = ns.getString("output") ?: DEFAULT_OUTPUT_FORMAT
         val startFilter = ns.getString("start")
@@ -277,11 +289,12 @@ class BacktestCli(
         // 5. Format and print output
         val periodStart = formatTimestamp(candles.first().timestamp)
         val periodEnd = formatTimestamp(candles.last().timestamp)
+        val initialClose = candles.first().close
 
         if (outputFormat.equals("text", ignoreCase = true)) {
-            printTextSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, result)
+            printTextSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, initialClose, result)
         } else {
-            printJsonSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, result)
+            printJsonSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, initialClose, result)
         }
 
         return 0
@@ -368,6 +381,15 @@ class BacktestCli(
             val low = row[lowIdx].toDouble()
             val close = row[closeIdx].toDouble()
             val volume = if (volIdx >= 0 && volIdx < row.size) row[volIdx].toDouble() else 0.0
+
+            require(
+                open.isFinite() && open > 0.0 &&
+                    high.isFinite() && high > 0.0 &&
+                    low.isFinite() && low > 0.0 &&
+                    close.isFinite() && close > 0.0,
+            ) {
+                "CSV OHLC prices must be finite positive numbers at line ${i + 1}"
+            }
 
             candles.add(
                 Candle
@@ -460,8 +482,15 @@ class BacktestCli(
         instrument: String,
         start: String,
         end: String,
+        initialCapital: Double,
+        initialClose: Double,
         result: BacktestResult,
     ) {
+        val positionUnits = initialCapital / initialClose
+        val grossPnlPerUnit = result.cumulativeReturn
+        val grossPnl = positionUnits * grossPnlPerUnit
+        val finalCapital = initialCapital + grossPnl
+
         val jsonMap =
             linkedMapOf(
                 "strategy" to strategyName,
@@ -473,7 +502,11 @@ class BacktestCli(
                     ),
                 "results" to
                     linkedMapOf(
-                        "gross_pnl_per_unit" to roundFinite(result.cumulativeReturn, 2),
+                        "initial_capital" to roundFinite(initialCapital, 2),
+                        "position_units" to roundFinite(positionUnits, 6),
+                        "gross_pnl_per_unit" to roundFinite(grossPnlPerUnit, 2),
+                        "gross_pnl" to roundFinite(grossPnl, 2),
+                        "final_capital" to roundFinite(finalCapital, 2),
                         "total_trades" to result.numberOfTrades,
                         "win_rate" to roundFinite(result.winRate, 4),
                         "profit_factor" to roundFinite(result.profitFactor, 2),
@@ -491,8 +524,15 @@ class BacktestCli(
         instrument: String,
         start: String,
         end: String,
+        initialCapital: Double,
+        initialClose: Double,
         result: BacktestResult,
     ) {
+        val positionUnits = initialCapital / initialClose
+        val grossPnlPerUnit = result.cumulativeReturn
+        val grossPnl = positionUnits * grossPnlPerUnit
+        val finalCapital = initialCapital + grossPnl
+
         out.println("==================================================")
         out.println(" TradeStream Backtest Summary")
         out.println("==================================================")
@@ -500,7 +540,11 @@ class BacktestCli(
         out.println("Instrument:         $instrument")
         out.println("Period:             $start to $end")
         out.println("--------------------------------------------------")
-        out.println("Gross PnL (1 unit): ${roundFinite(result.cumulativeReturn, 2) ?: "N/A"}")
+        out.println("Initial Capital:    ${roundFinite(initialCapital, 2) ?: "N/A"}")
+        out.println("Position Units:     ${roundFinite(positionUnits, 6) ?: "N/A"}")
+        out.println("Gross PnL (1 unit): ${roundFinite(grossPnlPerUnit, 2) ?: "N/A"}")
+        out.println("Gross PnL:          ${roundFinite(grossPnl, 2) ?: "N/A"}")
+        out.println("Final Capital:      ${roundFinite(finalCapital, 2) ?: "N/A"}")
         out.println("Total Trades:       ${result.numberOfTrades}")
         out.println("Win Rate:           ${roundFinite(result.winRate, 4) ?: "N/A"}")
         out.println("Profit Factor:      ${roundFinite(result.profitFactor, 2) ?: "N/A"}")
