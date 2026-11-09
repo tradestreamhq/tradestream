@@ -61,6 +61,40 @@ class BacktestCliTest {
         }
     }
 
+    internal fun hasCrossedUp(
+        macd: List<Double?>,
+        signal: List<Double?>,
+        index: Int,
+    ): Boolean {
+        val currM = macd.getOrNull(index) ?: return false
+        val currS = signal.getOrNull(index) ?: return false
+        if (currM <= currS) return false
+        for (prevIdx in (index - 1) downTo 0) {
+            val pM = macd.getOrNull(prevIdx) ?: break
+            val pS = signal.getOrNull(prevIdx) ?: break
+            if (pM < pS) return true
+            if (pM > pS) break
+        }
+        return false
+    }
+
+    internal fun hasCrossedDown(
+        macd: List<Double?>,
+        signal: List<Double?>,
+        index: Int,
+    ): Boolean {
+        val currM = macd.getOrNull(index) ?: return false
+        val currS = signal.getOrNull(index) ?: return false
+        if (currM >= currS) return false
+        for (prevIdx in (index - 1) downTo 0) {
+            val pM = macd.getOrNull(prevIdx) ?: break
+            val pS = signal.getOrNull(prevIdx) ?: break
+            if (pM > pS) return true
+            if (pM < pS) break
+        }
+        return false
+    }
+
     /**
      * Independently computes EMA(shortPeriod)/EMA(longPeriod) MACD crossover trades matching ta4j's
      * org.ta4j:ta4j-core:0.22.0 convention:
@@ -102,49 +136,41 @@ class BacktestCliTest {
         var entryBar: Int? = null
 
         for (i in (longPeriod + 1) until closes.size) {
-            val currM = macd[i] ?: continue
-            val currS = signal[i] ?: continue
-
-            var crossedOver = false
-            if (currM > currS) {
-                for (prevIdx in (i - 1) downTo 0) {
-                    val pM = macd[prevIdx] ?: break
-                    val pS = signal[prevIdx] ?: break
-                    if (pM < pS) {
-                        crossedOver = true
-                        break
-                    } else if (pM > pS) {
-                        break
-                    }
-                }
-            }
-
-            var crossedUnder = false
-            if (currM < currS) {
-                for (prevIdx in (i - 1) downTo 0) {
-                    val pM = macd[prevIdx] ?: break
-                    val pS = signal[prevIdx] ?: break
-                    if (pM > pS) {
-                        crossedUnder = true
-                        break
-                    } else if (pM < pS) {
-                        break
-                    }
-                }
-            }
-
             if (entryBar == null) {
-                if (crossedOver) {
+                if (hasCrossedUp(macd, signal, i)) {
                     entryBar = i
                 }
             } else {
-                if (crossedUnder) {
+                if (hasCrossedDown(macd, signal, i)) {
                     trades.add(IndependentTrade(entryBar, i, closes[entryBar], closes[i]))
                     entryBar = null
                 }
             }
         }
         return trades
+    }
+
+    @Test
+    fun independentEmaMacdOracle_handlesEqualityPlateaus() {
+        val signal = listOf(2.0, 2.0, 2.0)
+
+        // below -> equal -> above: hasCrossedUp is false at index 1 and true at index 2
+        val belowEqualAbove = listOf(1.0, 2.0, 3.0)
+        assertThat(hasCrossedUp(belowEqualAbove, signal, 1)).isFalse()
+        assertThat(hasCrossedUp(belowEqualAbove, signal, 2)).isTrue()
+
+        // above -> equal -> above: hasCrossedUp is false at index 2 (touch-and-rebound negative control)
+        val aboveEqualAbove = listOf(3.0, 2.0, 3.0)
+        assertThat(hasCrossedUp(aboveEqualAbove, signal, 2)).isFalse()
+
+        // above -> equal -> below: hasCrossedDown is false at index 1 and true at index 2
+        val aboveEqualBelow = listOf(3.0, 2.0, 1.0)
+        assertThat(hasCrossedDown(aboveEqualBelow, signal, 1)).isFalse()
+        assertThat(hasCrossedDown(aboveEqualBelow, signal, 2)).isTrue()
+
+        // below -> equal -> below: hasCrossedDown is false at index 2 (touch-and-rebound negative control)
+        val belowEqualBelow = listOf(1.0, 2.0, 1.0)
+        assertThat(hasCrossedDown(belowEqualBelow, signal, 2)).isFalse()
     }
 
     @Before
@@ -381,17 +407,26 @@ class BacktestCliTest {
         val grossPnlPerUnit = kotlin.math.round(defaultTrades.sumOf { it.grossPnl } * 100.0) / 100.0
         val expectedGrossPnl = kotlin.math.round(expectedPositionUnits * grossPnlPerUnit * 100.0) / 100.0
         val expectedFinalCapital = kotlin.math.round((10000.0 + expectedGrossPnl) * 100.0) / 100.0
+        val expectedWinRate = kotlin.math.round((wins.size.toDouble() / defaultTrades.size) * 10000.0) / 10000.0
+        val expectedDurationBars = kotlin.math.round(defaultTrades.map { it.durationBars }.average() * 10.0) / 10.0
+
+        assertThat(expectedPositionUnits).isEqualTo(100.0)
+        assertThat(grossPnlPerUnit).isEqualTo(60.44)
+        assertThat(expectedGrossPnl).isEqualTo(6044.0)
+        assertThat(expectedFinalCapital).isEqualTo(16044.0)
+        assertThat(expectedWinRate).isEqualTo(0.6667)
+        assertThat(expectedDurationBars).isEqualTo(16.7)
 
         assertThat(metrics.get("initial_capital").asDouble).isEqualTo(10000.0)
         assertThat(metrics.get("position_units").asDouble).isEqualTo(expectedPositionUnits)
-        assertThat(metrics.get("gross_pnl_per_unit").asDouble).isEqualTo(60.44)
-        assertThat(metrics.get("gross_pnl").asDouble).isEqualTo(6044.0)
+        assertThat(metrics.get("gross_pnl_per_unit").asDouble).isEqualTo(grossPnlPerUnit)
+        assertThat(metrics.get("gross_pnl").asDouble).isEqualTo(expectedGrossPnl)
         assertThat(metrics.get("final_capital").asDouble).isEqualTo(expectedFinalCapital)
-        assertThat(metrics.get("total_trades").asInt).isEqualTo(3)
-        assertThat(metrics.get("win_rate").asDouble).isEqualTo(0.6667)
+        assertThat(metrics.get("total_trades").asInt).isEqualTo(defaultTrades.size)
+        assertThat(metrics.get("win_rate").asDouble).isEqualTo(expectedWinRate)
         assertThat(metrics.get("profit_factor").asDouble).isEqualTo(expectedProfitFactor)
         assertThat(metrics.get("profit_factor").asDouble).isNotEqualTo(oldTa4jRatioOfAverages)
-        assertThat(metrics.get("avg_trade_duration_bars").asDouble).isEqualTo(16.7)
+        assertThat(metrics.get("avg_trade_duration_bars").asDouble).isEqualTo(expectedDurationBars)
     }
 
     @Test
@@ -440,7 +475,7 @@ class BacktestCliTest {
 
     @Test
     fun execute_withCustomFakeRunner_delegatesAndMapsAllFields() {
-        // Arrange - Test with custom runner double pinning all 8 well-defined fields
+        // Arrange - Test with custom runner double pinning all 9 well-defined fields
         var requestReceived: BacktestRequest? = null
         val fakeRunner =
             object : BacktestRunner {
@@ -509,7 +544,7 @@ class BacktestCliTest {
                         .setCumulativeReturn(Double.NaN)
                         .setWinRate(Double.POSITIVE_INFINITY)
                         .setProfitFactor(Double.NEGATIVE_INFINITY)
-                        .setNumberOfTrades(0)
+                        .setNumberOfTrades(5)
                         .setAverageTradeDuration(Double.NaN)
                         .build()
                 }
@@ -540,7 +575,7 @@ class BacktestCliTest {
         assertThat(results.get("win_rate").isJsonNull).isTrue()
         assertThat(results.get("profit_factor").isJsonNull).isTrue()
         assertThat(results.get("avg_trade_duration_bars").isJsonNull).isTrue()
-        assertThat(results.get("total_trades").asInt).isEqualTo(0)
+        assertThat(results.get("total_trades").asInt).isEqualTo(5)
     }
 
     @Test
@@ -663,6 +698,8 @@ class BacktestCliTest {
         assertThat(normalizedStdout).contains("closed-trade gross P&L only")
         assertThat(normalizedStdout).contains("no open-position valuation")
         assertThat(normalizedStdout).contains("no compounding")
+        assertThat(normalizedStdout).contains("profit_factor (gross_profit / |gross_loss|)")
+        assertThat(normalizedStdout).contains("avg_trade_duration_bars are null when undefined")
     }
 
     @Test

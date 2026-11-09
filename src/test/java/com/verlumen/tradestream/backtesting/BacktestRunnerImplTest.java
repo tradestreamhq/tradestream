@@ -204,6 +204,30 @@ public class BacktestRunnerImplTest {
     double expectedGrossLoss = 2.20;
     double expectedProfitFactor = expectedGrossProfit / expectedGrossLoss;
     assertThat(result.getProfitFactor()).isWithin(1e-9).of(expectedProfitFactor);
+    assertThat(result.getCumulativeReturn()).isWithin(1e-9).of(expectedGrossProfit - expectedGrossLoss);
+  }
+
+  @Test
+  public void runBacktest_withLosingTradeAndZeroWins_returnsZeroProfitFactor()
+      throws InvalidProtocolBufferException {
+    // Arrange - Deterministic series producing 1 losing closed trade and 0 wins
+    addDeterministicLosingBars();
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isAtLeast(1);
+    assertThat(result.getWinRate()).isEqualTo(0.0);
+    assertThat(result.getCumulativeReturn()).isLessThan(0.0);
+    assertThat(result.getProfitFactor()).isEqualTo(0.0);
+    assertThat(Double.isFinite(result.getStrategyScore())).isTrue();
   }
 
   @Test
@@ -326,6 +350,22 @@ public class BacktestRunnerImplTest {
     addRamp(prices, 100.0, 145.0, 15);
     addRamp(prices, 145.0, 135.0, 15);
     for (int i = 0; i < 15; i++) prices.add(135.0);
+
+    for (int i = 0; i < prices.size(); i++) {
+      candlesList.add(createCandle(fixedStartTime.plusHours(i), prices.get(i)));
+    }
+  }
+
+  private void addDeterministicLosingBars() {
+    candlesList.clear();
+    ZonedDateTime fixedStartTime = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    List<Double> prices = new ArrayList<>();
+    for (int i = 0; i < 27; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 95.0, 8);
+    for (int i = 0; i < 5; i++) prices.add(95.0);
+    addRamp(prices, 95.0, 103.0, 8);
+    addRamp(prices, 103.0, 80.0, 15);
+    for (int i = 0; i < 20; i++) prices.add(80.0);
 
     for (int i = 0; i < prices.size(); i++) {
       candlesList.add(createCandle(fixedStartTime.plusHours(i), prices.get(i)));
