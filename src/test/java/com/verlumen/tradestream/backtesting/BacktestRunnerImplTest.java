@@ -157,8 +157,80 @@ public class BacktestRunnerImplTest {
     assertThat(result.getWinRate()).isEqualTo(0.0);
     assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
     assertThat(result.getCumulativeReturn()).isEqualTo(0.0);
+    assertThat(result.getVolatility()).isGreaterThan(0.0);
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    double legacyGrossProfitLossRatio = 0.0;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
+  }
+
+  @Test
+  public void runBacktest_withFlatBarsAndNoTrades_returnsExactLegacyScore()
+      throws InvalidProtocolBufferException {
+    // Arrange - Flat prices that won't trigger trades
+    candlesList.clear();
+    double basePrice = 100.0;
+    for (int i = 0; i < 25; i++) {
+      candlesList.add(createCandle(startTime.plusMinutes(i), basePrice));
+    }
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("SMA_RSI"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isEqualTo(0);
+    assertThat(result.getWinRate()).isEqualTo(0.0);
+    assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
+    assertThat(result.getCumulativeReturn()).isEqualTo(0.0);
     assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
     assertThat(result.getStrategyScore()).isWithin(1e-9).of(0.5333333333333333);
+  }
+
+  @Test
+  public void runBacktest_withExtremePriceJump_propagatesNanIntoStrategyScore()
+      throws InvalidProtocolBufferException {
+    // Arrange - 30 finite positive candles where bar 0 has price 1e-310 and bars 1..29 have price 1.0
+    candlesList.clear();
+    candlesList.add(createCandle(startTime, 1e-310));
+    for (int i = 1; i < 30; i++) {
+      candlesList.add(createCandle(startTime.plusMinutes(i), 1.0));
+    }
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(Double.isNaN(result.getVolatility())).isTrue();
+    assertThat(Double.isNaN(result.getSharpeRatio())).isTrue();
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    assertThat(Double.isNaN(result.getStrategyScore())).isTrue();
+    assertThat(
+            Double.isNaN(
+                calculateExpectedLegacyScore(
+                    result.getSharpeRatio(),
+                    result.getMaxDrawdown(),
+                    result.getWinRate(),
+                    result.getAnnualizedReturn(),
+                    0.0)))
+        .isTrue();
   }
 
   @Test
@@ -335,13 +407,14 @@ public class BacktestRunnerImplTest {
     }
   }
 
-  // Create stable data that won't trigger trades (flat bars)
+  // Create stable data that won't trigger trades
   private void addTestBarsForNoTrades() {
     candlesList.clear();
     double basePrice = 100.0;
-    // Flat prices that won't trigger trades
+    // Very stable prices with minimal variation
     for (int i = 0; i < 25; i++) {
-      candlesList.add(createCandle(startTime.plusMinutes(i), basePrice));
+      double price = basePrice + (Math.sin(i * 0.1) * 0.5); // Tiny oscillation
+      candlesList.add(createCandle(startTime.plusMinutes(i), price));
     }
   }
 
@@ -419,13 +492,11 @@ public class BacktestRunnerImplTest {
   }
 
   private static double normalizeLegacy(double value) {
-    if (Double.isNaN(value)) return 0.0;
-    if (value == Double.POSITIVE_INFINITY) return 1.0;
-    if (value == Double.NEGATIVE_INFINITY) return 0.0;
+    if (Double.isNaN(value)) return Double.NaN;
     double min = -1.0;
     double max = 2.0;
-    double clamped = Math.min(Math.max(value, min), max);
-    return (clamped - min) / (max - min);
+    double scaled = (value - min) / (max - min);
+    return Math.min(Math.max(scaled, 0.0), 1.0);
   }
 
   private static double calculateExpectedLegacyScore(

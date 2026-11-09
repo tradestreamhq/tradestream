@@ -250,7 +250,7 @@ class BacktestRunnerImpl
                 positions
                     .filter { it.grossProfit.isNegative }
                     .sumOf { kotlin.math.abs(it.grossProfit.doubleValue()) }
-            return if (positions.isEmpty() || grossLoss == 0.0) {
+            return if (grossLoss == 0.0) {
                 Double.NaN
             } else {
                 grossProfit / grossLoss
@@ -271,13 +271,9 @@ class BacktestRunnerImpl
                 0.15 * normalize(profitFactor) // Profit efficiency
 
         private fun normalize(value: Double): Double {
-            if (value.isNaN()) return 0.0
-            if (value == Double.POSITIVE_INFINITY) return 1.0
-            if (value == Double.NEGATIVE_INFINITY) return 0.0
             // Simple min-max normalization with reasonable bounds
             val min = -1.0
             val max = 2.0
-            val clamped = minOf(maxOf(value, min), max)
-            return (clamped - min) / (max - min)
+            return ((value - min) / (max - min)).coerceIn(0.0, 1.0)
         }
     }
