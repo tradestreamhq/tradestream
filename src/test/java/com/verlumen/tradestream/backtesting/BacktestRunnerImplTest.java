@@ -14,6 +14,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategySpecs;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,6 +157,177 @@ public class BacktestRunnerImplTest {
     assertThat(result.getWinRate()).isEqualTo(0.0);
     assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
     assertThat(result.getCumulativeReturn()).isEqualTo(0.0);
+    assertThat(result.getVolatility()).isGreaterThan(0.0);
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    double legacyGrossProfitLossRatio = 0.0;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
+  }
+
+  @Test
+  public void runBacktest_withFlatBarsAndNoTrades_returnsExactLegacyScore()
+      throws InvalidProtocolBufferException {
+    // Arrange - Flat prices that won't trigger trades
+    candlesList.clear();
+    double basePrice = 100.0;
+    for (int i = 0; i < 25; i++) {
+      candlesList.add(createCandle(startTime.plusMinutes(i), basePrice));
+    }
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("SMA_RSI"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isEqualTo(0);
+    assertThat(result.getWinRate()).isEqualTo(0.0);
+    assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
+    assertThat(result.getCumulativeReturn()).isEqualTo(0.0);
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(0.5333333333333333);
+  }
+
+  @Test
+  public void runBacktest_withExtremePriceJump_propagatesNanIntoStrategyScore()
+      throws InvalidProtocolBufferException {
+    // Arrange - 30 finite positive candles where bar 0 has price 1e-310 and bars 1..29 have price 1.0
+    candlesList.clear();
+    candlesList.add(createCandle(startTime, 1e-310));
+    for (int i = 1; i < 30; i++) {
+      candlesList.add(createCandle(startTime.plusMinutes(i), 1.0));
+    }
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(Double.isNaN(result.getVolatility())).isTrue();
+    assertThat(Double.isNaN(result.getSharpeRatio())).isTrue();
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    assertThat(Double.isNaN(result.getStrategyScore())).isTrue();
+    assertThat(
+            Double.isNaN(
+                calculateExpectedLegacyScore(
+                    result.getSharpeRatio(),
+                    result.getMaxDrawdown(),
+                    result.getWinRate(),
+                    result.getAnnualizedReturn(),
+                    0.0)))
+        .isTrue();
+  }
+
+  @Test
+  public void runBacktest_withWinningTradeAndZeroLosses_returnsNanProfitFactor()
+      throws InvalidProtocolBufferException {
+    // Arrange - Deterministic series producing 1 winning closed trade and 0 losses
+    addDeterministicWinningBars();
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isAtLeast(1);
+    assertThat(result.getCumulativeReturn()).isGreaterThan(0.0);
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    assertThat(result.getAnnualizedReturn()).isEqualTo(Double.POSITIVE_INFINITY);
+    double legacyGrossProfitLossRatio = 1.0;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
+  }
+
+  @Test
+  public void runBacktest_withMixedWinningAndLosingTrades_calculatesGrossProfitOverGrossLoss()
+      throws InvalidProtocolBufferException {
+    // Arrange - Deterministic series producing 2 winning closed trades and 1 losing closed trade
+    addDeterministicMultiTradeBars();
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isEqualTo(3);
+    assertThat(result.getWinRate()).isWithin(1e-4).of(2.0 / 3.0);
+    double expectedGrossProfit = 62.64;
+    double expectedGrossLoss = 2.20;
+    double expectedProfitFactor = expectedGrossProfit / expectedGrossLoss;
+    assertThat(result.getProfitFactor()).isWithin(1e-9).of(expectedProfitFactor);
+    assertThat(result.getCumulativeReturn()).isWithin(1e-9).of(expectedGrossProfit - expectedGrossLoss);
+
+    double legacyGrossProfitLossRatio = (expectedGrossProfit / 2.0) / expectedGrossLoss;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
+  }
+
+  @Test
+  public void runBacktest_withLosingTradeAndZeroWins_returnsZeroProfitFactor()
+      throws InvalidProtocolBufferException {
+    // Arrange - Deterministic series producing 1 losing closed trade and 0 wins
+    addDeterministicLosingBars();
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isAtLeast(1);
+    assertThat(result.getWinRate()).isEqualTo(0.0);
+    assertThat(result.getCumulativeReturn()).isLessThan(0.0);
+    assertThat(result.getProfitFactor()).isEqualTo(0.0);
+    double legacyGrossProfitLossRatio = 0.0;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
   }
 
   @Test
@@ -246,6 +418,67 @@ public class BacktestRunnerImplTest {
     }
   }
 
+  private void addDeterministicWinningBars() {
+    candlesList.clear();
+    ZonedDateTime fixedStartTime = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    List<Double> prices = new ArrayList<>();
+    for (int i = 0; i < 27; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 95.0, 8);
+    for (int i = 0; i < 5; i++) prices.add(95.0);
+    addRamp(prices, 95.0, 125.0, 17);
+    addRamp(prices, 125.0, 118.0, 12);
+    for (int i = 0; i < 11; i++) prices.add(118.0);
+
+    for (int i = 0; i < prices.size(); i++) {
+      candlesList.add(createCandle(fixedStartTime.plusHours(i), prices.get(i)));
+    }
+  }
+
+  private void addDeterministicMultiTradeBars() {
+    candlesList.clear();
+    ZonedDateTime fixedStartTime = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    List<Double> prices = new ArrayList<>();
+    for (int i = 0; i < 27; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 95.0, 8);
+    for (int i = 0; i < 5; i++) prices.add(95.0);
+    addRamp(prices, 95.0, 125.0, 17);
+    addRamp(prices, 125.0, 118.0, 12);
+    for (int i = 0; i < 10; i++) prices.add(118.0);
+    addRamp(prices, 118.0, 126.0, 8);
+    addRamp(prices, 126.0, 100.0, 15);
+    for (int i = 0; i < 10; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 145.0, 15);
+    addRamp(prices, 145.0, 135.0, 15);
+    for (int i = 0; i < 15; i++) prices.add(135.0);
+
+    for (int i = 0; i < prices.size(); i++) {
+      candlesList.add(createCandle(fixedStartTime.plusHours(i), prices.get(i)));
+    }
+  }
+
+  private void addDeterministicLosingBars() {
+    candlesList.clear();
+    ZonedDateTime fixedStartTime = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    List<Double> prices = new ArrayList<>();
+    for (int i = 0; i < 27; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 95.0, 8);
+    for (int i = 0; i < 5; i++) prices.add(95.0);
+    addRamp(prices, 95.0, 103.0, 8);
+    addRamp(prices, 103.0, 80.0, 15);
+    for (int i = 0; i < 20; i++) prices.add(80.0);
+
+    for (int i = 0; i < prices.size(); i++) {
+      candlesList.add(createCandle(fixedStartTime.plusHours(i), prices.get(i)));
+    }
+  }
+
+  private void addRamp(List<Double> prices, double start, double end, int steps) {
+    double step = (end - start) / steps;
+    for (int i = 0; i < steps; i++) {
+      prices.add(Math.round((start + i * step) * 100.0) / 100.0);
+    }
+  }
+
   private Candle createCandle(ZonedDateTime time, double price) {
     return Candle.newBuilder()
         .setTimestamp(Timestamps.fromMillis(time.toInstant().toEpochMilli()))
@@ -256,5 +489,26 @@ public class BacktestRunnerImplTest {
         .setVolume(100)
         .setCurrencyPair("BTC/USD")
         .build();
+  }
+
+  private static double normalizeLegacy(double value) {
+    if (Double.isNaN(value)) return Double.NaN;
+    double min = -1.0;
+    double max = 2.0;
+    double scaled = (value - min) / (max - min);
+    return Math.min(Math.max(scaled, 0.0), 1.0);
+  }
+
+  private static double calculateExpectedLegacyScore(
+      double sharpeRatio,
+      double maxDrawdown,
+      double winRate,
+      double annualizedReturn,
+      double legacyProfitFactor) {
+    return 0.25 * normalizeLegacy(sharpeRatio)
+        + 0.20 * (1.0 - maxDrawdown)
+        + 0.20 * winRate
+        + 0.20 * normalizeLegacy(annualizedReturn)
+        + 0.15 * normalizeLegacy(legacyProfitFactor);
   }
 }

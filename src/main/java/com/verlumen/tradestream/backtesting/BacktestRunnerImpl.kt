@@ -51,7 +51,7 @@ class BacktestRunnerImpl
 
             // Calculate basic metrics
             val cumulativeReturn = calculateMetric(series, tradingRecord, GrossProfitLossCriterion())
-            val profitFactor = calculateMetric(series, tradingRecord, GrossProfitLossRatioCriterion())
+            val profitFactor = calculateProfitFactor(tradingRecord)
             val annualizedReturn = calculateAnnualizedReturn(series, tradingRecord)
 
             // Calculate risk metrics
@@ -71,7 +71,10 @@ class BacktestRunnerImpl
             val alpha = 0.0 // TODO: Implement when benchmark data is available
             val beta = 1.0 // TODO: Implement when benchmark data is available
 
-            val score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, profitFactor)
+            // Preserve legacy GrossProfitLossRatioCriterion term for strategyScore (GA discovery fitness)
+            // so changing BacktestResult.profitFactor to true closed-trade PF does not silently alter GA fitness.
+            val legacyScoreProfitFactor = calculateMetric(series, tradingRecord, GrossProfitLossRatioCriterion())
+            val score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, legacyScoreProfitFactor)
 
             return BacktestResult
                 .newBuilder()
@@ -235,6 +238,23 @@ class BacktestRunnerImpl
             val riskFreeRate = 0.02 // Assume 2% risk-free rate
 
             return if (downsideDeviation == 0.0) 0.0 else (totalReturn - riskFreeRate) / downsideDeviation
+        }
+
+        private fun calculateProfitFactor(record: TradingRecord): Double {
+            val positions = record.positions
+            val grossProfit =
+                positions
+                    .filter { it.grossProfit.isPositive }
+                    .sumOf { it.grossProfit.doubleValue() }
+            val grossLoss =
+                positions
+                    .filter { it.grossProfit.isNegative }
+                    .sumOf { kotlin.math.abs(it.grossProfit.doubleValue()) }
+            return if (grossLoss == 0.0) {
+                Double.NaN
+            } else {
+                grossProfit / grossLoss
+            }
         }
 
         private fun calculateScore(

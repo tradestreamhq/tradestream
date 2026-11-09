@@ -68,7 +68,7 @@ class BacktestCli(
                 .build()
                 .defaultHelp(true)
                 .description(
-                    "Run a deterministic backtest on fixture CSV market data (fixture-only, long-only, 1-unit runner trades scaled by position_units = initial_capital / first filtered close; closed-trade gross P&L only, no open-position valuation, no compounding/cash constraint).",
+                    "Run a deterministic backtest on fixture CSV market data (fixture-only, long-only, 1-unit runner trades scaled by position_units = initial_capital / first filtered close; closed-trade gross P&L only, no open-position valuation, no compounding/cash constraint; win_rate, profit_factor (gross_profit / |gross_loss|), and avg_trade_duration_bars are null when undefined: 0 closed trades, or 0 gross loss for profit_factor).",
                 )
 
         parser
@@ -422,7 +422,9 @@ class BacktestCli(
                         "final_capital" to roundFinite(finalCapital, 2),
                         "total_trades" to result.numberOfTrades,
                         "win_rate" to if (result.numberOfTrades > 0) roundFinite(result.winRate, 4) else null,
-                        "avg_trade_duration_bars" to roundFinite(result.averageTradeDuration, 1),
+                        "profit_factor" to if (result.numberOfTrades > 0) roundFinite(result.profitFactor, 4) else null,
+                        "avg_trade_duration_bars" to
+                            if (result.numberOfTrades > 0) roundFinite(result.averageTradeDuration, 1) else null,
                     ),
             )
 

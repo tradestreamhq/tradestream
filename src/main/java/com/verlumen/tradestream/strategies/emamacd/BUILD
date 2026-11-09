@@ -3,6 +3,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(
     default_visibility = [
         "//src/main/java/com/verlumen/tradestream/strategies:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/backtesting/cli:__pkg__",
         "//src/test/java/com/verlumen/tradestream/strategies/emamacd:__pkg__",
     ],
 )
