@@ -158,6 +158,7 @@ public class BacktestRunnerImplTest {
     assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
     assertThat(result.getCumulativeReturn()).isEqualTo(0.0);
     assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(0.5333333333333333);
   }
 
   @Test
@@ -179,7 +180,16 @@ public class BacktestRunnerImplTest {
     assertThat(result.getNumberOfTrades()).isAtLeast(1);
     assertThat(result.getCumulativeReturn()).isGreaterThan(0.0);
     assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
-    assertThat(Double.isFinite(result.getStrategyScore())).isTrue();
+    assertThat(result.getAnnualizedReturn()).isEqualTo(Double.POSITIVE_INFINITY);
+    double legacyGrossProfitLossRatio = 1.0;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
   }
 
   @Test
@@ -205,6 +215,16 @@ public class BacktestRunnerImplTest {
     double expectedProfitFactor = expectedGrossProfit / expectedGrossLoss;
     assertThat(result.getProfitFactor()).isWithin(1e-9).of(expectedProfitFactor);
     assertThat(result.getCumulativeReturn()).isWithin(1e-9).of(expectedGrossProfit - expectedGrossLoss);
+
+    double legacyGrossProfitLossRatio = (expectedGrossProfit / 2.0) / expectedGrossLoss;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
   }
 
   @Test
@@ -227,7 +247,15 @@ public class BacktestRunnerImplTest {
     assertThat(result.getWinRate()).isEqualTo(0.0);
     assertThat(result.getCumulativeReturn()).isLessThan(0.0);
     assertThat(result.getProfitFactor()).isEqualTo(0.0);
-    assertThat(Double.isFinite(result.getStrategyScore())).isTrue();
+    double legacyGrossProfitLossRatio = 0.0;
+    double expectedLegacyScore =
+        calculateExpectedLegacyScore(
+            result.getSharpeRatio(),
+            result.getMaxDrawdown(),
+            result.getWinRate(),
+            result.getAnnualizedReturn(),
+            legacyGrossProfitLossRatio);
+    assertThat(result.getStrategyScore()).isWithin(1e-9).of(expectedLegacyScore);
   }
 
   @Test
@@ -307,14 +335,13 @@ public class BacktestRunnerImplTest {
     }
   }
 
-  // Create stable data that won't trigger trades
+  // Create stable data that won't trigger trades (flat bars)
   private void addTestBarsForNoTrades() {
     candlesList.clear();
     double basePrice = 100.0;
-    // Very stable prices with minimal variation
+    // Flat prices that won't trigger trades
     for (int i = 0; i < 25; i++) {
-      double price = basePrice + (Math.sin(i * 0.1) * 0.5); // Tiny oscillation
-      candlesList.add(createCandle(startTime.plusMinutes(i), price));
+      candlesList.add(createCandle(startTime.plusMinutes(i), basePrice));
     }
   }
 
@@ -389,5 +416,28 @@ public class BacktestRunnerImplTest {
         .setVolume(100)
         .setCurrencyPair("BTC/USD")
         .build();
+  }
+
+  private static double normalizeLegacy(double value) {
+    if (Double.isNaN(value)) return 0.0;
+    if (value == Double.POSITIVE_INFINITY) return 1.0;
+    if (value == Double.NEGATIVE_INFINITY) return 0.0;
+    double min = -1.0;
+    double max = 2.0;
+    double clamped = Math.min(Math.max(value, min), max);
+    return (clamped - min) / (max - min);
+  }
+
+  private static double calculateExpectedLegacyScore(
+      double sharpeRatio,
+      double maxDrawdown,
+      double winRate,
+      double annualizedReturn,
+      double legacyProfitFactor) {
+    return 0.25 * normalizeLegacy(sharpeRatio)
+        + 0.20 * (1.0 - maxDrawdown)
+        + 0.20 * winRate
+        + 0.20 * normalizeLegacy(annualizedReturn)
+        + 0.15 * normalizeLegacy(legacyProfitFactor);
   }
 }

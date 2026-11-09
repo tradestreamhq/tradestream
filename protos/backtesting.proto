@@ -60,6 +60,8 @@ message BacktestResult {
   double max_drawdown = 6;
   double volatility = 7;
   double win_rate = 8;
+  // Closed-trade gross_profit / |gross_loss|. Carries IEEE 754 NaN when undefined
+  // (0 closed trades or 0 gross loss); CLI JSON serializes non-finite values as null.
   double profit_factor = 9;
   int32 number_of_trades = 10;
   double average_trade_duration = 11;
