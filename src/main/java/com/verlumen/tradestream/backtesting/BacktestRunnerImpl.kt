@@ -10,7 +10,6 @@ import org.ta4j.core.BaseTradingRecord
 import org.ta4j.core.Strategy
 import org.ta4j.core.TradingRecord
 import org.ta4j.core.criteria.pnl.GrossProfitLossCriterion
-import org.ta4j.core.criteria.pnl.GrossProfitLossRatioCriterion
 import org.ta4j.core.criteria.pnl.GrossReturnCriterion
 import kotlin.math.max
 import kotlin.math.pow
@@ -51,7 +50,7 @@ class BacktestRunnerImpl
 
             // Calculate basic metrics
             val cumulativeReturn = calculateMetric(series, tradingRecord, GrossProfitLossCriterion())
-            val profitFactor = calculateMetric(series, tradingRecord, GrossProfitLossRatioCriterion())
+            val profitFactor = calculateProfitFactor(tradingRecord)
             val annualizedReturn = calculateAnnualizedReturn(series, tradingRecord)
 
             // Calculate risk metrics
@@ -71,7 +70,7 @@ class BacktestRunnerImpl
             val alpha = 0.0 // TODO: Implement when benchmark data is available
             val beta = 1.0 // TODO: Implement when benchmark data is available
 
-            val score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, profitFactor)
+            val score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, profitFactor, cumulativeReturn)
 
             return BacktestResult
                 .newBuilder()
@@ -237,20 +236,47 @@ class BacktestRunnerImpl
             return if (downsideDeviation == 0.0) 0.0 else (totalReturn - riskFreeRate) / downsideDeviation
         }
 
+        private fun calculateProfitFactor(record: TradingRecord): Double {
+            val closedPositions = record.positions.filter { it.isClosed }
+            val grossProfit =
+                closedPositions
+                    .filter { it.profit.isPositive }
+                    .sumOf { it.profit.doubleValue() }
+            val grossLoss =
+                closedPositions
+                    .filter { it.profit.isNegative }
+                    .sumOf { kotlin.math.abs(it.profit.doubleValue()) }
+            return if (closedPositions.isEmpty() || grossLoss == 0.0) {
+                Double.NaN
+            } else {
+                grossProfit / grossLoss
+            }
+        }
+
         private fun calculateScore(
             sharpeRatio: Double,
             maxDrawdown: Double,
             winRate: Double,
             annualizedReturn: Double,
             profitFactor: Double,
-        ): Double =
-            0.25 * normalize(sharpeRatio) + // Risk-adjusted returns
+            cumulativeReturn: Double,
+        ): Double {
+            val normalizedProfitFactor =
+                if (!profitFactor.isFinite()) {
+                    if (cumulativeReturn > 0.0) 1.0 else 0.0
+                } else {
+                    normalize(profitFactor)
+                }
+
+            return 0.25 * normalize(sharpeRatio) + // Risk-adjusted returns
                 0.20 * (1 - maxDrawdown) + // Capital preservation
                 0.20 * winRate + // Consistency
                 0.20 * normalize(annualizedReturn) + // Absolute returns
-                0.15 * normalize(profitFactor) // Profit efficiency
+                0.15 * normalizedProfitFactor // Profit efficiency
+        }
 
         private fun normalize(value: Double): Double {
+            if (!value.isFinite()) return 0.0
             // Simple min-max normalization with reasonable bounds
             val min = -1.0
             val max = 2.0

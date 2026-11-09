@@ -5,12 +5,14 @@ import com.google.gson.JsonParser
 import com.verlumen.tradestream.backtesting.BacktestRequest
 import com.verlumen.tradestream.backtesting.BacktestResult
 import com.verlumen.tradestream.backtesting.BacktestRunner
+import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.time.Instant
 
 @RunWith(JUnit4::class)
 class BacktestCliTest {
@@ -52,33 +54,46 @@ class BacktestCliTest {
         return ema
     }
 
+    private fun addRamp(prices: MutableList<Double>, start: Double, end: Double, steps: Int) {
+        val step = (end - start) / steps
+        for (i in 0 until steps) {
+            prices.add(kotlin.math.round((start + i * step) * 100.0) / 100.0)
+        }
+    }
+
     /**
-     * Independently computes EMA(12)/EMA(26) MACD crossover trades matching ta4j's
+     * Independently computes EMA(shortPeriod)/EMA(longPeriod) MACD crossover trades matching ta4j's
      * org.ta4j:ta4j-core:0.22.0 convention:
-     * - EMA(12) is seeded at bar 12 with close[12].
-     * - EMA(26) is seeded at bar 26 with close[26].
-     * - MACD line = EMA(12) - EMA(26), defined from bar 26 onward.
-     * - Signal line = 9-period EMA of MACD, seeded at bar 26 with macd[26] (matching
-     *   EmaMacdStrategyFactory with unstableBars = 26).
-     * - Entry on CrossedUp (macd crosses above signal) and exit on CrossedDown (macd crosses below signal).
+     * - EMA(shortPeriod) is seeded at bar shortPeriod with close[shortPeriod].
+     * - EMA(longPeriod) is seeded at bar longPeriod with close[longPeriod].
+     * - MACD line = EMA(shortPeriod) - EMA(longPeriod), defined from bar longPeriod onward.
+     * - Signal line = signalPeriod-period EMA of MACD, seeded at bar longPeriod with macd[longPeriod] (matching
+     *   EmaMacdStrategyFactory with unstableBars = longPeriod).
+     * - Entry on CrossedUp (macd crosses above signal) and exit on CrossedDown (macd crosses below signal),
+     *   walking backward across intermediate equality plateaus (macd == signal) to find the prior unequal bar.
      */
-    private fun computeIndependentEmaMacdTrades(closes: List<Double>): List<IndependentTrade> {
-        val ema12 = computeIndependentEma(closes, startIndex = 12, period = 12)
-        val ema26 = computeIndependentEma(closes, startIndex = 26, period = 26)
+    private fun computeIndependentEmaMacdTrades(
+        closes: List<Double>,
+        shortPeriod: Int = 12,
+        longPeriod: Int = 26,
+        signalPeriod: Int = 9,
+    ): List<IndependentTrade> {
+        val emaShort = computeIndependentEma(closes, startIndex = shortPeriod, period = shortPeriod)
+        val emaLong = computeIndependentEma(closes, startIndex = longPeriod, period = longPeriod)
         val macd = ArrayList<Double?>(closes.size)
         for (i in closes.indices) {
-            val e12 = ema12[i]
-            val e26 = ema26[i]
-            if (e12 != null && e26 != null) {
-                macd.add(e12 - e26)
+            val eS = emaShort[i]
+            val eL = emaLong[i]
+            if (eS != null && eL != null) {
+                macd.add(eS - eL)
             } else {
                 macd.add(null)
             }
         }
-        val signalValues = macd.drop(26).filterNotNull()
-        val signalEma = computeIndependentEma(signalValues, startIndex = 0, period = 9)
+        val signalValues = macd.drop(longPeriod).filterNotNull()
+        val signalEma = computeIndependentEma(signalValues, startIndex = 0, period = signalPeriod)
         val signal = ArrayList<Double?>(closes.size)
-        for (i in 0 until 26) {
+        for (i in 0 until longPeriod) {
             signal.add(null)
         }
         signal.addAll(signalEma)
@@ -86,17 +101,37 @@ class BacktestCliTest {
         val trades = mutableListOf<IndependentTrade>()
         var entryBar: Int? = null
 
-        for (i in 27 until closes.size) {
-            val prevM = macd[i - 1]
-            val currM = macd[i]
-            val prevS = signal[i - 1]
-            val currS = signal[i]
-            if (prevM == null || currM == null || prevS == null || currS == null) continue
+        for (i in (longPeriod + 1) until closes.size) {
+            val currM = macd[i] ?: continue
+            val currS = signal[i] ?: continue
 
-            // Ta4j CrossedUpIndicatorRule requires strictly less than on prev and strictly greater on curr
-            val crossedOver = prevM < prevS && currM > currS
-            // Ta4j CrossedDownIndicatorRule requires strictly greater than on prev and strictly less on curr
-            val crossedUnder = prevM > prevS && currM < currS
+            var crossedOver = false
+            if (currM > currS) {
+                for (prevIdx in (i - 1) downTo 0) {
+                    val pM = macd[prevIdx] ?: break
+                    val pS = signal[prevIdx] ?: break
+                    if (pM < pS) {
+                        crossedOver = true
+                        break
+                    } else if (pM > pS) {
+                        break
+                    }
+                }
+            }
+
+            var crossedUnder = false
+            if (currM < currS) {
+                for (prevIdx in (i - 1) downTo 0) {
+                    val pM = macd[prevIdx] ?: break
+                    val pS = signal[prevIdx] ?: break
+                    if (pM > pS) {
+                        crossedUnder = true
+                        break
+                    } else if (pM < pS) {
+                        break
+                    }
+                }
+            }
 
             if (entryBar == null) {
                 if (crossedOver) {
@@ -142,6 +177,7 @@ class BacktestCliTest {
                 "final_capital",
                 "total_trades",
                 "win_rate",
+                "profit_factor",
                 "avg_trade_duration_bars",
             )
         assertThat(results.get("initial_capital").asDouble).isEqualTo(10000.0)
@@ -151,7 +187,8 @@ class BacktestCliTest {
         assertThat(results.get("final_capital").asDouble).isEqualTo(10000.0)
         assertThat(results.get("total_trades").asInt).isEqualTo(0)
         assertThat(results.get("win_rate").isJsonNull).isTrue()
-        assertThat(results.get("avg_trade_duration_bars").asDouble).isEqualTo(0.0)
+        assertThat(results.get("profit_factor").isJsonNull).isTrue()
+        assertThat(results.get("avg_trade_duration_bars").isJsonNull).isTrue()
     }
 
     @Test
@@ -230,6 +267,7 @@ class BacktestCliTest {
                 "final_capital",
                 "total_trades",
                 "win_rate",
+                "profit_factor",
                 "avg_trade_duration_bars",
             )
         assertThat(results.get("initial_capital").asDouble).isEqualTo(10000.0)
@@ -241,8 +279,8 @@ class BacktestCliTest {
         assertThat(results.get("win_rate").asDouble).isEqualTo(expectedWinRate)
         assertThat(results.get("avg_trade_duration_bars").asDouble).isEqualTo(expectedDurationBars)
 
-        // Verify profit_factor was removed per SOL-T1-R3-1 / TS-T1R3-OPUS-01
-        assertThat(results.has("profit_factor")).isFalse()
+        // With 1 winning trade and 0 losses, gross_loss == 0 so profit_factor is null (undefined)
+        assertThat(results.get("profit_factor").isJsonNull).isTrue()
 
         // Verify excluded metrics from Issue #1461
         assertThat(results.has("sharpe_ratio")).isFalse()
@@ -254,6 +292,106 @@ class BacktestCliTest {
 
         assertThat(json.has("recommendation")).isFalse()
         assertThat(results.has("total_return_pct")).isFalse()
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun execute_withMultiCrossingFixtureAndEmaMacd_computesTrueProfitFactorAndDiscriminatesParameters() {
+        // 1. Assert default parameters directly from EmaMacdStrategyFactory
+        val defaultParams = EmaMacdStrategyFactory().defaultParameters
+        assertThat(defaultParams.shortEmaPeriod).isEqualTo(12)
+        assertThat(defaultParams.longEmaPeriod).isEqualTo(26)
+        assertThat(defaultParams.signalPeriod).isEqualTo(9)
+
+        // 2. Generate deterministic synthetic hourly price trajectory with 3 closed trades (2 wins, 1 loss)
+        val prices = mutableListOf<Double>()
+        for (i in 0 until 27) prices.add(100.0)
+        addRamp(prices, 100.0, 95.0, 8)
+        for (i in 0 until 5) prices.add(95.0)
+        addRamp(prices, 95.0, 125.0, 17)
+        addRamp(prices, 125.0, 118.0, 12)
+        for (i in 0 until 10) prices.add(118.0)
+        addRamp(prices, 118.0, 126.0, 8)
+        addRamp(prices, 126.0, 100.0, 15)
+        for (i in 0 until 10) prices.add(100.0)
+        addRamp(prices, 100.0, 145.0, 15)
+        addRamp(prices, 145.0, 135.0, 15)
+        for (i in 0 until 15) prices.add(135.0)
+
+        // 3. Verify independent oracle produces 3 closed trades (2 wins, 1 loss) for default (12, 26, 9)
+        val defaultTrades = computeIndependentEmaMacdTrades(prices, 12, 26, 9)
+        assertThat(defaultTrades).hasSize(3)
+        val wins = defaultTrades.filter { it.grossPnl > 0.0 }
+        val losses = defaultTrades.filter { it.grossPnl < 0.0 }
+        assertThat(wins).hasSize(2)
+        assertThat(losses).hasSize(1)
+
+        val grossProfit = wins.sumOf { it.grossPnl }
+        val grossLoss = kotlin.math.abs(losses.sumOf { it.grossPnl })
+        val expectedProfitFactor = kotlin.math.round((grossProfit / grossLoss) * 10000.0) / 10000.0
+        val avgWin = grossProfit / wins.size
+        val avgLoss = grossLoss / losses.size
+        val oldTa4jRatioOfAverages = kotlin.math.round((avgWin / avgLoss) * 10000.0) / 10000.0
+        assertThat(expectedProfitFactor).isEqualTo(28.4727)
+        assertThat(oldTa4jRatioOfAverages).isEqualTo(14.2364)
+        assertThat(expectedProfitFactor).isNotEqualTo(oldTa4jRatioOfAverages)
+
+        // 4. Prove that perturbing any single parameter by ±1 discriminates and changes execution
+        assertThat(computeIndependentEmaMacdTrades(prices, 11, 26, 9)).isNotEqualTo(defaultTrades)
+        assertThat(computeIndependentEmaMacdTrades(prices, 13, 26, 9)).isNotEqualTo(defaultTrades)
+        assertThat(computeIndependentEmaMacdTrades(prices, 12, 25, 9)).isNotEqualTo(defaultTrades)
+        assertThat(computeIndependentEmaMacdTrades(prices, 12, 27, 9)).isNotEqualTo(defaultTrades)
+        assertThat(computeIndependentEmaMacdTrades(prices, 12, 26, 8)).isNotEqualTo(defaultTrades)
+        assertThat(computeIndependentEmaMacdTrades(prices, 12, 26, 10)).isNotEqualTo(defaultTrades)
+
+        // 5. Write synthetic CSV fixture
+        val csvFile = tempFolder.newFile("multi_crossing_hourly.csv")
+        val baseTime = Instant.parse("2024-01-01T00:00:00Z")
+        csvFile.bufferedWriter().use { writer ->
+            writer.write("timestamp,open,high,low,close,volume\n")
+            prices.forEachIndexed { idx, close ->
+                val timeStr = baseTime.plusSeconds(idx * 3600L).toString()
+                val high = close * 1.01
+                val low = close * 0.99
+                writer.write("$timeStr,$close,$high,$low,$close,100.0\n")
+            }
+        }
+
+        // 6. Run BacktestCli on synthetic CSV
+        val result = cli.execute(arrayOf("--strategy", "EMA_MACD", "--fixtures", csvFile.absolutePath))
+        assertThat(result.exitCode).isEqualTo(0)
+
+        val json = JsonParser.parseString(result.stdout).asJsonObject
+        val metrics = json.getAsJsonObject("results")
+        assertThat(metrics.keySet())
+            .containsExactly(
+                "initial_capital",
+                "position_units",
+                "gross_pnl_per_unit",
+                "gross_pnl",
+                "final_capital",
+                "total_trades",
+                "win_rate",
+                "profit_factor",
+                "avg_trade_duration_bars",
+            )
+
+        val initialClose = prices.first()
+        val expectedPositionUnits = 10000.0 / initialClose
+        val grossPnlPerUnit = kotlin.math.round(defaultTrades.sumOf { it.grossPnl } * 100.0) / 100.0
+        val expectedGrossPnl = kotlin.math.round(expectedPositionUnits * grossPnlPerUnit * 100.0) / 100.0
+        val expectedFinalCapital = kotlin.math.round((10000.0 + expectedGrossPnl) * 100.0) / 100.0
+
+        assertThat(metrics.get("initial_capital").asDouble).isEqualTo(10000.0)
+        assertThat(metrics.get("position_units").asDouble).isEqualTo(expectedPositionUnits)
+        assertThat(metrics.get("gross_pnl_per_unit").asDouble).isEqualTo(60.44)
+        assertThat(metrics.get("gross_pnl").asDouble).isEqualTo(6044.0)
+        assertThat(metrics.get("final_capital").asDouble).isEqualTo(expectedFinalCapital)
+        assertThat(metrics.get("total_trades").asInt).isEqualTo(3)
+        assertThat(metrics.get("win_rate").asDouble).isEqualTo(0.6667)
+        assertThat(metrics.get("profit_factor").asDouble).isEqualTo(expectedProfitFactor)
+        assertThat(metrics.get("profit_factor").asDouble).isNotEqualTo(oldTa4jRatioOfAverages)
+        assertThat(metrics.get("avg_trade_duration_bars").asDouble).isEqualTo(16.7)
     }
 
     @Test
@@ -347,6 +485,7 @@ class BacktestCliTest {
                 "final_capital",
                 "total_trades",
                 "win_rate",
+                "profit_factor",
                 "avg_trade_duration_bars",
             )
         assertThat(metrics.get("initial_capital").asDouble).isEqualTo(10000.0)
@@ -356,8 +495,8 @@ class BacktestCliTest {
         assertThat(metrics.get("final_capital").asDouble).isEqualTo(10000.03)
         assertThat(metrics.get("total_trades").asInt).isEqualTo(47)
         assertThat(metrics.get("win_rate").asDouble).isEqualTo(0.62)
+        assertThat(metrics.get("profit_factor").asDouble).isEqualTo(1.95)
         assertThat(metrics.get("avg_trade_duration_bars").asDouble).isEqualTo(15.5)
-        assertThat(metrics.has("profit_factor")).isFalse()
     }
 
     @Test
@@ -390,6 +529,7 @@ class BacktestCliTest {
                 "final_capital",
                 "total_trades",
                 "win_rate",
+                "profit_factor",
                 "avg_trade_duration_bars",
             )
         assertThat(results.get("initial_capital").asDouble).isEqualTo(10000.0)
@@ -398,9 +538,9 @@ class BacktestCliTest {
         assertThat(results.get("gross_pnl").isJsonNull).isTrue()
         assertThat(results.get("final_capital").isJsonNull).isTrue()
         assertThat(results.get("win_rate").isJsonNull).isTrue()
+        assertThat(results.get("profit_factor").isJsonNull).isTrue()
         assertThat(results.get("avg_trade_duration_bars").isJsonNull).isTrue()
         assertThat(results.get("total_trades").asInt).isEqualTo(0)
-        assertThat(results.has("profit_factor")).isFalse()
     }
 
     @Test

@@ -14,6 +14,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategySpecs;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,6 +157,53 @@ public class BacktestRunnerImplTest {
     assertThat(result.getWinRate()).isEqualTo(0.0);
     assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
     assertThat(result.getCumulativeReturn()).isEqualTo(0.0);
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+  }
+
+  @Test
+  public void runBacktest_withWinningTradeAndZeroLosses_returnsNanProfitFactor()
+      throws InvalidProtocolBufferException {
+    // Arrange - Deterministic series producing 1 winning closed trade and 0 losses
+    addDeterministicWinningBars();
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isAtLeast(1);
+    assertThat(result.getCumulativeReturn()).isGreaterThan(0.0);
+    assertThat(Double.isNaN(result.getProfitFactor())).isTrue();
+    assertThat(Double.isFinite(result.getStrategyScore())).isTrue();
+  }
+
+  @Test
+  public void runBacktest_withMixedWinningAndLosingTrades_calculatesGrossProfitOverGrossLoss()
+      throws InvalidProtocolBufferException {
+    // Arrange - Deterministic series producing 2 winning closed trades and 1 losing closed trade
+    addDeterministicMultiTradeBars();
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(createStrategyWithDefaults("EMA_MACD"))
+            .build();
+
+    // Act
+    BacktestResult result = backtestRunner.runBacktest(request);
+
+    // Assert
+    assertThat(result.getNumberOfTrades()).isEqualTo(3);
+    assertThat(result.getWinRate()).isWithin(1e-4).of(2.0 / 3.0);
+    double expectedGrossProfit = 62.64;
+    double expectedGrossLoss = 2.20;
+    double expectedProfitFactor = expectedGrossProfit / expectedGrossLoss;
+    assertThat(result.getProfitFactor()).isWithin(1e-9).of(expectedProfitFactor);
   }
 
   @Test
@@ -243,6 +291,51 @@ public class BacktestRunnerImplTest {
     for (int i = 0; i < 25; i++) {
       double price = basePrice + (Math.sin(i * 0.1) * 0.5); // Tiny oscillation
       candlesList.add(createCandle(startTime.plusMinutes(i), price));
+    }
+  }
+
+  private void addDeterministicWinningBars() {
+    candlesList.clear();
+    ZonedDateTime fixedStartTime = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    List<Double> prices = new ArrayList<>();
+    for (int i = 0; i < 27; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 95.0, 8);
+    for (int i = 0; i < 5; i++) prices.add(95.0);
+    addRamp(prices, 95.0, 125.0, 17);
+    addRamp(prices, 125.0, 118.0, 12);
+    for (int i = 0; i < 11; i++) prices.add(118.0);
+
+    for (int i = 0; i < prices.size(); i++) {
+      candlesList.add(createCandle(fixedStartTime.plusHours(i), prices.get(i)));
+    }
+  }
+
+  private void addDeterministicMultiTradeBars() {
+    candlesList.clear();
+    ZonedDateTime fixedStartTime = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    List<Double> prices = new ArrayList<>();
+    for (int i = 0; i < 27; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 95.0, 8);
+    for (int i = 0; i < 5; i++) prices.add(95.0);
+    addRamp(prices, 95.0, 125.0, 17);
+    addRamp(prices, 125.0, 118.0, 12);
+    for (int i = 0; i < 10; i++) prices.add(118.0);
+    addRamp(prices, 118.0, 126.0, 8);
+    addRamp(prices, 126.0, 100.0, 15);
+    for (int i = 0; i < 10; i++) prices.add(100.0);
+    addRamp(prices, 100.0, 145.0, 15);
+    addRamp(prices, 145.0, 135.0, 15);
+    for (int i = 0; i < 15; i++) prices.add(135.0);
+
+    for (int i = 0; i < prices.size(); i++) {
+      candlesList.add(createCandle(fixedStartTime.plusHours(i), prices.get(i)));
+    }
+  }
+
+  private void addRamp(List<Double> prices, double start, double end, int steps) {
+    double step = (end - start) / steps;
+    for (int i = 0; i < steps; i++) {
+      prices.add(Math.round((start + i * step) * 100.0) / 100.0);
     }
   }
 

@@ -16,6 +16,7 @@ kt_jvm_test(
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
         "//third_party/java:gson",
         "//third_party/java:junit",
         "//third_party/java:truth",
