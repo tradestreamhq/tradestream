@@ -2,7 +2,6 @@ package com.verlumen.tradestream.backtesting.cli
 
 import com.google.gson.GsonBuilder
 import com.google.protobuf.Any
-import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.backtesting.BacktestRequest
 import com.verlumen.tradestream.backtesting.BacktestResult
@@ -10,7 +9,6 @@ import com.verlumen.tradestream.backtesting.BacktestRunner
 import com.verlumen.tradestream.backtesting.BacktestingModule
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.strategies.Strategy
-import com.verlumen.tradestream.strategies.StrategySpec
 import com.verlumen.tradestream.strategies.StrategySpecs
 import com.verlumen.tradestream.ta4j.Ta4jModule
 import net.sourceforge.argparse4j.ArgumentParsers
@@ -21,8 +19,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneOffset
 import kotlin.math.pow
 import kotlin.math.round
 
@@ -48,7 +44,6 @@ class BacktestCli(
         const val DEFAULT_FIXTURE_PATH = "fixtures/marketdata/btc_usd_1h.csv"
         const val DEFAULT_STRATEGY = "SMA_RSI"
         const val DEFAULT_INSTRUMENT = "BTC/USD"
-        const val DEFAULT_OUTPUT_FORMAT = "json"
         const val DEFAULT_INITIAL_CAPITAL = 10000.0
 
         @JvmStatic
@@ -73,7 +68,7 @@ class BacktestCli(
                 .build()
                 .defaultHelp(true)
                 .description(
-                    "Run a backtest on historical fixture market data and print a deterministic trade/P&L summary.",
+                    "Run a deterministic backtest on fixture CSV market data (fixture-only, long-only, 1-unit runner trades scaled by position_units = initial_capital / first filtered close; closed-trade gross P&L only, no open-position valuation, no compounding/cash constraint).",
                 )
 
         parser
@@ -92,7 +87,9 @@ class BacktestCli(
             .addArgument("--initial-capital", "-c")
             .type(Double::class.java)
             .setDefault(DEFAULT_INITIAL_CAPITAL)
-            .help("Initial capital in quote currency used to size the position (default: 10000.0)")
+            .help(
+                "Initial capital in quote currency used to size constant position_units = initial_capital / first filtered close; final_capital = initial_capital + gross_pnl from closed trades only (default: 10000.0)",
+            )
 
         parser
             .addArgument("--fixtures", "-f")
@@ -103,24 +100,12 @@ class BacktestCli(
         parser
             .addArgument("--start")
             .type(String::class.java)
-            .help("Optional start date/time (ISO-8601, e.g., 2024-01-01T00:00:00Z or YYYY-MM-DD)")
+            .help("Optional start timestamp (ISO-8601 instant, e.g., 2024-01-01T00:00:00Z)")
 
         parser
             .addArgument("--end")
             .type(String::class.java)
-            .help("Optional end date/time (ISO-8601, e.g., 2024-01-05T00:00:00Z or YYYY-MM-DD)")
-
-        parser
-            .addArgument("--output", "-o")
-            .type(String::class.java)
-            .choices("json", "text")
-            .setDefault(DEFAULT_OUTPUT_FORMAT)
-            .help("Output format (json or text)")
-
-        parser
-            .addArgument("--params")
-            .type(String::class.java)
-            .help("Optional strategy parameter overrides (JSON string)")
+            .help("Optional end timestamp (ISO-8601 instant, e.g., 2024-01-05T00:00:00Z)")
 
         return parser
     }
@@ -155,15 +140,7 @@ class BacktestCli(
     ): Int {
         val parser = createArgumentParser()
 
-        // Filter out "backtest" subcommand if passed as first argument (e.g., "tradestream backtest ...")
-        val sanitizedArgs =
-            if (args.isNotEmpty() && args[0] == "backtest") {
-                args.copyOfRange(1, args.size)
-            } else {
-                args
-            }
-
-        if (sanitizedArgs.contains("-h") || sanitizedArgs.contains("--help")) {
+        if (args.contains("-h") || args.contains("--help")) {
             val writer = java.io.PrintWriter(out, true)
             parser.printHelp(writer)
             return 0
@@ -171,7 +148,7 @@ class BacktestCli(
 
         val ns: Namespace =
             try {
-                parser.parseArgs(sanitizedArgs)
+                parser.parseArgs(args)
             } catch (e: net.sourceforge.argparse4j.helper.HelpScreenException) {
                 return 0
             } catch (e: ArgumentParserException) {
@@ -188,18 +165,15 @@ class BacktestCli(
             return 2
         }
         val fixturesPath = ns.getString("fixtures") ?: DEFAULT_FIXTURE_PATH
-        val outputFormat = ns.getString("output") ?: DEFAULT_OUTPUT_FORMAT
         val startFilter = ns.getString("start")
         val endFilter = ns.getString("end")
-        val paramsJson = ns.getString("params")
 
         // 1. Resolve strategy
-        val strategySpecPair = findStrategySpec(strategyInput)
-        if (strategySpecPair == null) {
+        if (!StrategySpecs.isSupported(strategyInput)) {
             err.println("Error: Strategy '$strategyInput' is not supported.")
             err.println("Available strategies (${StrategySpecs.size()}):")
-            StrategySpecs.getSupportedStrategyNames().take(15).forEach {
-                err.println("  - $it")
+            for (s in StrategySpecs.getSupportedStrategyNames().sorted().take(15)) {
+                err.println("  - $s")
             }
             if (StrategySpecs.size() > 15) {
                 err.println("  ... (${StrategySpecs.size() - 15} more)")
@@ -207,7 +181,7 @@ class BacktestCli(
             return 2
         }
 
-        val (canonicalStrategyName, spec) = strategySpecPair
+        val spec = StrategySpecs.getSpec(strategyInput)
 
         // 2. Load and filter candle fixtures
         val fixtureFile = resolveFixtureFile(fixturesPath)
@@ -243,31 +217,11 @@ class BacktestCli(
         }
 
         // 3. Build BacktestRequest with strategy parameters
-        val defaultParams = spec.strategyFactory.defaultParameters
-        val configuredParams =
-            if (paramsJson != null && paramsJson.isNotBlank()) {
-                try {
-                    val overrideBuilder = defaultParams.newBuilderForType()
-                    JsonFormat.parser().merge(paramsJson, overrideBuilder)
-                    val overrides = overrideBuilder.build()
-                    val merged = defaultParams.toBuilder()
-                    for ((field, value) in overrides.allFields) {
-                        merged.setField(field, value)
-                    }
-                    merged.build()
-                } catch (e: Exception) {
-                    err.println("Error: Invalid --params JSON for strategy '$canonicalStrategyName': ${e.message}")
-                    return 2
-                }
-            } else {
-                defaultParams
-            }
-
         val strategyProto =
             Strategy
                 .newBuilder()
-                .setStrategyName(canonicalStrategyName)
-                .setParameters(Any.pack(configuredParams))
+                .setStrategyName(strategyInput)
+                .setParameters(Any.pack(spec.strategyFactory.defaultParameters))
                 .build()
 
         val request =
@@ -291,31 +245,11 @@ class BacktestCli(
         val periodEnd = formatTimestamp(candles.last().timestamp)
         val initialClose = candles.first().close
 
-        if (outputFormat.equals("text", ignoreCase = true)) {
-            printTextSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, initialClose, result)
-        } else {
-            printJsonSummary(out, canonicalStrategyName, instrument, periodStart, periodEnd, initialCapital, initialClose, result)
-        }
-
+        printJsonSummary(out, strategyInput, instrument, periodStart, periodEnd, initialCapital, initialClose, result)
         return 0
     }
 
-    private fun findStrategySpec(name: String): Pair<String, StrategySpec>? {
-        val trimmed = name.trim()
-        val normalized = trimmed.uppercase().replace("-", "_")
-
-        if (StrategySpecs.isSupported(normalized)) {
-            return normalized to StrategySpecs.getSpec(normalized)
-        }
-
-        val match =
-            StrategySpecs.getSupportedStrategyNames().firstOrNull {
-                it.equals(trimmed, ignoreCase = true) || it.equals(normalized, ignoreCase = true)
-            }
-        return match?.let { it to StrategySpecs.getSpec(it) }
-    }
-
-    private fun resolveFixtureFile(pathStr: String): File {
+    internal fun resolveFixtureFile(pathStr: String): File {
         val file = File(pathStr)
         if (file.exists()) {
             return file
@@ -407,36 +341,12 @@ class BacktestCli(
         return candles
     }
 
-    private fun parseFilterTimestamp(
-        raw: String,
-        isEndOfDay: Boolean,
-    ): Long {
-        val trimmed = raw.trim()
-
-        // 1. Try ISO-8601 Instant (e.g., 2024-01-01T00:00:00Z)
-        try {
-            return Instant.parse(trimmed).toEpochMilli()
-        } catch (_: Exception) {
-            // Fall through to YYYY-MM-DD LocalDate parsing
+    private fun parseFilterTimestamp(raw: String): Long {
+        return try {
+            Instant.parse(raw.trim()).toEpochMilli()
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Malformed ISO-8601 timestamp: '$raw'. Expected e.g. 2024-01-01T00:00:00Z")
         }
-
-        // 2. Try YYYY-MM-DD date only
-        try {
-            val localDate = LocalDate.parse(trimmed)
-            val instant =
-                if (isEndOfDay) {
-                    localDate.atTime(23, 59, 59, 999_000_000).toInstant(ZoneOffset.UTC)
-                } else {
-                    localDate.atStartOfDay(ZoneOffset.UTC).toInstant()
-                }
-            return instant.toEpochMilli()
-        } catch (_: Exception) {
-            // Handled below by IllegalArgumentException
-        }
-
-        throw IllegalArgumentException(
-            "Malformed date/time string: '$raw'. Expected ISO-8601 (e.g., 2024-01-01T00:00:00Z) or YYYY-MM-DD (e.g., 2024-01-01)",
-        )
     }
 
     private fun parseTimestampString(raw: String): com.google.protobuf.Timestamp =
@@ -450,8 +360,8 @@ class BacktestCli(
         startFilter: String?,
         endFilter: String?,
     ): List<Candle> {
-        val startMillis = startFilter?.let { parseFilterTimestamp(it, isEndOfDay = false) }
-        val endMillis = endFilter?.let { parseFilterTimestamp(it, isEndOfDay = true) }
+        val startMillis = startFilter?.let { parseFilterTimestamp(it) }
+        val endMillis = endFilter?.let { parseFilterTimestamp(it) }
 
         if (startMillis != null && endMillis != null && startMillis > endMillis) {
             throw IllegalArgumentException(
@@ -473,7 +383,10 @@ class BacktestCli(
     ): Double? {
         if (!value.isFinite()) return null
         val factor = 10.0.pow(decimals)
-        return round(value * factor) / factor
+        val scaled = value * factor
+        if (!scaled.isFinite()) return null
+        val rounded = round(scaled) / factor
+        return if (rounded.isFinite()) rounded else null
     }
 
     private fun printJsonSummary(
@@ -508,47 +421,12 @@ class BacktestCli(
                         "gross_pnl" to roundFinite(grossPnl, 2),
                         "final_capital" to roundFinite(finalCapital, 2),
                         "total_trades" to result.numberOfTrades,
-                        "win_rate" to roundFinite(result.winRate, 4),
-                        "profit_factor" to roundFinite(result.profitFactor, 2),
+                        "win_rate" to if (result.numberOfTrades > 0) roundFinite(result.winRate, 4) else null,
                         "avg_trade_duration_bars" to roundFinite(result.averageTradeDuration, 1),
                     ),
             )
 
         val gson = GsonBuilder().serializeNulls().setPrettyPrinting().create()
         out.println(gson.toJson(jsonMap))
-    }
-
-    private fun printTextSummary(
-        out: PrintStream,
-        strategyName: String,
-        instrument: String,
-        start: String,
-        end: String,
-        initialCapital: Double,
-        initialClose: Double,
-        result: BacktestResult,
-    ) {
-        val positionUnits = initialCapital / initialClose
-        val grossPnlPerUnit = result.cumulativeReturn
-        val grossPnl = positionUnits * grossPnlPerUnit
-        val finalCapital = initialCapital + grossPnl
-
-        out.println("==================================================")
-        out.println(" TradeStream Backtest Summary")
-        out.println("==================================================")
-        out.println("Strategy:           $strategyName")
-        out.println("Instrument:         $instrument")
-        out.println("Period:             $start to $end")
-        out.println("--------------------------------------------------")
-        out.println("Initial Capital:    ${roundFinite(initialCapital, 2) ?: "N/A"}")
-        out.println("Position Units:     ${roundFinite(positionUnits, 6) ?: "N/A"}")
-        out.println("Gross PnL (1 unit): ${roundFinite(grossPnlPerUnit, 2) ?: "N/A"}")
-        out.println("Gross PnL:          ${roundFinite(grossPnl, 2) ?: "N/A"}")
-        out.println("Final Capital:      ${roundFinite(finalCapital, 2) ?: "N/A"}")
-        out.println("Total Trades:       ${result.numberOfTrades}")
-        out.println("Win Rate:           ${roundFinite(result.winRate, 4) ?: "N/A"}")
-        out.println("Profit Factor:      ${roundFinite(result.profitFactor, 2) ?: "N/A"}")
-        out.println("Avg Trade Duration: ${roundFinite(result.averageTradeDuration, 1) ?: "N/A"} bars")
-        out.println("==================================================")
     }
 }
